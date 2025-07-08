@@ -1,0 +1,15 @@
+category:
+  vpc_vpc_endpoint: VPC
+  vpc_vpc_endpoints: VPC
+  vpc_internet_gateway: VPC
+  vpc_internet_gateways: VPC
+  vpc_nat_gateway: VPC
+  vpc_nat_gateways: VPC
+  vpc_publicip: VPC
+  vpc_publicips: VPC
+  vpc_port: VPC
+  vpc_ports: VPC
+  vpc_subnet: VPC
+  vpc_subnets: VPC
+  vpc_vpc: VPC
+  vpc_vpcs: VPC

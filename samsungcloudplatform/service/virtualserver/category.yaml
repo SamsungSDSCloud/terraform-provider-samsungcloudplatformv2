@@ -1,0 +1,11 @@
+category:
+  virtualserver_keypair: Keypair
+  virtualserver_keypairs: Keypair
+  virtualserver_server: Virtual Server
+  virtualserver_servers: Virtual Server
+  virtualserver_image: Image
+  virtualserver_images: Image
+  virtualserver_server_group: Server Group
+  virtualserver_server_groups: Server Group
+  virtualserver_volume: Virtual Server Volume
+  virtualserver_volumes: Virtual Server Volume

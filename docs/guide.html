@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Terraform Guide</title>
+	<style>
+		body {
+			margin: 0;
+			display: flex;
+		}
+		#menu {
+			width: 20%;
+			border-right: 1px solid #ddd;
+			padding: 15px;
+			box-sizing: border-box;
+			height: 100vh;
+			overflow-y: auto;
+		}
+		#content {
+			width: 80%;
+			border: none;
+		}
+		.home {
+    		border-left: 2px solid #cbcfd5;
+		}
+		.home a {
+			color: #5c4ee5;
+			font-weight: 600;
+			font-size: 14px;
+			padding: 2px 0;
+			margin-left: 8px;
+		}
+		.category {
+			margin: 10px 0;
+			color: #1f2124;
+			font-size: 13px;
+			font-weight: 500;
+			cursor: pointer;
+		}
+		p {
+			margin: 0;
+			padding: 1px;
+			font-size: 13px;
+		}
+		ul {
+			list-style-type: none;
+			padding-left: 0;
+			margin: 0;
+		}
+		li {
+			margin: 10px 0;
+		}
+		a {
+			text-decoration: none;
+			color: #1f2124;
+			margin-left: 6px;
+			display: block;
+			font-size: 13px;
+		}
+		a:hover {
+			text-decoration: underline;
+		}
+		.collapsible {
+			margin-left: 10px;
+			padding-left: 10px;
+			border-left: 1px solid #dce0e6;
+			display: none;
+		}
+		.collapsible ul {
+			padding-left: 10px;
+		}
+		.collapsible a {
+			font-size: 13px;
+			margin-left: 2px;
+		}
+		.collapsible.active {
+			display: block;
+		}
+		.collapsible-header::before {
+			content: "＞";
+			font-weight: 800;
+			font-size: 12px;
+			margin-right: 5px;
+    		display: inline-block;
+		}
+		.collapsible-header.active::before {
+			transform: rotate(90deg);
+		}
+	</style>
+</head>
+<body>
+	<div id="menu">
+		<h3 class='home'><a href='index' target='contentFrame'>Home</a></h3>
+		<p class='category collapsible-header'>Access Key</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/iam_access_keys' target='contentFrame'>iam_access_keys</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/iam_access_key' target='contentFrame'>iam_access_key</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Account Quota</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/quota_account_quota' target='contentFrame'>quota_account_quota</a></li>
+				<li><a href='data-sources/quota_account_quotas' target='contentFrame'>quota_account_quotas</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Backup</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/backup_backup' target='contentFrame'>backup_backup</a></li>
+				<li><a href='data-sources/backup_backups' target='contentFrame'>backup_backups</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/backup_backup' target='contentFrame'>backup_backup</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Baremetal BlockStorage(BM)</p>
+		<div class='collapsible'>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/baremetal_blockstorage_volume' target='contentFrame'>baremetal_blockstorage_volume</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Cachestore</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cachestore_cluster' target='contentFrame'>cachestore_cluster</a></li>
+				<li><a href='data-sources/cachestore_clusters' target='contentFrame'>cachestore_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/cachestore_cluster' target='contentFrame'>cachestore_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Cloud Monitoring</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_event' target='contentFrame'>cloudmonitoring_event</a></li>
+				<li><a href='data-sources/cloudmonitoring_events' target='contentFrame'>cloudmonitoring_events</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>DNS</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/dns_hosted_zone' target='contentFrame'>dns_hosted_zone</a></li>
+				<li><a href='data-sources/dns_hosted_zones' target='contentFrame'>dns_hosted_zones</a></li>
+				<li><a href='data-sources/dns_private_dns' target='contentFrame'>dns_private_dns</a></li>
+				<li><a href='data-sources/dns_private_dnss' target='contentFrame'>dns_private_dnss</a></li>
+				<li><a href='data-sources/dns_public_domain_name' target='contentFrame'>dns_public_domain_name</a></li>
+				<li><a href='data-sources/dns_public_domain_names' target='contentFrame'>dns_public_domain_names</a></li>
+				<li><a href='data-sources/dns_record' target='contentFrame'>dns_record</a></li>
+				<li><a href='data-sources/dns_records' target='contentFrame'>dns_records</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/dns_hosted_zone' target='contentFrame'>dns_hosted_zone</a></li>
+				<li><a href='resources/dns_private_dns' target='contentFrame'>dns_private_dns</a></li>
+				<li><a href='resources/dns_public_domain_name' target='contentFrame'>dns_public_domain_name</a></li>
+				<li><a href='resources/dns_record' target='contentFrame'>dns_record</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Direct Connect</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/directconnect_direct_connects' target='contentFrame'>directconnect_direct_connects</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/directconnect_direct_connect' target='contentFrame'>directconnect_direct_connect</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Epas</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/epas_cluster' target='contentFrame'>epas_cluster</a></li>
+				<li><a href='data-sources/epas_clusters' target='contentFrame'>epas_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/epas_cluster' target='contentFrame'>epas_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Eventstreams</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/eventstreams_cluster' target='contentFrame'>eventstreams_cluster</a></li>
+				<li><a href='data-sources/eventstreams_clusters' target='contentFrame'>eventstreams_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/eventstreams_cluster' target='contentFrame'>eventstreams_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>File Storage Replication</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/filestorage_replication' target='contentFrame'>filestorage_replication</a></li>
+				<li><a href='data-sources/filestorage_replications' target='contentFrame'>filestorage_replications</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/filestorage_replication' target='contentFrame'>filestorage_replication</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>File Storage Snapshot Schedule</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/filestorage_snapshot_schedule' target='contentFrame'>filestorage_snapshot_schedule</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/filestorage_snapshot_schedule' target='contentFrame'>filestorage_snapshot_schedule</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>File Storage Volume</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/filestorage_volume' target='contentFrame'>filestorage_volume</a></li>
+				<li><a href='data-sources/filestorage_volumes' target='contentFrame'>filestorage_volumes</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/filestorage_volume' target='contentFrame'>filestorage_volume</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Firewall</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/firewall_firewall' target='contentFrame'>firewall_firewall</a></li>
+				<li><a href='data-sources/firewall_firewalls' target='contentFrame'>firewall_firewalls</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Firewall Rule</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/firewall_firewall_rule' target='contentFrame'>firewall_firewall_rule</a></li>
+				<li><a href='data-sources/firewall_firewall_rules' target='contentFrame'>firewall_firewall_rules</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/firewall_firewall_rule' target='contentFrame'>firewall_firewall_rule</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>GSLB</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/gslb_gslb' target='contentFrame'>gslb_gslb</a></li>
+				<li><a href='data-sources/gslb_gslb_resources' target='contentFrame'>gslb_gslb_resources</a></li>
+				<li><a href='data-sources/gslb_gslbs' target='contentFrame'>gslb_gslbs</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/gslb_gslb' target='contentFrame'>gslb_gslb</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Image</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/virtualserver_image' target='contentFrame'>virtualserver_image</a></li>
+				<li><a href='data-sources/virtualserver_images' target='contentFrame'>virtualserver_images</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/virtualserver_image' target='contentFrame'>virtualserver_image</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Keypair</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/virtualserver_keypair' target='contentFrame'>virtualserver_keypair</a></li>
+				<li><a href='data-sources/virtualserver_keypairs' target='contentFrame'>virtualserver_keypairs</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/virtualserver_keypair' target='contentFrame'>virtualserver_keypair</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Kubernetes Engine Cluster</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/ske_cluster' target='contentFrame'>ske_cluster</a></li>
+				<li><a href='data-sources/ske_clusters' target='contentFrame'>ske_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/ske_cluster' target='contentFrame'>ske_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Kubernetes Engine Cluster Kubeconfig</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/ske_cluster_kubeconfig' target='contentFrame'>ske_cluster_kubeconfig</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Kubernetes Engine Nodepool</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/ske_nodepool' target='contentFrame'>ske_nodepool</a></li>
+				<li><a href='data-sources/ske_nodepools' target='contentFrame'>ske_nodepools</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/ske_nodepool' target='contentFrame'>ske_nodepool</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Kubernetes Engine Nodepool Node</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/ske_nodepoolnodes' target='contentFrame'>ske_nodepoolnodes</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Kubernetes Engine Version</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/ske_kubernetes_versions' target='contentFrame'>ske_kubernetes_versions</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>LB Certificate</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/loadbalancer_lb_certificate' target='contentFrame'>loadbalancer_lb_certificate</a></li>
+				<li><a href='data-sources/loadbalancer_lb_certificates' target='contentFrame'>loadbalancer_lb_certificates</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>LB Health Check</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/loadbalancer_lb_health_check' target='contentFrame'>loadbalancer_lb_health_check</a></li>
+				<li><a href='data-sources/loadbalancer_lb_health_checks' target='contentFrame'>loadbalancer_lb_health_checks</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/loadbalancer_lb_health_check' target='contentFrame'>loadbalancer_lb_health_check</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>LB Listener</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/loadbalancer_lb_listener' target='contentFrame'>loadbalancer_lb_listener</a></li>
+				<li><a href='data-sources/loadbalancer_lb_listeners' target='contentFrame'>loadbalancer_lb_listeners</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/loadbalancer_lb_listener' target='contentFrame'>loadbalancer_lb_listener</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>LB Member</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/loadbalancer_lb_member' target='contentFrame'>loadbalancer_lb_member</a></li>
+				<li><a href='data-sources/loadbalancer_lb_members' target='contentFrame'>loadbalancer_lb_members</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/loadbalancer_lb_member' target='contentFrame'>loadbalancer_lb_member</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>LB Server Group</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/loadbalancer_lb_server_group' target='contentFrame'>loadbalancer_lb_server_group</a></li>
+				<li><a href='data-sources/loadbalancer_lb_server_groups' target='contentFrame'>loadbalancer_lb_server_groups</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/loadbalancer_lb_server_group' target='contentFrame'>loadbalancer_lb_server_group</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Load Balancer</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/loadbalancer_loadbalancer' target='contentFrame'>loadbalancer_loadbalancer</a></li>
+				<li><a href='data-sources/loadbalancer_loadbalancers' target='contentFrame'>loadbalancer_loadbalancers</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/loadbalancer_loadbalancer' target='contentFrame'>loadbalancer_loadbalancer</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Mariadb</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/mariadb_cluster' target='contentFrame'>mariadb_cluster</a></li>
+				<li><a href='data-sources/mariadb_clusters' target='contentFrame'>mariadb_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/mariadb_cluster' target='contentFrame'>mariadb_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Mysql</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/mysql_cluster' target='contentFrame'>mysql_cluster</a></li>
+				<li><a href='data-sources/mysql_clusters' target='contentFrame'>mysql_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/mysql_cluster' target='contentFrame'>mysql_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Network Logging Configuration</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/network_logging_network_logging_configurations' target='contentFrame'>network_logging_network_logging_configurations</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Network Logging Storage</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/network_logging_network_logging_storages' target='contentFrame'>network_logging_network_logging_storages</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/network_logging_network_logging_storage' target='contentFrame'>network_logging_network_logging_storage</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Planned Compute</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/billing_planned_computes' target='contentFrame'>billing_planned_computes</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/billing_planned_compute' target='contentFrame'>billing_planned_compute</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Postgresql</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/postgresql_cluster' target='contentFrame'>postgresql_cluster</a></li>
+				<li><a href='data-sources/postgresql_clusters' target='contentFrame'>postgresql_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/postgresql_cluster' target='contentFrame'>postgresql_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Public NAT IP</p>
+		<div class='collapsible'>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/loadbalancer_loadbalancer_public_nat_ip' target='contentFrame'>loadbalancer_loadbalancer_public_nat_ip</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Resource Group</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/resourcemanager_resource_group' target='contentFrame'>resourcemanager_resource_group</a></li>
+				<li><a href='data-sources/resourcemanager_resource_groups' target='contentFrame'>resourcemanager_resource_groups</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/resourcemanager_resource_group' target='contentFrame'>resourcemanager_resource_group</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Resource Tag</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/resourcemanager_resource_tags' target='contentFrame'>resourcemanager_resource_tags</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Routing Rule</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/directconnect_routing_rules' target='contentFrame'>directconnect_routing_rules</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/directconnect_routing_rule' target='contentFrame'>directconnect_routing_rule</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Searchengine</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/searchengine_cluster' target='contentFrame'>searchengine_cluster</a></li>
+				<li><a href='data-sources/searchengine_clusters' target='contentFrame'>searchengine_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/searchengine_cluster' target='contentFrame'>searchengine_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Security Group</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/security_group_security_group' target='contentFrame'>security_group_security_group</a></li>
+				<li><a href='data-sources/security_group_security_groups' target='contentFrame'>security_group_security_groups</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/security_group_security_group' target='contentFrame'>security_group_security_group</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Security Group Rule</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/security_group_security_group_rule' target='contentFrame'>security_group_security_group_rule</a></li>
+				<li><a href='data-sources/security_group_security_group_rules' target='contentFrame'>security_group_security_group_rules</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/security_group_security_group_rule' target='contentFrame'>security_group_security_group_rule</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Server Group</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/virtualserver_server_group' target='contentFrame'>virtualserver_server_group</a></li>
+				<li><a href='data-sources/virtualserver_server_groups' target='contentFrame'>virtualserver_server_groups</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/virtualserver_server_group' target='contentFrame'>virtualserver_server_group</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Sqlserver</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/sqlserver_cluster' target='contentFrame'>sqlserver_cluster</a></li>
+				<li><a href='data-sources/sqlserver_clusters' target='contentFrame'>sqlserver_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/sqlserver_cluster' target='contentFrame'>sqlserver_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Tag</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/resourcemanager_tags' target='contentFrame'>resourcemanager_tags</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Trail</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/loggingaudit_trail' target='contentFrame'>loggingaudit_trail</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/loggingaudit_trail' target='contentFrame'>loggingaudit_trail</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>VPC</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/vpc_internet_gateways' target='contentFrame'>vpc_internet_gateways</a></li>
+				<li><a href='data-sources/vpc_nat_gateways' target='contentFrame'>vpc_nat_gateways</a></li>
+				<li><a href='data-sources/vpc_ports' target='contentFrame'>vpc_ports</a></li>
+				<li><a href='data-sources/vpc_publicips' target='contentFrame'>vpc_publicips</a></li>
+				<li><a href='data-sources/vpc_subnets' target='contentFrame'>vpc_subnets</a></li>
+				<li><a href='data-sources/vpc_vpc_endpoints' target='contentFrame'>vpc_vpc_endpoints</a></li>
+				<li><a href='data-sources/vpc_vpcs' target='contentFrame'>vpc_vpcs</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/vpc_internet_gateway' target='contentFrame'>vpc_internet_gateway</a></li>
+				<li><a href='resources/vpc_nat_gateway' target='contentFrame'>vpc_nat_gateway</a></li>
+				<li><a href='resources/vpc_port' target='contentFrame'>vpc_port</a></li>
+				<li><a href='resources/vpc_publicip' target='contentFrame'>vpc_publicip</a></li>
+				<li><a href='resources/vpc_subnet' target='contentFrame'>vpc_subnet</a></li>
+				<li><a href='resources/vpc_vpc' target='contentFrame'>vpc_vpc</a></li>
+				<li><a href='resources/vpc_vpc_endpoint' target='contentFrame'>vpc_vpc_endpoint</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>VPN Gateway</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/vpn_vpn_gateway' target='contentFrame'>vpn_vpn_gateway</a></li>
+				<li><a href='data-sources/vpn_vpn_gateways' target='contentFrame'>vpn_vpn_gateways</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/vpn_vpn_gateway' target='contentFrame'>vpn_vpn_gateway</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>VPN Tunnel</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/vpn_vpn_tunnel' target='contentFrame'>vpn_vpn_tunnel</a></li>
+				<li><a href='data-sources/vpn_vpn_tunnels' target='contentFrame'>vpn_vpn_tunnels</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/vpn_vpn_tunnel' target='contentFrame'>vpn_vpn_tunnel</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Vertica</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/vertica_cluster' target='contentFrame'>vertica_cluster</a></li>
+				<li><a href='data-sources/vertica_clusters' target='contentFrame'>vertica_clusters</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/vertica_cluster' target='contentFrame'>vertica_cluster</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Virtual Server</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/virtualserver_server' target='contentFrame'>virtualserver_server</a></li>
+				<li><a href='data-sources/virtualserver_servers' target='contentFrame'>virtualserver_servers</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/virtualserver_server' target='contentFrame'>virtualserver_server</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>Virtual Server Volume</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/virtualserver_volume' target='contentFrame'>virtualserver_volume</a></li>
+				<li><a href='data-sources/virtualserver_volumes' target='contentFrame'>virtualserver_volumes</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/virtualserver_volume' target='contentFrame'>virtualserver_volume</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_account_events</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_account_events' target='contentFrame'>cloudmonitoring_account_events</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_accountmembers</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_accountmembers' target='contentFrame'>cloudmonitoring_accountmembers</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_accountproducts</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_accountproducts' target='contentFrame'>cloudmonitoring_accountproducts</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_addressbookmembers</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_addressbookmembers' target='contentFrame'>cloudmonitoring_addressbookmembers</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_addressbooks</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_addressbooks' target='contentFrame'>cloudmonitoring_addressbooks</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_event_notification_states</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_event_notification_states' target='contentFrame'>cloudmonitoring_event_notification_states</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_event_policies</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_event_policies' target='contentFrame'>cloudmonitoring_event_policies</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_event_policy</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_event_policy' target='contentFrame'>cloudmonitoring_event_policy</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/cloudmonitoring_event_policy' target='contentFrame'>cloudmonitoring_event_policy</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_event_policy_histories</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_event_policy_histories' target='contentFrame'>cloudmonitoring_event_policy_histories</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_event_policy_notifications</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_event_policy_notifications' target='contentFrame'>cloudmonitoring_event_policy_notifications</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_metricperfdatas</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_metricperfdatas' target='contentFrame'>cloudmonitoring_metricperfdatas</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_metrics</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_metrics' target='contentFrame'>cloudmonitoring_metrics</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_cloudmonitoring_producttypes</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/cloudmonitoring_producttypes' target='contentFrame'>cloudmonitoring_producttypes</a></li>
+			</ul>
+		</div>
+	</div>
+	<iframe id="content" name="contentFrame" src="index"></iframe>
+	<script>
+		document.querySelectorAll('.collapsible-header').forEach(header => {
+			header.addEventListener('click', () => {
+				const collapsible = header.nextElementSibling;
+				header.classList.toggle('active');
+				collapsible.classList.toggle('active');
+			});
+		});
+	</script>
+</body>
+</html>

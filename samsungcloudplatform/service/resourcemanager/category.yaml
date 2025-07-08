@@ -1,0 +1,5 @@
+category:
+  resourcemanager_resource_group: Resource Group
+  resourcemanager_resource_groups: Resource Group
+  resourcemanager_resource_tags: Resource Tag
+  resourcemanager_tags: Tag

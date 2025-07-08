@@ -1,0 +1,17 @@
+category:
+  loadbalancer_lb_certificate: LB Certificate
+  loadbalancer_lb_certificates: LB Certificate
+  loadbalancer_lb_health_check: LB Health Check
+  loadbalancer_lb_health_checks: LB Health Check
+  loadbalancer_lb_listener: LB Listener
+  loadbalancer_lb_listeners: LB Listener
+  loadbalancer_lb_member: LB Member
+  loadbalancer_lb_members: LB Member
+  loadbalancer_lb_server_group: LB Server Group
+  loadbalancer_lb_server_groups: LB Server Group
+  loadbalancer_loadbalancer: Load Balancer
+  loadbalancer_loadbalancers: Load Balancer
+  loadbalancer_loadbalancer_public_nat_ip: Public NAT IP
+
+
+
