@@ -1,3 +1,16 @@
 category:
+  cloudmonitoring_account_events: Cloud Monitoring
+  cloudmonitoring_accountmembers: Cloud Monitoring
+  cloudmonitoring_accountproducts: Cloud Monitoring
+  cloudmonitoring_addressbookmembers: Cloud Monitoring
+  cloudmonitoring_addressbooks: Cloud Monitoring
   cloudmonitoring_event: Cloud Monitoring
+  cloudmonitoring_event_notification_states: Cloud Monitoring
+  cloudmonitoring_event_policies: Cloud Monitoring
+  cloudmonitoring_event_policy: Cloud Monitoring
+  cloudmonitoring_event_policy_histories: Cloud Monitoring
+  cloudmonitoring_event_policy_notifications: Cloud Monitoring
   cloudmonitoring_events: Cloud Monitoring
+  cloudmonitoring_metricperfdatas: Cloud Monitoring
+  cloudmonitoring_metrics: Cloud Monitoring
+  cloudmonitoring_producttypes: Cloud Monitoring

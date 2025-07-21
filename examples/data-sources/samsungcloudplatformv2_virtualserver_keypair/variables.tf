@@ -1,6 +1,6 @@
 variable "name" {
-  type    = string
-  default = ""
+  type = string
+  default = "terraform_keypair"
 }
 
 variable "keypair_filter_name" {
@@ -15,6 +15,5 @@ variable "keypair_filter_values" {
 
 variable "keypair_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
-

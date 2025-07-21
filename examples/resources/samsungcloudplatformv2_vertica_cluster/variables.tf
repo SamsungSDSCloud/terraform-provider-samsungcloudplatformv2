@@ -1,11 +1,11 @@
 variable "allowable_ip_addresses" {
-  type    = list(string)
-  default = [""]
+  type = list(string)
+  default = ["192.168.10.1/32"]
 }
 
 variable "dbaas_engine_version_id" {
-  type    = string
-  default = ""
+  type = string
+  default = "09c2fe88089040ffa035604e38f7e4e9"
 }
 
 variable "init_config_option" {
@@ -15,19 +15,19 @@ variable "init_config_option" {
     database_user_name     = string
     database_user_password = string
     backup_option = object({
-      retention_period_day = string
-      starting_time_hour   = string
+      retention_period_day     = string
+      starting_time_hour       = string
     })
   })
   default = {
+    database_locale        = "ko_KR.utf8"
+    database_name          = "dbname"
+    database_user_name     = "username"
+    database_user_password = "Paswrd0!!"
     backup_option = {
-      retention_period_day = ""
-      starting_time_hour   = ""
+      retention_period_day     = "7"
+      starting_time_hour       = "12"
     }
-    database_locale        = ""
-    database_name          = ""
-    database_user_name     = ""
-    database_user_password = ""
   }
 }
 
@@ -41,42 +41,53 @@ variable "instance_groups" {
       size_gb     = number
     }))
     instances = list(object({
-      role_type = string
-      #      service_ip_address = string
-      #      public_ip_id       = string
+      role_type          = string
+      service_ip_address = string
+      public_ip_id       = string
     }))
   }))
-  default = [{
-    block_storage_groups = [{
-      role_type   = ""
-      size_gb     = 0
-      volume_type = ""
-    }]
-    instances = [{
-      role_type = ""
-    }]
-    role_type        = ""
-    server_type_name = ""
-  }]
+  default = [
+    {
+      role_type        = "DATA"
+      server_type_name = "db1v1m2"
+      block_storage_groups = [
+        {
+          "role_type" : "OS",
+          "volume_type" : "SSD",
+          "size_gb" : 104
+        },
+        {
+          "role_type" : "DATA",
+          "volume_type" : "SSD",
+          "size_gb" : 16
+        }
+      ]
+      instances = [
+        {
+          "role_type" : "DATA",
+          "service_ip_address" : "192.168.28.217",
+          "public_ip_id" : "8a463aa4b1dc4f279c3f53b94dc45e74",
+        }
+      ]
+    }
+  ]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = ""
+  default = "instname"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "subnet_id" {
   type = string
-  #default = "ce93a65b18164072a856c1c31adc1108"
-  default = ""
+  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
 }
 
-// OPTION
 variable "maintenance_option" {
   type = object({
     period_hour            = string
@@ -85,36 +96,36 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = ""
-    starting_day_of_week   = ""
-    starting_time          = ""
+   period_hour            = "0.5"
+   starting_day_of_week   = "MON"
+   starting_time          = "0000"
     use_maintenance_option = false
   }
 }
 
 variable "service_state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "nat_enabled" {
-  type = bool
-  #  default = true
+  type    = bool
   default = false
 }
 
 variable "timezone" {
   type    = string
-  default = ""
+  default = "Asia/Seoul"
 }
 
 variable "license" {
   type    = string
-  default = ""
+  default = "vertica_community"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    "key" : "value"
+  }
 }
-

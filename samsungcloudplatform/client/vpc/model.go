@@ -453,3 +453,122 @@ func (m VpcEndpoint) AttributeTypes() map[string]attr.Type {
 		"modified_by":         types.StringType,
 	}
 }
+
+//------------------- Private NAT -------------------//
+
+type PrivateNatDataSource struct {
+	Size              types.Int32  `tfsdk:"size"`
+	Page              types.Int32  `tfsdk:"page"`
+	Sort              types.String `tfsdk:"sort"`
+	Id                types.String `tfsdk:"id"`
+	Name              types.String `tfsdk:"name"`
+	VpcName           types.String `tfsdk:"vpc_name"`
+	VpcId             types.String `tfsdk:"vpc_id"`
+	DirectConnectName types.String `tfsdk:"direct_connect_name"`
+	DirectConnectId   types.String `tfsdk:"direct_connect_id"`
+	Cidr              types.String `tfsdk:"cidr"`
+	State             types.String `tfsdk:"state"`
+	PrivateNats       []PrivateNat `tfsdk:"private_nats"`
+}
+
+type PrivateNatResource struct {
+	Id              types.String `tfsdk:"id"`
+	Name            types.String `tfsdk:"name"`
+	DirectConnectId types.String `tfsdk:"direct_connect_id"`
+	Cidr            types.String `tfsdk:"cidr"`
+	Description     types.String `tfsdk:"description"`
+	Tags            types.Map    `tfsdk:"tags"`
+	PrivateNat      types.Object `tfsdk:"private_nat"`
+}
+
+type PrivateNat struct {
+	Id                types.String `tfsdk:"id"`
+	Name              types.String `tfsdk:"name"`
+	VpcId             types.String `tfsdk:"vpc_id"`
+	VpcName           types.String `tfsdk:"vpc_name"`
+	DirectConnectId   types.String `tfsdk:"direct_connect_id"`
+	DirectConnectName types.String `tfsdk:"direct_connect_name"`
+	Cidr              types.String `tfsdk:"cidr"`
+	State             types.String `tfsdk:"state"`
+	Description       types.String `tfsdk:"description"`
+	CreatedAt         types.String `tfsdk:"created_at"`
+	CreatedBy         types.String `tfsdk:"created_by"`
+	ModifiedAt        types.String `tfsdk:"modified_at"`
+	ModifiedBy        types.String `tfsdk:"modified_by"`
+}
+
+func (m PrivateNat) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":                  types.StringType,
+		"name":                types.StringType,
+		"vpc_id":              types.StringType,
+		"vpc_name":            types.StringType,
+		"direct_connect_id":   types.StringType,
+		"direct_connect_name": types.StringType,
+		"cidr":                types.StringType,
+		"state":               types.StringType,
+		"description":         types.StringType,
+		"created_at":          types.StringType,
+		"created_by":          types.StringType,
+		"modified_at":         types.StringType,
+		"modified_by":         types.StringType,
+	}
+}
+
+//------------------- Private NAT IP -------------------//
+
+type PrivateNatIpDataSource struct {
+	Size                 types.Int32    `tfsdk:"size"`
+	Page                 types.Int32    `tfsdk:"page"`
+	Sort                 types.String   `tfsdk:"sort"`
+	Id                   types.String   `tfsdk:"id"`
+	PrivateNatId         types.String   `tfsdk:"private_nat_id"`
+	IpAddress            types.String   `tfsdk:"ip_address"`
+	AttachedResourceName types.String   `tfsdk:"attached_resource_name"`
+	AttachedResourceType types.String   `tfsdk:"attached_resource_type"`
+	AttachedResourceId   types.String   `tfsdk:"attached_resource_id"`
+	State                types.String   `tfsdk:"state"`
+	PrivateNatIps        []PrivateNatIp `tfsdk:"private_nat_ips"`
+}
+
+type PrivateNatIpResource struct {
+	Id           types.String `tfsdk:"id"`
+	PrivateNatId types.String `tfsdk:"private_nat_id"`
+	IpAddress    types.String `tfsdk:"ip_address"`
+	Description  types.String `tfsdk:"description"`
+	PrivateNatIp types.Object `tfsdk:"private_nat_ip"`
+}
+
+type PrivateNatIp struct {
+	Id                   types.String `tfsdk:"id"`
+	IpAddress            types.String `tfsdk:"ip_address"`
+	PrivateNatId         types.String `tfsdk:"private_nat_id"`
+	PrivateNatName       types.String `tfsdk:"private_nat_name"`
+	AttachedResourceName types.String `tfsdk:"attached_resource_name"`
+	AttachedResourceType types.String `tfsdk:"attached_resource_type"`
+	AttachedResourceId   types.String `tfsdk:"attached_resource_id"`
+	State                types.String `tfsdk:"state"`
+	Description          types.String `tfsdk:"description"`
+	CreatedAt            types.String `tfsdk:"created_at"`
+	CreatedBy            types.String `tfsdk:"created_by"`
+	ModifiedAt           types.String `tfsdk:"modified_at"`
+	ModifiedBy           types.String `tfsdk:"modified_by"`
+}
+
+func (m PrivateNatIp) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":                     types.StringType,
+		"ip_address":             types.StringType,
+		"private_nat_id":         types.StringType,
+		"private_nat_name":       types.StringType,
+		"attached_resource_name": types.StringType,
+		"attached_resource_type": types.StringType,
+		"attached_resource_id":   types.StringType,
+		"state":                  types.StringType,
+		"description":            types.StringType,
+		"created_at":             types.StringType,
+		"created_by":             types.StringType,
+		"modified_at":            types.StringType,
+		"modified_by":            types.StringType,
+	}
+}

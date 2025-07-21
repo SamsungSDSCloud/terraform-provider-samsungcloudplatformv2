@@ -1,48 +1,19 @@
-
-## qa2
-
 variable "QueryStartDt" {
-  type    = string
-  default = ""
+  type = string
+  default = "2025-07-14T00:00:00.000Z"
 }
 
 variable "QueryEndDt" {
-  type    = string
-  default = ""
+  type = string
+  default = "2025-07-17T08:00:00.000Z"
 }
 
 variable "XResourceType" {
-  type    = string
-  default = ""
+  type = string
+  default = "VM"
 }
 
 variable "EventPolicyId" {
-  type    = number
-  default = 0
+  type = number
+  default = 30878
 }
-
-
-## dev2
-#
-#variable "QueryStartDt" {
-#  type = string
-#  default = "2025-03-01T23:00:00.000Z"
-#}
-#
-#variable "QueryEndDt" {
-#  type = string
-#  default = "2025-04-02T08:00:00.000Z"
-#}
-#
-#variable "XResourceType" {
-#  type = string
-#  default = "VM"
-#}
-#
-#variable "EventPolicyId" {
-#  type = number
-#  # default = 30878       ##  dev2
-#  default = 12195         ##  qa2
-#}
-
-

@@ -28,12 +28,12 @@ output "cluster_kubeconfig" {
 
 variable "cluster_id" {
   type    = string
-  default = ""
+  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
 }
 
 variable "kubeconfig_type" {
   type    = string
-  default = ""
+  default = "private"
 }
 ```
 

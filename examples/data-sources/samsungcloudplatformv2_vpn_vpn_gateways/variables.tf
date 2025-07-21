@@ -1,6 +1,6 @@
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
@@ -10,7 +10,7 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "name" {
@@ -32,5 +32,3 @@ variable "vpc_name" {
   type    = string
   default = ""
 }
-
-

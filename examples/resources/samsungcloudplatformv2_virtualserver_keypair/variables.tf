@@ -1,6 +1,4 @@
 variable "name" {
-  type    = string
-  default = ""
+  type = string
+  default = "terraform_keypair"
 }
-
-

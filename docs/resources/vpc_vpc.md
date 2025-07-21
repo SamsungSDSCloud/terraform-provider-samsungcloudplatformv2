@@ -28,18 +28,18 @@ output "vpc_output" {
 
 
 variable "vpc_cidr" {
-  type    = string
-  default = ""
+  type = string
+  default = "192.167.0.0/18"
 }
 
 variable "vpc_description" {
-  type    = string
-  default = ""
+  type = string
+  default = "description info"
 }
 
 variable "vpc_name" {
-  type    = string
-  default = ""
+  type = string
+  default = "vpcName"
 }
 ```
 

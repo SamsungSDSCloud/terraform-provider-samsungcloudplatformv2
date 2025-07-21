@@ -34,7 +34,7 @@ output "clusters" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "page" {
@@ -72,7 +72,7 @@ variable "kubernetes_version" {
 
 variable "clusters_region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "clusters_filter_name" {
@@ -87,7 +87,7 @@ variable "clusters_filter_values" {
 
 variable "clusters_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
 ```
 

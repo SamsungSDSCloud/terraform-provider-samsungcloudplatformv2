@@ -1,11 +1,11 @@
 variable "allowable_ip_addresses" {
-  type    = list(string)
-  default = [""]
+  type = list(string)
+  default = ["192.168.10.1/32"]
 }
 
 variable "dbaas_engine_version_id" {
-  type    = string
-  default = ""
+  type = string
+  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
 }
 
 variable "ha_enabled" {
@@ -34,18 +34,18 @@ variable "init_config_option" {
     })
   })
   default = {
-    audit_enabled = false
+    audit_enabled          = false
+    database_encoding      = "UTF-8"
+    database_locale        = "C"
+    database_name          = "dbname"
+    database_port          = 2866
+    database_user_name     = "username"
+    database_user_password = "password001!"
     backup_option = {
-      archive_frequency_minute = ""
-      retention_period_day     = ""
-      starting_time_hour       = ""
+      retention_period_day     = "7"
+      starting_time_hour       = "12"
+      archive_frequency_minute = "60"
     }
-    database_encoding      = ""
-    database_locale        = ""
-    database_name          = ""
-    database_port          = 0
-    database_user_name     = ""
-    database_user_password = ""
   }
 }
 
@@ -59,41 +59,52 @@ variable "instance_groups" {
       size_gb     = number
     }))
     instances = list(object({
-      role_type = string
+      role_type    = string
     }))
   }))
-  default = [{
-    block_storage_groups = [{
-      role_type   = ""
-      size_gb     = 0
-      volume_type = ""
-    }]
-    instances = [{
-      role_type = ""
-    }]
-    role_type        = ""
-    server_type_name = ""
-  }]
+  default = [
+    {
+      role_type        = "ACTIVE"
+      server_type_name = "db1v2m8"
+      block_storage_groups = [
+        {
+          "role_type" : "OS",
+          "volume_type" : "SSD",
+          "size_gb" : 104
+        },
+        {
+          "role_type" : "DATA",
+          "volume_type" : "SSD",
+          "size_gb" : 16
+        }
+      ]
+      instances = [
+        {
+          "role_type" : "ACTIVE",
+        }
+      ]
+    }
+  ]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = ""
+  default = "instname"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "subnet_id" {
-  type    = string
-  default = ""
+  type = string
+  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
 }
 
 variable "timezone" {
   type    = string
-  default = ""
+  default = "Asia/Seoul"
 }
 
 // OPTION
@@ -105,10 +116,10 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = ""
-    starting_day_of_week   = ""
-    starting_time          = ""
-    use_maintenance_option = false
+    period_hour            = "0.5"
+    starting_day_of_week   = "MON"
+    starting_time          = "0000"
+    use_maintenance_option = true
   }
 }
 
@@ -124,11 +135,12 @@ variable "virtual_ip_address" {
 
 variable "service_state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    "key" : "value"
+  }
 }
-

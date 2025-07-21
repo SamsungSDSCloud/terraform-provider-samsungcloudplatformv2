@@ -1,5 +1,5 @@
 variable "id" {
-  type    = string
+  type = string
   default = ""
 }
 
@@ -15,6 +15,5 @@ variable "server_group_filter_values" {
 
 variable "server_group_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
-

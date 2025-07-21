@@ -607,3 +607,135 @@ func (client *Client) DeleteVpcEndpoint(ctx context.Context, vpcEndpointId strin
 	_, err := req.Execute()
 	return err
 }
+
+//------------------- Private NAT -------------------//
+
+func (client *Client) GetPrivateNatList(ctx context.Context, request PrivateNatDataSource) (*scpvpc.PrivateNatListResponse, error) {
+	req := client.sdkClient.VpcV1PrivateNatApiAPI.ListPrivateNats(ctx)
+	if !request.Size.IsNull() {
+		req = req.Size(request.Size.ValueInt32())
+	}
+	if !request.Page.IsNull() {
+		req = req.Page(request.Page.ValueInt32())
+	}
+	if !request.Sort.IsNull() {
+		req = req.Sort(request.Sort.ValueString())
+	}
+	if !request.Name.IsNull() {
+		req = req.Name(request.Name.ValueString())
+	}
+	if !request.VpcName.IsNull() {
+		req = req.VpcName(request.VpcName.ValueString())
+	}
+	if !request.VpcId.IsNull() {
+		req = req.VpcId(request.VpcId.ValueString())
+	}
+	if !request.DirectConnectName.IsNull() {
+		req = req.DirectConnectName(request.DirectConnectName.ValueString())
+	}
+	if !request.DirectConnectId.IsNull() {
+		req = req.DirectConnectId(request.DirectConnectId.ValueString())
+	}
+	if !request.Cidr.IsNull() {
+		req = req.Cidr(request.Cidr.ValueString())
+	}
+	if !request.State.IsNull() {
+		req = req.State(scpvpc.PrivateNatState(request.State.ValueString()))
+	}
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) CreatePrivateNat(ctx context.Context, request PrivateNatResource) (*scpvpc.PrivateNatShowResponse, error) {
+	req := client.sdkClient.VpcV1PrivateNatApiAPI.CreatePrivateNat(ctx)
+
+	tags := convertToTags(request.Tags.Elements())
+
+	req = req.PrivateNatCreateRequest(scpvpc.PrivateNatCreateRequest{
+		Name:            request.Name.ValueString(),
+		DirectConnectId: request.DirectConnectId.ValueString(),
+		Cidr:            request.Cidr.ValueString(),
+		Description:     request.Description.ValueStringPointer(),
+		Tags:            tags,
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) GetPrivateNat(ctx context.Context, privateNatId string) (*scpvpc.PrivateNatShowResponse, error) {
+	req := client.sdkClient.VpcV1PrivateNatApiAPI.ShowPrivateNat(ctx, privateNatId)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) UpdatePrivateNat(ctx context.Context, privateNatId string, request PrivateNatResource) (*scpvpc.PrivateNatShowResponse, error) {
+	req := client.sdkClient.VpcV1PrivateNatApiAPI.SetPrivateNat(ctx, privateNatId)
+
+	req = req.PrivateNatSetRequest(scpvpc.PrivateNatSetRequest{
+		Description: request.Description.ValueStringPointer(),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) DeletePrivateNat(ctx context.Context, privateNatId string) error {
+	req := client.sdkClient.VpcV1PrivateNatApiAPI.DeletePrivateNat(ctx, privateNatId)
+
+	_, err := req.Execute()
+	return err
+}
+
+//------------------- Private NAT IP -------------------//
+
+func (client *Client) GetPrivateNatIpList(ctx context.Context, request PrivateNatIpDataSource) (*scpvpc.PrivateNatIpListResponse, error) {
+	req := client.sdkClient.VpcV1PrivateNatIpApiAPI.ListPrivateNatIps(ctx, request.PrivateNatId.ValueString())
+	if !request.Size.IsNull() {
+		req = req.Size(request.Size.ValueInt32())
+	}
+	if !request.Page.IsNull() {
+		req = req.Page(request.Page.ValueInt32())
+	}
+	if !request.Sort.IsNull() {
+		req = req.Sort(request.Sort.ValueString())
+	}
+	if !request.IpAddress.IsNull() {
+		req = req.IpAddress(request.IpAddress.ValueString())
+	}
+	if !request.AttachedResourceName.IsNull() {
+		req = req.AttachedResourceName(request.AttachedResourceName.ValueString())
+	}
+	if !request.AttachedResourceType.IsNull() {
+		req = req.AttachedResourceType(scpvpc.PrivateNatIpAttachedResourceType(request.AttachedResourceType.ValueString()))
+	}
+	if !request.AttachedResourceId.IsNull() {
+		req = req.AttachedResourceId(request.AttachedResourceId.ValueString())
+	}
+	if !request.State.IsNull() {
+		req = req.State(scpvpc.PrivateNatIpState(request.State.ValueString()))
+	}
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) CreatePrivateNatIp(ctx context.Context, request PrivateNatIpResource) (*scpvpc.PrivateNatIpShowResponse, error) {
+	req := client.sdkClient.VpcV1PrivateNatIpApiAPI.CreatePrivateNatIp(ctx, request.PrivateNatId.ValueString())
+
+	req = req.PrivateNatIpCreateRequest(scpvpc.PrivateNatIpCreateRequest{
+		IpAddress: request.IpAddress.ValueString(),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) DeletePrivateNatIp(ctx context.Context, privateNatId string, privateNatIpId string) error {
+	req := client.sdkClient.VpcV1PrivateNatIpApiAPI.DeletePrivateNatIp(ctx, privateNatId, privateNatIpId)
+
+	_, err := req.Execute()
+	return err
+}

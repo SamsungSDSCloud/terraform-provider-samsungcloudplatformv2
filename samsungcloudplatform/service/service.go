@@ -48,6 +48,8 @@ var ResourceConstructors = []func() resource.Resource{
 	vpn.NewVpnVpnGatewayResource,
 	vpn.NewVpnVpnTunnelResource,
 	vpc.NewVpcVpcEndpointResource,
+	vpc.NewVpcPrivateNatResource,
+	vpc.NewVpcPrivateNatIpResource,
 	network_logging.NewNetworkLoggingNetworkLoggingStorageResource,
 	directconnect.NewDirectConnectDirectConnectResource,
 
@@ -139,6 +141,8 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	vpc.NewVpcNatGatewayDataSource,
 	vpc.NewVpcInternetGatewayDataSource,
 	vpc.NewVpcVpcEndpointDataSource,
+	vpc.NewVpcPrivateNatDataSource,
+	vpc.NewVpcPrivateNatIpDataSource,
 	network_logging.NewNetworkLoggingNetworkLoggingStorageDataSource,
 	network_logging.NewNetworkLoggingNetworkLoggingConfigurationDataSource,
 	directconnect.NewDirectConnectDirectConnectDataSource,

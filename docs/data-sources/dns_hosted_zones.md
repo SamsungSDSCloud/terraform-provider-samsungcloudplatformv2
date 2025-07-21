@@ -25,7 +25,7 @@ output "hosted_zones" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 ```
 

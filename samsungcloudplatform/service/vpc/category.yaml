@@ -13,3 +13,7 @@ category:
   vpc_subnets: VPC
   vpc_vpc: VPC
   vpc_vpcs: VPC
+  vpc_private_nat: VPC
+  vpc_private_nats: VPC
+  vpc_private_nat_ip: VPC
+  vpc_private_nat_ips: VPC

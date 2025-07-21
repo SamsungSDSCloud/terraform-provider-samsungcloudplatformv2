@@ -1,20 +1,20 @@
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "id" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "server_name" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "name" {
-  type    = string
+  type = string
   default = ""
 }
 
@@ -25,11 +25,10 @@ variable "backup_filter_name" {
 
 variable "backup_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["backup"]
 }
 
 variable "backup_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
-

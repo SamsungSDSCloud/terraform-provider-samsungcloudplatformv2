@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_cloudmonitoring_event_policy Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_cloudmonitoring_event_policy
+subcategory: Cloud Monitoring
 description: |-
   list of event.
 ---
@@ -26,13 +26,13 @@ output "event_policy" {
 }
 
 variable "XResourceType" {
-  type    = string
-  default = ""
+  type = string
+  default = "VM"
 }
 
 variable "EventPolicyId" {
-  type    = number
-  default = 0
+  type = number
+  default = 13997
 }
 ```
 

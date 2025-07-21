@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_cloudmonitoring_producttypes Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_cloudmonitoring_producttypes
+subcategory: Cloud Monitoring
 description: |-
   The Schema of cloudMonitoringProductTypeDataSources.
 ---
@@ -25,8 +25,8 @@ output "producttypes" {
 }
 
 variable "ProductCategoryCode" {
-  type    = string
-  default = ""
+  type = string
+  default = "Compute"
 }
 ```
 

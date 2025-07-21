@@ -1,11 +1,9 @@
 variable "publicip_description" {
-  type    = string
-  default = ""
+  type = string
+  default = "description info"
 }
 
 variable "publicip_type" {
-  type    = string
-  default = ""
+  type = string
+  default = "GGW"
 }
-
-

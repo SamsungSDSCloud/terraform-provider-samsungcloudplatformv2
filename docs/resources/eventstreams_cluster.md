@@ -38,13 +38,13 @@ output "cluster_output" {
 }
 
 variable "allowable_ip_addresses" {
-  type    = list(string)
-  default = [""]
+  type = list(string)
+  default = ["192.168.10.1/32"]
 }
 
 variable "dbaas_engine_version_id" {
   type    = string
-  default = ""
+  default = "189299a34f464cac94a24f2d8d57afec"
 }
 
 variable "akhq_enabled" {
@@ -54,7 +54,7 @@ variable "akhq_enabled" {
 
 variable "is_combined" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "nat_enabled" {
@@ -72,12 +72,12 @@ variable "init_config_option" {
     broker_port             = number
   })
   default = {
-    broker_port             = 0
-    broker_sasl_id          = ""
-    broker_sasl_password    = ""
-    zookeeper_port          = 0
-    zookeeper_sasl_id       = ""
-    zookeeper_sasl_password = ""
+    zookeeper_sasl_id       = "eventstream",
+    zookeeper_sasl_password = "Password001!",
+    zookeeper_port          = 2180,
+    broker_sasl_id          = "eventstream",
+    broker_sasl_password    = "Password001!",
+    broker_port             = 9091
   }
 }
 
@@ -94,42 +94,52 @@ variable "instance_groups" {
       role_type = string
     }))
   }))
-  default = [{
-    block_storage_groups = [{
-      role_type   = ""
-      size_gb     = 0
-      volume_type = ""
-    }]
-    instances = [{
-      role_type = ""
-    }]
-    role_type        = ""
-    server_type_name = ""
-  }]
+  default = [
+    {
+      role_type        = "ZOOKEEPER_BROKER"
+      server_type_name = "es1v2m4"
+      block_storage_groups = [
+        {
+          "role_type" : "OS",
+          "volume_type" : "SSD",
+          "size_gb" : 104
+        },
+        {
+          "role_type" : "DATA",
+          "volume_type" : "SSD",
+          "size_gb" : 16
+        }
+      ]
+      instances = [
+        {
+          "role_type" : "ZOOKEEPER_BROKER"
+        }
+      ]
+    }
+  ]
 }
 
 
 variable "instance_name_prefix" {
   type    = string
-  default = ""
+  default = "eventa"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "eventa"
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
 }
 
 variable "timezone" {
   type    = string
-  default = ""
+  default = "Asia/Seoul"
 }
 
-// OPTION
 variable "maintenance_option" {
   type = object({
     period_hour            = string
@@ -138,21 +148,24 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = ""
-    starting_day_of_week   = ""
-    starting_time          = ""
-    use_maintenance_option = false
+    period_hour            = "0.5"
+    starting_day_of_week   = "MON"
+    starting_time          = "0000"
+    use_maintenance_option = true
   }
 }
 
 variable "service_state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    "key" : "value",
+    "key1" : "value1"
+  }
 }
 ```
 

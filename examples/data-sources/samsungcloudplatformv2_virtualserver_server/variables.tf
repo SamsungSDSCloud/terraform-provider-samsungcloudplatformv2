@@ -1,40 +1,40 @@
 variable "id" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "name" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "ip" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "state" {
-  type    = string
-  default = ""
+  type = string
+  default = "ACTIVE"
 }
 
 variable "product_category" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "vpc_id" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "server_type_id" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "auto_scaling_group_id" {
-  type    = string
+  type = string
   default = ""
 }
 
@@ -50,6 +50,5 @@ variable "server_filter_values" {
 
 variable "server_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
-

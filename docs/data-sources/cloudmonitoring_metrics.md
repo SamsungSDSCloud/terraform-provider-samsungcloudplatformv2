@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_cloudmonitoring_metrics Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_cloudmonitoring_metrics
+subcategory: Cloud Monitoring
 description: |-
   The Schema of cloudMonitoringMetricDataSources.
 ---
@@ -26,12 +26,12 @@ output "metrics" {
 }
 
 variable "ProductTypeCode" {
-  type    = string
-  default = ""
+  type = string
+  default = "VM"
 }
 
 variable "ObjectType" {
-  type    = string
+  type = string
   default = ""
 }
 ```

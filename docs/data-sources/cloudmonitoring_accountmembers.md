@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_cloudmonitoring_accountmembers Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_cloudmonitoring_accountmembers
+subcategory: Cloud Monitoring
 description: |-
   The Schema of cloudMonitoringAccountMemberDataSources.
 ---

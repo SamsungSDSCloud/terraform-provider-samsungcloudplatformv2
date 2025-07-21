@@ -26,7 +26,7 @@ output "ports" {
 
 variable "limit" {
   type    = number
-  default = 0
+  default = 10
 }
 ```
 

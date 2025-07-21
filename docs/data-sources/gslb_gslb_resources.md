@@ -27,23 +27,23 @@ output "lbMembers" {
 
 
 variable "size" {
-  type    = number
-  default = 0
+  type = number
+  default = 20
 }
 
 variable "page" {
-  type    = number
+  type = number
   default = 0
 }
 
 variable "sort" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "gslb_id" {
-  type    = string
-  default = ""
+  type = string
+  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
 }
 ```
 

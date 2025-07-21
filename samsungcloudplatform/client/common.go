@@ -35,15 +35,34 @@ func WaitForStatus(ctx context.Context, client *SCPClient, pendingStates []strin
 
 func GetDetailFromError(err error) string {
 	var data map[string]interface{}
-	body := err.(*scpsdk.GenericOpenAPIError).Body()
-	err = json.Unmarshal(body, &data)
+
+	// Check if the error is of type *scpsdk.GenericOpenAPIError
+	if genericErr, ok := err.(*scpsdk.GenericOpenAPIError); ok {
+		body := genericErr.Body()
+		err := json.Unmarshal(body, &data)
+		if err != nil {
+			return "Error parsing error body: " + err.Error()
+		}
+	} else {
+		// If the error is not of type *scpsdk.GenericOpenAPIError, return a generic error message
+		return "Unknown error: " + err.Error()
+	}
 
 	var details []string
-	errors := data["errors"]
+	errors, ok := data["errors"].([]interface{})
+	if !ok {
+		return "Invalid error data"
+	}
 
-	for _, err := range errors.([]interface{}) {
-		errorMap := err.(map[string]interface{})
-		detail := errorMap["detail"]
+	for _, err := range errors {
+		errorMap, ok := err.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		detail, ok := errorMap["detail"]
+		if !ok {
+			continue
+		}
 		switch detail.(type) {
 		case string:
 			details = append(details, detail.(string))

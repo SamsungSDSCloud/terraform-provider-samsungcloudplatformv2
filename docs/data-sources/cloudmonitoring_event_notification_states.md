@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_cloudmonitoring_event_notification_states Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_cloudmonitoring_event_notification_states
+subcategory: Cloud Monitoring
 description: |-
   Event Notification States.
 ---
@@ -27,13 +27,13 @@ output "eventNotificationStates" {
 }
 
 variable "XResourceType" {
-  type    = string
-  default = ""
+  type = string
+  default = "VM"
 }
 
 variable "EventId" {
-  type    = string
-  default = ""
+  type = string
+  default = "202507180930434086112885"
 }
 ```
 

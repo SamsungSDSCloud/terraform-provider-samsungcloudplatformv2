@@ -1,6 +1,6 @@
 variable "resource_groups_region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "resource_groups_filter_name" {
@@ -15,8 +15,6 @@ variable "resource_groups_filter_values" {
 
 variable "resource_groups_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
-
-
 

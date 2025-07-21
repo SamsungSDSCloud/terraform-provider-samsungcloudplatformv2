@@ -35,7 +35,6 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/config"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 )
@@ -112,30 +111,33 @@ type SCPClient struct {
 	config *config.ProviderConfig
 }
 
-func createTlsConfig(serverHost string) *tls.Config {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatalln("Failed to get user home directory")
-	}
-	certPath := homeDir + string(os.PathSeparator) + ".cmp" + string(os.PathSeparator) + "scp.cer"
-	crt, err := ioutil.ReadFile(certPath)
+func createTlsConfig() (*tls.Config, error) {
+	certPath := os.Getenv("SSL_CERT_FILE")
 	var certPool *x509.CertPool
-	if err == nil {
+	var err error
+
+	if certPath == "" {
 		certPool, err = x509.SystemCertPool()
-		if err == nil {
-			certPool.AppendCertsFromPEM(crt)
+	} else {
+		crt, err := ioutil.ReadFile(certPath)
+		if err != nil {
+			return nil, err
 		}
+		certPool = x509.NewCertPool()
+		certPool.AppendCertsFromPEM(crt)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return &tls.Config{
-		RootCAs:            certPool,
-		InsecureSkipVerify: true,
-		ServerName:         serverHost,
-	}
+		RootCAs: certPool,
+	}, nil
 }
 
 func NewDefaultConfig(config *config.ProviderConfig, serviceType string) *scpsdk.Configuration {
-	//tlsConfig := createTlsConfig(serviceHost)
+	tlsConfig, _ := createTlsConfig()
 
 	cfg := &scpsdk.Configuration{
 		AuthUrl:       config.AuthUrl.ValueString(),
@@ -150,8 +152,8 @@ func NewDefaultConfig(config *config.ProviderConfig, serviceType string) *scpsdk
 		},
 		HTTPClient: &http.Client{
 			Transport: &http.Transport{
-				//TLSClientConfig: tlsConfig,
-				Proxy: nil, // Ignore host machine proxy
+				TLSClientConfig: tlsConfig,
+				Proxy:           http.ProxyFromEnvironment,
 			},
 			//Timeout: DefaultTimeout, // Default timeout
 		},

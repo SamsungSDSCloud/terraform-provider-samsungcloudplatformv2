@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_cloudmonitoring_addressbookmembers Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_cloudmonitoring_addressbookmembers
+subcategory: Cloud Monitoring
 description: |-
   The Schema of AddressBookMemberDataSources.
 ---
@@ -25,8 +25,8 @@ output "addressbookmembers" {
 }
 
 variable "AddrbookId" {
-  type    = number
-  default = 0
+  type = number
+  default = 226
 }
 ```
 

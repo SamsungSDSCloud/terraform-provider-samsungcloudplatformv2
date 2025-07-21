@@ -1,35 +1,35 @@
 variable "id" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "scp_image_type" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "scp_original_image_type" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "name" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "os_distro" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "status" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "visibility" {
-  type    = string
+  type = string
   default = ""
 }
 
@@ -45,6 +45,5 @@ variable "image_filter_values" {
 
 variable "image_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
-

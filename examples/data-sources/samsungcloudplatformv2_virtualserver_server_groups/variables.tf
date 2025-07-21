@@ -10,6 +10,5 @@ variable "server_groups_filter_values" {
 
 variable "server_groups_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
-

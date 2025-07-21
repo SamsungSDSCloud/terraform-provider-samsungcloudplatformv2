@@ -1,6 +1,6 @@
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "page" {
@@ -22,6 +22,4 @@ variable "name" {
   type    = string
   default = ""
 }
-
-
 

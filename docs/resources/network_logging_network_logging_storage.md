@@ -27,13 +27,13 @@ output "networkloggingstorage_output" {
 
 
 variable "bucket_name" {
-  type    = string
-  default = ""
+  type = string
+  default = "bucketname"
 }
 
 variable "resource_type" {
-  type    = string
-  default = ""
+  type = string
+  default = "NAT"
 }
 ```
 

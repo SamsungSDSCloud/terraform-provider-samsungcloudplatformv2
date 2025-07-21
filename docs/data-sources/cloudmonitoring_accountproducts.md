@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_cloudmonitoring_accountproducts Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_cloudmonitoring_accountproducts
+subcategory: Cloud Monitoring
 description: |-
   The Schema of cloudMonitoringAccountProductDataSources.
 ---
@@ -25,8 +25,8 @@ output "accountproducts" {
 }
 
 variable "XResourceType" {
-  type    = string
-  default = ""
+  type = string
+  default = "VM"
 }
 ```
 

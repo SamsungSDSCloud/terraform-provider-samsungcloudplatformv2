@@ -1,6 +1,4 @@
 variable "resource_type" {
-  type    = string
-  default = ""
+  type = string
+  default =  "FIREWALL"
 }
-
-

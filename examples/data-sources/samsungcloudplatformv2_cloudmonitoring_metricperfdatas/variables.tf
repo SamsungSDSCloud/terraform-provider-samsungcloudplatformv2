@@ -1,104 +1,41 @@
 variable "XResourceType" {
-  type    = string
-  default = ""
+  type = string
+  default = "PostgreSQL"
 }
 variable "IgnoreInvalid" {
-  type    = string
-  default = ""
+  type = string
+  default = "Y"
 }
 variable "QueryEndDt" {
-  type    = string
-  default = ""
+  type = string
+  default = "2025-07-19T07:55:39.569Z"
 }
 variable "QueryStartDt" {
-  type    = string
-  default = ""
+  type = string
+  default = "2025-07-19T07:25:39.569Z"
 }
-# variable "MetricDataConditions" {
-#   type    = list(object({
-#     metricKey             = string
-#     productResourceInfos  = list(object({
-#       productResourceId = string
-#     }))
-#     statisticsPeriod      = number
-#     statisticsTypeList    = list(string)
-#   }))
-#   default = [
-#     {
-#       metricKey             = "postgresql.status.pid"
-#       productResourceInfos  = [
-#         {
-#           productResourceId = "36d845e6-9f26-4f35-9e2a-0a9456858742"
-#         }
-#       ]
-#       statisticsPeriod      = null
-#       statisticsTypeList    = null
-#     }
-#   ]
-# }
+
 variable "MetricKey" {
-  type    = string
-  default = ""
+  type = string
+  default = "postgresql.status.pid"
 }
 variable "ProductResourceId" {
-  type    = string
-  default = ""
+  type = string
+  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
 }
 variable "ObjectList" {
-  type    = list(string)
+  type = list(string)
   default = [""]
 }
 variable "ObjectType" {
-  type    = string
+  type = string
   default = ""
 }
 variable "StatisticsTypeList" {
-  type    = list(string)
+  type = list(string)
   default = [""]
 }
 variable "StatisticsPeriod" {
-  type    = number
-  default = 0
+  type = number
+  default = null
 }
-// body
-# variable "request" {
-#   type = string
-#   default = "{\"ignoreInvalid\": \"Y\",\"metricDataConditions\": [  {\"metricKey\": \"postgresql.status.pid\",\"objectType\": \"\",\"productResourceInfos\": [  {\"objectList\": [],\"productResourceId\": \"36d845e6-9f26-4f35-9e2a-0a9456858742\"  }],\"statisticsPeriod\": null,\"statisticsTypeList\": null  }],\"queryEndDt\": \"2025-06-19T07:55:39.569Z\",\"queryStartDt\": \"2025-06-19T07:25:39.569Z\"  }"
-# }
-# variable "Request" {
-#   type = object({
-#     ignoreInvalid = string
-#     metricDataConditions = list(object({
-#       metricKey           = string
-#       objectType          = string
-#       productResourceInfos = list(object({
-#         objectList        = list(string)
-#         productResourceId = string
-#       }))
-#       statisticsPeriod = number
-#       statisticsTypeList = list(string)
-#     }))
-#     queryEndDt   = string
-#     queryStartDt = string
-#   })
-#   default = {
-#     ignoreInvalid = "Y"
-#     metricDataConditions = [
-#       {
-#         metricKey           = "postgresql.status.pid"
-#         objectType          = ""
-#         productResourceInfos = [
-#           {
-#             objectList        = []
-#             productResourceId = "36d845e6-9f26-4f35-9e2a-0a9456858742"
-#           }
-#         ]
-#         statisticsPeriod = null
-#         statisticsTypeList = null
-#       }
-#     ]
-#     queryEndDt   = "2025-06-19T07:55:39.569Z"
-#     queryStartDt = "2025-06-19T07:25:39.569Z"
-#   }
-# }
-

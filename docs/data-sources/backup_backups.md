@@ -35,16 +35,16 @@ output "ids" {
 
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "server_name" {
-  type    = string
+  type = string
   default = ""
 }
 
 variable "name" {
-  type    = string
+  type = string
   default = ""
 }
 
@@ -55,12 +55,12 @@ variable "backups_filter_name" {
 
 variable "backups_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["backup"]
 }
 
 variable "backups_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
 ```
 
