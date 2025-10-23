@@ -33,7 +33,7 @@ output "ids" {
 
 variable "size" {
   type    = number
-  default = 20
+  default = 0
 }
 
 variable "page" {
@@ -43,7 +43,7 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = "created_at:desc"
+  default = ""
 }
 
 variable "name" {

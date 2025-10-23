@@ -3,40 +3,43 @@ package client
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/backup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/baremetalblockstorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/billing"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/cachestore"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/cloudmonitoring"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/directconnect"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/epas"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/eventstreams"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/gslb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loggingaudit"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/mariadb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/mysql"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/networklogging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/postgresql"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/quota"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/searchengine"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/securitygroup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/sqlserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/vertica"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/config"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/backup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/baremetalblockstorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/billing"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/cachestore"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/cloudmonitoring"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/directconnect"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/epas"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/eventstreams"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/firewall"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/gslb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loggingaudit"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/mariadb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/mysql"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/networklogging"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/postgresql"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/quota"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/searchengine"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/sqlserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vertica"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpcv1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/config"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 )
 
 // AuthStruct -
@@ -48,6 +51,9 @@ type AuthStruct struct {
 type SCPClient struct {
 	// VPC
 	Vpc *vpc.Client
+
+	// VPC
+	VpcV1 *vpcv1.Client
 
 	// DirectConnect
 	DirectConnect *directconnect.Client
@@ -70,6 +76,7 @@ type SCPClient struct {
 	// Compute
 	VirtualServer *virtualserver.Client
 	Backup        *backup.Client
+	Baremetal     *baremetal.Client
 
 	// Storage
 	BaremetalBlockStorage *baremetalblockstorage.Client
@@ -111,6 +118,74 @@ type SCPClient struct {
 	config *config.ProviderConfig
 }
 
+var AllowSDKDefaultVersion = map[string][]string{
+	// VPC
+	//vpc.ServiceType: {"v1.0"},
+
+	// VPC VPCV1
+	vpc.ServiceType: {"v1.0", "v1.1"},
+
+	// DirectConnect
+	directconnect.ServiceType: {"v1.0"},
+
+	// Firewall
+	firewall.ServiceType: {"v1.0"},
+
+	// VPN
+	vpn.ServiceType: {"v1.1"},
+
+	// NetworkLogging
+	networklogging.ServiceType: {"v1.0"},
+
+	// SecurityGroup
+	securitygroup.ServiceType: {"v1.0"},
+
+	// Kubernetes
+	ske.ServiceType: {"v1.1"},
+
+	// Compute
+	virtualserver.ServiceType: {"v1.1"},
+	backup.ServiceType:        {"v1.0"},
+	baremetal.ServiceType:     {"v1.0", "v1.1"},
+
+	// Storage
+	baremetalblockstorage.ServiceType: {"v1.1"},
+	filestorage.ServiceType:           {"v1.0", "v1.1"},
+
+	// Database
+	mysql.ServiceType:        {"v1.0"},
+	mariadb.ServiceType:      {"v1.0"},
+	postgresql.ServiceType:   {"v1.0"},
+	epas.ServiceType:         {"v1.0"},
+	sqlserver.ServiceType:    {"v1.0"},
+	cachestore.ServiceType:   {"v1.0"},
+	searchengine.ServiceType: {"v1.0"},
+	eventstreams.ServiceType: {"v1.0"},
+	vertica.ServiceType:      {"v1.0"},
+
+	// Platform
+	iam.ServiceType:             {"v1.0", "v1.1"},
+	resourcemanager.ServiceType: {"v1.0"},
+	billing.ServiceType:         {"v1.0"},
+	loggingaudit.ServiceType:    {"v1.1"},
+	quota.ServiceType:           {"v1.1"},
+
+	// LoadBalancer
+	loadbalancer.ServiceType: {"v1.1"},
+
+	// Monitoring
+	cloudmonitoring.ServiceType: {"v1.0"},
+
+	// Gslb
+	gslb.ServiceType: {"v1.0"},
+
+	// Dns
+	dns.ServiceType: {"v1.0", "v1.1"},
+
+	// Misc.
+
+}
+
 func createTlsConfig() (*tls.Config, error) {
 	certPath := os.Getenv("SSL_CERT_FILE")
 	var certPool *x509.CertPool
@@ -140,11 +215,12 @@ func NewDefaultConfig(config *config.ProviderConfig, serviceType string) *scpsdk
 	tlsConfig, _ := createTlsConfig()
 
 	cfg := &scpsdk.Configuration{
-		AuthUrl:       config.AuthUrl.ValueString(),
-		ServiceType:   serviceType,
-		AccountId:     "",
-		DefaultRegion: config.DefaultRegion.ValueString(),
-		Endpoint:      config.EndpointOverride.ValueString(),
+		AuthUrl:         config.AuthUrl.ValueString(),
+		ServiceType:     serviceType,
+		AllowSDKVersion: AllowSDKDefaultVersion[serviceType],
+		AccountId:       "",
+		DefaultRegion:   config.DefaultRegion.ValueString(),
+		Endpoint:        config.EndpointOverride.ValueString(),
 		Credentials: &scpsdk.Credentials{
 			AccessKey: config.AccessKey.ValueString(),
 			SecretKey: config.SecretKey.ValueString(),
@@ -170,6 +246,8 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 		// VPC
 		Vpc: vpc.NewClient(NewDefaultConfig(providerConfig, vpc.ServiceType)),
 
+		VpcV1: vpcv1.NewClient(NewDefaultConfig(providerConfig, vpcv1.ServiceType)),
+
 		// DirectConnect
 		DirectConnect: directconnect.NewClient(NewDefaultConfig(providerConfig, directconnect.ServiceType)),
 
@@ -190,6 +268,7 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 		// Compute
 		VirtualServer: virtualserver.NewClient(NewDefaultConfig(providerConfig, virtualserver.ServiceType)),
 		Backup:        backup.NewClient(NewDefaultConfig(providerConfig, backup.ServiceType)),
+		Baremetal:     baremetal.NewClient(NewDefaultConfig(providerConfig, baremetal.ServiceType)),
 
 		// Storage
 		BaremetalBlockStorage: baremetalblockstorage.NewClient(NewDefaultConfig(providerConfig, baremetalblockstorage.ServiceType)),

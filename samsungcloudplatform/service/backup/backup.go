@@ -3,14 +3,14 @@ package backup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/backup"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	backuputil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/backup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/backup/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/backup"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	backuputil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/backup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/region"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/backup/1.0"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -54,41 +54,49 @@ func (r *backupBackupResource) Schema(_ context.Context, _ resource.SchemaReques
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Backup name",
-				Required:    true,
+				Description: "Backup name \n" +
+					"  - example: 'terraformtestbackup01'",
+				Required: true,
 			},
 			common.ToSnakeCase("PolicyCategory"): schema.StringAttribute{
-				Description: "Backup policy category",
-				Required:    true,
+				Description: "Backup policy category \n" +
+					"  - example: 'AGENTLESS'",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("AGENTLESS"),
 				},
 			},
 			common.ToSnakeCase("PolicyType"): schema.StringAttribute{
-				Description: "Backup policy type",
-				Required:    true,
+				Description: "Backup policy type \n" +
+					"  - example: 'VM_IMAGE'",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("VM_IMAGE"),
 				},
 			},
 			common.ToSnakeCase("ServerUuid"): schema.StringAttribute{
-				Description: "Backup server UUID",
-				Required:    true,
+				Description: "Backup server UUID \n" +
+					"  - example: 'a16687f2-3abc-4f40-bb5d-ee79ea21249d'",
+				Required: true,
 			},
 			common.ToSnakeCase("ServerCategory"): schema.StringAttribute{
-				Description: "Backup server category",
-				Required:    true,
+				Description: "Backup server category \n" +
+					"  - example: 'VIRTUAL_SERVER'",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("VIRTUAL_SERVER", "GPU_SERVER"),
 				},
 			},
 			common.ToSnakeCase("EncryptEnabled"): schema.BoolAttribute{
-				Description: "Whether to use Encryption",
-				Required:    true,
+				Description: "Whether to use Encryption \n" +
+					"  - example: false",
+				Required: true,
 			},
 			common.ToSnakeCase("RetentionPeriod"): schema.StringAttribute{
-				Description: "Backup retention period",
-				Required:    true,
+				Description: "Backup retention period \n" +
+					"  - example: 'MONTH_1' \n" +
+					"  - pattern: WEEK_2 / MONTH_1 / MONTH_3 / MONTH_6 / YEAR_1",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("WEEK_2", "MONTH_1", "MONTH_3", "MONTH_6", "YEAR_1"),
 				},
@@ -99,24 +107,33 @@ func (r *backupBackupResource) Schema(_ context.Context, _ resource.SchemaReques
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Type",
-							Required:    true,
+							Description: "Schedule type \n" +
+								"  - example: 'FULL' \n" +
+								"  - pattern: FULL, INCREMENTAL",
+							Required: true,
 						},
 						common.ToSnakeCase("Frequency"): schema.StringAttribute{
-							Description: "Frequency",
-							Required:    true,
+							Description: "Schedule frequency type \n" +
+								"  - example: 'DAILY' \n" +
+								"  - pattern: MONTHLY / WEEKLY / DAILY",
+							Required: true,
 						},
 						common.ToSnakeCase("StartTime"): schema.StringAttribute{
-							Description: "StartTime",
-							Required:    true,
+							Description: "Backup schedule start time \n" +
+								"  - example: '11:00:00'",
+							Required: true,
 						},
 						common.ToSnakeCase("StartDay"): schema.StringAttribute{
-							Description: "StartDay",
-							Optional:    true,
+							Description: "Backup schedule start day \n" +
+								"  - example: 'MON' \n" +
+								"  - pattern: MON / TUE / WED / THU / FRI / SAT / SUN",
+							Optional: true,
 						},
 						common.ToSnakeCase("StartWeek"): schema.StringAttribute{
-							Description: "StartWeek",
-							Optional:    true,
+							Description: "Backup schedule start week \n" +
+								"  - example: 'WEEK_2' \n" +
+								"  - pattern: WEEK_1 / WEEK_2 / WEEK_3 / WEEK_4 / WEEK_LAST",
+							Optional: true,
 						},
 					},
 				},

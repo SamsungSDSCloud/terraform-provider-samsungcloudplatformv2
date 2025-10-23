@@ -3,10 +3,10 @@ package securitygroup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/securitygroup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -43,30 +43,35 @@ func (d *networkSecurityGroupDataSources) Schema(_ context.Context, _ datasource
 		Description: "List of security group",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "Page \n" +
+					"  - example : 0",
+				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.AtLeast(0),
 				},
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Optional:    true,
+				Description: "Size \n" +
+					"  - example : 20",
+				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.AtLeast(0),
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "Sort \n" +
+					"  - example : created_at:desc",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "Name \n" +
+					"  - example : sg_0911",
+				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Optional:    true,
+				Description: "Id \n" +
+					"  - example : f09708a755e24fceb4e15f7f5c82b0c1",
+				Optional: true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType: types.StringType,

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_network_logging_network_logging_configurations Data Source - samsungcloudplatformv2"
 subcategory: Network Logging Configuration
 description: |-
-  List of network logging configuration
+  List of network logging configurations
 ---
 
 # samsungcloudplatformv2_network_logging_network_logging_configurations (Data Source)
 
-List of network logging configuration
+List of network logging configurations
 
 ## Example Usage
 
@@ -16,6 +16,9 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_network_logging_network_logging_configurations" "networkloggingconfigurations" {
+  limit = var.limit
+  resource_id = var.resource_id
+  resource_name = var.resource_name
   resource_type = var.resource_type
 }
 
@@ -24,9 +27,34 @@ output "networkLoggingConfigurations" {
   value = data.samsungcloudplatformv2_network_logging_network_logging_configurations.networkloggingconfigurations
 }
 
+variable "limit" {
+  type    = number
+  default = 0
+}
+
+variable "marker" {
+  type    = string
+  default = ""
+}
+
+variable "sort" {
+  type    = string
+  default = ""
+}
+
+variable "resource_id" {
+  type    = string
+  default = ""
+}
+
+variable "resource_name" {
+  type    = string
+  default = ""
+}
+
 variable "resource_type" {
-  type = string
-  default =  "FIREWALL"
+  type    = string
+  default = ""
 }
 ```
 
@@ -49,15 +77,15 @@ variable "resource_type" {
   - maxLength : 64 
   - minLength : 1
 - `resource_id` (String) ResourceId 
-  - example : resource_id
+  - example : xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 - `resource_name` (String) ResourceName 
-  - example : resource_name
+  - example : FW_IGW_xxxxxx
 - `sort` (String) Sort 
   - example : created_at:desc
 
 ### Read-Only
 
-- `network_logging_configurations` (Attributes List) List of network logging configuration (see [below for nested schema](#nestedatt--network_logging_configurations))
+- `network_logging_configurations` (Attributes List) A List of network logging configurations (see [below for nested schema](#nestedatt--network_logging_configurations))
 
 <a id="nestedatt--network_logging_configurations"></a>
 ### Nested Schema for `network_logging_configurations`

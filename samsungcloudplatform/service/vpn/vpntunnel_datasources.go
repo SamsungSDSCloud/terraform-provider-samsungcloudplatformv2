@@ -3,10 +3,11 @@ package vpn
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -63,14 +64,6 @@ func (d *vpnVpnTunnelDataSources) Schema(_ context.Context, _ datasource.SchemaR
 				Description: "VpnGatewayName",
 				Optional:    true,
 			},
-			common.ToSnakeCase("PeerGatewayIp"): schema.StringAttribute{
-				Description: "PeerGatewayIp",
-				Optional:    true,
-			},
-			common.ToSnakeCase("RemoteSubnet"): schema.StringAttribute{
-				Description: "RemoteSubnet",
-				Optional:    true,
-			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
@@ -103,7 +96,7 @@ func (d *vpnVpnTunnelDataSources) Configure(_ context.Context, req datasource.Co
 }
 
 func (d *vpnVpnTunnelDataSources) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpn.VpnTunnelDataSourceIds
+	var state vpn.VpnTunnelData1d1Source
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -111,10 +104,9 @@ func (d *vpnVpnTunnelDataSources) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	ids, err := GetVpnTunnelList(d.clients, state.Page, state.Size, state.Sort, state.Name,
-		state.VpnGatewayId, state.VpnGatewayName, state.PeerGatewayIp, state.Remote_subnet)
+	ids, err := getVpnTunnelList(d.clients, state.Page, state.Size, state.Sort, state.Name, state.VpnGatewayId, state.VpnGatewayName)
 	if err != nil {
-		errorMessage := fmt.Sprintf("Unable to Read Vpn Tunnels. Error: %s, Config: %+v", err.Error(), state)
+		errorMessage := fmt.Sprintf("Unable to Read Vpn Tunnels v1.1. Error: %s, Config: %+v", err.Error(), state)
 		resp.Diagnostics.AddError(
 			"VPN Tunnel Read Error",
 			errorMessage,
@@ -131,12 +123,12 @@ func (d *vpnVpnTunnelDataSources) Read(ctx context.Context, req datasource.ReadR
 	}
 }
 
-func GetVpnTunnelList(clients *client.SCPClient, page types.Int32, size types.Int32, sort types.String, name types.String,
-	vpnGatewayId types.String, vpnGatewayName types.String, peerGatewayIp types.String, remoteSubnet types.String) ([]types.String, error) {
+func getVpnTunnelList(clients *client.SCPClient, page types.Int32, size types.Int32, sort types.String, name types.String,
+	vpnGatewayId types.String, vpnGatewayName types.String) ([]types.String, error) {
 
 	ctx := context.Background()
 
-	data, err := clients.Vpn.GetVpnTunnelList(ctx, page, size, sort, name, vpnGatewayId, vpnGatewayName, peerGatewayIp, remoteSubnet)
+	data, err := clients.Vpn.GetVpnTunnelList(ctx, page, size, sort, name, vpnGatewayId, vpnGatewayName)
 	if err != nil {
 		return nil, err
 	}

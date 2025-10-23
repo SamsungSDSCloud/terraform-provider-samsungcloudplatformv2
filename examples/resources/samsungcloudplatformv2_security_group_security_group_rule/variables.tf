@@ -1,45 +1,46 @@
 variable "security_group_id" {
-  type = string
-  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "ethertype" {
-  type = string
-  default = "IPv4"
+  type    = string
+  default = ""
 }
 
 variable "protocol" {
-  type = string
-  default = "TCP"
+  type    = string
+  default = ""
 }
 
 variable "port_range_min" {
-  type = number
-  default = 22
+  type    = number
+  default = 0
 }
 
 variable "port_range_max" {
-  type = number
-  default = 23
+  type    = number
+  default = 0
 }
 
 variable "remote_ip_prefix" {
-  type = string
-  default = "1.1.1.1/30"
+  type    = string
+  default = ""
 }
 
 variable "remote_group_id" {
-  type = string
+  type    = string
   default = ""
 }
 
 
 variable "description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 
 variable "direction" {
-  type = string
-  default = "egress"
+  type    = string
+  default = ""
 }
+

@@ -27,7 +27,7 @@ output "nodepool" {
 
 variable "id" {
   type    = string
-  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  default = ""
 }
 ```
 
@@ -48,6 +48,7 @@ variable "id" {
 Read-Only:
 
 - `account_id` (String) account id
+- `advanced_settings` (Attributes) AdvancedSettings (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
 - `auto_recovery_enabled` (Boolean) AutoRecoveryEnabled
 - `auto_scale_enabled` (Boolean) AutoScaleEnabled
 - `cluster` (Attributes) Cluster (see [below for nested schema](#nestedatt--nodepool--cluster))
@@ -65,11 +66,26 @@ Read-Only:
 - `modified_at` (String) ModifiedAt
 - `modified_by` (String) ModifiedBy
 - `name` (String) name
+- `server_group_id` (String) ServerGroupId
 - `server_type` (Attributes) ServerType (see [below for nested schema](#nestedatt--nodepool--server_type))
 - `status` (String) Status
 - `taints` (Attributes List) Taints (see [below for nested schema](#nestedatt--nodepool--taints))
 - `volume_size` (Number) VolumeSize
 - `volume_type` (Attributes) VolumeType (see [below for nested schema](#nestedatt--nodepool--volume_type))
+
+<a id="nestedatt--nodepool--advanced_settings"></a>
+### Nested Schema for `nodepool.advanced_settings`
+
+Read-Only:
+
+- `allowed_unsafe_sysctls` (String) AllowedUnsafeSysctls
+- `container_log_max_files` (Number) ContainerLogMaxFiles
+- `container_log_max_size` (Number) ContainerLogMaxSize
+- `image_gc_high_threshold` (Number) ImageGcHighThreshold
+- `image_gc_low_threshold` (Number) ImageGcLowThreshold
+- `max_pods` (Number) MaxPods
+- `pod_max_pids` (Number) PodMaxPids
+
 
 <a id="nestedatt--nodepool--cluster"></a>
 ### Nested Schema for `nodepool.cluster`

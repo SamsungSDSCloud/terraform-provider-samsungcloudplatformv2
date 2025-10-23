@@ -1,41 +1,52 @@
 package service
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/backup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/baremetalblockstorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/cachestore"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/cloudmonitoring"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/directconnect"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/epas"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/eventstreams"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/gslb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/loggingaudit"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/mariadb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/mysql"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/network-logging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/plannedcompute"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/postgresql"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/quota"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/searchengine"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/securitygroup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/sqlserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/vertica"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/service/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/backup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/baremetalblockstorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/cachestore"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/cloudmonitoring"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/directconnect"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/epas"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/eventstreams"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/firewall"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/gslb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/loggingaudit"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/mariadb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/mysql"
+	network_logging "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/network-logging"
+	billing "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/plannedcompute"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/postgresql"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/quota"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/searchengine"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/sqlserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/vertica"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/service/vpn"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var ResourceConstructors = []func() resource.Resource{
+	// IAM
 	iam.NewIamAccessKeyResource,
+	iam.NewIamGroupResource,
+	iam.NewIamGroupMemberResource,
+	iam.NewIamGroupPolicyBindingsResource,
+	iam.NewIamPolicyResource,
+	iam.NewIamRoleResource,
+	iam.NewIamRolePolicyBindingsResource,
+	iam.NewIamUserResource,
+	iam.NewIamUserPolicyBindingsResource,
+
 	resourcemanager.NewResourceManagerResourceGroupResource,
 	ske.NewSkeClusterResource,
 	ske.NewSkeNodepoolResource,
@@ -50,6 +61,11 @@ var ResourceConstructors = []func() resource.Resource{
 	vpc.NewVpcVpcEndpointResource,
 	vpc.NewVpcPrivateNatResource,
 	vpc.NewVpcPrivateNatIpResource,
+	vpc.NewVpcPeeringApprovalResource,
+	vpc.NewVpcVpcPeeringRuleResource,
+	vpc.NewVpcTgwResource,
+	vpc.NewVpcTgwRuleResource,
+	vpc.NewVpcTgwVpcConnectionResource,
 	network_logging.NewNetworkLoggingNetworkLoggingStorageResource,
 	directconnect.NewDirectConnectDirectConnectResource,
 
@@ -67,6 +83,7 @@ var ResourceConstructors = []func() resource.Resource{
 	virtualserver.NewVirtualServerImageResource,
 	backup.NewBackupBackupResource,
 	virtualserver.NewVirtualServerServerGroupResource,
+	baremetal.NewBaremetalBaremetalResource,
 
 	// Block storage(BM)
 	baremetalblockstorage.NewBaremetalBlockStorageVolumeResource,
@@ -110,10 +127,27 @@ var ResourceConstructors = []func() resource.Resource{
 	loggingaudit.NewLoggingauditTrailResource,
 	loadbalancer.NewLoadBalancerLbMemberResource,
 	loadbalancer.NewLoadBalancerListenerResource,
+
+	//peering
+	vpc.NewVpcPeeringResource,
 }
 
 var DataSourceConstructors = []func() datasource.DataSource{
+	// IAM
 	iam.NewIamAccessKeyDataSource,
+	iam.NewIamGroupDataSource,
+	iam.NewIamGroupDataSources,
+	iam.NewIamGroupMemberDataSources,
+	iam.NewIamGroupPolicyBindingDataSources,
+	iam.NewIamPolicyDataSource,
+	iam.NewIamPolicyDataSources,
+	iam.NewIamRoleDataSource,
+	iam.NewIamRoleDataSources,
+	iam.NewIamRolePolicyBindingDataSources,
+	iam.NewIamUserDataSource,
+	iam.NewIamUserDataSources,
+	iam.NewIamUserPolicyBindingDataSources,
+
 	resourcemanager.NewResourceManagerTagDataSource,
 	resourcemanager.NewResourceManagerResourceTagDataSource,
 	resourcemanager.NewResourceManagerResourceGroupDataSource,
@@ -141,8 +175,13 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	vpc.NewVpcNatGatewayDataSource,
 	vpc.NewVpcInternetGatewayDataSource,
 	vpc.NewVpcVpcEndpointDataSource,
+	vpc.NewVpcVpcPeeringRuleDataSource,
 	vpc.NewVpcPrivateNatDataSource,
 	vpc.NewVpcPrivateNatIpDataSource,
+	vpc.NewTransitGatewayDataSources,
+	vpc.NewTransitGatewayDataSource,
+	vpc.NewTransitGatewayRoutingRuleDataSources,
+	vpc.NewTransitGatewayVpcConnectionDataSources,
 	network_logging.NewNetworkLoggingNetworkLoggingStorageDataSource,
 	network_logging.NewNetworkLoggingNetworkLoggingConfigurationDataSource,
 	directconnect.NewDirectConnectDirectConnectDataSource,
@@ -173,6 +212,8 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	virtualserver.NewVirtualServerServerGroupDataSources,
 	backup.NewBackupBackupDataSource,
 	backup.NewBackupBackupDataSources,
+	baremetal.NewBaremetalBaremetalDataSources,
+	baremetal.NewBaremetalBaremetalDataSource,
 
 	// Storage
 	filestorage.NewFileStorageVolumeDataSources,
@@ -249,4 +290,8 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	loggingaudit.NewLoggingauditTrailDataSource,
 	loadbalancer.NewLoadbalancerLbCertificateDataSources,
 	loadbalancer.NewLoadbalancerLbCertificateDataSource,
+
+	// vpc peering
+	vpc.NewVpcVpcPeeringsDataSource,
+	vpc.NewVpcVpcPeeringIdDataSource,
 }

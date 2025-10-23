@@ -17,7 +17,6 @@ provider "samsungcloudplatformv2" {
 
 data "samsungcloudplatformv2_firewall_firewall" "firewall" {
   id = var.id
-  product_type = var.product_type
 }
 
 
@@ -27,13 +26,8 @@ output "firewall" {
 
 
 variable "id" {
-  type = string
-  default =  "68db67f78abd405da98a6056a8ee42af"
-}
-
-variable "product_type" {
-  type = list(string)
-  default =  ["LB", "IGW"]
+  type    = string
+  default = ""
 }
 ```
 
@@ -44,23 +38,6 @@ variable "product_type" {
 
 - `id` (String) Firewall ID 
   - example : 68db67f78abd405da98a6056a8ee42af
-
-### Optional
-
-- `name` (String) Firewall Name 
-  - example : subnetName
-- `page` (Number) Page 
-  - example : 0
-- `product_type` (List of String) ProductType 
-  - example : IGW | GGW | DGW | LB | SIGW | TGW_IGW | TGW_GGW | TGW_DGW | TGW_SIGW | TGW_BM
-- `size` (Number) Size 
-  - example : 20
-- `sort` (String) Sort 
-  - example : created_at:desc
-- `state` (List of String) State 
-  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR | DEPLOYING
-- `vpc_name` (String) Vpc Name 
-  - example : vpcName
 
 ### Read-Only
 

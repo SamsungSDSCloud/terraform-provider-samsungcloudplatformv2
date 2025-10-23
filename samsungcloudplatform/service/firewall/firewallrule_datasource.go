@@ -3,16 +3,12 @@ package firewall
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/firewall"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
 )
@@ -50,70 +46,10 @@ func (d *firewallFirewallRuleDataSource) Schema(_ context.Context, _ datasource.
 					"  - example : fd5aa79d25a84f52b02a954c125aa8d9",
 				Required: true,
 			},
-			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page \n" +
-					"  - example : 0",
-				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.AtLeast(0),
-				},
-			},
-			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size \n" +
-					"  - example : 20",
-				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.AtLeast(0),
-				},
-			},
-			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
-					"  - example : created_at:desc",
-				Optional: true,
-			},
 			common.ToSnakeCase("FirewallId"): schema.StringAttribute{
 				Description: "Firewall Id \n" +
 					"  - example : 68db67f78abd405da98a6056a8ee42af",
 				Required: true,
-			},
-			common.ToSnakeCase("SrcIp"): schema.StringAttribute{
-				Description: "Source IP \n" +
-					"  - example : 10.10.10.10",
-				Optional: true,
-			},
-			common.ToSnakeCase("DstIp"): schema.StringAttribute{
-				Description: "Destination IP \n" +
-					"  - example : 10.10.10.10",
-				Optional: true,
-			},
-			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description \n" +
-					"  - example : firewallDescription",
-				Optional: true,
-			},
-			common.ToSnakeCase("State"): schema.ListAttribute{
-				Description: "State \n" +
-					"  - example : CREATING | ACTIVE | DELETING | EDITING | ERROR",
-				Optional:    true,
-				ElementType: types.StringType,
-				Validators: []validator.List{
-					listvalidator.ValueStringsAre(
-						stringvalidator.OneOf("CREATING", "ACTIVE", "DELETING", "EDITING", "ERROR"),
-					),
-				},
-			},
-			common.ToSnakeCase("Status"): schema.StringAttribute{
-				Description: "Status \n" +
-					"  - example : ENABLE | DISABLE",
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("ENABLE", "DISABLE"),
-				},
-			},
-			common.ToSnakeCase("FetchAll"): schema.BoolAttribute{
-				Description: "Fetch All \n" +
-					"  - example : True | False",
-				Optional: true,
 			},
 			common.ToSnakeCase("FirewallRule"): schema.SingleNestedAttribute{
 				Description: "Firewall rule",
@@ -248,8 +184,18 @@ func (d *firewallFirewallRuleDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 
-	ids, err := GetFirewallRuleList(d.clients, state.Page, state.Size, state.Sort, state.FirewallId,
-		state.SrcIp, state.DstIp, state.Description, state.State, state.Status, state.FetchAll)
+	var defaultSize types.Int32
+	var defaultPage types.Int32
+	var defaultSort types.String
+	var defaultSrcIp types.String
+	var defaultDstIp types.String
+	var defaultDescription types.String
+	var defaultState types.List
+	var defaultStatus types.String
+	var defaultFetchAll types.Bool
+
+	ids, err := GetFirewallRuleList(d.clients, defaultPage, defaultSize, defaultSort, state.FirewallId,
+		defaultSrcIp, defaultDstIp, defaultDescription, defaultState, defaultStatus, defaultFetchAll)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read firewall rule",

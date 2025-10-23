@@ -29,37 +29,37 @@ output "event_policies" {
 }
 
 variable "ProductResourceId" {
-  type = string
-  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "EventState" {
-  type = string
-  default = "ALL"
+  type    = string
+  default = ""
 }
 
 variable "QueryStartDt" {
-  type = string
-  default = "2025-01-01T18:00:00.000Z"
+  type    = string
+  default = ""
 }
 
 variable "QueryEndDt" {
-  type = string
-  default = "2025-03-12T23:59:59.000Z"
+  type    = string
+  default = ""
 }
 
 variable "XResourceType" {
-  type = string
-  default = "VM"
+  type    = string
+  default = ""
 }
 
 variable "Size" {
-  type = number
-  default = 10
+  type    = number
+  default = 0
 }
 
 variable "Page" {
-  type = number
+  type    = number
   default = 0
 }
 ```

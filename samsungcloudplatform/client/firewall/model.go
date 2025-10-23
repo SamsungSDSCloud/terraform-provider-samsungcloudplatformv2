@@ -1,7 +1,7 @@
 package firewall
 
 import (
-	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/firewall/1.0"
+	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/firewall/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -11,15 +11,8 @@ const ServiceType = "scp-firewall"
 //------------------- Firewall -------------------//
 
 type FirewallDataSource struct {
-	Id          types.String `tfsdk:"id"`
-	Page        types.Int32  `tfsdk:"page"`
-	Size        types.Int32  `tfsdk:"size"`
-	Sort        types.String `tfsdk:"sort"`
-	Name        types.String `tfsdk:"name"`
-	VpcName     types.String `tfsdk:"vpc_name"`
-	ProductType types.List   `tfsdk:"product_type"`
-	State       types.List   `tfsdk:"state"`
-	Firewall    types.Object `tfsdk:"firewall"`
+	Id       types.String `tfsdk:"id"`
+	Firewall types.Object `tfsdk:"firewall"`
 }
 
 type FirewallDataSourceIds struct {
@@ -81,16 +74,7 @@ func (m Firewall) AttributeTypes() map[string]attr.Type {
 
 type FirewallRuleDataSource struct {
 	Id           types.String `tfsdk:"id"`
-	Page         types.Int32  `tfsdk:"page"`
-	Size         types.Int32  `tfsdk:"size"`
-	Sort         types.String `tfsdk:"sort"`
 	FirewallId   types.String `tfsdk:"firewall_id"`
-	SrcIp        types.String `tfsdk:"src_ip"`
-	DstIp        types.String `tfsdk:"dst_ip"`
-	Description  types.String `tfsdk:"description"`
-	State        types.List   `tfsdk:"state"`
-	Status       types.String `tfsdk:"status"`
-	FetchAll     types.Bool   `tfsdk:"fetch_all"`
 	FirewallRule types.Object `tfsdk:"firewall_rule"`
 }
 

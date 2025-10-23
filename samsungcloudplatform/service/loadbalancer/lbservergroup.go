@@ -3,18 +3,19 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/loadbalancer/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/loadbalancer/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"strings"
 	"time"
 )
 
@@ -318,6 +319,16 @@ func (r *loadbalancerLbServerGroupResource) Delete(ctx context.Context, req reso
 		)
 		return
 	}
+
+	err = waitForLbServerGroupStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"DELETED"})
+	if err != nil && !strings.Contains(err.Error(), "404") {
+		resp.Diagnostics.AddError(
+			"Error Deleting LB Server Group",
+			"Error waiting for direct connect to become deleted: "+err.Error(),
+		)
+		return
+	}
+
 }
 
 func createLbServerGroupModel(data *scploadbalancer.LbServerGroupShowResponse) loadbalancer.LbServerGroupDetail {

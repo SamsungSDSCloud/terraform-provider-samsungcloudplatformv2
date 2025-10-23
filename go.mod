@@ -1,8 +1,8 @@
-module github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2
+module github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2
 
 go 1.22.5
 
-require github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2 v1.0.2
+require github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2 v2.0.3
 
 
 require (
@@ -52,7 +52,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.0.0 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/pflag v1.0.7 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect

@@ -27,7 +27,7 @@ output "kubernetes_versions" {
 
 variable "region" {
   type    = string
-  default = "kr-west1"
+  default = ""
 }
 ```
 

@@ -3,11 +3,11 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/ske/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -197,6 +197,45 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						Description: "ModifiedBy",
 						Computed:    true,
 					},
+					common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
+						Description: "ServerGroupId",
+						Computed:    true,
+					},
+					common.ToSnakeCase("AdvancedSettings"): schema.SingleNestedAttribute{
+						Description: "AdvancedSettings",
+						Computed:    true,
+						Required:    false,
+						Attributes: map[string]schema.Attribute{
+							common.ToSnakeCase("AllowedUnsafeSysctls"): schema.StringAttribute{
+								Description: "AllowedUnsafeSysctls",
+								Computed:    true,
+							},
+							common.ToSnakeCase("ContainerLogMaxFiles"): schema.Int32Attribute{
+								Description: "ContainerLogMaxFiles",
+								Computed:    true,
+							},
+							common.ToSnakeCase("ContainerLogMaxSize"): schema.Int32Attribute{
+								Description: "ContainerLogMaxSize",
+								Computed:    true,
+							},
+							common.ToSnakeCase("ImageGcHighThreshold"): schema.Int32Attribute{
+								Description: "ImageGcHighThreshold",
+								Computed:    true,
+							},
+							common.ToSnakeCase("ImageGcLowThreshold"): schema.Int32Attribute{
+								Description: "ImageGcLowThreshold",
+								Computed:    true,
+							},
+							common.ToSnakeCase("MaxPods"): schema.Int32Attribute{
+								Description: "MaxPods",
+								Computed:    true,
+							},
+							common.ToSnakeCase("PodMaxPids"): schema.Int32Attribute{
+								Description: "PodMaxPids",
+								Computed:    true,
+							},
+						},
+					},
 				},
 			},
 		},
@@ -235,44 +274,46 @@ func (d *skeNodepoolDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	nodepoolModel := ske.NodepoolDetail{
-		Id:                  types.StringValue(data.Nodepool.Id),
-		Name:                types.StringValue(data.Nodepool.Name),
-		AccountId:           types.StringValue(data.Nodepool.AccountId),
-		AutoRecoveryEnabled: types.BoolValue(data.Nodepool.AutoRecoveryEnabled),
-		AutoScaleEnabled:    types.BoolValue(data.Nodepool.AutoScaleEnabled),
+		Id:                  types.StringPointerValue(data.Nodepool.Id),
+		Name:                types.StringPointerValue(data.Nodepool.Name),
+		AccountId:           types.StringPointerValue(data.Nodepool.AccountId),
+		AutoRecoveryEnabled: types.BoolPointerValue(data.Nodepool.AutoRecoveryEnabled),
+		AutoScaleEnabled:    types.BoolPointerValue(data.Nodepool.AutoScaleEnabled),
 		Cluster: ske.IdMapType{
-			Id: types.StringValue(data.Nodepool.Cluster.Id),
+			Id: types.StringPointerValue(data.Nodepool.Cluster.Id),
 		},
-		CurrentNodeCount: types.Int32Value(data.Nodepool.CurrentNodeCount),
-		DesiredNodeCount: types.Int32Value(data.Nodepool.DesiredNodeCount),
+		CurrentNodeCount: types.Int32PointerValue(data.Nodepool.CurrentNodeCount),
+		DesiredNodeCount: types.Int32PointerValue(data.Nodepool.DesiredNodeCount),
 		Image: ske.Image{
 			CustomImageName: types.StringPointerValue(data.Nodepool.Image.CustomImageName.Get()),
-			Os:              types.StringValue(data.Nodepool.Image.Os),
-			OsVersion:       types.StringValue(data.Nodepool.Image.OsVersion),
+			Os:              types.StringPointerValue(data.Nodepool.Image.Os),
+			OsVersion:       types.StringPointerValue(data.Nodepool.Image.OsVersion),
 		},
 		Keypair: ske.NameMapType{
-			Name: types.StringValue(data.Nodepool.Keypair.Name),
+			Name: types.StringPointerValue(data.Nodepool.Keypair.Name),
 		},
-		KubernetesVersion: types.StringValue(data.Nodepool.KubernetesVersion),
+		KubernetesVersion: types.StringPointerValue(data.Nodepool.KubernetesVersion),
 		Labels:            labels,
 		Taints:            taints,
-		MaxNodeCount:      types.Int32Value(data.Nodepool.MaxNodeCount),
-		MinNodeCount:      types.Int32Value(data.Nodepool.MinNodeCount),
+		MaxNodeCount:      types.Int32PointerValue(data.Nodepool.MaxNodeCount),
+		MinNodeCount:      types.Int32PointerValue(data.Nodepool.MinNodeCount),
 		ServerType: ske.ServerType{
-			Description: types.StringValue(data.Nodepool.ServerType.Description),
-			Id:          types.StringValue(data.Nodepool.ServerType.Id),
+			Description: types.StringPointerValue(data.Nodepool.ServerType.Description),
+			Id:          types.StringPointerValue(data.Nodepool.ServerType.Id),
 		},
-		Status: types.StringValue(data.Nodepool.Status),
+		Status: types.StringPointerValue(data.Nodepool.Status),
 		VolumeType: ske.VolumeType{
-			Encrypt: types.BoolValue(data.Nodepool.VolumeType.Encrypt),
-			Id:      types.StringValue(data.Nodepool.VolumeType.Id),
-			Name:    types.StringValue(data.Nodepool.VolumeType.Name),
+			Encrypt: types.BoolPointerValue(data.Nodepool.VolumeType.Encrypt),
+			Id:      types.StringPointerValue(data.Nodepool.VolumeType.Id),
+			Name:    types.StringPointerValue(data.Nodepool.VolumeType.Name),
 		},
-		VolumeSize: types.Int32Value(data.Nodepool.VolumeSize),
-		CreatedAt:  types.StringValue(data.Nodepool.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:  types.StringValue(data.Nodepool.CreatedBy),
-		ModifiedAt: types.StringValue(data.Nodepool.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy: types.StringValue(data.Nodepool.ModifiedBy),
+		VolumeSize:       types.Int32PointerValue(data.Nodepool.VolumeSize),
+		CreatedAt:        types.StringValue(data.Nodepool.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:        types.StringValue(data.Nodepool.CreatedBy),
+		ModifiedAt:       types.StringValue(data.Nodepool.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:       types.StringValue(data.Nodepool.ModifiedBy),
+		ServerGroupId:    types.StringPointerValue(data.Nodepool.ServerGroupId.Get()),
+		AdvancedSettings: d.makeNodepoolAdvancedSettingsModel(data.Nodepool.AdvancedSettings),
 	}
 	nodepoolObjectValue, diags := types.ObjectValueFrom(ctx, nodepoolModel.AttributeTypes(), nodepoolModel)
 	state.Nodepool = nodepoolObjectValue
@@ -304,6 +345,22 @@ func (d *skeNodepoolDataSource) makeNodepoolTaintsModel(nodepoolTaints *scpske.N
 		Key:    types.StringValue(nodepoolTaints.GetKey()),
 		Value:  types.StringValue(nodepoolTaints.GetValue()),
 	}
+}
+
+func (d *skeNodepoolDataSource) makeNodepoolAdvancedSettingsModel(advancedSettings scpske.NullableNodepoolAdvancedSettings) *ske.AdvancedSettings {
+	value := advancedSettings.Get()
+	if value != nil {
+		return &ske.AdvancedSettings{
+			AllowedUnsafeSysctls: types.StringValue(value.AllowedUnsafeSysctls),
+			ContainerLogMaxFiles: types.Int32Value(value.ContainerLogMaxFiles),
+			ContainerLogMaxSize:  types.Int32Value(value.ContainerLogMaxSize),
+			ImageGcHighThreshold: types.Int32Value(value.ImageGcHighThreshold),
+			ImageGcLowThreshold:  types.Int32Value(value.ImageGcLowThreshold),
+			MaxPods:              types.Int32Value(value.MaxPods),
+			PodMaxPids:           types.Int32Value(value.PodMaxPids),
+		}
+	}
+	return nil
 }
 
 //// datasource.DataSourceWithConfigure Interface Methods

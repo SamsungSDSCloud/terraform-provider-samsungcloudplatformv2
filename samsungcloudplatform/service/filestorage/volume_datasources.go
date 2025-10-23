@@ -3,10 +3,10 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -73,7 +73,7 @@ func (d *fileStorageVolumeDataSources) Schema(_ context.Context, _ datasource.Sc
 			common.ToSnakeCase("TypeName"): schema.StringAttribute{
 				Description: "Volume Type Name \n" +
 					"  - example : 'HDD' \n" +
-					"  - pattern: '^(HDD|SSD|HighPerformanceSSD)$' \n",
+					"  - pattern: '^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$' \n",
 				Optional: true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{

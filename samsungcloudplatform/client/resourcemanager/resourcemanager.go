@@ -2,8 +2,8 @@ package resourcemanager
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/resourcemanager"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/resourcemanager/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"math"
@@ -193,9 +193,8 @@ func (client *Client) UpdateResourceGroup(ctx context.Context, resourceGroupId s
 	var resourceTypes []string
 	request.ResourceTypes.ElementsAs(ctx, &resourceTypes, false)
 
-	req = req.ResourceGroupCreateRequest(resourcemanager.ResourceGroupCreateRequest{
+	req = req.ResourceGroupUpdateRequest(resourcemanager.ResourceGroupUpdateRequest{
 		Description:   *resourcemanager.NewNullableString(request.Description.ValueStringPointer()),
-		Name:          request.Name.ValueString(),
 		ResourceTypes: resourceTypes,
 		Tags:          GroupDefinitionTagsObject,
 	})

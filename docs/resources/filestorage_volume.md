@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_filestorage_volume Resource - samsungcloudplatformv2"
 subcategory: File Storage Volume
 description: |-
-  volume
+  
 ---
 
 # samsungcloudplatformv2_filestorage_volume (Resource)
 
-volume
+
 
 ## Example Usage
 
@@ -30,46 +30,44 @@ output "volume_output" {
 }
 
 variable "name" {
-  type = string
-  default = "my_volume"
+  type    = string
+  default = ""
 }
 
 variable "protocol" {
-  type = string
-  default = "NFS"
+  type    = string
+  default = ""
 }
 
 variable "type_name" {
-  type = string
-  default = "HDD"
+  type    = string
+  default = ""
 }
 
 variable "cifs_password" {
-  type = string
-  default = "cifspwd0!!"
+  type    = string
+  default = ""
 }
 
 variable "file_unit_recovery_enabled" {
-  type = bool
-  default = true
+  type    = bool
+  default = false
 }
 
 variable "access_rules" {
   type = list(object({
     object_type = string,
-    object_id = string
+    object_id   = string
   }))
   default = [{
-    object_type="VM",
-    object_id="8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+    object_id   = ""
+    object_type = ""
   }]
 }
 
 variable "tags" {
   type    = map(string)
-  default = {
-    "terraform_key" = "terraform_value"
-  }
+  default = null
 }
 ```
 
@@ -88,7 +86,7 @@ variable "tags" {
   - pattern: '^(NFS|CIFS)$'
 - `type_name` (String) Volume Type Name 
   - example : 'HDD' 
-  - pattern: '^(HDD|SSD|HighPerformanceSSD)$'
+  - pattern: '^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$'
 
 ### Optional
 
@@ -100,9 +98,12 @@ variable "tags" {
   - pattern: '^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$'
 - `file_unit_recovery_enabled` (Boolean) File Unit Recovery Enabled 
   - example : 'true'
+- `path` (String) Volume Mount Path 
+  - example : 'xxx.xx.xxx.xxx'
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
+- `usage` (Number)
 
 ### Read-Only
 
@@ -110,13 +111,16 @@ variable "tags" {
   - example : 'rwww523320dfvwbbefefsdvwdadsfa24c'
 - `created_at` (String) Created At 
   - example : '2024-07-30T04:54:33.219373'
+- `encryption_enabled` (Boolean) Volume Encryption Enabled 
+  - example : 'true'
+- `endpoint_path` (String) Volume Endpoint Path 
+  - example : 'xxx.xx.xxx.xxx'
 - `id` (String) Identifier of the resource.
 - `name_uuid` (String) Volume Name Uuid 
   - example : 'my_volume_2m060u'
 - `purpose` (String) Volume Purpose 
   - example : 'none'
-- `state` (String) Volume State 
-  - example : 'available'
+- `state` (String) Volume State
 - `type_id` (String) Volume Type ID 
   - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu'
 

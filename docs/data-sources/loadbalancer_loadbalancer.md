@@ -25,8 +25,8 @@ output "loadbalancer" {
 }
 
 variable "id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 ```
 
@@ -49,12 +49,10 @@ Optional:
 - `account_id` (String) Account ID
 - `description` (String) Description
 - `firewall_id` (String) Firewall ID
-- `firewall_name` (String) Firewall Name
 - `health_check_ip` (List of String) Health check IP
 - `layer_type` (String) Layer type
 - `name` (String) Name
-- `public_nat_ip` (String) Public NAT IP
-- `public_nat_state` (String) Public NAT state
+- `public_nat_enabled` (Boolean) Public NAT Enabled
 - `service_ip` (String) Service IP
 - `source_nat_ip` (String) Source NAT IP
 - `state` (String) State

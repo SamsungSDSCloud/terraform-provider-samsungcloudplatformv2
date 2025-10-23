@@ -53,3 +53,13 @@ type Taints struct {
 	Key    types.String `tfsdk:"key"`
 	Value  types.String `tfsdk:"value"`
 }
+
+type AdvancedSettings struct {
+	AllowedUnsafeSysctls types.String `tfsdk:"allowed_unsafe_sysctls"`
+	ContainerLogMaxFiles types.Int32  `tfsdk:"container_log_max_files"`
+	ContainerLogMaxSize  types.Int32  `tfsdk:"container_log_max_size"`
+	ImageGcHighThreshold types.Int32  `tfsdk:"image_gc_high_threshold"`
+	ImageGcLowThreshold  types.Int32  `tfsdk:"image_gc_low_threshold"`
+	MaxPods              types.Int32  `tfsdk:"max_pods"`
+	PodMaxPids           types.Int32  `tfsdk:"pod_max_pids"`
+}

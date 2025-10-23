@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/dns/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/dns/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,20 +43,16 @@ func (d *dnsHostedZoneDataSources) Schema(_ context.Context, _ datasource.Schema
 	resp.Schema = schema.Schema{
 		Description: "list of hosted zone.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit",
+			common.ToSnakeCase("Page"): schema.Int32Attribute{
+				Description: "Page",
 				Optional:    true,
 			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker",
+			common.ToSnakeCase("Size"): schema.Int32Attribute{
+				Description: "Size",
 				Optional:    true,
 			},
-			common.ToSnakeCase("SortDir"): schema.StringAttribute{
-				Description: "SortDir",
-				Optional:    true,
-			},
-			common.ToSnakeCase("SortKey"): schema.StringAttribute{
-				Description: "SortKey",
+			common.ToSnakeCase("Sort"): schema.StringAttribute{
+				Description: "Sort",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{

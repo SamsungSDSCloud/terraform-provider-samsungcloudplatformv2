@@ -1,42 +1,42 @@
 variable "name" {
-  type = string
-  default = "my_volume"
+  type    = string
+  default = ""
 }
 
 variable "protocol" {
-  type = string
-  default = "NFS"
+  type    = string
+  default = ""
 }
 
 variable "type_name" {
-  type = string
-  default = "HDD"
+  type    = string
+  default = ""
 }
 
 variable "cifs_password" {
-  type = string
-  default = "cifspwd0!!"
+  type    = string
+  default = ""
 }
 
 variable "file_unit_recovery_enabled" {
-  type = bool
-  default = true
+  type    = bool
+  default = false
 }
 
 variable "access_rules" {
   type = list(object({
     object_type = string,
-    object_id = string
+    object_id   = string
   }))
   default = [{
-    object_type="VM",
-    object_id="8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+    object_id   = ""
+    object_type = ""
   }]
 }
 
 variable "tags" {
   type    = map(string)
-  default = {
-    "terraform_key" = "terraform_value"
-  }
+  default = null
 }
+
+

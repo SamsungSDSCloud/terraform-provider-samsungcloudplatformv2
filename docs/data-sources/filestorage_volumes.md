@@ -28,28 +28,28 @@ output "volumes" {
 }
 
 variable "limit" {
-  type = number
-  default = 10
+  type    = number
+  default = 0
 }
 
 variable "offset" {
-  type = number
+  type    = number
   default = 0
 }
 
 variable "sort" {
-  type = string
-  default = "created_at:desc"
+  type    = string
+  default = ""
 }
 
 variable "name" {
-  type = string
-  default = "test"
+  type    = string
+  default = ""
 }
 
 variable "type_name" {
-  type = string
-  default = "HDD"
+  type    = string
+  default = ""
 }
 ```
 
@@ -73,7 +73,7 @@ variable "type_name" {
   - example : 'created_at:asc'
 - `type_name` (String) Volume Type Name 
   - example : 'HDD' 
-  - pattern: '^(HDD|SSD|HighPerformanceSSD)$'
+  - pattern: '^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$'
 
 ### Read-Only
 

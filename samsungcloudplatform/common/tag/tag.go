@@ -3,10 +3,10 @@ package tag
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -41,8 +41,8 @@ func DataSourceSchema() datasourceschema.MapAttribute {
 		Optional:    true,
 		ElementType: types.StringType,
 		Description: "A map of key-value pairs representing tags for the resource.\n" +
-			" - Keys must be a maximum of 128 characters.\n" +
-			" - Values must be a maximum of 256 characters.",
+			"  - Keys must be a maximum of 128 characters.\n" +
+			"  - Values must be a maximum of 256 characters.",
 		Validators: []validator.Map{
 			mapvalidator.KeysAre(
 				stringvalidator.LengthBetween(1, 128),

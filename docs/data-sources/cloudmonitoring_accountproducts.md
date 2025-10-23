@@ -25,8 +25,8 @@ output "accountproducts" {
 }
 
 variable "XResourceType" {
-  type = string
-  default = "VM"
+  type    = string
+  default = ""
 }
 ```
 

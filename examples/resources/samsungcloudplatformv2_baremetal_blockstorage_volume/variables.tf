@@ -1,49 +1,48 @@
 variable "region" {
-  type = string
-  default = "kr-west1"
+  type    = string
+  default = ""
 }
 
 variable "block_storage_name" {
-  type = string
-  default = "my-bs-01"
+  type    = string
+  default = ""
 }
 
 variable "disk_type" {
-  type = string
-  default = "SSD"
+  type    = string
+  default = ""
 }
 
 variable "size_gb" {
-  type = number
-  default = 10
+  type    = number
+  default = 0
 }
 
 variable "attachments" {
   type = list(object({
     object_type = string
-    object_id = string
+    object_id   = string
   }))
   default = [{
-    object_type="BM",
-    object_id="83c3c73d457345e3829ee6d5557c0011"
+    object_id   = ""
+    object_type = ""
   }]
 }
 
 variable "tags" {
-  type = map(string)
-  default = {
-    "tf_key": "tf_value",
-    "no_value": ""
-  }
+  type    = map(string)
+  default = null
 }
 
 variable "create_timeouts" {
-  type = string
-  default = "20m"
+  type    = string
+  default = ""
 }
 
 variable "delete_timeouts" {
-  type = string
-  default = "20m"
+  type    = string
+  default = ""
 }
+
+
 

@@ -3,10 +3,10 @@ package securitygroup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -58,43 +58,51 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				},
 			},
 			common.ToSnakeCase("SecurityGroupId"): schema.StringAttribute{
-				Description: "SecurityGroupId",
-				Required:    true,
+				Description: "SecurityGroupId \n" +
+					"  - example : cff990e6d5ed43d3ab239e4aba0b4c3e",
+				Required: true,
 			},
 			common.ToSnakeCase("ethertype"): schema.StringAttribute{
-				Description: "ethertype",
-				Required:    true,
+				Description: "ethertype \n" +
+					"  - example : IPV4",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("IPv4"),
 				},
 			},
 			common.ToSnakeCase("protocol"): schema.StringAttribute{
-				Description: "protocol",
-				Optional:    true,
+				Description: "protocol \n" +
+					"  - example : TCP",
+				Optional: true,
 			},
 			common.ToSnakeCase("portRangeMin"): schema.Int32Attribute{
-				Description: "portRangeMin",
-				Optional:    true,
+				Description: "portRangeMin \n" +
+					"  - example : 22",
+				Optional: true,
 			},
 			common.ToSnakeCase("portRangeMax"): schema.Int32Attribute{
-				Description: "portRangeMax",
-				Optional:    true,
+				Description: "portRangeMax \n" +
+					"  - example : 22",
+				Optional: true,
 			},
 			common.ToSnakeCase("RemoteIpPrefix"): schema.StringAttribute{
-				Description: "RemoteIpPrefix",
-				Optional:    true,
+				Description: "RemoteIpPrefix \n" +
+					"  - example : 1.1.1.1/32",
+				Optional: true,
 			},
 			common.ToSnakeCase("RemoteGroupId"): schema.StringAttribute{
-				Description: "RemoteGroupId",
-				Optional:    true,
+				Description: "RemoteGroupId \n" +
+					"  - example : 8a8048af06b048329867e57284347066",
+				Optional: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description",
-				Optional:    true,
+				Description: "Description \n" +
+					"  - example : securityGroupRuleDescription",
+				Optional: true,
 			},
 			common.ToSnakeCase("Direction"): schema.StringAttribute{
 				Description: "Direction \n" +
-					"  - example : ['ingress', 'egress']",
+					"  - example : ingress",
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("ingress", "egress"),

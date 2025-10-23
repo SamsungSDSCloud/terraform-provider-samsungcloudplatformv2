@@ -25,8 +25,8 @@ output "security_group" {
 
 
 variable "id" {
-  type = string
-  default =  "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 ```
 
@@ -35,14 +35,8 @@ variable "id" {
 
 ### Required
 
-- `id` (String) Id
-
-### Optional
-
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
+- `id` (String) Id 
+  - example : f09708a755e24fceb4e15f7f5c82b0c1
 
 ### Read-Only
 

@@ -27,7 +27,7 @@ output "vpn_tunnel" {
 
 variable "id" {
   type    = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  default = ""
 }
 ```
 
@@ -47,35 +47,64 @@ variable "id" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
+- `account_id` (String) AccountId 
+  - example: 0e3dffc50eb247a1adf4f2e5c82c4f99
+- `created_at` (String) CreatedAt 
+ - example : 2024-05-17T00:23:17Z
+- `created_by` (String) CreatedBy 
+ - example : 90dddfc2b1e04edba54ba2b41539a9ac
+- `description` (String) Description 
+ - example : Example Description for VPN Tunnel
+- `id` (String) Id 
+ - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
+- `modified_at` (String) ModifiedAt 
+ - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) ModifiedBy 
+ - example : 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) Name 
+ - example: ExampleVpnTunnel1
 - `phase1` (Attributes) Phase1 (see [below for nested schema](#nestedatt--vpn_tunnel--phase1))
 - `phase2` (Attributes) Phase2 (see [below for nested schema](#nestedatt--vpn_tunnel--phase2))
-- `state` (String) State
+- `state` (String) State 
+ - example: ACTIVE
+- `status` (String) Status 
+ - example : DOWN
 - `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
-- `vpn_gateway_id` (String) VpnGatewayId
-- `vpn_gateway_ip_address` (String) VpnGatewayIpAddress
-- `vpn_gateway_name` (String) VpnGatewayName
+ - example: ceb44ea5ecb34a49b16495f9a63b0718
+- `vpc_name` (String) VpcName 
+ - example: ExampleVPC1
+- `vpn_gateway_id` (String) VpnGatewayId 
+- example: b156740b6335468d8354eb9ef8eddf5a
+- `vpn_gateway_ip_address` (String) VpnGatewayIpAddress 
+ - example: 123.0.0.1
+- `vpn_gateway_name` (String) VpnGatewayName 
+ - example: ExampleVpnGW1
 
 <a id="nestedatt--vpn_tunnel--phase1"></a>
 ### Nested Schema for `vpn_tunnel.phase1`
 
 Read-Only:
 
-- `diffie_hellman_groups` (List of Number) DiffieHellmanGroups
-- `dpd_retry_interval` (Number) DpdRetryInterval
-- `encryptions` (List of String) Encryptions
-- `ike_version` (Number) IkeVersion
-- `life_time` (Number) LifeTime
-- `peer_gateway_ip` (String) PeerGatewayIp
-- `pre_shared_key` (String) PreSharedKey
+- `diffie_hellman_groups` (List of Number) VPN Tunnel ISAKMP Diffie-Hellman Group 목록 
+ - example : [
+   "30",
+    "31",
+   "32"
+  ]
+- `dpd_retry_interval` (Number) DpdRetryInterval 
+ - example: 60
+- `encryptions` (List of String) VPN Tunnel ISAKMP Proposal 목록 
+ - example : [
+   "null-md5",
+    "aes128gcm",
+   "chacha20poly1305"
+  ]
+- `ike_version` (Number) IkeVersion 
+ - example: 2
+- `life_time` (Number) LifeTime 
+ - example: 86400
+- `peer_gateway_ip` (String) PeerGatewayIp 
+ - example: 123.0.0.2
 
 
 <a id="nestedatt--vpn_tunnel--phase2"></a>
@@ -83,8 +112,25 @@ Read-Only:
 
 Read-Only:
 
-- `diffie_hellman_groups` (List of Number) DiffieHellmanGroups
-- `encryptions` (List of String) Encryptions
-- `life_time` (Number) LifeTime
-- `perfect_forward_secrecy` (String) PerfectForwardSecrecy
-- `remote_subnet` (String) RemoteSubnet
+- `diffie_hellman_groups` (List of Number) VPN Tunnel ISAKMP Diffie-Hellman Group 목록 
+ - example : [
+   "30",
+    "31",
+   "32"
+  ]
+- `encryptions` (List of String) VPN Tunnel ISAKMP Proposal 목록 
+ - example : [
+   "null-md5",
+    "aes128gcm",
+   "chacha20poly1305"
+  ]
+- `life_time` (Number) LifeTime 
+ - example: 86400
+- `perfect_forward_secrecy` (String) PerfectForwardSecrecy 
+ - example: ENABLE
+- `remote_subnets` (List of String) VPN Tunnel IPSec Remote Subnets 
+ - example : [
+   "10.1.1.0/24",
+    "10.1.2.0/24",
+   "10.1.3.0/24"
+  ]

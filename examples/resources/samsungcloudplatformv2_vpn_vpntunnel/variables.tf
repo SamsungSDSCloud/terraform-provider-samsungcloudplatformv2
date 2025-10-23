@@ -1,59 +1,58 @@
-variable "vpn_gateway_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+variable "description" {
+  type    = string
+  default = ""
 }
 
 variable "name" {
-  type = string
-  default = "vpntunnelName"
+  type    = string
+  default = ""
 }
 
 variable "phase1" {
   type = object({
-    ike_version           = number
-    diffie_hellman_groups = list(number)
-    encryptions           = list(string)
-    dpd_retry_interval    = number
-    life_time             = number
-    peer_gateway_ip       = string
-    pre_shared_key        = string
+    dpd_retry_interval           = number
+    ike_version                  = number
+    peer_gateway_ip              = string
+    phase1_diffie_hellman_groups = list(number)
+    phase1_encryptions           = list(string)
+    phase1_life_time             = number
+    pre_shared_key               = string
   })
   default = {
-    ike_version           = 1
-    diffie_hellman_groups = [29, 30]
-    encryptions           = ["des-sha1"]
-    dpd_retry_interval    = 120
-    life_time             = 3600
-    peer_gateway_ip       = "203.0.113.2"
-    pre_shared_key        = "shared012"
+    dpd_retry_interval           = 0
+    ike_version                  = 0
+    peer_gateway_ip              = ""
+    phase1_diffie_hellman_groups = [0]
+    phase1_encryptions           = [""]
+    phase1_life_time             = 0
+    pre_shared_key               = ""
   }
 }
 
 variable "phase2" {
   type = object({
-    diffie_hellman_groups = list(number)
-    encryptions           = list(string)
-    life_time             = number
-    perfect_forward_secrecy = string
-    remote_subnet         = string
+    perfect_forward_secrecy      = string
+    phase2_diffie_hellman_groups = list(number)
+    phase2_encryptions           = list(string)
+    phase2_life_time             = number
+    remote_subnets               = list(string)
   })
   default = {
-    diffie_hellman_groups = [ 20, 21 ]
-    encryptions           = ["des-sha1"]
-    life_time             = 43200
-    perfect_forward_secrecy = "ENABLE"
-    remote_subnet         = "30.10.0.0/24"
+    perfect_forward_secrecy      = ""
+    phase2_diffie_hellman_groups = [0]
+    phase2_encryptions           = [""]
+    phase2_life_time             = 0
+    remote_subnets               = [""]
   }
-}
-
-variable "description" {
-  type = string
-  default = "description info"
 }
 
 variable "tags" {
   type    = map(string)
-  default = {
-    "vpn_tag_key" = "vpn_tag_value"
-  }
+  default = null
 }
+
+variable "vpn_gateway_id" {
+  type    = string
+  default = ""
+}
+

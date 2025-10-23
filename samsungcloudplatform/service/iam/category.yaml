@@ -1,3 +1,16 @@
 category:
   iam_access_keys: Access Key
   iam_access_key: Access Key
+  iam_groups: Group
+  iam_group: Group
+  iam_group_members: Group
+  iam_group_member: Group
+  iam_group_policy_bindings: Group
+  iam_policies: Policy
+  iam_policy: Policy
+  iam_roles: Role
+  iam_role: Role
+  iam_role_policy_bindings: Role
+  iam_users: User
+  iam_user: User
+  iam_user_policy_bindings: User

@@ -25,7 +25,7 @@ output "private_dns" {
 
 variable "size" {
   type    = number
-  default = 10
+  default = 0
 }
 ```
 

@@ -27,7 +27,7 @@ output "vpcendpoints" {
 
 variable "vpc_endpoint_limit" {
   type    = number
-  default = 10
+  default = 0
 }
 ```
 

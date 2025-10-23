@@ -1,44 +1,45 @@
 variable "volume_id" {
-  type = string
-  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "name" {
-  type = string
-  default = "my_volume"
+  type    = string
+  default = ""
 }
 
 variable "region" {
-  type = string
-  default = "kr-west1"
+  type    = string
+  default = ""
 }
 
 variable "replication_frequency" {
-  type = string
-  default = "5min"
+  type    = string
+  default = ""
 }
 
 variable "cifs_password" {
-  type = string
-  default = "cifspwd0!!"
+  type    = string
+  default = ""
 }
 
 variable "backup_retention_count" {
-  type = number
-  default = 10
+  type    = number
+  default = 0
 }
 
-variable "replication_type"{
-  type = string
-  default = "backup"
+variable "replication_type" {
+  type    = string
+  default = ""
 }
 
 variable "replication_update_type" {
-  type = string
-  default = "policy"
+  type    = string
+  default = ""
 }
 
 variable "replication_policy" {
-  type = string
-  default = "use"
+  type    = string
+  default = ""
 }
+

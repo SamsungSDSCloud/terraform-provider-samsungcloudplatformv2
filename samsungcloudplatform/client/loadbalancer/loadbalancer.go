@@ -3,8 +3,9 @@ package loadbalancer
 import (
 	"context"
 	"encoding/json"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/loadbalancer/1.0"
+
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/loadbalancer/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -55,6 +56,9 @@ func (client *Client) GetLoadbalancerList(ctx context.Context, request Loadbalan
 	if !request.SubnetId.IsNull() {
 		req = req.SubnetId(request.SubnetId.ValueString())
 	}
+	if !request.VpcId.IsNull() {
+		req = req.VpcId(request.VpcId.ValueString())
+	}
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -65,7 +69,7 @@ func (client *Client) GetLoadbalancer(ctx context.Context, loadbalancerId string
 	return resp, err
 }
 
-func (client *Client) CreateLoadbalancer(ctx context.Context, request LoadbalancerResource) (*loadbalancer.LoadbalancerShowResponse, error) {
+func (client *Client) CreateLoadbalancer(ctx context.Context, request LoadbalancerResource) (*loadbalancer.LoadbalancerCreateResponse, error) {
 	req := client.sdkClient.LoadbalancerV1LoadbalancersApiAPI.CreateLoadbalancer(ctx)
 
 	loadbalancerCreateRequest := request.LoadbalancerCreate
@@ -77,10 +81,12 @@ func (client *Client) CreateLoadbalancer(ctx context.Context, request Loadbalanc
 			FirewallLoggingEnabled: *loadbalancer.NewNullableBool(loadbalancerCreateRequest.FirewallLoggingEnabled.ValueBoolPointer()),
 			LayerType:              loadbalancerCreateRequest.LayerType.ValueString(),
 			Name:                   loadbalancerCreateRequest.Name.ValueString(),
-			PublicipId:             *loadbalancer.NewNullableString(loadbalancerCreateRequest.PublicipId.ValueStringPointer()),
 			ServiceIp:              *loadbalancer.NewNullableString(loadbalancerCreateRequest.ServiceIp.ValueStringPointer()),
 			SubnetId:               loadbalancerCreateRequest.SubnetId.ValueString(),
 			VpcId:                  loadbalancerCreateRequest.VpcId.ValueString(),
+			SourceNatIp:            *loadbalancer.NewNullableString(loadbalancerCreateRequest.SourceNatIp.ValueStringPointer()),
+			HealthCheckIp1:         *loadbalancer.NewNullableString(loadbalancerCreateRequest.HealthCheckIp1.ValueStringPointer()),
+			HealthCheckIp2:         *loadbalancer.NewNullableString(loadbalancerCreateRequest.HealthCheckIp2.ValueStringPointer()),
 		},
 	}
 
@@ -262,18 +268,19 @@ func (client *Client) CreateLbMember(ctx context.Context, request LbMembersResou
 	req := client.sdkClient.LoadbalancerV1MemberApiAPI.AddLbServerGroupMembers(ctx, request.LbServerGroupId.ValueString())
 
 	lbMember := request.LbMemberCreate
-	var convertedLbMembers []loadbalancer.MemberCreateRequest
+	var convertedLbMembers []loadbalancer.MemberCreateRequestV1Dot1
 
-	convertedLbMember := loadbalancer.MemberCreateRequest{
+	convertedLbMember := loadbalancer.MemberCreateRequestV1Dot1{
 		Name:         lbMember.Name.ValueString(),
 		MemberIp:     lbMember.MemberIp.ValueString(),
 		MemberPort:   lbMember.MemberPort.ValueInt32(),
 		ObjectType:   lbMember.ObjectType.ValueString(),
 		ObjectId:     lbMember.ObjectId.ValueStringPointer(),
 		MemberWeight: lbMember.MemberWeight.ValueInt32Pointer(),
+		MemberState:  *loadbalancer.NewNullableStatusType((*loadbalancer.StatusType)(lbMember.MemberState.ValueStringPointer())),
 	}
 	convertedLbMembers = append(convertedLbMembers, convertedLbMember)
-	req = req.MemberListCreateRequest(loadbalancer.MemberListCreateRequest{
+	req = req.MemberListCreateRequestV1Dot1(loadbalancer.MemberListCreateRequestV1Dot1{
 		Members: convertedLbMembers,
 	})
 
@@ -288,7 +295,7 @@ func (client *Client) UpdateLbMember(ctx context.Context, lbServerGroupId string
 		Member: loadbalancer.MemberSet{
 			MemberPort:   *loadbalancer.NewNullableInt32(request.LbMemberSet.MemberPort.ValueInt32Pointer()),
 			MemberWeight: *loadbalancer.NewNullableInt32(request.LbMemberSet.MemberWeight.ValueInt32Pointer()),
-			//MemberState:  *loadbalancer.NewNullableStatusType((*loadbalancer.StatusType)(request.LbMemberSet.MemberState.ValueStringPointer())),
+			MemberState:  *loadbalancer.NewNullableStatusType((*loadbalancer.StatusType)(request.LbMemberSet.MemberState.ValueStringPointer())),
 		},
 	})
 
@@ -345,42 +352,43 @@ func (client *Client) CreateLbListener(ctx context.Context, request LbListenerRe
 	lbListener := request.LbListenerCreate
 
 	var sslCertificate *loadbalancer.SslCertificate
-
 	if lbListener.SslCertificate != nil {
 		sslCertificate = &loadbalancer.SslCertificate{
 			ClientCertId:    *loadbalancer.NewNullableString(lbListener.SslCertificate.ClientCertId.ValueStringPointer()),
 			ClientCertLevel: *loadbalancer.NewNullableString(lbListener.SslCertificate.ClientCertLevel.ValueStringPointer()),
-			ServerCertId:    *loadbalancer.NewNullableString(lbListener.SslCertificate.ServerCertId.ValueStringPointer()),
 			ServerCertLevel: *loadbalancer.NewNullableString(lbListener.SslCertificate.ServerCertLevel.ValueStringPointer()),
 		}
 	}
 
-	urlHandlerInterfaces := make([]interface{}, len(lbListener.UrlHandler))
-	for i, urlHandler := range lbListener.UrlHandler {
-		urlHandlerInterfaces[i] = struct {
-			UrlPattern    loadbalancer.NullableString `json:"url_pattern"`
-			ServerGroupId loadbalancer.NullableString `json:"server_group_id"`
-		}{
-			*loadbalancer.NewNullableString(urlHandler.UrlPattern.ValueStringPointer()),
-			*loadbalancer.NewNullableString(urlHandler.ServerGroupId.ValueStringPointer()),
+	var httpsRedirection *loadbalancer.HttpsRedirection
+
+	if lbListener.HttpsRedirection != nil {
+		httpsRedirection = &loadbalancer.HttpsRedirection{
+			Protocol:     *loadbalancer.NewNullableString(lbListener.HttpsRedirection.Protocol.ValueStringPointer()),
+			Port:         *loadbalancer.NewNullableString(lbListener.HttpsRedirection.Port.ValueStringPointer()),
+			ResponseCode: *loadbalancer.NewNullableString(lbListener.HttpsRedirection.ResponseCode.ValueStringPointer()),
 		}
 	}
-
-	urlRedirectionInterfaces := make([]interface{}, len(lbListener.UrlRedirection))
-	for i, urlRedirection := range lbListener.UrlRedirection {
-		urlRedirectionInterfaces[i] = struct {
-			UrlPattern         loadbalancer.NullableString `json:"url_pattern"`
-			RedirectUrlPattern loadbalancer.NullableString `json:"redirect_url_pattern"`
-		}{
-			*loadbalancer.NewNullableString(urlRedirection.UrlPattern.ValueStringPointer()),
-			*loadbalancer.NewNullableString(urlRedirection.RedirectUrlPattern.ValueStringPointer()),
+	var urlHandlerInterfaces []interface{}
+	if lbListener.UrlHandler != nil {
+		urlHandlerInterfaces = make([]interface{}, len(lbListener.UrlHandler))
+		for i, urlHandler := range lbListener.UrlHandler {
+			urlHandlerInterfaces[i] = struct {
+				UrlPattern    loadbalancer.NullableString `json:"url_pattern"`
+				ServerGroupId loadbalancer.NullableString `json:"server_group_id"`
+				Seq           loadbalancer.NullableInt32  `json:"seq"`
+			}{
+				*loadbalancer.NewNullableString(urlHandler.UrlPattern.ValueStringPointer()),
+				*loadbalancer.NewNullableString(urlHandler.ServerGroupId.ValueStringPointer()),
+				*loadbalancer.NewNullableInt32(urlHandler.Seq.ValueInt32Pointer()),
+			}
 		}
+	} else {
+		urlHandlerInterfaces = nil
 	}
-
 	lbListenerElement := loadbalancer.LbListenerCreateRequest{
 		Listener: loadbalancer.ListenerForCreate{
 			Description:         *loadbalancer.NewNullableString(lbListener.Description.ValueStringPointer()),
-			HttpsRedirection:    *loadbalancer.NewNullableBool(lbListener.HttpsRedirection.ValueBoolPointer()),
 			InsertClientIp:      *loadbalancer.NewNullableBool(lbListener.InsertClientIp.ValueBoolPointer()),
 			LoadbalancerId:      lbListener.LoadbalancerId.ValueString(),
 			Name:                lbListener.Name.ValueString(),
@@ -389,13 +397,16 @@ func (client *Client) CreateLbListener(ctx context.Context, request LbListenerRe
 			ResponseTimeout:     *loadbalancer.NewNullableInt32(lbListener.ResponseTimeout.ValueInt32Pointer()),
 			ServerGroupId:       *loadbalancer.NewNullableString(lbListener.ServerGroupId.ValueStringPointer()),
 			ServicePort:         lbListener.ServicePort.ValueInt32(),
-			SessionDurationTime: lbListener.SessionDurationTime.ValueInt32(),
+			SessionDurationTime: *loadbalancer.NewNullableInt32(lbListener.SessionDurationTime.ValueInt32Pointer()),
 			SslCertificate:      *loadbalancer.NewNullableSslCertificate(sslCertificate),
 			UrlHandler:          urlHandlerInterfaces,
-			UrlRedirection:      urlRedirectionInterfaces,
+			HttpsRedirection:    *loadbalancer.NewNullableHttpsRedirection(httpsRedirection),
+			UrlRedirection:      *loadbalancer.NewNullableString(lbListener.UrlRedirection.ValueStringPointer()),
 			XForwardedFor:       *loadbalancer.NewNullableBool(lbListener.XForwardedFor.ValueBoolPointer()),
 			XForwardedPort:      *loadbalancer.NewNullableBool(lbListener.XForwardedPort.ValueBoolPointer()),
 			XForwardedProto:     *loadbalancer.NewNullableBool(lbListener.XForwardedProto.ValueBoolPointer()),
+			RoutingAction:       *loadbalancer.NewNullableRoutingAction((*loadbalancer.RoutingAction)(lbListener.RoutingAction.ValueStringPointer())),
+			ConditionType:       *loadbalancer.NewNullableConditionType((*loadbalancer.ConditionType)(lbListener.ConditionType.ValueStringPointer())),
 		},
 	}
 
@@ -410,13 +421,19 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 	lbListener := request.LbListenerCreate
 
 	var sslCertificate *loadbalancer.SslCertificate
-
 	if lbListener.SslCertificate != nil {
 		sslCertificate = &loadbalancer.SslCertificate{
 			ClientCertId:    *loadbalancer.NewNullableString(lbListener.SslCertificate.ClientCertId.ValueStringPointer()),
 			ClientCertLevel: *loadbalancer.NewNullableString(lbListener.SslCertificate.ClientCertLevel.ValueStringPointer()),
-			ServerCertId:    *loadbalancer.NewNullableString(lbListener.SslCertificate.ServerCertId.ValueStringPointer()),
 			ServerCertLevel: *loadbalancer.NewNullableString(lbListener.SslCertificate.ServerCertLevel.ValueStringPointer()),
+		}
+	}
+
+	sniCertificateList := make([]loadbalancer.SniCertificate, len(lbListener.SniCertificate))
+	for i, sniCertificate := range lbListener.SniCertificate {
+		sniCertificateList[i] = loadbalancer.SniCertificate{
+			SniCertId:  *loadbalancer.NewNullableString(sniCertificate.SniCertId.ValueStringPointer()),
+			DomainName: *loadbalancer.NewNullableString(sniCertificate.DomainName.ValueStringPointer()),
 		}
 	}
 
@@ -425,38 +442,41 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 		urlHandlerInterfaces[i] = struct {
 			UrlPattern    loadbalancer.NullableString `json:"url_pattern"`
 			ServerGroupId loadbalancer.NullableString `json:"server_group_id"`
+			Seq           loadbalancer.NullableInt32  `json:"seq"`
 		}{
 			*loadbalancer.NewNullableString(urlHandler.UrlPattern.ValueStringPointer()),
 			*loadbalancer.NewNullableString(urlHandler.ServerGroupId.ValueStringPointer()),
+			*loadbalancer.NewNullableInt32(urlHandler.Seq.ValueInt32Pointer()),
 		}
 	}
 
-	urlRedirectionInterfaces := make([]interface{}, len(lbListener.UrlRedirection))
-	for i, urlRedirection := range lbListener.UrlRedirection {
-		urlRedirectionInterfaces[i] = struct {
-			UrlPattern         loadbalancer.NullableString `json:"url_pattern"`
-			RedirectUrlPattern loadbalancer.NullableString `json:"redirect_url_pattern"`
-		}{
-			*loadbalancer.NewNullableString(urlRedirection.UrlPattern.ValueStringPointer()),
-			*loadbalancer.NewNullableString(urlRedirection.RedirectUrlPattern.ValueStringPointer()),
+	var httpsRedirection *loadbalancer.HttpsRedirection
+
+	if lbListener.HttpsRedirection != nil {
+		httpsRedirection = &loadbalancer.HttpsRedirection{
+			Protocol:     *loadbalancer.NewNullableString(lbListener.HttpsRedirection.Protocol.ValueStringPointer()),
+			Port:         *loadbalancer.NewNullableString(lbListener.HttpsRedirection.Port.ValueStringPointer()),
+			ResponseCode: *loadbalancer.NewNullableString(lbListener.HttpsRedirection.ResponseCode.ValueStringPointer()),
 		}
 	}
 
 	lbListenerElement := loadbalancer.LbListenerSetRequest{
 		Listener: loadbalancer.ListenerForSet{
 			Description:         *loadbalancer.NewNullableString(lbListener.Description.ValueStringPointer()),
-			HttpsRedirection:    *loadbalancer.NewNullableBool(lbListener.HttpsRedirection.ValueBoolPointer()),
 			InsertClientIp:      *loadbalancer.NewNullableBool(lbListener.InsertClientIp.ValueBoolPointer()),
 			Persistence:         *loadbalancer.NewNullableString(lbListener.Persistence.ValueStringPointer()),
 			ResponseTimeout:     *loadbalancer.NewNullableInt32(lbListener.ResponseTimeout.ValueInt32Pointer()),
 			ServerGroupId:       *loadbalancer.NewNullableString(lbListener.ServerGroupId.ValueStringPointer()),
 			SessionDurationTime: *loadbalancer.NewNullableInt32(lbListener.SessionDurationTime.ValueInt32Pointer()),
 			SslCertificate:      *loadbalancer.NewNullableSslCertificate(sslCertificate),
+			SniCertificate:      sniCertificateList,
 			UrlHandler:          urlHandlerInterfaces,
-			UrlRedirection:      urlRedirectionInterfaces,
+			HttpsRedirection:    *loadbalancer.NewNullableHttpsRedirection(httpsRedirection),
+			UrlRedirection:      *loadbalancer.NewNullableString(lbListener.UrlRedirection.ValueStringPointer()),
 			XForwardedFor:       *loadbalancer.NewNullableBool(lbListener.XForwardedFor.ValueBoolPointer()),
 			XForwardedPort:      *loadbalancer.NewNullableBool(lbListener.XForwardedPort.ValueBoolPointer()),
 			XForwardedProto:     *loadbalancer.NewNullableBool(lbListener.XForwardedProto.ValueBoolPointer()),
+			ConditionType:       *loadbalancer.NewNullableConditionType((*loadbalancer.ConditionType)(lbListener.ConditionType.ValueStringPointer())),
 		},
 	}
 
@@ -492,15 +512,27 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 		lbListenerElement.Listener.SslCertificate.Unset()
 	}
 
+	if lbListener.SniCertificate == nil {
+		lbListenerElement.Listener.SniCertificate = nil
+	}
+
 	if lbListener.UrlHandler == nil {
 		lbListenerElement.Listener.UrlHandler = nil
 	}
 
-	if lbListener.UrlRedirection == nil {
-		lbListenerElement.Listener.UrlRedirection = nil
+	if lbListenerElement.Listener.HttpsRedirection.Get() == nil {
+		lbListenerElement.Listener.HttpsRedirection.Unset()
 	}
 
-	if lbListener.Protocol.ValueString() == "TCP" || lbListener.Protocol.ValueString() == "UDP" {
+	if lbListenerElement.Listener.UrlRedirection.Get() == nil {
+		lbListenerElement.Listener.UrlRedirection.Unset()
+	}
+
+	if lbListenerElement.Listener.ConditionType.Get() == nil {
+		lbListenerElement.Listener.ConditionType.Unset()
+	}
+
+	if lbListener.Protocol.ValueString() == "TCP" || lbListener.Protocol.ValueString() == "UDP" || lbListener.Protocol.ValueString() == "TLS" {
 		lbListenerElement.Listener.XForwardedFor.Unset()
 		lbListenerElement.Listener.XForwardedPort.Unset()
 		lbListenerElement.Listener.XForwardedProto.Unset()

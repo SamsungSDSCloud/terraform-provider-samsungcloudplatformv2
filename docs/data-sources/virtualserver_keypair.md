@@ -31,8 +31,8 @@ output "keypair" {
 }
 
 variable "name" {
-  type = string
-  default = "terraform_keypair"
+  type    = string
+  default = ""
 }
 
 variable "keypair_filter_name" {
@@ -47,7 +47,7 @@ variable "keypair_filter_values" {
 
 variable "keypair_filter_use_regex" {
   type    = bool
-  default = true
+  default = false
 }
 ```
 

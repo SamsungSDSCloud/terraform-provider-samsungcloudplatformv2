@@ -1,21 +1,19 @@
 variable "name" {
-  type = string
-  default = "terraform-sg"
+  type    = string
+  default = ""
 }
 variable "description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 
 variable "loggable" {
-  type = bool
+  type    = bool
   default = false
 }
 
 variable "security_group_tags" {
   type    = map(string)
-  default = {
-    "tf_key1" = "tf_val1",
-    "tf_key2" = "tf_val2"
-  }
+  default = null
 }
+

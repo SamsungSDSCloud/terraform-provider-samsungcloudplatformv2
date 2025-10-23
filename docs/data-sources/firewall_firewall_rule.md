@@ -18,7 +18,6 @@ provider "samsungcloudplatformv2" {
 data "samsungcloudplatformv2_firewall_firewall_rule" "firewall_rule" {
   id = var.id
   firewall_id = var.firewall_id
-  dst_ip = var.dst_ip
 }
 
 
@@ -28,17 +27,12 @@ output "firewall_rule" {
 
 
 variable "id" {
-  type = string
-  default =  "fd5aa79d25a84f52b02a954c125aa8d9"
+  type    = string
+  default = ""
 }
 variable "firewall_id" {
-  type = string
-  default =  "68db67f78abd405da98a6056a8ee42af"
-}
-
-variable "dst_ip" {
-  type = string
-  default =  "1.1.1.1"
+  type    = string
+  default = ""
 }
 ```
 
@@ -51,27 +45,6 @@ variable "dst_ip" {
   - example : 68db67f78abd405da98a6056a8ee42af
 - `id` (String) Firewall Rule ID 
   - example : fd5aa79d25a84f52b02a954c125aa8d9
-
-### Optional
-
-- `description` (String) Description 
-  - example : firewallDescription
-- `dst_ip` (String) Destination IP 
-  - example : 10.10.10.10
-- `fetch_all` (Boolean) Fetch All 
-  - example : True | False
-- `page` (Number) Page 
-  - example : 0
-- `size` (Number) Size 
-  - example : 20
-- `sort` (String) Sort 
-  - example : created_at:desc
-- `src_ip` (String) Source IP 
-  - example : 10.10.10.10
-- `state` (List of String) State 
-  - example : CREATING | ACTIVE | DELETING | EDITING | ERROR
-- `status` (String) Status 
-  - example : ENABLE | DISABLE
 
 ### Read-Only
 

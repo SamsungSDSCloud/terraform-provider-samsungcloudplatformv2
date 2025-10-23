@@ -27,13 +27,13 @@ output "access_key_output" {
 
 
 variable "access_key_access_key_type" {
-  type = string
-  default = "PERMANENT"
+  type    = string
+  default = ""
 }
 
 variable "access_key_description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 ```
 

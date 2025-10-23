@@ -2,8 +2,8 @@ package quota
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/quota/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/quota/1.1"
 	"math"
 )
 
@@ -19,7 +19,7 @@ func NewClient(config *scpsdk.Configuration) *Client {
 	}
 }
 
-func (client *Client) GetAccountQuotaList() (*quota.AccountQuotaListResponse, error) {
+func (client *Client) GetAccountQuotaList() (*quota.AccountQuotaListResponseV1dot1, error) {
 	ctx := context.Background()
 
 	req := client.sdkClient.QuotaV1AccountQuotasAPIsAPI.ListAccountQuota(ctx)
@@ -28,7 +28,7 @@ func (client *Client) GetAccountQuotaList() (*quota.AccountQuotaListResponse, er
 	return resp, err
 }
 
-func (client *Client) GetAccountQuota(accountQuotaId string) (*quota.AccountQuotaShowResponse, error) {
+func (client *Client) GetAccountQuota(accountQuotaId string) (*quota.AccountQuotaShowResponseV1dot1, error) {
 	ctx := context.Background()
 
 	req := client.sdkClient.QuotaV1AccountQuotasAPIsAPI.ShowAccountQuota(ctx, accountQuotaId)

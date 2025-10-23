@@ -28,18 +28,18 @@ output "natgateway_output" {
 
 
 variable "natgateway_subnet_id" {
-  type = string
-  default = "terraform-subnet-id"
+  type    = string
+  default = ""
 }
 
 variable "natgateway_publicip_id" {
-  type = string
-  default = "terraform-publicip-id"
+  type    = string
+  default = ""
 }
 
 variable "natgateway_description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 ```
 

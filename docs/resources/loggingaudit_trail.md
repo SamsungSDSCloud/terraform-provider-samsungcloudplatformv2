@@ -38,7 +38,8 @@ resource "samsungcloudplatformv2_loggingaudit_trail" "trail" {
   trail_name= var.trail_name
   trail_save_type= var.trail_save_type
   user_total_yn= var.user_total_yn
-
+  organization_trail_yn = var.organization_trail_yn
+  log_archive_account_id = var.log_archive_account_id
 }
 
 
@@ -49,69 +50,69 @@ output "log_output" {
 }
 
 variable "account_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 variable "bucket_name" {
-  type = string
-  default = "bucketname"
+  type    = string
+  default = ""
 }
 
 variable "bucket_region" {
-  type = string
-  default = "kr-west1"
+  type    = string
+  default = ""
 }
 variable "log_type_total_yn" {
-  type = string
-  default = "N"
+  type    = string
+  default = ""
 }
 variable "log_verification_yn" {
-  type = string
-  default = "N"
+  type    = string
+  default = ""
 }
 variable "region_total_yn" {
-  type = string
-  default = "Y"
+  type    = string
+  default = ""
 }
 
 variable "resource_type_total_yn" {
-  type = string
-  default = "Y"
+  type    = string
+  default = ""
 }
 
 variable "trail_description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 
 variable "trail_name" {
-  type = string
-  default = "TrailName"
+  type    = string
+  default = ""
 }
 
 variable "trail_save_type" {
-  type = string
-  default = "JSON"
+  type    = string
+  default = ""
 }
 
 variable "user_total_yn" {
-  type = string
-  default = "Y"
+  type    = string
+  default = ""
 }
 
+variable "organization_trail_yn" {
+  type    = string
+  default = ""
+}
+
+variable "log_archive_account_id" {
+  type    = string
+  default = ""
+}
 
 variable "tag_create_requests" {
-  type = list(map(string))
-  default = [
-    {
-      key   = "vpn_tag_key"
-      value = "vpn_tag_value"
-    },
-    {
-      key   = "another_tag_key"
-      value = "another_tag_value"
-    }
-  ]
+  type    = list(map(string))
+  default = [null]
 }
 ```
 
@@ -121,8 +122,10 @@ variable "tag_create_requests" {
 ### Required
 
 - `account_id` (String) AccountId
+- `log_archive_account_id` (String) LogArchiveAccountId
 - `log_type_total_yn` (String) LogTypeTotalYn
 - `log_verification_yn` (String) LogVerificationYn
+- `organization_trail_yn` (String) OrganizationTrailYn
 - `region_total_yn` (String) RegionTotalYn
 - `resource_type_total_yn` (String) ResourceTypeTotalYn
 - `trail_description` (String) TrailDescription
@@ -169,10 +172,12 @@ Read-Only:
 - `created_user_id` (String) CreatedUserId
 - `del_yn` (String) DelYn
 - `id` (String) Id
+- `log_archive_account_id` (String) LogArchiveAccountId
 - `log_type_total_yn` (String) LogTypeTotalYn
 - `log_verification_yn` (String) LogVerificationYn
 - `modified_at` (String) ModifiedAt
 - `modified_by` (String) ModifiedBy
+- `organization_trail_yn` (String) OrganizationTrailYn
 - `region_names` (List of String) RegionNames
 - `region_total_yn` (String) RegionTotalYn
 - `resource_type_total_yn` (String) ResourceTypeTotalYn

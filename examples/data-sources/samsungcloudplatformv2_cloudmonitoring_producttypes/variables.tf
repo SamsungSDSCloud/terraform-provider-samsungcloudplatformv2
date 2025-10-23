@@ -1,4 +1,5 @@
 variable "ProductCategoryCode" {
-  type = string
-  default = "Compute"
+  type    = string
+  default = ""
 }
+

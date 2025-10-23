@@ -32,19 +32,19 @@ variable "hosted_zone" {
     type        = string
   })
   default = {
-    description = "description info"
-    email       = "sung.sam@samsung.com"
-    name        = "terraformhosted.com"
-    type        = "public"
+    description = ""
+    email       = ""
+    name        = ""
+    type        = ""
   }
 }
 
 variable "tag" {
   type = object({
-    terraform_tag_key = string
+    test_terraform_tag_key = string
   })
   default = {
-    terraform_tag_key = "terraform_tag_value"
+    test_terraform_tag_key = ""
   }
 }
 ```

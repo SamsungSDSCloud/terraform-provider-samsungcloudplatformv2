@@ -3,14 +3,15 @@ package vpn
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -49,70 +50,66 @@ func (d *vpnVpnTunnelDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
+						Description: "AccountId \n  - example: 0e3dffc50eb247a1adf4f2e5c82c4f99 ",
 						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
+						Description: "CreatedAt \n - example : 2024-05-17T00:23:17Z",
 						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
+						Description: "CreatedBy \n - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed:    true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
+						Description: "Description \n - example : Example Description for VPN Tunnel",
 						Computed:    true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
+						Description: "Id \n - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
 						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
+						Description: "ModifiedAt \n - example : 2024-05-17T00:23:17Z",
 						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
+						Description: "ModifiedBy \n - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed:    true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
+						Description: "Name \n - example: ExampleVpnTunnel1 ",
 						Computed:    true,
 					},
 					common.ToSnakeCase("Phase1"): schema.SingleNestedAttribute{
 						Description: "Phase1",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
-							"diffie_hellman_groups": schema.ListAttribute{
-								Description: "DiffieHellmanGroups",
-								Computed:    true,
-								ElementType: types.Int32Type,
-							},
 							"dpd_retry_interval": schema.Int32Attribute{
-								Description: "DpdRetryInterval",
+								Description: "DpdRetryInterval \n - example: 60",
 								Computed:    true,
-							},
-							"encryptions": schema.ListAttribute{
-								Description: "Encryptions",
-								Computed:    true,
-								ElementType: types.StringType,
 							},
 							"ike_version": schema.Int32Attribute{
-								Description: "IkeVersion",
+								Description: "IkeVersion \n - example: 2",
 								Computed:    true,
 							},
 							"life_time": schema.Int32Attribute{
-								Description: "LifeTime",
+								Description: "LifeTime \n - example: 86400 ",
 								Computed:    true,
 							},
 							"peer_gateway_ip": schema.StringAttribute{
-								Description: "PeerGatewayIp",
+								Description: "PeerGatewayIp \n - example: 123.0.0.2",
 								Computed:    true,
 							},
-							"pre_shared_key": schema.StringAttribute{
-								Description: "PreSharedKey",
+							"diffie_hellman_groups": schema.ListAttribute{
+								Description: "VPN Tunnel ISAKMP Diffie-Hellman Group 목록 \n - example : [\n   \"30\",\n    \"31\",\n   \"32\"\n  ]",
 								Computed:    true,
+								ElementType: types.Int32Type,
+							},
+							"encryptions": schema.ListAttribute{
+								Description: "VPN Tunnel ISAKMP Proposal 목록 \n - example : [\n   \"null-md5\",\n    \"aes128gcm\",\n   \"chacha20poly1305\"\n  ]",
+								Computed:    true,
+								ElementType: types.StringType,
 							},
 						},
 					},
@@ -120,52 +117,57 @@ func (d *vpnVpnTunnelDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 						Description: "Phase2",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
+							"life_time": schema.Int32Attribute{
+								Description: "LifeTime \n - example: 86400 ",
+								Computed:    true,
+							},
+							"perfect_forward_secrecy": schema.StringAttribute{
+								Description: "PerfectForwardSecrecy \n - example: ENABLE",
+								Computed:    true,
+							},
+							"remote_subnets": schema.ListAttribute{
+								Description: "VPN Tunnel IPSec Remote Subnets \n - example : [\n   \"10.1.1.0/24\",\n    \"10.1.2.0/24\",\n   \"10.1.3.0/24\"\n  ]",
+								Computed:    true,
+								ElementType: types.StringType,
+							},
 							"diffie_hellman_groups": schema.ListAttribute{
-								Description: "DiffieHellmanGroups",
+								Description: "VPN Tunnel ISAKMP Diffie-Hellman Group 목록 \n - example : [\n   \"30\",\n    \"31\",\n   \"32\"\n  ]",
 								Computed:    true,
 								ElementType: types.Int32Type,
 							},
 							"encryptions": schema.ListAttribute{
-								Description: "Encryptions",
+								Description: "VPN Tunnel ISAKMP Proposal 목록 \n - example : [\n   \"null-md5\",\n    \"aes128gcm\",\n   \"chacha20poly1305\"\n  ]",
 								Computed:    true,
 								ElementType: types.StringType,
-							},
-							"life_time": schema.Int32Attribute{
-								Description: "LifeTime",
-								Computed:    true,
-							},
-							"perfect_forward_secrecy": schema.StringAttribute{
-								Description: "PerfectForwardSecrecy",
-								Computed:    true,
-							},
-							"remote_subnet": schema.StringAttribute{
-								Description: "RemoteSubnet",
-								Computed:    true,
 							},
 						},
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
+						Description: "State \n - example: ACTIVE",
+						Computed:    true,
+					},
+					common.ToSnakeCase("Status"): schema.StringAttribute{
+						Description: "Status \n - example : DOWN",
 						Computed:    true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
+						Description: "VpcId\n - example: ceb44ea5ecb34a49b16495f9a63b0718",
 						Computed:    true,
 					},
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "VpcName",
+						Description: "VpcName \n - example: ExampleVPC1",
 						Computed:    true,
 					},
 					common.ToSnakeCase("VpnGatewayId"): schema.StringAttribute{
-						Description: "VpnGatewayId",
+						Description: "VpnGatewayId \n- example: b156740b6335468d8354eb9ef8eddf5a",
 						Computed:    true,
 					},
 					common.ToSnakeCase("VpnGatewayIpAddress"): schema.StringAttribute{
-						Description: "VpnGatewayIpAddress",
+						Description: "VpnGatewayIpAddress \n - example: 123.0.0.1",
 						Computed:    true,
 					},
 					common.ToSnakeCase("VpnGatewayName"): schema.StringAttribute{
-						Description: "VpnGatewayName",
+						Description: "VpnGatewayName \n - example: ExampleVpnGW1",
 						Computed:    true,
 					},
 				},
@@ -211,15 +213,12 @@ func (d *vpnVpnTunnelDataSource) Read(ctx context.Context, req datasource.ReadRe
 	var defaultName types.String
 	var defaultVpnGatewayId types.String
 	var defaultVpnGatewayName types.String
-	var defaultPeerGatewayIp types.String
-	var defaultRemoteSubnet types.String
 
-	ids, err := GetVpnTunnelList(d.clients, defaultPage, defaultSize, defaultSort, defaultName,
-		defaultVpnGatewayId, defaultVpnGatewayName, defaultPeerGatewayIp, defaultRemoteSubnet)
+	ids, err := getVpnTunnelList(d.clients, defaultPage, defaultSize, defaultSort, defaultName, defaultVpnGatewayId, defaultVpnGatewayName)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Unable to Read Vpn Tunnels. Error: %s, Config: %+v", err.Error(), state)
 		resp.Diagnostics.AddError(
-			"VPN Tunnel Read Error",
+			"VPN Tunnel v1.1 Read Error",
 			errorMessage,
 		)
 	}
@@ -233,19 +232,21 @@ func (d *vpnVpnTunnelDataSource) Read(ctx context.Context, req datasource.ReadRe
 			}
 		}
 
+		fmt.Println("get state", state)
+		fmt.Println("GetVpnTunnel.getList", ids)
+
 		if exist {
 			data, err := d.client.GetVpnTunnel(ctx, state.Id.ValueString()) // client 를 호출한다.
 			if err != nil {
 				detail := client.GetDetailFromError(err)
 				resp.Diagnostics.AddError(
-					"Error Reading Vpn Tunnel",
+					"Error Reading Vpn Tunnel v1.1",
 					"Could not read Vpn Tunnel ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
 				)
 				return
 			}
 
 			vpnTunnelElement := data.VpnTunnel
-
 			vpnTunnelModel := vpn.VpnTunnel{
 				AccountId:           types.StringValue(vpnTunnelElement.AccountId),
 				CreatedAt:           types.StringValue(vpnTunnelElement.CreatedAt.Format(time.RFC3339)),
@@ -258,14 +259,19 @@ func (d *vpnVpnTunnelDataSource) Read(ctx context.Context, req datasource.ReadRe
 				Phase1:              mapPhase1Detail(vpnTunnelElement.Phase1),
 				Phase2:              mapPhase2Detail(vpnTunnelElement.Phase2),
 				State:               types.StringValue(string(vpnTunnelElement.State)),
+				Status:              types.StringValue(string(vpnTunnelElement.Status)),
 				VpcId:               types.StringValue(vpnTunnelElement.VpcId),
 				VpcName:             types.StringValue(vpnTunnelElement.VpcName),
 				VpnGatewayId:        types.StringValue(vpnTunnelElement.VpnGatewayId),
 				VpnGatewayIpAddress: types.StringValue(vpnTunnelElement.VpnGatewayIpAddress),
 				VpnGatewayName:      types.StringValue(vpnTunnelElement.VpnGatewayName),
 			}
+
 			vpnTunnelObjectValue, _ := types.ObjectValueFrom(ctx, vpnTunnelModel.AttributeTypes(), vpnTunnelModel)
+
 			state.VpnTunnel = vpnTunnelObjectValue
+			diags = resp.State.Set(ctx, &state)
+
 		}
 	}
 

@@ -49,52 +49,52 @@ output "image_output2" {
 }
 
 variable "name" {
-  type = string
-  default = "terraform_image"
+  type    = string
+  default = ""
 }
 
 variable "os_distro" {
-  type = string
-  default = "ubuntu"
+  type    = string
+  default = ""
 }
 
 variable "disk_format" {
-  type = string
-  default = "qcow2"
+  type    = string
+  default = ""
 }
 
 variable "container_format" {
-  type = string
-  default = "bare"
+  type    = string
+  default = ""
 }
 
 variable "min_disk" {
-  type = number
-  default = 10
+  type    = number
+  default = 0
 }
 
 variable "min_ram" {
-  type = number
-  default = 1
+  type    = number
+  default = 0
 }
 
 variable "visibility" {
-  type = string
-  default = "private"
+  type    = string
+  default = ""
 }
 
 variable "protected" {
-  type = bool
+  type    = bool
   default = false
 }
 
 variable "url" {
-  type = string
-  default = "https://object-store.private.kr-west1.s.samsungsdscloud.com/8a463aa4b1dc4f279c3f53b94dc45e74:terraformvm/ubuntu.qcow2"
+  type    = string
+  default = ""
 }
 variable "instance_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 ```
 

@@ -3,12 +3,15 @@ package vpn
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpvpn "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/vpn/1.0"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpvpn "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/vpn/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -16,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -49,85 +50,102 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the resource." +
+					"  - example : 0e3dffc50eb247a1adf4f2e5c82c4f99 \n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"description": schema.StringAttribute{
-				Description: "Description",
-				Optional:    true,
+				Description: "Description" +
+					"  - example : Description for VPN Tunnel \n",
+				Optional: true,
 			},
 			"name": schema.StringAttribute{
-				Description: "Name",
-				Required:    true,
+				Description: "Name" +
+					"  - example : ExampleVpnTunnel1 \n",
+				Required: true,
 			},
 			"vpn_gateway_id": schema.StringAttribute{
-				Description: "VpnGatewayId",
-				Required:    true,
+				Description: "VpnGatewayId" +
+					"  - example : b156740b6335468d8354eb9ef8eddf5a \n",
+				Required: true,
 			},
 			"phase1": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
-					"diffie_hellman_groups": schema.ListAttribute{
-						Description: "DiffieHellmanGroups",
+					"dpd_retry_interval": schema.Int32Attribute{
+						Description: "DpdRetryInterval" +
+							"  - example : 60 \n",
+						Required: true,
+					},
+					"ike_version": schema.Int32Attribute{
+						Description: "IkeVersion" +
+							"  - example : 2 \n",
+						Required: true,
+					},
+					"peer_gateway_ip": schema.StringAttribute{
+						Description: "PeerGatewayIp" +
+							"  - example : 123.0.0.2 \n",
+						Required: true,
+					},
+					"phase1_diffie_hellman_groups": schema.ListAttribute{
+						Description: "Phase1DiffieHellmanGroups" +
+							"  - example : [30,31,32] \n",
 						Required:    true,
 						ElementType: types.Int32Type,
 					},
-					"encryptions": schema.ListAttribute{
-						Description: "Encryptions",
+					"phase1_encryptions": schema.ListAttribute{
+						Description: "Phase1Encryptions" +
+							"  - example : ['des-md5', 'chacha20poly1305-prfsha256'] \n",
 						Required:    true,
 						ElementType: types.StringType,
 					},
-					"dpd_retry_interval": schema.Int32Attribute{
-						Description: "DpdRetryInterval",
-						Required:    true,
-					},
-					"ike_version": schema.Int32Attribute{
-						Description: "IkeVersion",
-						Required:    true,
-					},
-					"life_time": schema.Int32Attribute{
-						Description: "LifeTime",
-						Required:    true,
-					},
-					"peer_gateway_ip": schema.StringAttribute{
-						Description: "PeerGatewayIp",
-						Required:    true,
+					"phase1_life_time": schema.Int32Attribute{
+						Description: "Phase1LifeTime" +
+							"  - example : 86400 \n",
+						Required: true,
 					},
 					"pre_shared_key": schema.StringAttribute{
-						Description: "PreSharedKey",
-						Required:    true,
+						Description: "PreSharedKey" +
+							"  - example : PreSharedKey1 \n",
+						Required: true,
 					},
 				},
 			},
 			"phase2": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
-					"diffie_hellman_groups": schema.ListAttribute{
-						Description: "DiffieHellmanGroups",
-						Required:    true,
-						ElementType: types.Int32Type,
-					},
-					"encryptions": schema.ListAttribute{
-						Description: "Encryptions",
-						Required:    true,
-						ElementType: types.StringType,
-					},
-					"life_time": schema.Int32Attribute{
-						Description: "LifeTime",
-						Required:    true,
-					},
 					"perfect_forward_secrecy": schema.StringAttribute{
-						Description: "PerfectForwardSecrecy",
-						Required:    true,
+						Description: "PerfectForwardSecrecy" +
+							"  - example : ENABLE \n",
+						Required: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("ENABLE", "DISABLE"),
 						},
 					},
-					"remote_subnet": schema.StringAttribute{
-						Description: "RemoteSubnet",
+					"phase2_diffie_hellman_groups": schema.ListAttribute{
+						Description: "Phase2DiffieHellmanGroups" +
+							"  - example : [30,31,32] \n",
+						Required:    true,
+						ElementType: types.Int32Type,
+					},
+					"phase2_encryptions": schema.ListAttribute{
+						Description: "Phase2Encryptions" +
+							"  - example : ['des-md5', 'chacha20poly1305-prfsha256'] \n",
+						Required:    true,
+						ElementType: types.StringType,
+					},
+					"phase2_life_time": schema.Int32Attribute{
+						Description: "Phase2LifeTime" +
+							"  - example : 86400 \n",
+						Required: true,
+					},
+					"remote_subnets": schema.ListAttribute{
+						Description: "RemoteSubnets" +
+							"  - example : ['10.1.1.0/24', '10.1.2.0/24', '10.1.3.0/24'] \n",
+						ElementType: types.StringType,
 						Required:    true,
 					},
 				},
@@ -172,6 +190,10 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 						Description: "State",
 						Computed:    true,
 					},
+					common.ToSnakeCase("Status"): schema.StringAttribute{
+						Description: "Status",
+						Computed:    true,
+					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
 						Description: "VpcId",
 						Computed:    true,
@@ -196,35 +218,31 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 						Description: "Phase1",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
-							"diffie_hellman_groups": schema.ListAttribute{
-								Description: "DiffieHellmanGroups",
-								Computed:    true,
-								ElementType: types.Int32Type,
-							},
 							"dpd_retry_interval": schema.Int32Attribute{
-								Description: "DpdRetryInterval",
+								Description: "DpdRetryInterval \n - example: 60",
 								Computed:    true,
-							},
-							"encryptions": schema.ListAttribute{
-								Description: "Encryptions",
-								Computed:    true,
-								ElementType: types.StringType,
 							},
 							"ike_version": schema.Int32Attribute{
-								Description: "IkeVersion",
+								Description: "IkeVersion \n - example: 2",
 								Computed:    true,
 							},
 							"life_time": schema.Int32Attribute{
-								Description: "LifeTime",
+								Description: "LifeTime \n - example: 86400 ",
 								Computed:    true,
 							},
 							"peer_gateway_ip": schema.StringAttribute{
-								Description: "PeerGatewayIp",
+								Description: "PeerGatewayIp \n - example: 123.0.0.2",
 								Computed:    true,
 							},
-							"pre_shared_key": schema.StringAttribute{
-								Description: "PreSharedKey",
+							"diffie_hellman_groups": schema.ListAttribute{
+								Description: "VPN Tunnel ISAKMP Diffie-Hellman Group 목록 \n - example : [\n   \"30\",\n    \"31\",\n   \"32\"\n  ]",
 								Computed:    true,
+								ElementType: types.Int32Type,
+							},
+							"encryptions": schema.ListAttribute{
+								Description: "VPN Tunnel ISAKMP Proposal 목록 \n - example : [\n   \"null-md5\",\n    \"aes128gcm\",\n   \"chacha20poly1305\"\n  ]",
+								Computed:    true,
+								ElementType: types.StringType,
 							},
 						},
 					},
@@ -232,27 +250,28 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 						Description: "Phase2",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
+							"life_time": schema.Int32Attribute{
+								Description: "LifeTime \n - example: 86400 ",
+								Computed:    true,
+							},
+							"perfect_forward_secrecy": schema.StringAttribute{
+								Description: "PerfectForwardSecrecy \n - example: ENABLE",
+								Computed:    true,
+							},
+							"remote_subnets": schema.ListAttribute{
+								Description: "VPN Tunnel IPSec Remote Subnets \n - example : [\n   \"10.1.1.0/24\",\n    \"10.1.2.0/24\",\n   \"10.1.3.0/24\"\n  ]",
+								Computed:    true,
+								ElementType: types.StringType,
+							},
 							"diffie_hellman_groups": schema.ListAttribute{
-								Description: "DiffieHellmanGroups",
+								Description: "VPN Tunnel ISAKMP Diffie-Hellman Group 목록 \n - example : [\n   \"30\",\n    \"31\",\n   \"32\"\n  ]",
 								Computed:    true,
 								ElementType: types.Int32Type,
 							},
 							"encryptions": schema.ListAttribute{
-								Description: "Encryptions",
+								Description: "VPN Tunnel ISAKMP Proposal 목록 \n - example : [\n   \"null-md5\",\n    \"aes128gcm\",\n   \"chacha20poly1305\"\n  ]",
 								Computed:    true,
 								ElementType: types.StringType,
-							},
-							"life_time": schema.Int32Attribute{
-								Description: "LifeTime",
-								Computed:    true,
-							},
-							"perfect_forward_secrecy": schema.StringAttribute{
-								Description: "PerfectForwardSecrecy",
-								Computed:    true,
-							},
-							"remote_subnet": schema.StringAttribute{
-								Description: "RemoteSubnet",
-								Computed:    true,
 							},
 						},
 					},
@@ -286,7 +305,7 @@ func (r *vpnVpnTunnelResource) Configure(_ context.Context, req resource.Configu
 // Create creates the resource and sets the initial Terraform state.
 func (r *vpnVpnTunnelResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan vpn.VpnTunnelResource
+	var plan vpn.VpnTunnel1d1Resource
 	diags := req.Plan.Get(ctx, &plan) // resource 블록에 작성된 configuration data 를 읽어온다.
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -294,7 +313,8 @@ func (r *vpnVpnTunnelResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Create new vpn tunnel
-	data, err := r.client.CreateVpnTunnel(ctx, plan)
+	data, err := r.client.CreateVpnTunnel1d1(ctx, plan)
+
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -330,8 +350,9 @@ func (r *vpnVpnTunnelResource) Create(ctx context.Context, req resource.CreateRe
 
 // Read refreshes the Terraform state with the latest data.
 func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+
 	// Get current state
-	var state vpn.VpnTunnelResource
+	var state vpn.VpnTunnel1d1Resource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -340,6 +361,7 @@ func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadReques
 
 	// Get refreshed order value from port
 	data, err := r.client.GetVpnTunnel(ctx, state.Id.ValueString())
+
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -362,6 +384,7 @@ func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadReques
 		ModifiedBy:          types.StringValue(vt.ModifiedBy),
 		Name:                types.StringValue(vt.Name),
 		State:               types.StringValue(string(vt.State)),
+		Status:              types.StringValue(string(vt.Status)),
 		VpcId:               types.StringValue(vt.VpcId),
 		VpcName:             types.StringValue(vt.VpcName),
 		VpnGatewayId:        types.StringValue(vt.VpnGatewayId),
@@ -383,7 +406,7 @@ func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadReques
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpnVpnTunnelResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan, changedPlan, state vpn.VpnTunnelResource
+	var plan, changedPlan, state vpn.VpnTunnel1d1Resource
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -399,9 +422,10 @@ func (r *vpnVpnTunnelResource) Update(ctx context.Context, req resource.UpdateRe
 		changedPlan.Phase1.PeerGatewayIp = nullString
 	}
 
-	if state.Phase2.RemoteSubnet.Equal(plan.Phase2.RemoteSubnet) {
-		changedPlan.Phase2.RemoteSubnet = nullString
-	}
+	// Comment this condition, since convert version v1.0 -> 1.1, RemoteSubnet -> RemoteSubnets[]
+	//if state.Phase2.RemoteSubnet.Equal(plan.Phase2.RemoteSubnet) {
+	//	changedPlan.Phase2.RemoteSubnet = nullString
+	//}
 
 	// Update existing order
 	_, err := r.client.UpdateVpnTunnel(ctx, state.Id.ValueString(), changedPlan)
@@ -443,7 +467,7 @@ func (r *vpnVpnTunnelResource) Update(ctx context.Context, req resource.UpdateRe
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vpnVpnTunnelResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state vpn.VpnTunnelResource
+	var state vpn.VpnTunnel1d1Resource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -451,7 +475,7 @@ func (r *vpnVpnTunnelResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 
 	// Delete existing vpn tunnel
-	err := r.client.DeleteVpnTunnel(ctx, state.Id.ValueString())
+	err := r.client.DeleteVpnTunnel1d1(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -471,25 +495,24 @@ func (r *vpnVpnTunnelResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 }
 
-func mapPhase1Detail(phase1 scpvpn.VpnPhase1Detail) vpn.VpnPhase1Detail {
-	return vpn.VpnPhase1Detail{
-		DiffieHellmanGroups: convertToTypesInt32Slice(phase1.DiffieHellmanGroups),
-		Encryptions:         convertToTypesStringSlice(phase1.Encryptions),
+func mapPhase1Detail(phase1 scpvpn.VpnPhase1DetailV1Dot1) vpn.VpnPhase1v1Dot1Detail {
+	return vpn.VpnPhase1v1Dot1Detail{
 		DpdRetryInterval:    types.Int32Value(phase1.DpdRetryInterval),
 		IkeVersion:          types.Int32Value(phase1.IkeVersion),
 		LifeTime:            types.Int32Value(phase1.LifeTime),
 		PeerGatewayIp:       types.StringValue(phase1.PeerGatewayIp),
-		//PreSharedKey:        types.StringValue("**********"),
+		DiffieHellmanGroups: convertToTypesInt32Slice(phase1.DiffieHellmanGroups),
+		Encryptions:         convertToTypesStringSlice(phase1.Encryptions),
 	}
 }
 
-func mapPhase2Detail(phase2 scpvpn.VpnPhase2Detail) vpn.VpnPhase2Detail {
-	return vpn.VpnPhase2Detail{
+func mapPhase2Detail(phase2 scpvpn.VpnPhase2DetailV1Dot1) vpn.VpnPhase2v1Dot1Detail {
+	return vpn.VpnPhase2v1Dot1Detail{
 		DiffieHellmanGroups:   convertToTypesInt32Slice(phase2.DiffieHellmanGroups),
 		Encryptions:           convertToTypesStringSlice(phase2.Encryptions),
 		LifeTime:              types.Int32Value(phase2.LifeTime),
 		PerfectForwardSecrecy: types.StringValue(phase2.PerfectForwardSecrecy),
-		RemoteSubnet:          types.StringValue(phase2.RemoteSubnet),
+		RemoteSubnets:         convertToTypesStringSlice(phase2.RemoteSubnets),
 	}
 }
 

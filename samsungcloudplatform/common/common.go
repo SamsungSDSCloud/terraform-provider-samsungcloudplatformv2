@@ -46,6 +46,7 @@ const (
 	UpgradingState   string = "UPGRADING"
 	InUseState       string = "IN_USE"
 	DeletingState    string = "DELETING"
+	TerminatedState  string = "TERMINATED"
 
 	VpcPublicIpPurpose            string = "NAT"
 	VpcPublicIpNetworkServiceType string = "VPC"

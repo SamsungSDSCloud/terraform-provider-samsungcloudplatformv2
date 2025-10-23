@@ -3,10 +3,10 @@ package loggingaudit
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loggingaudit"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loggingaudit"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -126,6 +126,14 @@ func (r *loggingauditTrailResource) Schema(_ context.Context, _ resource.SchemaR
 			},
 			common.ToSnakeCase("UserTotalYn"): schema.StringAttribute{
 				Description: "UserTotalYn",
+				Required:    true,
+			},
+			common.ToSnakeCase("OrganizationTrailYn"): schema.StringAttribute{
+				Description: "OrganizationTrailYn",
+				Required:    true,
+			},
+			common.ToSnakeCase("LogArchiveAccountId"): schema.StringAttribute{
+				Description: "LogArchiveAccountId",
 				Required:    true,
 			},
 			common.ToSnakeCase("Trail"): schema.SingleNestedAttribute{
@@ -252,6 +260,14 @@ func (r *loggingauditTrailResource) Schema(_ context.Context, _ resource.SchemaR
 						Description: "UserTotalYn",
 						Computed:    true,
 					},
+					common.ToSnakeCase("OrganizationTrailYn"): schema.StringAttribute{
+						Description: "OrganizationTrailYn",
+						Computed:    true,
+					},
+					common.ToSnakeCase("LogArchiveAccountId"): schema.StringAttribute{
+						Description: "LogArchiveAccountId",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -332,6 +348,8 @@ func (r *loggingauditTrailResource) Read(ctx context.Context, req resource.ReadR
 		TrailName:              types.StringValue(trail.TrailName),
 		TrailSaveType:          types.StringValue(trail.TrailSaveType),
 		UserTotalYn:            types.StringPointerValue(trail.UserTotalYn.Get()),
+		OrganizationTrailYn:    types.StringPointerValue(trail.OrganizationTrailYn.Get()),
+		LogArchiveAccountId:    types.StringPointerValue(trail.LogArchiveAccountId.Get()),
 	}
 
 	trailObjectValue, diags := types.ObjectValueFrom(ctx, trailModel.AttributeTypes(), trailModel)
@@ -404,6 +422,8 @@ func (r *loggingauditTrailResource) Create(ctx context.Context, req resource.Cre
 		TrailName:              types.StringValue(trail.TrailName),
 		TrailSaveType:          types.StringValue(trail.TrailSaveType),
 		UserTotalYn:            types.StringPointerValue(trail.UserTotalYn.Get()),
+		OrganizationTrailYn:    types.StringPointerValue(trail.OrganizationTrailYn.Get()),
+		LogArchiveAccountId:    types.StringPointerValue(trail.LogArchiveAccountId.Get()),
 	}
 
 	trailObjectValue, diags := types.ObjectValueFrom(ctx, trailModel.AttributeTypes(), trailModel)
@@ -481,6 +501,8 @@ func (r *loggingauditTrailResource) Update(ctx context.Context, req resource.Upd
 		TrailName:              types.StringValue(trail.TrailName),
 		TrailSaveType:          types.StringValue(trail.TrailSaveType),
 		UserTotalYn:            types.StringPointerValue(trail.UserTotalYn.Get()),
+		OrganizationTrailYn:    types.StringPointerValue(trail.OrganizationTrailYn.Get()),
+		LogArchiveAccountId:    types.StringPointerValue(trail.LogArchiveAccountId.Get()),
 	}
 
 	trailObjectValue, diags := types.ObjectValueFrom(ctx, trailModel.AttributeTypes(), trailModel)

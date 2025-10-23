@@ -2,8 +2,8 @@ package ske
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/ske/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
 	"io"
 )
 
@@ -47,7 +47,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		securityGroupIdList = append(securityGroupIdList, securityGroupId.ValueString())
 	}
 
-	req = req.ClusterCreateRequest(scpske.ClusterCreateRequest{
+	req = req.ClusterCreateRequestV1Dot1(scpske.ClusterCreateRequestV1Dot1{
 		Name:                                  request.Name.ValueString(),
 		KubernetesVersion:                     request.KubernetesVersion.ValueString(),
 		VpcId:                                 request.VpcId.ValueString(),
@@ -56,6 +56,8 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		CloudLoggingEnabled:                   request.CloudLoggingEnabled.ValueBool(),
 		SecurityGroupIdList:                   securityGroupIdList,
 		PrivateEndpointAccessControlResources: convertPrivateEndpointAccessControlResources(request.PrivateEndpointAccessControlResources),
+		PublicEndpointAccessControlIp:         *scpske.NewNullableString(request.PublicEndpointAccessControlIp.ValueStringPointer()),
+		ServiceWatchLoggingEnabled:            request.ServiceWatchLoggingEnabled.ValueBoolPointer(), // v1.1
 	})
 
 	resp, _, err := req.Execute()
@@ -69,7 +71,7 @@ func (client *Client) DeleteCluster(ctx context.Context, clusterId string) (*scp
 	return resp, err
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*scpske.ClusterShowResponse, int, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*scpske.ClusterShowResponseV1Dot1, int, error) {
 	req := client.sdkClient.SkeV1ClustersApiAPI.ShowCluster(ctx, clusterId)
 
 	resp, httpResponse, err := req.Execute()
@@ -139,6 +141,17 @@ func (client *Client) UpdatePublicEndpointAccessControlIps(ctx context.Context, 
 	return resp, err
 }
 
+func (client *Client) UpdateServiceWatchLoggingEnabled(ctx context.Context, clusterId string, request ClusterResource) (*scpske.ClusterSetResponse, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterServiceWatchLogging(ctx, clusterId)
+
+	req = req.ClusterServiceWatchLoggingSetRequest(scpske.ClusterServiceWatchLoggingSetRequest{
+		ServiceWatchLoggingEnabled: request.ServiceWatchLoggingEnabled.ValueBool(),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 func (client *Client) GetKubeConfig(ctx context.Context, clusterId string, kubeconfig_type string) (string, error) {
 	req := client.sdkClient.SkeV1ClustersApiAPI.CreateClusterKubeconfig(ctx, clusterId)
 
@@ -175,27 +188,29 @@ func (client *Client) GetNodePoolList(ctx context.Context, request NodepoolDataS
 	return resp, err
 }
 
-func (client *Client) CreateNodepool(ctx context.Context, request NodepoolResource) (*scpske.NodepoolShowResponse, error) {
+func (client *Client) CreateNodepool(ctx context.Context, request NodepoolResource) (*scpske.NodepoolShowResponseV1Dot1, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.CreateNodepool(ctx)
 
-	req = req.NodepoolCreateRequest(scpske.NodepoolCreateRequest{
-		Name:              request.Name.ValueString(),
-		ClusterId:         request.ClusterId.ValueString(),
+	req = req.NodepoolCreateRequestV1Dot1(scpske.NodepoolCreateRequestV1Dot1{
+		Name:              request.Name.ValueStringPointer(),
+		ClusterId:         request.ClusterId.ValueStringPointer(),
 		CustomImageId:     *scpske.NewNullableString(request.CustomImageId.ValueStringPointer()),
 		DesiredNodeCount:  *scpske.NewNullableInt32(request.DesiredNodeCount.ValueInt32Pointer()),
-		ImageOs:           request.ImageOs.ValueString(),
-		ImageOsVersion:    request.ImageOsVersion.ValueString(),
+		ImageOs:           request.ImageOs.ValueStringPointer(),
+		ImageOsVersion:    request.ImageOsVersion.ValueStringPointer(),
 		Labels:            convertLablels(request.Labels),
 		Taints:            convertTaints(request.Taints),
-		IsAutoRecovery:    request.IsAutoRecovery.ValueBool(),
-		IsAutoScale:       request.IsAutoScale.ValueBool(),
-		KeypairName:       request.KeypairName.ValueString(),
-		KubernetesVersion: request.KubernetesVersion.ValueString(),
+		IsAutoRecovery:    request.IsAutoRecovery.ValueBoolPointer(),
+		IsAutoScale:       request.IsAutoScale.ValueBoolPointer(),
+		KeypairName:       request.KeypairName.ValueStringPointer(),
+		KubernetesVersion: request.KubernetesVersion.ValueStringPointer(),
 		MaxNodeCount:      *scpske.NewNullableInt32(request.MaxNodeCount.ValueInt32Pointer()),
 		MinNodeCount:      *scpske.NewNullableInt32(request.MinNodeCount.ValueInt32Pointer()),
-		ServerTypeId:      request.ServerTypeId.ValueString(),
-		VolumeTypeName:    request.VolumeTypeName.ValueString(),
-		VolumeSize:        request.VolumeSize.ValueInt32(),
+		ServerTypeId:      request.ServerTypeId.ValueStringPointer(),
+		VolumeTypeName:    request.VolumeTypeName.ValueStringPointer(),
+		VolumeSize:        request.VolumeSize.ValueInt32Pointer(),
+		ServerGroupId:     *scpske.NewNullableString(request.ServerGroupId.ValueStringPointer()), // v1.1
+		AdvancedSettings:  convertAdvancedSettings(request.AdvancedSettings),                     // v1.1
 	})
 
 	resp, _, err := req.Execute()
@@ -252,7 +267,7 @@ func (client *Client) DeleteNodepool(ctx context.Context, nodepoolId string) (*s
 	return resp, err
 }
 
-func (client *Client) GetNodepool(ctx context.Context, nodepoolId string) (*scpske.NodepoolShowResponse, int, error) {
+func (client *Client) GetNodepool(ctx context.Context, nodepoolId string) (*scpske.NodepoolShowResponseV1Dot1, int, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.ShowNodepool(ctx, nodepoolId)
 
 	resp, httpResponse, err := req.Execute()
@@ -321,3 +336,22 @@ func convertTaints(taints []Taints) []scpske.NodepoolTaint {
 }
 
 // List of TaintEffectEnum
+
+func convertAdvancedSettings(advancedSettings *AdvancedSettings) scpske.NullableNodepoolAdvancedSettings {
+	result := scpske.NullableNodepoolAdvancedSettings{}
+	if advancedSettings != nil {
+		value := scpske.NodepoolAdvancedSettings{
+			AllowedUnsafeSysctls: advancedSettings.AllowedUnsafeSysctls.ValueString(),
+			ContainerLogMaxFiles: advancedSettings.ContainerLogMaxFiles.ValueInt32(),
+			ContainerLogMaxSize:  advancedSettings.ContainerLogMaxSize.ValueInt32(),
+			ImageGcHighThreshold: advancedSettings.ImageGcHighThreshold.ValueInt32(),
+			ImageGcLowThreshold:  advancedSettings.ImageGcLowThreshold.ValueInt32(),
+			MaxPods:              advancedSettings.MaxPods.ValueInt32(),
+			PodMaxPids:           advancedSettings.PodMaxPids.ValueInt32(),
+		}
+		result.Set(&value)
+	} else {
+		result.Unset()
+	}
+	return result
+}

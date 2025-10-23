@@ -3,11 +3,11 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/ske/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -156,6 +156,11 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 						Description: "Status",
 						Computed:    true,
 					},
+					// v1.1
+					common.ToSnakeCase("ServiceWatchLoggingEnabled"): schema.BoolAttribute{
+						Description: "ServiceWatchLoggingEnabled",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -199,7 +204,7 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		Id:                                    types.StringValue(cluster.Id),
 		Name:                                  types.StringValue(cluster.Name),
 		AccountId:                             types.StringValue(cluster.AccountId),
-		CloudLoggingEnabled:                   types.BoolValue(cluster.CloudLoggingEnabled),
+		CloudLoggingEnabled:                   types.BoolPointerValue(cluster.CloudLoggingEnabled),
 		KubernetesVersion:                     types.StringValue(cluster.KubernetesVersion),
 		ClusterNamespace:                      types.StringValue(cluster.ClusterNamespace),
 		MaxNodeCount:                          types.Int32PointerValue(cluster.MaxNodeCount.Get()),
@@ -220,8 +225,10 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		ModifiedAt:                            types.StringValue(cluster.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:                            types.StringValue(cluster.ModifiedBy),
 		Status:                                types.StringValue(cluster.Status),
+		ServiceWatchLoggingEnabled:            types.BoolPointerValue(cluster.ServiceWatchLoggingEnabled),
 	}
 	clusterObjectValue, _ := types.ObjectValueFrom(ctx, clusterModel.AttributeTypes(), clusterModel)
+	println("clusterObjectValue:", clusterObjectValue.String())
 	state.Cluster = clusterObjectValue
 
 	// Set refreshed state

@@ -39,16 +39,19 @@ output "cluster_output" {
 
 variable "allowable_ip_addresses" {
   type = list(string)
-  default = ["192.168.10.1/32"]
+  #  default = []
+  default = [""]
 }
 
 variable "dbaas_engine_version_id" {
   type = string
-  default = "aef8e9ace6f54207bdf6266d4028cb74"
+  #default = "e4dc55b4607f4a42be1baae17af4ccaa" // Valkey
+  default = ""
 }
 
 variable "ha_enabled" {
-  type    = bool
+  type = bool
+  #  default = true
   default = false
 }
 
@@ -58,18 +61,18 @@ variable "init_config_option" {
     database_user_password = string
     sentinel_port          = number
     backup_option = object({
-      retention_period_day     = string
-      starting_time_hour       = string
+      retention_period_day = string
+      starting_time_hour   = string
     })
   })
   default = {
-    database_port          = 2866
-    database_user_password = "Pswrd^00^"
-    sentinel_port          = 26378
     backup_option = {
-      retention_period_day     = "7"
-      starting_time_hour       = "12"
+      retention_period_day = ""
+      starting_time_hour   = ""
     }
+    database_port          = 0
+    database_user_password = ""
+    sentinel_port          = 0
   }
 }
 
@@ -83,43 +86,31 @@ variable "instance_groups" {
       size_gb     = number
     }))
     instances = list(object({
-      role_type             = string
-      service_ip_address    = string
-      public_ip_id          = string
+      role_type = string
+      #      service_ip_address    = string
+      #      public_ip_id          = string
     }))
   }))
-  default = [
-    {
-      role_type        = "MASTER"
-      server_type_name = "redis1v1m2"
-      block_storage_groups = [
-        {
-          "role_type" : "OS",
-          "volume_type" : "SSD",
-          "size_gb" : 104
-        },
-        {
-          "role_type" : "DATA",
-          "volume_type" : "SSD",
-          "size_gb" : 56
-        }
-      ]
-      instances = [
-        {
-          "role_type" : "MASTER",
-         "service_ip_address" : "192.168.10.1",
-         "public_ip_id" : "83c3c73d457345e3829ee6d5557c0011",
-        }
-      ]
-    }
-  ]
+  default = [{
+    block_storage_groups = [{
+      role_type   = ""
+      size_gb     = 0
+      volume_type = ""
+    }]
+    instances = [{
+      role_type = ""
+    }]
+    role_type        = ""
+    server_type_name = ""
+  }]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = "terra"
+  default = ""
 }
 
+// OPTION
 variable "maintenance_option" {
   type = object({
     period_hour            = string
@@ -128,48 +119,49 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = "0.5"
-    starting_day_of_week   = "MON"
-    starting_time          = "0000"
-    use_maintenance_option = true
+    period_hour            = ""
+    starting_day_of_week   = ""
+    starting_time          = ""
+    use_maintenance_option = false
   }
 }
 
 variable "name" {
   type    = string
-  default = "terrad"
+  default = ""
 }
 
 variable "nat_enabled" {
-  type    = bool
+  type = bool
+  #  default = true
   default = false
 }
 
 variable "replica_count" {
-  type = number
+  type    = number
   default = 0
 }
 
 variable "subnet_id" {
   type = string
-  default = "83c3c73d457345e3829ee6d5557c0011"
+  #default = "ce93a65b18164072a856c1c31adc1108"
+  #default = "eb838b2fb1a5405eab29b1341ca912bb"
+  default = ""
 }
 
 variable "timezone" {
   type    = string
-  default = "Asia/Seoul"
+  default = ""
 }
 
 variable "service_state" {
   type    = string
-  default = "RUNNING"
+  default = ""
 }
 
 variable "tags" {
-  type = map(string)
-  default = {
-    "key" : "value"
-  }
+  type    = map(string)
+  default = null
 }
 ```
 

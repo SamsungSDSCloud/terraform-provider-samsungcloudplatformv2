@@ -3,10 +3,10 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -111,9 +111,9 @@ func (d *skeNodepoolnodeDataSources) Read(ctx context.Context, req datasource.Re
 	// Map response body to model
 	for _, node := range contents {
 		nodeState := ske.NodeInNodepool{
-			Name:              types.StringValue(node.Name),
-			KubernetesVersion: types.StringValue(node.KubernetesVersion),
-			Status:            types.StringValue(node.Status),
+			Name:              types.StringPointerValue(node.Name),
+			KubernetesVersion: types.StringPointerValue(node.KubernetesVersion),
+			Status:            types.StringPointerValue(node.Status),
 		}
 
 		state.Nodes = append(state.Nodes, nodeState)

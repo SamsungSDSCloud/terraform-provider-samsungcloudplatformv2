@@ -32,9 +32,7 @@ output "resource_group" {
 
 variable "resource_group_tags" {
   type    = map(string)
-  default = {
-    "tf_key1" = "tf_val1"
-  }
+  default = null
 }
 
 variable "resource_group_filter_name" {
@@ -49,7 +47,7 @@ variable "resource_group_filter_values" {
 
 variable "resource_group_filter_use_regex" {
   type    = bool
-  default = true
+  default = false
 }
 ```
 
@@ -63,8 +61,8 @@ variable "resource_group_filter_use_regex" {
 - `name` (String) Name (between 1 and 256 characters)
 - `region` (String) Region
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
- - Keys must be a maximum of 128 characters.
- - Values must be a maximum of 256 characters.
+  - Keys must be a maximum of 128 characters.
+  - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
@@ -86,8 +84,8 @@ Required:
 Optional:
 
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
- - Keys must be a maximum of 128 characters.
- - Values must be a maximum of 256 characters.
+  - Keys must be a maximum of 128 characters.
+  - Values must be a maximum of 256 characters.
 
 Read-Only:
 

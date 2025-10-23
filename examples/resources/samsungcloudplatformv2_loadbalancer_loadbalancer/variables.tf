@@ -1,25 +1,31 @@
 variable "loadbalancer" {
   type = object({
-    description = string
-    firewall_enabled = bool
-    firewall_logging_enabled= bool
-    layer_type= string
-    name= string
-    publicip_id= string
-    service_ip= string
-    subnet_id= string
-    vpc_id= string
+    description              = string
+    firewall_enabled         = bool
+    firewall_logging_enabled = bool
+    layer_type               = string
+    name                     = string
+    service_ip               = string
+    subnet_id                = string
+    vpc_id                   = string
+    source_nat_ip            = string
+    health_check_ip_1        = string
+    health_check_ip_2        = string
   })
   default = {
-    description = "description info"
-    firewall_enabled = true
-    firewall_logging_enabled= false
-    layer_type= "L4"
-    name= "terraform-lb"
-    publicip_id= null
-    service_ip= null
-    subnet_id= "8a463aa4b1dc4f279c3f53b94dc45e74"
-    vpc_id= "8a463aa4b1dc4f279c3f53b94dc45e74"
-    }
+    description              = ""
+    firewall_enabled         = false
+    firewall_logging_enabled = false
+    health_check_ip_1        = ""
+    health_check_ip_2        = ""
+    layer_type               = ""
+    name                     = ""
+    service_ip               = ""
+    source_nat_ip            = ""
+    subnet_id                = ""
+    vpc_id                   = ""
+  }
 }
+
+
 

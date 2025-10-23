@@ -3,13 +3,13 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/virtualserver"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/virtualserver/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/virtualserver"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/virtualserver/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -140,7 +140,7 @@ func (r *virtualServerServerGroupResource) Create(ctx context.Context, req resou
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "server-group", data.Id)
+	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, data.Id)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -177,7 +177,7 @@ func (r *virtualServerServerGroupResource) Read(ctx context.Context, req resourc
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "server-group", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -229,7 +229,7 @@ func (r *virtualServerServerGroupResource) Update(ctx context.Context, req resou
 	}
 
 	tagElements := plan.Tags.Elements()
-	tagsMap, err := tag.UpdateTags(r.clients, "virtualserver", "server-group", plan.Id.ValueString(), tagElements)
+	tagsMap, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, plan.Id.ValueString(), tagElements)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating tags",

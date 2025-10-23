@@ -17,7 +17,7 @@ The provider needs to be configured with the proper credentials before it can be
 terraform {
   required_providers {
     samsungcloudplatformv2 = {
-      version = "1.0.3"
+      version = "2.0.3"
       source = "SamsungSDSCloud/samsungcloudplatformv2"
     }
   }
@@ -60,12 +60,20 @@ Insert following parameters in ```.scpconf/config.json``` file
 }
 ```
 
+- `auth-url` (String) Authentication URL for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_AUTH_URL environment variable.
+- `default-region` (String) Default region configuration for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_DEFAULT_REGION environment variable.
+
+### Optional
+- `microversion-check-timeout` (Int) timeout of an api call that inquires about the endpoint status of a product that provides terraform. The value can be adjusted according to the Internet environment. Default 15 seconds
+- `max-remain-days`  (Int) Reference value to compare from the user's point of view the date of the product's SDK that is no longer guaranteed. The user can flexibly adjust the check for the sdk's deprecated date through this value. Default 90 days
+
 ### auth-url example
 
 | **Environment**     | **env value** | **Example Service URL**              |
 |---------------|---------------|--------------------------------------|
 | for Samsung   | s             | https://iam.s.samsungsdscloud.com/v1 |
 | for Sovereign | g             | https://iam.g.samsungsdscloud.com/v1 |
+| for Enterprise | e             | https://iam.e.samsungsdscloud.com/v1 |
 
 
 ### Add your credentials
@@ -76,12 +84,14 @@ Insert following parameters in ```.scpconf/credentials.json``` file
     "secret-key": "xxxxxxxxxxxxxx"
 }
 ```
+- `access_key` (String) Access key for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_ACCESS_KEY environment variable.
+- `secret_key` (String) Secret key for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_SECRET_KEY environment variable.
 
 ## Schema
-
 ### Optional
-
 - `access_key` (String) Access key for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_ACCESS_KEY environment variable.
 - `auth_url` (String) Authentication URL for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_AUTH_URL environment variable.
 - `default_region` (String) Default region configuration for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_DEFAULT_REGION environment variable.
 - `secret_key` (String) Secret key for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_SECRET_KEY environment variable.
+- `max_remain_days` (Int) Max Remain Days configuration for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_MAX_REMAIN_DAYS environment variable.
+- `microversion_check_timeout` (Int) Microversion Check Timeout for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_MICROVERSION_CHECK_TIMEOUT environment variable.

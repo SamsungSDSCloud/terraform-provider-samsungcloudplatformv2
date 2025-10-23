@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpbilling "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/billing"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpbilling "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/billingplan/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -109,17 +109,23 @@ func (client *Client) CreatePlannedCompute(ctx context.Context, request PlannedC
 	var TagsObject []scpbilling.TagDTO
 
 	for k, v := range request.Tags.Elements() {
+		stringVal := v.(types.String)
+
+		var nullableValue scpbilling.NullableString
+		if !stringVal.IsNull() && !stringVal.IsUnknown() {
+			value := stringVal.ValueString()
+			nullableValue.Set(&value)
+		}
 		tagObject := scpbilling.TagDTO{
-			Key:   types.StringValue(k).ValueStringPointer(),
-			Value: v.(types.String).ValueStringPointer(),
+			Key:   types.StringValue(k).ValueString(),
+			Value: nullableValue,
 		}
 
 		TagsObject = append(TagsObject, tagObject)
 	}
 	req = req.PlannedComputeCreateRequest(scpbilling.PlannedComputeCreateRequest{
-		AccountId:    request.AccountId.ValueString(),
-		ContractType: contractType,
-		OsType:       osType,
+		ContractType: *contractType,
+		OsType:       *osType,
 		ServerType:   request.ServerType.ValueString(),
 		ServiceId:    request.ServiceId.ValueString(),
 		ServiceName:  request.ServiceName.ValueStringPointer(),

@@ -3,10 +3,10 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -180,27 +180,27 @@ func (d *skeNodepoolDataSources) Read(ctx context.Context, req datasource.ReadRe
 	// Map response body to model
 	for _, nodepool := range contents {
 		nodepoolState := ske.Nodepool{
-			Id:                  types.StringValue(nodepool.Id),
-			Name:                types.StringValue(nodepool.Name),
-			AccountId:           types.StringValue(nodepool.AccountId),
-			AutoRecoveryEnabled: types.BoolValue(nodepool.AutoRecoveryEnabled),
-			AutoScaleEnabled:    types.BoolValue(nodepool.AutoScaleEnabled),
-			CurrentNodeCount:    types.Int32Value(nodepool.CurrentNodeCount),
-			DesiredNodeCount:    types.Int32Value(nodepool.DesiredNodeCount),
+			Id:                  types.StringPointerValue(nodepool.Id),
+			Name:                types.StringPointerValue(nodepool.Name),
+			AccountId:           types.StringPointerValue(nodepool.AccountId),
+			AutoRecoveryEnabled: types.BoolPointerValue(nodepool.AutoRecoveryEnabled),
+			AutoScaleEnabled:    types.BoolPointerValue(nodepool.AutoScaleEnabled),
+			CurrentNodeCount:    types.Int32PointerValue(nodepool.CurrentNodeCount),
+			DesiredNodeCount:    types.Int32PointerValue(nodepool.DesiredNodeCount),
 			Image: ske.Image{
 				CustomImageName: types.StringPointerValue(nodepool.Image.CustomImageName.Get()),
-				Os:              types.StringValue(nodepool.Image.Os),
-				OsVersion:       types.StringValue(nodepool.Image.OsVersion),
+				Os:              types.StringPointerValue(nodepool.Image.Os),
+				OsVersion:       types.StringPointerValue(nodepool.Image.OsVersion),
 			},
-			KubernetesVersion: types.StringValue(nodepool.KubernetesVersion),
+			KubernetesVersion: types.StringPointerValue(nodepool.KubernetesVersion),
 			ServerType: ske.ServerType{
-				Description: types.StringValue(nodepool.ServerType.Description),
-				Id:          types.StringValue(nodepool.ServerType.Id),
+				Description: types.StringPointerValue(nodepool.ServerType.Description),
+				Id:          types.StringPointerValue(nodepool.ServerType.Id),
 			},
-			Status: types.StringValue(nodepool.Status),
+			Status: types.StringPointerValue(nodepool.Status),
 			VolumeType: ske.VolumeTypeSummary{
-				Id:   types.StringValue(nodepool.VolumeType.Id),
-				Name: types.StringValue(nodepool.VolumeType.Name),
+				Id:   types.StringPointerValue(nodepool.VolumeType.Id),
+				Name: types.StringPointerValue(nodepool.VolumeType.Name),
 			},
 		}
 

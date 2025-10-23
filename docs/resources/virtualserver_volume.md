@@ -31,25 +31,27 @@ output "volume_output" {
 }
 
 variable "name" {
-  type = string
-  default = "terraform_volume"
+  type    = string
+  default = ""
 }
 
 variable "size" {
-  type = number
-  default = 8
+  type    = number
+  default = 0
 }
 
 variable "volume_type" {
-  type = string
-  default = "SSD"
+  type    = string
+  default = ""
 }
 
 variable "volume_server" {
   type = list(object({
     id = string
   }))
-default = []
+  default = [{
+    id = ""
+  }]
 }
 ```
 

@@ -1,26 +1,26 @@
 variable "private_nat_name" {
-  type = string
-  default = "sample"
+  type    = string
+  default = ""
 }
 
 variable "private_nat_direct_connect_id" {
-  type = string
-  default = "sample-direct-connect-id"
+  type    = string
+  default = ""
 }
 
 variable "private_nat_cidr" {
-  type = string
-  default = "sample-cidr"
+  type    = string
+  default = ""
 }
 
 variable "private_nat_description" {
-  type = string
-  default = "sample-description"
+  type    = string
+  default = ""
 }
 
 variable "private_nat_tags" {
   type    = map(string)
-  default = {
-    "tf_key1" = "tf_val1"
-  }
+  default = null
 }
+
+

@@ -17,49 +17,39 @@ type VolumeDataSourceIds struct {
 }
 
 type VolumeDataSource struct {
-	Id     types.String `tfsdk:"id"`
-	Volume types.Object `tfsdk:"volume"`
-}
-
-type Volume struct {
-	AccountId types.String `tfsdk:"account_id"`
-	CreatedAt types.String `tfsdk:"created_at"`
-	Id        types.String `tfsdk:"id"`
-	Name      types.String `tfsdk:"name"`
-	Protocol  types.String `tfsdk:"protocol"`
-	Purpose   types.String `tfsdk:"purpose"`
-	State     types.String `tfsdk:"state"`
-	TypeId    types.String `tfsdk:"type_id"`
-	TypeName  types.String `tfsdk:"type_name"`
-}
-
-func (m Volume) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"account_id": types.StringType,
-		"created_at": types.StringType,
-		"id":         types.StringType,
-		"name":       types.StringType,
-		"protocol":   types.StringType,
-		"purpose":    types.StringType,
-		"state":      types.StringType,
-		"type_id":    types.StringType,
-		"type_name":  types.StringType,
-	}
+	AccountId               types.String `tfsdk:"account_id"`
+	CreatedAt               types.String `tfsdk:"created_at"`
+	EncryptionEnabled       types.Bool   `tfsdk:"encryption_enabled"`
+	EndpointPath            types.String `tfsdk:"endpoint_path"`
+	FileUnitRecoveryEnabled types.Bool   `tfsdk:"file_unit_recovery_enabled"`
+	Id                      types.String `tfsdk:"id"`
+	Name                    types.String `tfsdk:"name"`
+	Path                    types.String `tfsdk:"path"`
+	Protocol                types.String `tfsdk:"protocol"`
+	Purpose                 types.String `tfsdk:"purpose"`
+	State                   types.String `tfsdk:"state"`
+	TypeId                  types.String `tfsdk:"type_id"`
+	TypeName                types.String `tfsdk:"type_name"`
+	Usage                   types.Int32  `tfsdk:"usage"`
 }
 
 type VolumeResource struct {
 	AccountId               types.String         `tfsdk:"account_id"`
+	CifsPassword            types.String         `tfsdk:"cifs_password"`
 	CreatedAt               types.String         `tfsdk:"created_at"`
+	EncryptionEnabled       types.Bool           `tfsdk:"encryption_enabled"`
+	EndpointPath            types.String         `tfsdk:"endpoint_path"`
+	FileUnitRecoveryEnabled types.Bool           `tfsdk:"file_unit_recovery_enabled"`
 	Id                      types.String         `tfsdk:"id"`
 	Name                    types.String         `tfsdk:"name"`
 	NameUuid                types.String         `tfsdk:"name_uuid"`
+	Path                    types.String         `tfsdk:"path"`
 	Protocol                types.String         `tfsdk:"protocol"`
 	Purpose                 types.String         `tfsdk:"purpose"`
 	State                   types.String         `tfsdk:"state"`
 	TypeId                  types.String         `tfsdk:"type_id"`
 	TypeName                types.String         `tfsdk:"type_name"`
-	FileUnitRecoveryEnabled types.Bool           `tfsdk:"file_unit_recovery_enabled"`
-	CifsPassword            types.String         `tfsdk:"cifs_password"`
+	Usage                   types.Int32          `tfsdk:"usage"`
 	Tags                    types.Map            `tfsdk:"tags"`
 	AccessRules             []AccessRuleResource `tfsdk:"access_rules"`
 }

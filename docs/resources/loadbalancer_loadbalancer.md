@@ -25,27 +25,31 @@ output "loadbalancer" {
 
 variable "loadbalancer" {
   type = object({
-    description = string
-    firewall_enabled = bool
-    firewall_logging_enabled= bool
-    layer_type= string
-    name= string
-    publicip_id= string
-    service_ip= string
-    subnet_id= string
-    vpc_id= string
+    description              = string
+    firewall_enabled         = bool
+    firewall_logging_enabled = bool
+    layer_type               = string
+    name                     = string
+    service_ip               = string
+    subnet_id                = string
+    vpc_id                   = string
+    source_nat_ip            = string
+    health_check_ip_1        = string
+    health_check_ip_2        = string
   })
   default = {
-    description = "description info"
-    firewall_enabled = true
-    firewall_logging_enabled= false
-    layer_type= "L4"
-    name= "terraform-lb"
-    publicip_id= null
-    service_ip= null
-    subnet_id= "8a463aa4b1dc4f279c3f53b94dc45e74"
-    vpc_id= "8a463aa4b1dc4f279c3f53b94dc45e74"
-    }
+    description              = ""
+    firewall_enabled         = false
+    firewall_logging_enabled = false
+    health_check_ip_1        = ""
+    health_check_ip_2        = ""
+    layer_type               = ""
+    name                     = ""
+    service_ip               = ""
+    source_nat_ip            = ""
+    subnet_id                = ""
+    vpc_id                   = ""
+  }
 }
 ```
 
@@ -69,10 +73,12 @@ Optional:
 - `description` (String) Description
 - `firewall_enabled` (Boolean) FirewallEnabled
 - `firewall_logging_enabled` (Boolean) FirewallLoggingEnabled
+- `health_check_ip_1` (String) HealthCheckIp1
+- `health_check_ip_2` (String) HealthCheckIp2
 - `layer_type` (String) LayerType
 - `name` (String) Name
-- `publicip_id` (String) PublicipId
 - `service_ip` (String) ServiceIp
+- `source_nat_ip` (String) SourceNatIp
 - `subnet_id` (String) SubnetId
 - `vpc_id` (String) VpcId
 
@@ -84,15 +90,8 @@ Optional:
 
 - `account_id` (String) Account ID
 - `description` (String) Description
-- `firewall_id` (String) Firewall ID
-- `firewall_name` (String) Firewall Name
-- `health_check_ip` (List of String) Health check IP
 - `layer_type` (String) Layer type
 - `name` (String) Name
-- `public_nat_ip` (String) Public NAT IP
-- `public_nat_state` (String) Public NAT state
-- `service_ip` (String) Service IP
-- `source_nat_ip` (String) Source NAT IP
 - `state` (String) State
 - `subnet_id` (String) Subnet ID
 - `vpc_id` (String) VPC ID

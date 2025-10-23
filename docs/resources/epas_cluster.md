@@ -39,13 +39,13 @@ output "cluster_output" {
 }
 
 variable "allowable_ip_addresses" {
-  type = list(string)
-  default = ["192.168.10.1/32"]
+  type    = list(string)
+  default = [""]
 }
 
 variable "dbaas_engine_version_id" {
-  type = string
-  default = "821110c054044f0188b0811e53ef9ed6"
+  type    = string
+  default = ""
 }
 
 variable "ha_enabled" {
@@ -74,18 +74,18 @@ variable "init_config_option" {
     })
   })
   default = {
-    audit_enabled          = false
-    database_encoding      = "UTF-8"
-    database_locale        = "C"
-    database_name          = "epaasdbname"
-    database_port          = 2866
-    database_user_name     = "terraformuser"
-    database_user_password = "password001!"
+    audit_enabled = false
     backup_option = {
-      retention_period_day     = "7"
-      starting_time_hour       = "12"
-      archive_frequency_minute = "60"
+      archive_frequency_minute = ""
+      retention_period_day     = ""
+      starting_time_hour       = ""
     }
+    database_encoding      = ""
+    database_locale        = ""
+    database_name          = ""
+    database_port          = 0
+    database_user_name     = ""
+    database_user_password = ""
   }
 }
 
@@ -99,54 +99,44 @@ variable "instance_groups" {
       size_gb     = number
     }))
     instances = list(object({
-      role_type    = string
+      role_type = string
     }))
   }))
-  default = [
-    {
-      role_type        = "ACTIVE"
-      server_type_name = "db1v2m4"
-      block_storage_groups = [
-        {
-          "role_type" : "OS",
-          "volume_type" : "SSD",
-          "size_gb" : 104
-        },
-        {
-          "role_type" : "DATA",
-          "volume_type" : "SSD",
-          "size_gb" : 16
-        }
-      ]
-      instances = [
-        {
-          "role_type" : "ACTIVE",
-        }
-      ]
-    }
-  ]
+  default = [{
+    block_storage_groups = [{
+      role_type   = ""
+      size_gb     = 0
+      volume_type = ""
+    }]
+    instances = [{
+      role_type = ""
+    }]
+    role_type        = ""
+    server_type_name = ""
+  }]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = "terraprefix"
+  default = ""
 }
 
 variable "name" {
   type    = string
-  default = "terraname"
+  default = ""
 }
 
 variable "subnet_id" {
   type    = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  default = ""
 }
 
 variable "timezone" {
   type    = string
-  default = "Asia/Seoul"
+  default = ""
 }
 
+// OPTION
 variable "maintenance_option" {
   type = object({
     period_hour            = string
@@ -155,10 +145,10 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = "0.5"
-    starting_day_of_week   = "MON"
-    starting_time          = "0000"
-    use_maintenance_option = true
+    period_hour            = ""
+    starting_day_of_week   = ""
+    starting_time          = ""
+    use_maintenance_option = false
   }
 }
 
@@ -174,15 +164,12 @@ variable "virtual_ip_address" {
 
 variable "service_state" {
   type    = string
-  default = "RUNNING"
+  default = ""
 }
 
 variable "tags" {
-  type = map(string)
-  default = {
-    "key" : "value"
-    "key2" : "value2"
-  }
+  type    = map(string)
+  default = null
 }
 ```
 

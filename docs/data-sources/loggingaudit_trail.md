@@ -42,10 +42,12 @@ Read-Only:
 - `created_user_id` (String) CreatedUserId
 - `del_yn` (String) DelYn
 - `id` (String) Id
+- `log_archive_account_id` (String) LogArchiveAccountId
 - `log_type_total_yn` (String) LogTypeTotalYn
 - `log_verification_yn` (String) LogVerificationYn
 - `modified_at` (String) ModifiedAt
 - `modified_by` (String) ModifiedBy
+- `organization_trail_yn` (String) OrganizationTrailYn
 - `region_names` (List of String) RegionNames
 - `region_total_yn` (String) RegionTotalYn
 - `resource_type_total_yn` (String) ResourceTypeTotalYn

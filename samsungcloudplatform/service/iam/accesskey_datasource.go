@@ -3,17 +3,18 @@ package iam
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -119,6 +120,10 @@ func (d *iamAccessKeyDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 							Description: "SecretKey",
 							Computed:    true,
 						},
+						common.ToSnakeCase("IsEnabled"): schema.BoolAttribute{
+							Description: "Is enabled",
+							Computed:    true,
+						},
 					},
 				},
 			},
@@ -182,6 +187,7 @@ func (d *iamAccessKeyDataSource) Read(ctx context.Context, req datasource.ReadRe
 			ModifiedBy:          types.StringValue(accessKey.ModifiedBy),
 			ParentAccessKeyId:   types.StringPointerValue(accessKey.ParentAccessKeyId.Get()),
 			SecretKey:           types.StringValue(accessKey.SecretKey),
+			IsEnabled:           types.BoolValue(accessKey.IsEnabled),
 		}
 
 		state.AccessKeys = append(state.AccessKeys, accessKeyState)

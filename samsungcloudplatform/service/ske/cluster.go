@@ -3,13 +3,13 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/ske/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/region"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -101,14 +101,15 @@ func (r *skeClusterResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 				Optional: true,
 			},
-			common.ToSnakeCase("SecurityGroupIdList"): schema.ListAttribute{
-				ElementType: types.StringType,
-				Description: "SecurityGroupIdList",
-				Optional:    true,
-			},
 			common.ToSnakeCase("PublicEndpointAccessControlIp"): schema.StringAttribute{
 				Description: "PublicEndpointAccessControlIp",
 				Optional:    true,
+			},
+			// v1.1
+			common.ToSnakeCase("ServiceWatchLoggingEnabled"): schema.BoolAttribute{
+				Description: "ServiceWatchLoggingEnabled",
+				Required:    true,
+				Optional:    false,
 			},
 			common.ToSnakeCase("Cluster"): schema.SingleNestedAttribute{
 				Description: "Cluster",
@@ -220,6 +221,11 @@ func (r *skeClusterResource) Schema(_ context.Context, _ resource.SchemaRequest,
 						Description: "Status",
 						Computed:    true,
 					},
+					// v1.1
+					common.ToSnakeCase("ServiceWatchLoggingEnabled"): schema.BoolAttribute{
+						Description: "ServiceWatchLoggingEnabled",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -263,7 +269,7 @@ func (r *skeClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating cluster",
+			"Error Creating Cluster",
 			"Could not create cluster, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
@@ -280,7 +286,7 @@ func (r *skeClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	err = waitForClusterStatus(ctx, r.client, data.ResourceId, []string{"CREATING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating cluster",
+			"Error Creating Cluster",
 			"Error waiting for cluster to become running: "+err.Error(),
 		)
 		return
@@ -310,7 +316,7 @@ func (r *skeClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading cluster",
+			"Error Reading Cluster",
 			"Could not read cluster ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
 		)
 		return
@@ -332,7 +338,7 @@ func (r *skeClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		Id:                                    types.StringValue(cluster.Id),
 		Name:                                  types.StringValue(cluster.Name),
 		AccountId:                             types.StringValue(cluster.AccountId),
-		CloudLoggingEnabled:                   types.BoolValue(cluster.CloudLoggingEnabled),
+		CloudLoggingEnabled:                   types.BoolPointerValue(cluster.CloudLoggingEnabled),
 		KubernetesVersion:                     types.StringValue(cluster.KubernetesVersion),
 		ClusterNamespace:                      types.StringValue(cluster.ClusterNamespace),
 		MaxNodeCount:                          types.Int32PointerValue(cluster.MaxNodeCount.Get()),
@@ -353,6 +359,7 @@ func (r *skeClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		ModifiedAt:                            types.StringValue(cluster.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:                            types.StringValue(cluster.ModifiedBy),
 		Status:                                types.StringValue(cluster.Status),
+		ServiceWatchLoggingEnabled:            types.BoolValue(cluster.GetServiceWatchLoggingEnabled()), // v1.1
 	}
 	clusterObjectValue, _ := types.ObjectValueFrom(ctx, clusterModel.AttributeTypes(), clusterModel)
 	state.Cluster = clusterObjectValue
@@ -397,6 +404,10 @@ func (r *skeClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	if err != nil {
 		return
 	}
+	err = r.syncServiceWatchLoggingEnabled(ctx, state, &plan, resp)
+	if err != nil {
+		return
+	}
 
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -422,15 +433,15 @@ func (r *skeClusterResource) syncCloudLoggingEnabled(ctx context.Context, state 
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Updating cluster logging",
-			"Could not update cluster logging, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error Updating CloudLoggingEnabled",
+			"Could not update cloud logging enabled, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return err
 	}
 	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating cluster",
+			"Error Updating Cluster",
 			"Error waiting for cluster to become running: "+err.Error(),
 		)
 		return err
@@ -450,8 +461,8 @@ func (r *skeClusterResource) syncSecurityGroupList(ctx context.Context, state sk
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Updating cluster security groups",
-			"Could not update cluster security groups, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error Updating SecurityGroupList",
+			"Could not update security group list, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return err
 	}
@@ -468,15 +479,15 @@ func (r *skeClusterResource) syncKubernetesVersion(ctx context.Context, state sk
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Updating cluster version",
-			"Could not update cluster version, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error Updating KubernetesVersion",
+			"Could not update kubernetes version, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return err
 	}
 	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating cluster",
+			"Error Updating Cluster",
 			"Error waiting for cluster to become running: "+err.Error(),
 		)
 		return err
@@ -494,8 +505,8 @@ func (r *skeClusterResource) syncPrivateEndpointAccessControlResources(ctx conte
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Updating cluster private endpoint accessControl resources",
-			"Could not update cluster security private endpoint accessControl resources, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error Updating PrivateEndpointAccessControlResources",
+			"Could not update cluster private endpoint access control resources, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return err
 	}
@@ -512,7 +523,7 @@ func (r *skeClusterResource) syncPublicEndpointAccessControlIp(ctx context.Conte
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Updating cluster version",
+			"Error Updating PublicEndpointAccessControlIp",
 			"Could not update public endpoint access control ip, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return err
@@ -520,7 +531,33 @@ func (r *skeClusterResource) syncPublicEndpointAccessControlIp(ctx context.Conte
 	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating cluster",
+			"Error Updating Cluster",
+			"Error waiting for cluster to become running: "+err.Error(),
+		)
+		return err
+	}
+	plan.Id = types.StringValue(data.ResourceId)
+	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
+	return nil
+}
+
+func (r *skeClusterResource) syncServiceWatchLoggingEnabled(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
+	if plan.ServiceWatchLoggingEnabled.Equal(state.ServiceWatchLoggingEnabled) {
+		return nil
+	}
+	data, err := r.client.UpdateServiceWatchLoggingEnabled(ctx, plan.Id.ValueString(), *plan)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Updating ServiceWatchLoggingEnabled",
+			"Could not update service watch logging enabled, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return err
+	}
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Cluster",
 			"Error waiting for cluster to become running: "+err.Error(),
 		)
 		return err
@@ -545,7 +582,7 @@ func (r *skeClusterResource) Delete(ctx context.Context, req resource.DeleteRequ
 	if err != nil && !strings.Contains(err.Error(), "404") {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Deleting cluster",
+			"Error Deleting Cluster",
 			"Could not delete cluster, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
@@ -554,7 +591,7 @@ func (r *skeClusterResource) Delete(ctx context.Context, req resource.DeleteRequ
 	err = waitForClusterStatus(ctx, r.client, data.ResourceId, []string{}, []string{"DELETED"}, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error deleting cluster",
+			"Error Deleting Cluster",
 			"Error waiting for cluster to become deleted: "+err.Error(),
 		)
 		return

@@ -1,9 +1,11 @@
 variable "direct_connect_id" {
   type    = string
-  default = "direct connecct id"
+  default = ""
 }
 
 variable "limit" {
   type    = number
-  default = 10
+  default = 0
 }
+
+

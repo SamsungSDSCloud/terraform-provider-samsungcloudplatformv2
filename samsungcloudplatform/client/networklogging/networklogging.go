@@ -2,8 +2,8 @@ package networklogging
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpnetworklogging "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/network-logging/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpnetworklogging "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/network-logging/1.0"
 )
 
 type Client struct {

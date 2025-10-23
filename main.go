@@ -8,7 +8,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 

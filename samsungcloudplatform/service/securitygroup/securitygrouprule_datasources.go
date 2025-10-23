@@ -3,10 +3,11 @@ package securitygroup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/securitygroup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	_ "github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	_ "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -46,52 +47,68 @@ func (d *securityGroupRuleDataSources) Schema(_ context.Context, _ datasource.Sc
 		Description: "List of security group rule",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "Page \n" +
+					"  - example : 0",
+				Optional: true,
+				Validators: []validator.Int32{
+					int32validator.AtLeast(0),
+				},
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Optional:    true,
+				Description: "Size \n" +
+					"  - example : 20",
+				Optional: true,
+				Validators: []validator.Int32{
+					int32validator.AtLeast(0),
+				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "Sort \n" +
+					"  - example : created_at:desc",
+				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Optional:    true,
+				Description: "Id \n" +
+					"  - example : e09b390420d247e3b6699b2de1b44316",
+				Optional: true,
 			},
 			common.ToSnakeCase("SecurityGroupId"): schema.StringAttribute{
-				Description: "SecurityGroupId",
-				Required:    true,
+				Description: "SecurityGroupId \n" +
+					"  - example : 75a49bb9896a40a49c53e0d8b5a57c06",
+				Required: true,
 			},
 			common.ToSnakeCase("RemoteIpPrefix"): schema.StringAttribute{
-				Description: "RemoteIpPrefix",
-				Optional:    true,
+				Description: "RemoteIpPrefix \n" +
+					"  - example : 10.10.10.10/32",
+				Optional: true,
 			},
 			common.ToSnakeCase("RemoteGroupId"): schema.StringAttribute{
-				Description: "RemoteGroupId",
-				Optional:    true,
+				Description: "RemoteGroupId \n" +
+					"  - example : 54aa099f05224ddca958b08945dfb26a",
+				Optional: true,
 			},
 			common.ToSnakeCase("Direction"): schema.StringAttribute{
-				Description: "Direction",
-				Optional:    true,
+				Description: "Direction \n" +
+					"  - example : ingress",
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("ingress", "egress"),
 				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description",
-				Optional:    true,
+				Description: "Description \n" +
+					"  - example : securityGroupRuleDescription",
+				Optional: true,
 			},
 			common.ToSnakeCase("Service"): schema.StringAttribute{
-				Description: "Service",
-				Optional:    true,
+				Description: "Service \n" +
+					"  - example : TCP 80",
+				Optional: true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
-				Description: "Security group Id List",
+				Description: "Security group rule Id List",
 			},
 		},
 	}

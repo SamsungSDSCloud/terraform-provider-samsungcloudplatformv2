@@ -3,11 +3,11 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -72,10 +72,6 @@ func (d *loadbalancerLoadbalancerDataSource) Schema(_ context.Context, _ datasou
 						Description: "Firewall ID",
 						Optional:    true,
 					},
-					common.ToSnakeCase("FirewallName"): schema.StringAttribute{
-						Description: "Firewall Name",
-						Optional:    true,
-					},
 					common.ToSnakeCase("HealthCheckIp"): schema.ListAttribute{
 						Description: "Health check IP",
 						ElementType: types.StringType,
@@ -101,12 +97,8 @@ func (d *loadbalancerLoadbalancerDataSource) Schema(_ context.Context, _ datasou
 						Description: "Name",
 						Optional:    true,
 					},
-					common.ToSnakeCase("PublicNatIp"): schema.StringAttribute{
-						Description: "Public NAT IP",
-						Optional:    true,
-					},
-					common.ToSnakeCase("PublicNatState"): schema.StringAttribute{
-						Description: "Public NAT state",
+					common.ToSnakeCase("PublicNatEnabled"): schema.BoolAttribute{
+						Description: "Public NAT Enabled",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ServiceIp"): schema.StringAttribute{
@@ -177,25 +169,23 @@ func (d *loadbalancerLoadbalancerDataSource) Read(ctx context.Context, req datas
 	}
 
 	var loadbalancerState = loadbalancer.LoadbalancerDetail{
-		AccountId:      types.StringValue(data.Loadbalancer.AccountId),
-		CreatedAt:      types.StringValue(data.Loadbalancer.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:      types.StringValue(data.Loadbalancer.CreatedBy),
-		Description:    virtualserverutil.ToNullableStringValue(data.Loadbalancer.Description.Get()),
-		FirewallId:     virtualserverutil.ToNullableStringValue(data.Loadbalancer.FirewallId.Get()),
-		FirewallName:   virtualserverutil.ToNullableStringValue(data.Loadbalancer.FirewallName.Get()),
-		HealthCheckIp:  ToStringList(data.Loadbalancer.HealthCheckIp),
-		Id:             types.StringValue(data.Loadbalancer.Id),
-		LayerType:      types.StringValue(data.Loadbalancer.LayerType),
-		ModifiedAt:     types.StringValue(data.Loadbalancer.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:     types.StringValue(data.Loadbalancer.ModifiedBy),
-		Name:           types.StringValue(data.Loadbalancer.Name),
-		PublicNatIp:    virtualserverutil.ToNullableStringValue(data.Loadbalancer.PublicNatIp.Get()),
-		PublicNatState: virtualserverutil.ToNullableStringValue(data.Loadbalancer.PublicNatState.Get()),
-		ServiceIp:      types.StringValue(data.Loadbalancer.ServiceIp),
-		SourceNatIp:    types.StringValue(data.Loadbalancer.SourceNatIp),
-		State:          types.StringValue(data.Loadbalancer.State),
-		SubnetId:       types.StringValue(data.Loadbalancer.SubnetId),
-		VpcId:          types.StringValue(data.Loadbalancer.VpcId),
+		AccountId:        types.StringValue(data.Loadbalancer.AccountId),
+		CreatedAt:        types.StringValue(data.Loadbalancer.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:        types.StringValue(data.Loadbalancer.CreatedBy),
+		Description:      virtualserverutil.ToNullableStringValue(data.Loadbalancer.Description.Get()),
+		FirewallId:       virtualserverutil.ToNullableStringValue(data.Loadbalancer.FirewallId.Get()),
+		HealthCheckIp:    ToStringList(data.Loadbalancer.HealthCheckIp),
+		Id:               types.StringValue(data.Loadbalancer.Id),
+		LayerType:        types.StringValue(data.Loadbalancer.LayerType),
+		ModifiedAt:       types.StringValue(data.Loadbalancer.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:       types.StringValue(data.Loadbalancer.ModifiedBy),
+		Name:             types.StringValue(data.Loadbalancer.Name),
+		PublicNatEnabled: common.ToNullableBoolValue(data.Loadbalancer.PublicNatEnabled.Get()),
+		ServiceIp:        virtualserverutil.ToNullableStringValue(data.Loadbalancer.ServiceIp.Get()),
+		SourceNatIp:      virtualserverutil.ToNullableStringValue(data.Loadbalancer.SourceNatIp.Get()),
+		State:            types.StringValue(data.Loadbalancer.State),
+		SubnetId:         types.StringValue(data.Loadbalancer.SubnetId),
+		VpcId:            types.StringValue(data.Loadbalancer.VpcId),
 	}
 
 	loadbalancerObjectValue, _ := types.ObjectValueFrom(ctx, loadbalancerState.AttributeTypes(), loadbalancerState)

@@ -1,67 +1,69 @@
 variable "account_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 variable "bucket_name" {
-  type = string
-  default = "bucketname"
+  type    = string
+  default = ""
 }
 
 variable "bucket_region" {
-  type = string
-  default = "kr-west1"
+  type    = string
+  default = ""
 }
 variable "log_type_total_yn" {
-  type = string
-  default = "N"
+  type    = string
+  default = ""
 }
 variable "log_verification_yn" {
-  type = string
-  default = "N"
+  type    = string
+  default = ""
 }
 variable "region_total_yn" {
-  type = string
-  default = "Y"
+  type    = string
+  default = ""
 }
 
 variable "resource_type_total_yn" {
-  type = string
-  default = "Y"
+  type    = string
+  default = ""
 }
 
 variable "trail_description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 
 variable "trail_name" {
-  type = string
-  default = "TrailName"
+  type    = string
+  default = ""
 }
 
 variable "trail_save_type" {
-  type = string
-  default = "JSON"
+  type    = string
+  default = ""
 }
 
 variable "user_total_yn" {
-  type = string
-  default = "Y"
+  type    = string
+  default = ""
 }
 
+variable "organization_trail_yn" {
+  type    = string
+  default = ""
+}
+
+variable "log_archive_account_id" {
+  type    = string
+  default = ""
+}
 
 variable "tag_create_requests" {
-  type = list(map(string))
-  default = [
-    {
-      key   = "vpn_tag_key"
-      value = "vpn_tag_value"
-    },
-    {
-      key   = "another_tag_key"
-      value = "another_tag_value"
-    }
-  ]
+  type    = list(map(string))
+  default = [null]
 }
+
+
 
 

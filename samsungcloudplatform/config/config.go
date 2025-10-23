@@ -12,21 +12,26 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // ProviderConfig maps provider schema data to a Go type.
 type ProviderConfig struct {
-	AuthUrl          types.String `tfsdk:"auth_url"`
-	EndpointOverride types.String `tfsdk:"endpoint_override"`
-	AccountId        types.String `tfsdk:"account_id"`
-	DefaultRegion    types.String `tfsdk:"default_region"`
-	AccessKey        types.String `tfsdk:"access_key"`
-	SecretKey        types.String `tfsdk:"secret_key"`
-	AuthToken        types.String `tfsdk:"auth_token"`
+	AuthUrl                  types.String `tfsdk:"auth_url"`
+	EndpointOverride         types.String `tfsdk:"endpoint_override"`
+	AccountId                types.String `tfsdk:"account_id"`
+	DefaultRegion            types.String `tfsdk:"default_region"`
+	AccessKey                types.String `tfsdk:"access_key"`
+	SecretKey                types.String `tfsdk:"secret_key"`
+	AuthToken                types.String `tfsdk:"auth_token"`
+	MaxRemainDays            types.Int64  `tfsdk:"max_remain_days"`
+	MicroversionCheckTimeout types.Int64  `tfsdk:"microversion_check_timeout"`
 }
 
 const ServiceConfigFile = "config.json"
 const CredentialConfigFile = "credentials.json"
+const DefaultMaxRemainDays = 90
+const DefaultMicroversionCheckTimeout = 15
 
 func LoadServiceConfig(resp *provider.ConfigureResponse, path string, providerConfig *ProviderConfig) {
 	data, err := os.ReadFile(filepath.Clean(path))
@@ -39,10 +44,12 @@ func LoadServiceConfig(resp *provider.ConfigureResponse, path string, providerCo
 	}
 
 	tempConfig := struct {
-		AuthUrl          string `json:"auth-url"`
-		EndpointOverride string `json:"endpoint-override"`
-		AccountId        string `json:"account-id"`
-		DefaultRegion    string `json:"default-region"`
+		AuthUrl                  string `json:"auth-url"`
+		EndpointOverride         string `json:"endpoint-override"`
+		AccountId                string `json:"account-id"`
+		DefaultRegion            string `json:"default-region"`
+		MaxRemainDays            int64  `json:"max-remain-days"`
+		MicroversionCheckTimeout int64  `json:"microversion-check-timeout"`
 	}{}
 
 	if err := json.Unmarshal(data, &tempConfig); err != nil {
@@ -64,6 +71,12 @@ func LoadServiceConfig(resp *provider.ConfigureResponse, path string, providerCo
 	}
 	if tempConfig.DefaultRegion != "" {
 		providerConfig.DefaultRegion = types.StringValue(tempConfig.DefaultRegion)
+	}
+	if tempConfig.MaxRemainDays != 0 {
+		providerConfig.MaxRemainDays = types.Int64Value(tempConfig.MaxRemainDays)
+	}
+	if tempConfig.MicroversionCheckTimeout != 0 {
+		providerConfig.MicroversionCheckTimeout = types.Int64Value(tempConfig.MicroversionCheckTimeout)
 	}
 }
 
@@ -151,6 +164,22 @@ func ConfigureServiceAndCredentials(resp *provider.ConfigureResponse, providerCo
 				"Either target apply the source of the value first, set the value statically in the configuration, or use the SCP_TF_SECRET_KEY environment variable.",
 		)
 	}
+	if providerConfig.SecretKey.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("max_remain_days"),
+			"Unknown samsungcloudplatformv2 Max Remain Days",
+			"The provider cannot create the samsungcloudplatformv2 API client as there is an unknown configuration value for the samsungcloudplatformv2 Max Remain Days. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the SCP_TF_MAX_REMAIN_DAYS environment variable.",
+		)
+	}
+	if providerConfig.SecretKey.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("microversion_check_timeout"),
+			"Unknown samsungcloudplatformv2 Microversion Check Timeout",
+			"The provider cannot create the samsungcloudplatformv2 API client as there is an unknown configuration value for the samsungcloudplatformv2 Microversion Check Timeout. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the SCP_TF_MICROVERSION_CHECK_TIMEOUT environment variable.",
+		)
+	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -163,7 +192,8 @@ func ConfigureServiceAndCredentials(resp *provider.ConfigureResponse, providerCo
 	accessKey := os.Getenv("SCP_TF_ACCESS_KEY")
 	secretKey := os.Getenv("SCP_TF_SECRET_KEY")
 	authToken := os.Getenv("SCP_TF_AUTH_TOKEN")
-
+	maxRemainDays, _ := strconv.ParseInt(os.Getenv("SCP_TF_MAX_REMAIN_DAYS"), 10, 32)
+	microversionCheckTimeout, _ := strconv.ParseInt(os.Getenv("SCP_TF_MICROVERSION_CHECK_TIMEOUT"), 10, 32)
 	if !providerConfig.AuthUrl.IsNull() {
 		authUrl = providerConfig.AuthUrl.ValueString()
 	}
@@ -184,6 +214,16 @@ func ConfigureServiceAndCredentials(resp *provider.ConfigureResponse, providerCo
 	}
 	if !providerConfig.AuthToken.IsNull() {
 		authToken = providerConfig.AuthToken.ValueString()
+	}
+	if !providerConfig.MaxRemainDays.IsNull() {
+		maxRemainDays = providerConfig.MaxRemainDays.ValueInt64()
+	} else {
+		maxRemainDays = DefaultMaxRemainDays
+	}
+	if !providerConfig.MicroversionCheckTimeout.IsNull() {
+		microversionCheckTimeout = providerConfig.MicroversionCheckTimeout.ValueInt64()
+	} else {
+		microversionCheckTimeout = DefaultMicroversionCheckTimeout
 	}
 
 	if authUrl == "" {
@@ -229,6 +269,8 @@ func ConfigureServiceAndCredentials(resp *provider.ConfigureResponse, providerCo
 	providerConfig.AccessKey = types.StringValue(accessKey)
 	providerConfig.SecretKey = types.StringValue(secretKey)
 	providerConfig.AuthToken = types.StringValue(authToken)
+	providerConfig.MaxRemainDays = types.Int64Value(maxRemainDays)
+	providerConfig.MicroversionCheckTimeout = types.Int64Value(microversionCheckTimeout)
 }
 
 func getAuthToken(authUrl string, accessKey string, secretKey string) (string, error) {

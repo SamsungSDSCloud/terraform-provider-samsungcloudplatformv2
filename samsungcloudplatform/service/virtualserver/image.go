@@ -3,13 +3,13 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/virtualserver/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/virtualserver/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -245,13 +245,30 @@ func (r *virtualServerImageResource) handlerUpdateImage(ctx context.Context, req
 
 func (r *virtualServerImageResource) handlerUpdateTag(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan virtualserver.ImageResource
+	var state virtualserver.ImageResource
 	req.Plan.Get(ctx, &plan)
+	req.State.Get(ctx, &state)
 
-	_, err := tag.UpdateTags(r.clients, "virtualserver", "image", plan.Id.ValueString(), plan.Tags.Elements())
+	serviceName, resourceType := r.resolveImageServiceInfoFromModel(state)
+	_, err := tag.UpdateTags(r.clients, serviceName, resourceType, plan.Id.ValueString(), plan.Tags.Elements())
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (r *virtualServerImageResource) resolveImageServiceInfoFromResponse(response *scpvirtualserver.ImageShowResponse) (serviceName, resourceType string) {
+	if response.ScpImageType.Get() != nil && *response.ScpImageType.Get() == ScpImageTypeGpuCustom {
+		return ServiceNameGpuServer, ResourceTypeImage
+	}
+	return ServiceNameVirtualServer, ResourceTypeImage
+}
+
+func (r *virtualServerImageResource) resolveImageServiceInfoFromModel(model virtualserver.ImageResource) (serviceName, resourceType string) {
+	if !model.ScpImageType.IsNull() && model.ScpImageType.ValueString() == ScpImageTypeGpuCustom {
+		return ServiceNameGpuServer, ResourceTypeImage
+	}
+	return ServiceNameVirtualServer, ResourceTypeImage
 }
 
 func (r *virtualServerImageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -306,7 +323,8 @@ func (r *virtualServerImageResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "image", imageId)
+	serviceName, resourceType := r.resolveImageServiceInfoFromResponse(getData)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, imageId)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -346,7 +364,8 @@ func (r *virtualServerImageResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "image", state.Id.ValueString())
+	serviceName, resourceType := r.resolveImageServiceInfoFromResponse(data)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -434,7 +453,8 @@ func (r *virtualServerImageResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "image", state.Id.ValueString())
+	serviceName, resourceType := r.resolveImageServiceInfoFromResponse(getData)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",

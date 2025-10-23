@@ -26,8 +26,8 @@ output "security_group_rule" {
 
 
 variable "id" {
-  type = string
-  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 ```
 
@@ -36,19 +36,8 @@ variable "id" {
 
 ### Required
 
-- `id` (String) Id
-
-### Optional
-
-- `description` (String) Description
-- `direction` (String) Direction
-- `page` (Number) Page
-- `remote_group_id` (String) RemoteGroupId
-- `remote_ip_prefix` (String) RemoteIpPrefix
-- `security_group_id` (String) SecurityGroupId
-- `service` (String) Service
-- `size` (Number) Size
-- `sort` (String) Sort
+- `id` (String) Id 
+  - example : e09b390420d247e3b6699b2de1b44316
 
 ### Read-Only
 

@@ -3,11 +3,11 @@ package securitygroup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -53,16 +53,19 @@ func (r *securityGroupResource) Schema(_ context.Context, _ resource.SchemaReque
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Required:    true,
+				Description: "Name \n" +
+					"  - example : sg_0911",
+				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description",
-				Optional:    true,
+				Description: "Description \n" +
+					"  - example : sg_description",
+				Optional: true,
 			},
 			common.ToSnakeCase("Loggable"): schema.BoolAttribute{
-				Description: "loggable",
-				Optional:    true,
+				Description: "loggable \n" +
+					"  - example : True",
+				Optional: true,
 			},
 			common.ToSnakeCase("SecurityGroup"): schema.SingleNestedAttribute{
 				Description: "Security group",

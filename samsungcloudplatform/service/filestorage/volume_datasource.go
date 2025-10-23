@@ -3,10 +3,9 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/filestorage"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -33,64 +32,79 @@ func (d *fileStorageVolumeDataSource) Metadata(ctx context.Context, request data
 	response.TypeName = request.ProviderTypeName + "_filestorage_volume"
 }
 
-func (d *fileStorageVolumeDataSource) Schema(ctx context.Context, request datasource.SchemaRequest, response *datasource.SchemaResponse) {
-	response.Schema = schema.Schema{
-		Description: "Show Volume",
+func (d *fileStorageVolumeDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = VolumeDataSourceSchema()
+}
+func VolumeDataSourceSchema() schema.Schema {
+	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "ID",
-				Optional:    true,
+			"account_id": schema.StringAttribute{
+				Computed: true,
+				Description: "Account ID \n" +
+					"  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
 			},
-			common.ToSnakeCase("Volume"): schema.SingleNestedAttribute{
-				Description: "Volume",
-				Computed:    true,
-				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID \n" +
-							"  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
-						Computed: true,
-					},
-					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At \n" +
-							"  - example : '2024-07-30T04:54:33.219373' \n",
-						Computed: true,
-					},
-					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Account ID \n" +
-							"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
-						Computed: true,
-					},
-					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Volume Name \n" +
-							"  - example : 'my_volume' \n",
-						Computed: true,
-					},
-					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "Protocol \n" +
-							"  - example : 'NFS' \n",
-						Computed: true,
-					},
-					common.ToSnakeCase("Purpose"): schema.StringAttribute{
-						Description: "Volume Purpose \n" +
-							"  - example : 'none' \n",
-						Computed: true,
-					},
-					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "Volume State \n" +
-							"  - example : 'available' \n",
-						Computed: true,
-					},
-					common.ToSnakeCase("TypeId"): schema.StringAttribute{
-						Description: "Volume Type ID \n" +
-							"  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
-						Computed: true,
-					},
-					common.ToSnakeCase("TypeName"): schema.StringAttribute{
-						Description: "Volume Type Name \n" +
-							"  - example : 'HDD' \n",
-						Computed: true,
-					},
-				},
+			"created_at": schema.StringAttribute{
+				Computed: true,
+				Description: "Created At \n" +
+					"  - example : '2024-07-30T04:54:33.219373' \n",
+			},
+			"encryption_enabled": schema.BoolAttribute{
+				Computed: true,
+				Description: "Volume Encryption Enabled \n" +
+					"  - example : 'true'",
+			},
+			"endpoint_path": schema.StringAttribute{
+				Computed: true,
+				Description: "Volume Endpoint Path \n" +
+					"  - example : 'xxx.xx.xxx.xxx'",
+			},
+			"file_unit_recovery_enabled": schema.BoolAttribute{
+				Computed: true,
+			},
+			"id": schema.StringAttribute{
+				Required: true,
+				Description: "ID \n" +
+					"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
+			},
+			"name": schema.StringAttribute{
+				Computed: true,
+				Description: "Volume Name \n" +
+					"  - example : 'my_volume' \n",
+			},
+			"path": schema.StringAttribute{
+				Computed: true,
+				Description: "Volume Mount Path \n" +
+					"  - example : 'xxx.xx.xxx.xxx'",
+			},
+			"protocol": schema.StringAttribute{
+				Computed: true,
+				Description: "Protocol \n" +
+					"  - example : 'NFS' \n",
+			},
+			"purpose": schema.StringAttribute{
+				Computed: true,
+				Description: "Volume Purpose \n" +
+					"  - example : 'none' \n",
+			},
+			"state": schema.StringAttribute{
+				Computed: true,
+				Description: "Volume State \n" +
+					"  - example : 'available' \n",
+			},
+			"type_id": schema.StringAttribute{
+				Computed: true,
+				Description: "Volume Type ID \n" +
+					"  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
+			},
+			"type_name": schema.StringAttribute{
+				Computed: true,
+				Description: "Volume Type Name \n" +
+					"  - example : 'HDD' \n",
+			},
+			"usage": schema.Int32Attribute{
+				Computed: true,
+				Description: "Volume Usage \n" +
+					"  - example : '100000' \n",
 			},
 		},
 	}
@@ -131,20 +145,49 @@ func (d *fileStorageVolumeDataSource) Read(ctx context.Context, request datasour
 		response.Diagnostics.AddError("Error Reading Volume",
 			"Could not read Volume Id "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail)
 	}
-	volumeModel := filestorage.Volume{
-		AccountId: types.StringValue(volume.AccountId),
-		CreatedAt: types.StringValue(volume.CreatedAt.Format(time.RFC3339)),
-		Id:        types.StringValue(volume.Id),
-		Name:      types.StringValue(volume.Name),
-		Protocol:  types.StringValue(volume.Protocol),
-		Purpose:   types.StringValue(volume.Purpose),
-		State:     types.StringValue(volume.State),
-		TypeId:    types.StringValue(volume.TypeId),
-		TypeName:  types.StringValue(volume.TypeName),
+
+	if volume.AccountId != "" {
+		state.AccountId = types.StringValue(volume.AccountId)
+	}
+	if !volume.CreatedAt.IsZero() {
+		state.CreatedAt = types.StringValue(volume.CreatedAt.Format(time.RFC3339))
+	}
+	if volume.Id != "" {
+		state.Id = types.StringValue(volume.Id)
+	}
+	if volume.Name != "" {
+		state.Name = types.StringValue(volume.Name)
+	}
+	if volume.Protocol != "" {
+		state.Protocol = types.StringValue(volume.Protocol)
+	}
+	if volume.Purpose != "" {
+		state.Purpose = types.StringValue(volume.Purpose)
+	}
+	if volume.State != "" {
+		state.State = types.StringValue(volume.State)
+	}
+	if volume.TypeId != "" {
+		state.TypeId = types.StringValue(volume.TypeId)
+	}
+	if volume.TypeName != "" {
+		state.TypeName = types.StringValue(volume.TypeName)
 	}
 
-	volumeObjectValue, _ := types.ObjectValueFrom(ctx, volumeModel.AttributeTypes(), volumeModel)
-	state.Volume = volumeObjectValue
+	state.EncryptionEnabled = types.BoolValue(volume.EncryptionEnabled)
+
+	if volume.EndpointPath.Get() != nil {
+		state.EndpointPath = types.StringValue(*volume.EndpointPath.Get())
+	}
+
+	state.FileUnitRecoveryEnabled = types.BoolValue(*volume.FileUnitRecoveryEnabled.Get())
+
+	if volume.Path.Get() != nil {
+		state.Path = types.StringValue(*volume.Path.Get())
+	}
+	if volume.Usage.Get() != nil {
+		state.Usage = types.Int32Value(*volume.Usage.Get())
+	}
 
 	diags = response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)

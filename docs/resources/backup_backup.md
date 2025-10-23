@@ -36,82 +36,64 @@ output "backup_output" {
 
 variable "region" {
   type    = string
-  default = "kr-west1"
+  default = ""
 }
 
 variable "name" {
-  type = string
-  default = "terraformtestbackup01"
+  type    = string
+  default = ""
 }
 
 variable "policy_category" {
-  type = string
-  default = "AGENTLESS"
+  type    = string
+  default = ""
 }
 
 variable "policy_type" {
-  type = string
-  default = "VM_IMAGE"
+  type    = string
+  default = ""
 }
 
 variable "server_uuid" {
-  type = string
-  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "server_category" {
-  type = string
-  default = "VIRTUAL_SERVER"
+  type    = string
+  default = ""
 }
 
 variable "encrypt_enabled" {
-  type = bool
+  type    = bool
   default = false
 }
 
 variable "retention_period" {
-  type = string
-  default = "MONTH_1"
+  type    = string
+  default = ""
 }
 
 variable "schedules" {
   type = list(object({
-    type = string
-    frequency = string
+    type       = string
+    frequency  = string
     start_time = string
-    start_day = string
+    start_day  = string
     start_week = string
   }))
-  default = [
-    {
-      type = "FULL"
-      frequency = "DAILY"
-      start_time = "11:00:00"
-      start_day = null
-      start_week = null
-    },
-    {
-      type = "INCREMENTAL"
-      frequency = "WEEKLY"
-      start_time = "12:30:00"
-      start_day = "THU"
-      start_week = null
-    },
-    {
-      type = "INCREMENTAL"
-      frequency = "MONTHLY"
-      start_time = "13:00:00"
-      start_day = "FRI"
-      start_week = "WEEK_3"
-    }]
+  default = [{
+    frequency  = ""
+    start_day  = ""
+    start_time = ""
+    start_week = ""
+    type       = ""
+  }]
 }
 
 variable "tags" {
   type    = map(string)
-  default = {
-    "test_tag_key": "tag_key",
-    "test_tag_key2": "tag_key_2"
-  }
+  default = null
 }
 ```
 
@@ -120,14 +102,22 @@ variable "tags" {
 
 ### Required
 
-- `encrypt_enabled` (Boolean) Whether to use Encryption
-- `name` (String) Backup name
-- `policy_category` (String) Backup policy category
-- `policy_type` (String) Backup policy type
-- `retention_period` (String) Backup retention period
+- `encrypt_enabled` (Boolean) Whether to use Encryption 
+  - example: false
+- `name` (String) Backup name 
+  - example: 'terraformtestbackup01'
+- `policy_category` (String) Backup policy category 
+  - example: 'AGENTLESS'
+- `policy_type` (String) Backup policy type 
+  - example: 'VM_IMAGE'
+- `retention_period` (String) Backup retention period 
+  - example: 'MONTH_1' 
+  - pattern: WEEK_2 / MONTH_1 / MONTH_3 / MONTH_6 / YEAR_1
 - `schedules` (Attributes List) Backup Schedules (see [below for nested schema](#nestedatt--schedules))
-- `server_category` (String) Backup server category
-- `server_uuid` (String) Backup server UUID
+- `server_category` (String) Backup server category 
+  - example: 'VIRTUAL_SERVER'
+- `server_uuid` (String) Backup server UUID 
+  - example: 'a16687f2-3abc-4f40-bb5d-ee79ea21249d'
 
 ### Optional
 
@@ -145,11 +135,20 @@ variable "tags" {
 
 Required:
 
-- `frequency` (String) Frequency
-- `start_time` (String) StartTime
-- `type` (String) Type
+- `frequency` (String) Schedule frequency type 
+  - example: 'DAILY' 
+  - pattern: MONTHLY / WEEKLY / DAILY
+- `start_time` (String) Backup schedule start time 
+  - example: '11:00:00'
+- `type` (String) Schedule type 
+  - example: 'FULL' 
+  - pattern: FULL, INCREMENTAL
 
 Optional:
 
-- `start_day` (String) StartDay
-- `start_week` (String) StartWeek
+- `start_day` (String) Backup schedule start day 
+  - example: 'MON' 
+  - pattern: MON / TUE / WED / THU / FRI / SAT / SUN
+- `start_week` (String) Backup schedule start week 
+  - example: 'WEEK_2' 
+  - pattern: WEEK_1 / WEEK_2 / WEEK_3 / WEEK_4 / WEEK_LAST

@@ -26,39 +26,39 @@ output "lbListeners" {
 }
 
 variable "size" {
-  type = number
-  default = 20
+  type    = number
+  default = 0
 }
 
 variable "page" {
-  type = number
+  type    = number
   default = 0
 }
 
 variable "sort" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "loadbalancer_id" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "state" {
-  type = string
+  type    = string
   default = ""
 }
 
 
 variable "name" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "service_port" {
-  type = number
-  default = ""
+  type    = number
+  default = 0
 }
 ```
 
@@ -87,7 +87,6 @@ Optional:
 - `id` (String) Id
 - `name` (String) Name
 - `protocol` (String) Protocol
-- `server_groups` (Attributes List) ServerGroups (see [below for nested schema](#nestedatt--lb_listeners--server_groups))
 - `service_port` (Number) ServicePort
 - `state` (String) State
 
@@ -97,11 +96,3 @@ Read-Only:
 - `created_by` (String) created by
 - `modified_at` (String) modified at
 - `modified_by` (String) modified by
-
-<a id="nestedatt--lb_listeners--server_groups"></a>
-### Nested Schema for `lb_listeners.server_groups`
-
-Read-Only:
-
-- `server_group_id` (String) ServerGroupId
-- `server_group_name` (String) ServerGroupName

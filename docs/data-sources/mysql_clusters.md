@@ -31,32 +31,32 @@ output "clusters" {
 
 
 variable "size" {
-  type = number
-  default = 10
+  type    = number
+  default = 0
 }
 
 variable "page" {
-  type = number
+  type    = number
   default = 0
 }
 
 variable "sort" {
-  type = string
-  default = "created_at:desc"
+  type    = string
+  default = ""
 }
 
 variable "name" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "service_state" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "database_name" {
-  type = string
+  type    = string
   default = ""
 }
 ```

@@ -26,32 +26,37 @@ output "loadbalancers" {
 }
 
 variable "size" {
-  type = number
-  default = 20
+  type    = number
+  default = 0
 }
 
 variable "page" {
-  type = number
+  type    = number
   default = 0
 }
 
 variable "sort" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "name" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "service_ip" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "subnet_id" {
-  type = string
+  type    = string
+  default = ""
+}
+
+variable "vpc_id" {
+  type    = string
   default = ""
 }
 ```
@@ -67,6 +72,7 @@ variable "subnet_id" {
 - `size` (Number) Size
 - `sort` (String) Sort
 - `subnet_id` (String) SubnetId
+- `vpc_id` (String) VpcId
 
 ### Read-Only
 
@@ -77,13 +83,17 @@ variable "subnet_id" {
 
 Optional:
 
+- `firewall_id` (String) FirewallId
 - `id` (String) Id
+- `layer_type` (String) LayerType
 - `listener_count` (Number) ListenerCount
 - `name` (String) Name
-- `public_nat_ip` (String) PublicNatIp
+- `public_nat_enabled` (Boolean) PublicNatEnabled
 - `service_ip` (String) ServiceIp
 - `source_nat_ip` (String) SourceNatIp
 - `state` (String) State
+- `subnet_id` (String) SubnetId
+- `vpc_id` (String) VpcId
 
 Read-Only:
 

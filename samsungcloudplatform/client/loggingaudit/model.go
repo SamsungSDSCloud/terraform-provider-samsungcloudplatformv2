@@ -44,6 +44,8 @@ type TrailResource struct {
 	TrailName           types.String       `tfsdk:"trail_name"`
 	TrailSaveType       types.String       `tfsdk:"trail_save_type"`
 	UserTotalYn         types.String       `tfsdk:"user_total_yn"`
+	OrganizationTrailYn types.String       `tfsdk:"organization_trail_yn"`
+	LogArchiveAccountId types.String       `tfsdk:"log_archive_account_id"`
 	Trail               types.Object       `tfsdk:"trail"`
 }
 
@@ -93,6 +95,8 @@ func (m Trail) AttributeTypes() map[string]attr.Type {
 		"trail_name":                 types.StringType,
 		"trail_save_type":            types.StringType,
 		"user_total_yn":              types.StringType,
+		"organization_trail_yn":      types.StringType,
+		"log_archive_account_id":     types.StringType,
 	}
 }
 
@@ -126,6 +130,8 @@ type Trail struct {
 	TrailName              types.String   `tfsdk:"trail_name"`
 	TrailSaveType          types.String   `tfsdk:"trail_save_type"`
 	UserTotalYn            types.String   `tfsdk:"user_total_yn"`
+	OrganizationTrailYn    types.String   `tfsdk:"organization_trail_yn"`
+	LogArchiveAccountId    types.String   `tfsdk:"log_archive_account_id"`
 }
 
 func ConvertStringListToInterfaceList(strs []types.String) []interface{} {

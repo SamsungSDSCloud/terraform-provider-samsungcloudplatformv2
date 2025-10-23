@@ -3,10 +3,10 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -176,6 +176,7 @@ func (d *loadbalancerLbHealthCheckDataSources) Read(ctx context.Context, req dat
 			CreatedBy:          types.StringValue(lbHealthCheck.CreatedBy),
 			ModifiedAt:         types.StringValue(lbHealthCheck.ModifiedAt.Format(time.RFC3339)),
 			ModifiedBy:         types.StringValue(lbHealthCheck.ModifiedBy),
+			HealthCheckType:    types.StringValue(string(lbHealthCheck.HealthCheckType)),
 		}
 
 		state.LbHealthChecks = append(state.LbHealthChecks, lbHealthCheckState)

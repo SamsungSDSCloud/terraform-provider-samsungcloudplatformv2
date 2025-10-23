@@ -25,7 +25,7 @@ output "hosted_zones" {
 
 variable "size" {
   type    = number
-  default = 10
+  default = 0
 }
 ```
 
@@ -37,11 +37,10 @@ variable "size" {
 - `description` (String) Description
 - `email` (String) Email
 - `exact_name` (String) ExactName
-- `limit` (Number) Limit
-- `marker` (String) Marker
 - `name` (String) Name
-- `sort_dir` (String) SortDir
-- `sort_key` (String) SortKey
+- `page` (Number) Page
+- `size` (Number) Size
+- `sort` (String) Sort
 - `status` (String) Status
 - `ttl` (Number) Ttl
 - `type` (String) Type

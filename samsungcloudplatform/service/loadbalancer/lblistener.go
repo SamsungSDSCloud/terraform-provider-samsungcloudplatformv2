@@ -3,11 +3,12 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/loadbalancer"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/loadbalancer"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -78,10 +79,6 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 						Description: "Description",
 						Optional:    true,
 					},
-					common.ToSnakeCase("HttpsRedirection"): schema.BoolAttribute{
-						Description: "HttpsRedirection",
-						Optional:    true,
-					},
 					common.ToSnakeCase("InsertClientIp"): schema.BoolAttribute{
 						Description: "InsertClientIp",
 						Optional:    true,
@@ -130,13 +127,25 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 								Description: "ClientCertLevel",
 								Optional:    true,
 							},
-							common.ToSnakeCase("ServerCertId"): schema.StringAttribute{
-								Description: "ServerCertId",
-								Optional:    true,
-							},
 							common.ToSnakeCase("ServerCertLevel"): schema.StringAttribute{
 								Description: "ServerCertLevel",
 								Optional:    true,
+							},
+						},
+					},
+					common.ToSnakeCase("SniCertificate"): schema.ListNestedAttribute{
+						Description: "SniCertificate",
+						Optional:    true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								common.ToSnakeCase("SniCertId"): schema.StringAttribute{
+									Description: "SniCertId",
+									Optional:    true,
+								},
+								common.ToSnakeCase("DomainName"): schema.StringAttribute{
+									Description: "DomainName",
+									Optional:    true,
+								},
 							},
 						},
 					},
@@ -157,24 +166,34 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 									Description: "ServerGroupId",
 									Optional:    true,
 								},
+								common.ToSnakeCase("Seq"): schema.Int32Attribute{
+									Description: "Seq",
+									Optional:    true,
+								},
 							},
 						},
 					},
-					common.ToSnakeCase("UrlRedirection"): schema.ListNestedAttribute{
-						Description: "UrlRedirection",
+					common.ToSnakeCase("HttpsRedirection"): schema.SingleNestedAttribute{
+						Description: "HttpsRedirection",
 						Optional:    true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								common.ToSnakeCase("UrlPattern"): schema.StringAttribute{
-									Description: "UrlPattern",
-									Optional:    true,
-								},
-								common.ToSnakeCase("RedirectUrlPattern"): schema.StringAttribute{
-									Description: "RedirectUrlPattern",
-									Optional:    true,
-								},
+						Attributes: map[string]schema.Attribute{
+							common.ToSnakeCase("Protocol"): schema.StringAttribute{
+								Description: "Protocol",
+								Optional:    true,
+							},
+							common.ToSnakeCase("Port"): schema.StringAttribute{
+								Description: "Port",
+								Optional:    true,
+							},
+							common.ToSnakeCase("ResponseCode"): schema.StringAttribute{
+								Description: "ResponseCode",
+								Optional:    true,
 							},
 						},
+					},
+					common.ToSnakeCase("UrlRedirection"): schema.StringAttribute{
+						Description: "UrlRedirection",
+						Optional:    true,
 					},
 					common.ToSnakeCase("XForwardedFor"): schema.BoolAttribute{
 						Description: "XForwardedFor",
@@ -188,6 +207,14 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 						Description: "XForwardedProto",
 						Optional:    true,
 					},
+					common.ToSnakeCase("RoutingAction"): schema.StringAttribute{
+						Description: "RoutingAction",
+						Optional:    true,
+					},
+					common.ToSnakeCase("ConditionType"): schema.StringAttribute{
+						Description: "ConditionType",
+						Optional:    true,
+					},
 				},
 			},
 			common.ToSnakeCase("LbListenerCreate"): schema.SingleNestedAttribute{
@@ -197,10 +224,6 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "Description",
-						Optional:    true,
-					},
-					common.ToSnakeCase("HttpsRedirection"): schema.BoolAttribute{
-						Description: "HttpsRedirection",
 						Optional:    true,
 					},
 					common.ToSnakeCase("InsertClientIp"): schema.BoolAttribute{
@@ -223,7 +246,6 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 						Description: "Protocol",
 						Optional:    true,
 					},
-
 					common.ToSnakeCase("ResponseTimeout"): schema.Int32Attribute{
 						Description: "ResponseTimeout",
 						Optional:    true,
@@ -253,13 +275,25 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 								Description: "ClientCertLevel",
 								Optional:    true,
 							},
-							common.ToSnakeCase("ServerCertId"): schema.StringAttribute{
-								Description: "ServerCertId",
-								Optional:    true,
-							},
 							common.ToSnakeCase("ServerCertLevel"): schema.StringAttribute{
 								Description: "ServerCertLevel",
 								Optional:    true,
+							},
+						},
+					},
+					common.ToSnakeCase("SniCertificate"): schema.ListNestedAttribute{
+						Description: "SniCertificate",
+						Optional:    true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								common.ToSnakeCase("SniCertId"): schema.StringAttribute{
+									Description: "SniCertId",
+									Optional:    true,
+								},
+								common.ToSnakeCase("DomainName"): schema.StringAttribute{
+									Description: "DomainName",
+									Optional:    true,
+								},
 							},
 						},
 					},
@@ -276,24 +310,34 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 									Description: "ServerGroupId",
 									Optional:    true,
 								},
+								common.ToSnakeCase("Seq"): schema.Int32Attribute{
+									Description: "Seq",
+									Optional:    true,
+								},
 							},
 						},
 					},
-					common.ToSnakeCase("UrlRedirection"): schema.ListNestedAttribute{
-						Description: "UrlRedirection",
+					common.ToSnakeCase("HttpsRedirection"): schema.SingleNestedAttribute{
+						Description: "HttpsRedirection",
 						Optional:    true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								common.ToSnakeCase("UrlPattern"): schema.StringAttribute{
-									Description: "UrlPattern",
-									Optional:    true,
-								},
-								common.ToSnakeCase("RedirectUrlPattern"): schema.StringAttribute{
-									Description: "RedirectUrlPattern",
-									Optional:    true,
-								},
+						Attributes: map[string]schema.Attribute{
+							common.ToSnakeCase("Protocol"): schema.StringAttribute{
+								Description: "Protocol",
+								Optional:    true,
+							},
+							common.ToSnakeCase("Port"): schema.StringAttribute{
+								Description: "Port",
+								Optional:    true,
+							},
+							common.ToSnakeCase("ResponseCode"): schema.StringAttribute{
+								Description: "ResponseCode",
+								Optional:    true,
 							},
 						},
+					},
+					common.ToSnakeCase("UrlRedirection"): schema.StringAttribute{
+						Description: "UrlRedirection",
+						Optional:    true,
 					},
 					common.ToSnakeCase("XForwardedFor"): schema.BoolAttribute{
 						Description: "XForwardedFor",
@@ -305,6 +349,14 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 					},
 					common.ToSnakeCase("XForwardedProto"): schema.BoolAttribute{
 						Description: "XForwardedProto",
+						Optional:    true,
+					},
+					common.ToSnakeCase("RoutingAction"): schema.StringAttribute{
+						Description: "RoutingAction",
+						Optional:    true,
+					},
+					common.ToSnakeCase("ConditionType"): schema.StringAttribute{
+						Description: "ConditionType",
 						Optional:    true,
 					},
 				},
@@ -385,8 +437,8 @@ func (r *loadbalancerLbListenerResource) Read(ctx context.Context, req resource.
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Lb Listener",
-			"Could not create Lb Listener, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error reading Lb Listener",
+			"Could not read Lb Listener, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
@@ -431,7 +483,7 @@ func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resourc
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating Lb Listener",
-			"Could not create Lb Listener, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not update Lb Listener, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}

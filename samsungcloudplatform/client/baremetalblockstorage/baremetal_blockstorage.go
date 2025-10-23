@@ -3,8 +3,8 @@ package baremetalblockstorage
 import (
 	"context"
 	"fmt"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	baremetalblockstorage1d0 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/baremetal-blockstorage/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	baremetalblockstorage1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/baremetal-blockstorage/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"time"
@@ -12,41 +12,41 @@ import (
 
 type Client struct {
 	Config       *scpsdk.Configuration
-	sdkClient1d0 *baremetalblockstorage1d0.APIClient
+	sdkClient1d0 *baremetalblockstorage1d1.APIClient
 }
 
 func NewClient(config *scpsdk.Configuration) *Client {
 	return &Client{
 		Config:       config,
-		sdkClient1d0: baremetalblockstorage1d0.NewAPIClient(config),
+		sdkClient1d0: baremetalblockstorage1d1.NewAPIClient(config),
 	}
 }
 
-func (client *Client) CreateBlockStorage(ctx context.Context, request VolumeResource) (*baremetalblockstorage1d0.AsyncResponse, error) {
+func (client *Client) CreateBlockStorage(ctx context.Context, request VolumeResource) (*baremetalblockstorage1d1.AsyncResponse, error) {
 	req := client.sdkClient1d0.BaremetalBlockstorageV1VolumeV1APIsAPI.CreateVolume(ctx)
 
-	diskType, _ := baremetalblockstorage1d0.NewDiskTypeFromValue(request.DiskType.ValueString())
+	diskType, _ := baremetalblockstorage1d1.NewDiskTypeFromValue(request.DiskType.ValueString())
 
 	attachments := client.getAttachmentListModelList(request.Attachments)
 
-	tags := make([]baremetalblockstorage1d0.TagModel, 0)
+	tags := make([]baremetalblockstorage1d1.TagModel, 0)
 	for k, v := range request.Tags.Elements() {
-		tag := baremetalblockstorage1d0.TagModel{}
+		tag := baremetalblockstorage1d1.TagModel{}
 
-		key := baremetalblockstorage1d0.NullableString{}
+		key := baremetalblockstorage1d1.NullableString{}
 		key.Set(&k)
 
 		tag.Key = key
 
 		if v != nil {
-			value := baremetalblockstorage1d0.NullableString{}
+			value := baremetalblockstorage1d1.NullableString{}
 			value.Set(v.(types.String).ValueStringPointer())
 			tag.Value = value
 		}
 		tags = append(tags, tag)
 	}
 
-	req = req.VolumeCreateRequest(baremetalblockstorage1d0.VolumeCreateRequest{
+	req = req.VolumeCreateRequest(baremetalblockstorage1d1.VolumeCreateRequest{
 		Name:        request.Name.ValueString(),
 		DiskType:    *diskType,
 		SizeGb:      request.SizeGb.ValueInt32(),
@@ -58,7 +58,7 @@ func (client *Client) CreateBlockStorage(ctx context.Context, request VolumeReso
 	return response, err
 }
 
-func (client *Client) GetBlockStorage(ctx context.Context, blockStorageId string) (*baremetalblockstorage1d0.VolumeResponse, int, error) {
+func (client *Client) GetBlockStorage(ctx context.Context, blockStorageId string) (*baremetalblockstorage1d1.VolumeResponse, int, error) {
 	req := client.sdkClient1d0.BaremetalBlockstorageV1VolumeV1APIsAPI.ShowVolume(ctx, blockStorageId)
 	response, c, err := req.Execute()
 	var statusCode int
@@ -68,12 +68,12 @@ func (client *Client) GetBlockStorage(ctx context.Context, blockStorageId string
 	return response, statusCode, err
 }
 
-func (client *Client) AttachBlockStorages(ctx context.Context, blockStorageId string, attachObjectList []Attachment) (*baremetalblockstorage1d0.VolumeResponse, int, error) {
+func (client *Client) AttachBlockStorages(ctx context.Context, blockStorageId string, attachObjectList []Attachment) (*baremetalblockstorage1d1.VolumeResponse, int, error) {
 	req := client.sdkClient1d0.BaremetalBlockstorageV1VolumeV1APIsAPI.CreateVolumeAttachments(ctx, blockStorageId)
 
 	attachments := client.getAttachmentListModelList(attachObjectList)
 
-	req = req.VolumeAttachmentRequest(baremetalblockstorage1d0.VolumeAttachmentRequest{Attachments: attachments})
+	req = req.VolumeAttachmentRequest(baremetalblockstorage1d1.VolumeAttachmentRequest{Attachments: attachments})
 
 	response, c, err := req.Execute()
 
@@ -84,10 +84,10 @@ func (client *Client) AttachBlockStorages(ctx context.Context, blockStorageId st
 	return response, statusCode, err
 }
 
-func (client *Client) DetachBlockStorages(ctx context.Context, blockStorageId string, detachObjectIdList []string) (*baremetalblockstorage1d0.VolumeResponse, int, error) {
+func (client *Client) DetachBlockStorages(ctx context.Context, blockStorageId string, detachObjectIdList []string) (*baremetalblockstorage1d1.VolumeResponse, int, error) {
 	req := client.sdkClient1d0.BaremetalBlockstorageV1VolumeV1APIsAPI.DeleteVolumeAttachments(ctx, blockStorageId)
 
-	req = req.VolumeDetachRequest(baremetalblockstorage1d0.VolumeDetachRequest{
+	req = req.VolumeDetachRequest(baremetalblockstorage1d1.VolumeDetachRequest{
 		Attachments: detachObjectIdList,
 	})
 
@@ -100,7 +100,7 @@ func (client *Client) DetachBlockStorages(ctx context.Context, blockStorageId st
 	return response, statusCode, err
 }
 
-func (client *Client) DeleteBlockStorage(ctx context.Context, blockStorageId string) (*baremetalblockstorage1d0.AsyncResponse, int, error) {
+func (client *Client) DeleteBlockStorage(ctx context.Context, blockStorageId string) (*baremetalblockstorage1d1.AsyncResponse, int, error) {
 	req := client.sdkClient1d0.BaremetalBlockstorageV1VolumeV1APIsAPI.DeleteVolume(ctx, blockStorageId)
 
 	response, c, err := req.Execute()
@@ -130,11 +130,11 @@ func (client *Client) WaitForStatus(ctx context.Context, pendingStates []string,
 	return nil
 }
 
-func (client *Client) getAttachmentListModelList(attachmentList []Attachment) []baremetalblockstorage1d0.AttachmentListModel {
-	attachments := make([]baremetalblockstorage1d0.AttachmentListModel, 0)
+func (client *Client) getAttachmentListModelList(attachmentList []Attachment) []baremetalblockstorage1d1.AttachmentListModel {
+	attachments := make([]baremetalblockstorage1d1.AttachmentListModel, 0)
 	for _, attachment := range attachmentList {
-		objectType, _ := baremetalblockstorage1d0.NewBlockStorageAttachmentObjectTypeFromValue(attachment.ObjectType.ValueString())
-		attachments = append(attachments, baremetalblockstorage1d0.AttachmentListModel{
+		objectType, _ := baremetalblockstorage1d1.NewBlockStorageAttachmentObjectTypeFromValue(attachment.ObjectType.ValueString())
+		attachments = append(attachments, baremetalblockstorage1d1.AttachmentListModel{
 			ObjectType: objectType,
 			ObjectId:   attachment.ObjectId.ValueStringPointer(),
 		})

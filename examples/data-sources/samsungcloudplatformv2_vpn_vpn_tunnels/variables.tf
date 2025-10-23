@@ -1,6 +1,6 @@
 variable "size" {
   type    = number
-  default = 20
+  default = 0
 }
 
 variable "page" {
@@ -10,7 +10,7 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = "created_at:desc"
+  default = ""
 }
 
 variable "name" {
@@ -28,12 +28,5 @@ variable "vpn_gateway_name" {
   default = ""
 }
 
-variable "peer_gateway_ip" {
-  type    = string
-  default = ""
-}
 
-variable "remote_subnet" {
-  type    = string
-  default = ""
-}
+

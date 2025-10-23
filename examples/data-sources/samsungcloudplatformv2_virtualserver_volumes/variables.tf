@@ -1,5 +1,5 @@
 variable "name" {
-  type = string
+  type    = string
   default = ""
 }
 
@@ -15,5 +15,6 @@ variable "volumes_filter_values" {
 
 variable "volumes_filter_use_regex" {
   type    = bool
-  default = true
+  default = false
 }
+

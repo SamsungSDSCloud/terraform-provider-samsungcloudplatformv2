@@ -29,8 +29,8 @@ output "keypair_output" {
 }
 
 variable "name" {
-  type = string
-  default = "terraform_keypair"
+  type    = string
+  default = ""
 }
 ```
 

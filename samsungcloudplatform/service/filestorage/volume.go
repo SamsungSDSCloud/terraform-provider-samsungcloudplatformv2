@@ -3,18 +3,21 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/filestorage/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/filestorage/1.0"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"regexp"
 	"time"
 )
 
@@ -37,83 +40,117 @@ func (r *fileStorageVolumeResource) Metadata(_ context.Context, req resource.Met
 	resp.TypeName = req.ProviderTypeName + "_filestorage_volume"
 }
 
-func (r *fileStorageVolumeResource) Schema(_ context.Context, _ resource.SchemaRequest, response *resource.SchemaResponse) {
-	response.Schema = schema.Schema{
-		Description: "volume",
+func (r *fileStorageVolumeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = VolumeResourceSchema()
+}
+func VolumeResourceSchema() schema.Schema {
+	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"tags": tag.ResourceSchema(),
+			"account_id": schema.StringAttribute{
+				Computed: true,
+				Description: "Account ID \n" +
+					"  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
+			},
+			"cifs_password": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+				Description: "Cifs Password \n" +
+					"  - example : 'cifspwd0!!' \n" +
+					"  - maxLength: 20  \n" +
+					"  - minLength: 6  \n" +
+					"  - pattern: '^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$' \n",
+			},
+			"created_at": schema.StringAttribute{
+				Computed: true,
+				Description: "Created At \n" +
+					"  - example : '2024-07-30T04:54:33.219373' \n",
+			},
+			"encryption_enabled": schema.BoolAttribute{
+				Computed: true,
+				Description: "Volume Encryption Enabled \n" +
+					"  - example : 'true'",
+			},
+			"endpoint_path": schema.StringAttribute{
+				Computed: true,
+				Description: "Volume Endpoint Path \n" +
+					"  - example : 'xxx.xx.xxx.xxx'",
+			},
+			"file_unit_recovery_enabled": schema.BoolAttribute{
+				Computed: true,
+				Optional: true,
+				Description: "File Unit Recovery Enabled \n" +
+					"  - example : 'true' \n",
+			},
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
 				Computed:    true,
-				PlanModifiers: []planmodifier.String{
+				Description: "Identifier of the resource.",
+				// planmodifier 별도 추가
+				PlanModifiers: []planmodifier.String{ //  PlanModifiers 추가
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "Account ID \n" +
-					"  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
-				Computed: true,
-			},
-			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created At \n" +
-					"  - example : '2024-07-30T04:54:33.219373' \n",
-				Computed: true,
-			},
-			common.ToSnakeCase("Name"): schema.StringAttribute{
+			"name": schema.StringAttribute{
+				Required: true,
 				Description: "Volume Name \n" +
 					"  - example : 'my_volume' \n" +
 					"  - maxLength: 21  \n" +
 					"  - minLength: 3  \n" +
 					"  - pattern: '^[a-z]([a-z0-9_]){2,20}$' \n",
-				Required: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]([a-z0-9_]){2,20}$"), "Enter 3~21 char.(lower case, numbers, _) starting with lower case."),
+				},
 			},
 			common.ToSnakeCase("NameUuid"): schema.StringAttribute{
 				Description: "Volume Name Uuid \n" +
 					"  - example : 'my_volume_2m060u' \n",
 				Computed: true,
 			},
-			common.ToSnakeCase("Protocol"): schema.StringAttribute{
+			"path": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+				Description: "Volume Mount Path \n" +
+					"  - example : 'xxx.xx.xxx.xxx'",
+			},
+			"protocol": schema.StringAttribute{
+				Required: true,
 				Description: "Protocol \n" +
 					"  - example : 'NFS' \n" +
 					"  - pattern: '^(NFS|CIFS)$' \n",
-				Required: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile("^(NFS|CIFS)$"), "Protocol must be one of (NFS, CIFS)."),
+				},
 			},
-			common.ToSnakeCase("Purpose"): schema.StringAttribute{
+			"purpose": schema.StringAttribute{
+				Computed: true,
 				Description: "Volume Purpose \n" +
 					"  - example : 'none' \n",
-				Computed: true,
 			},
-			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "Volume State \n" +
-					"  - example : 'available' \n",
-				Computed: true,
+			"state": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Volume State",
+				MarkdownDescription: "Volume State",
 			},
-			common.ToSnakeCase("TypeId"): schema.StringAttribute{
+			"type_id": schema.StringAttribute{
+				Computed: true,
 				Description: "Volume Type ID \n" +
 					"  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
-				Computed: true,
 			},
-			common.ToSnakeCase("TypeName"): schema.StringAttribute{
+			"type_name": schema.StringAttribute{
+				Required: true,
 				Description: "Volume Type Name \n" +
 					"  - example : 'HDD' \n" +
-					"  - pattern: '^(HDD|SSD|HighPerformanceSSD)$' \n",
-				Required: true,
+					"  - pattern: '^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$' \n",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile("^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$"), "Volume type name must be one of (HDD, SSD, HighPerformanceSSD)."),
+				},
 			},
-			common.ToSnakeCase("FileUnitRecoveryEnabled"): schema.BoolAttribute{
-				Description: "File Unit Recovery Enabled \n" +
-					"  - example : 'true' \n",
-				Optional: true,
+			// 별도로 Optional: true 추가
+			"usage": schema.Int32Attribute{
 				Computed: true,
+				Optional: true,
 			},
-			common.ToSnakeCase("CifsPassword"): schema.StringAttribute{
-				Description: "Cifs Password \n" +
-					"  - example : 'cifspwd0!!' \n" +
-					"  - maxLength: 20  \n" +
-					"  - minLength: 6  \n" +
-					"  - pattern: '^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$' \n",
-				Optional:  true,
-				WriteOnly: true,
-			},
+			// custom으로 추가
+			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("AccessRules"): schema.SetNestedAttribute{
 				Description: "List of AccessRule",
 				Optional:    true,
@@ -460,15 +497,19 @@ func (r *fileStorageVolumeResource) MapGetResponseToState(ctx context.Context, r
 	return filestorage.VolumeResource{
 		AccountId:               types.StringValue(resp.AccountId),
 		CreatedAt:               types.StringValue(resp.CreatedAt.Format(time.RFC3339)),
+		EncryptionEnabled:       types.BoolValue(resp.EncryptionEnabled),
+		EndpointPath:            types.StringValue(*resp.EndpointPath.Get()),
+		FileUnitRecoveryEnabled: types.BoolValue(resp.GetFileUnitRecoveryEnabled()),
 		Id:                      types.StringValue(resp.Id),
 		Name:                    types.StringValue(state.Name.ValueString()),
 		NameUuid:                types.StringValue(resp.Name),
+		Path:                    types.StringValue(*resp.Path.Get()),
 		Protocol:                types.StringValue(resp.Protocol),
 		Purpose:                 types.StringValue(resp.Purpose),
 		State:                   types.StringValue(resp.State),
 		TypeId:                  types.StringValue(resp.TypeId),
 		TypeName:                types.StringValue(resp.TypeName),
-		FileUnitRecoveryEnabled: types.BoolValue(resp.GetFileUnitRecoveryEnabled()),
+		Usage:                   types.Int32Value(*resp.Usage.Get()),
 		Tags:                    tagsMap,
 		AccessRules:             accessRules,
 	}, nil

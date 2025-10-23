@@ -3,13 +3,13 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/virtualserver"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/virtualserver/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/virtualserver"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/virtualserver/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -997,8 +997,10 @@ func (r *virtualServerServerResource) handlerUpdateTag(ctx context.Context, req 
 	req.Plan.Get(ctx, &plan)
 	req.State.Get(ctx, &state)
 
+	serviceName, resourceType := r.resolveServerServiceInfoFromModel(state)
+
 	// Server
-	_, err := tag.UpdateTags(r.clients, "virtualserver", "virtual-server", plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, serviceName, resourceType, plan.Id.ValueString(), plan.Tags.Elements())
 	if err != nil {
 		return err
 	}
@@ -1006,20 +1008,20 @@ func (r *virtualServerServerResource) handlerUpdateTag(ctx context.Context, req 
 	var networkMap map[string]virtualserver.ServerResourceNetwork
 	state.Networks.ElementsAs(ctx, &networkMap, false)
 	for _, network := range networkMap {
-		_, err := tag.UpdateTags(r.clients, "vpc", "port", network.PortId.ValueString(), plan.Tags.Elements())
+		_, err := tag.UpdateTags(r.clients, ServiceNameVpc, ResourceTypePort, network.PortId.ValueString(), plan.Tags.Elements())
 		if err != nil {
 			return err
 		}
 	}
 	// Volume
-	_, err = tag.UpdateTags(r.clients, "virtualserver", "volume", state.BootVolume.Id.ValueString(), plan.Tags.Elements())
+	_, err = tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, state.BootVolume.Id.ValueString(), plan.Tags.Elements())
 	if err != nil {
 		return err
 	}
 	var extraVolumeMap map[string]virtualserver.ServerResourceVolume
 	state.ExtraVolumes.ElementsAs(ctx, &networkMap, false)
 	for _, volume := range extraVolumeMap {
-		_, err := tag.UpdateTags(r.clients, "virtualserver", "volume", volume.Id.ValueString(), plan.Tags.Elements())
+		_, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, volume.Id.ValueString(), plan.Tags.Elements())
 		if err != nil {
 			return err
 		}
@@ -1105,6 +1107,22 @@ func (r *virtualServerServerResource) AsyncPollingServerDeleted(ctx context.Cont
 	return fmt.Errorf("max attempts reached (%d)", maxAttempts)
 }
 
+func (r *virtualServerServerResource) resolveServerServiceInfoFromResponse(response *scpvirtualserver.ServerShowResponse) (serviceName, resourceType string) {
+	if response.ProductOffering.Get().Ptr() != nil &&
+		(*response.ProductOffering.Get().Ptr() == ProductOfferingGpuServer || *response.ProductOffering.Get().Ptr() == ProductOfferingK8sGpuServer) {
+		return ServiceNameGpuServer, ResourceTypeGpuServer
+	}
+	return ServiceNameVirtualServer, ResourceTypeVirtualServer
+}
+
+func (r *virtualServerServerResource) resolveServerServiceInfoFromModel(model virtualserver.ServerResource) (serviceName, resourceType string) {
+	if !model.ProductOffering.IsNull() &&
+		(model.ProductOffering.ValueString() == ProductOfferingGpuServer || model.ProductOffering.ValueString() == ProductOfferingK8sGpuServer) {
+		return ServiceNameGpuServer, ResourceTypeGpuServer
+	}
+	return ServiceNameVirtualServer, ResourceTypeVirtualServer
+}
+
 func (r *virtualServerServerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan virtualserver.ServerResource
 	diags := req.Plan.Get(ctx, &plan)
@@ -1161,7 +1179,8 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		}
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "virtual-server", data.Servers[0].Id)
+	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(getData)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, data.Servers[0].Id)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -1171,7 +1190,7 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 	}
 
 	if len(plan.Tags.Elements()) > 0 {
-		getTags, err := r.AsyncPollingTags(ctx, getData.Id, "virtualserver", "virtual-server",
+		getTags, err := r.AsyncPollingTags(ctx, getData.Id, serviceName, resourceType,
 			100, 3*time.Second)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -1218,7 +1237,8 @@ func (r *virtualServerServerResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "virtual-server", state.Id.ValueString())
+	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(data)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -1347,7 +1367,8 @@ func (r *virtualServerServerResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "virtual-server", state.Id.ValueString())
+	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(data)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",

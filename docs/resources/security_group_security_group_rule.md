@@ -33,49 +33,49 @@ output "security_group_rule" {
 
 
 variable "security_group_id" {
-  type = string
-  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "ethertype" {
-  type = string
-  default = "IPv4"
+  type    = string
+  default = ""
 }
 
 variable "protocol" {
-  type = string
-  default = "TCP"
+  type    = string
+  default = ""
 }
 
 variable "port_range_min" {
-  type = number
-  default = 22
+  type    = number
+  default = 0
 }
 
 variable "port_range_max" {
-  type = number
-  default = 23
+  type    = number
+  default = 0
 }
 
 variable "remote_ip_prefix" {
-  type = string
-  default = "1.1.1.1/30"
+  type    = string
+  default = ""
 }
 
 variable "remote_group_id" {
-  type = string
+  type    = string
   default = ""
 }
 
 
 variable "description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 
 variable "direction" {
-  type = string
-  default = "egress"
+  type    = string
+  default = ""
 }
 ```
 
@@ -85,18 +85,26 @@ variable "direction" {
 ### Required
 
 - `direction` (String) Direction 
-  - example : ['ingress', 'egress']
-- `ethertype` (String) ethertype
-- `security_group_id` (String) SecurityGroupId
+  - example : ingress
+- `ethertype` (String) ethertype 
+  - example : IPV4
+- `security_group_id` (String) SecurityGroupId 
+  - example : cff990e6d5ed43d3ab239e4aba0b4c3e
 
 ### Optional
 
-- `description` (String) Description
-- `port_range_max` (Number) portRangeMax
-- `port_range_min` (Number) portRangeMin
-- `protocol` (String) protocol
-- `remote_group_id` (String) RemoteGroupId
-- `remote_ip_prefix` (String) RemoteIpPrefix
+- `description` (String) Description 
+  - example : securityGroupRuleDescription
+- `port_range_max` (Number) portRangeMax 
+  - example : 22
+- `port_range_min` (Number) portRangeMin 
+  - example : 22
+- `protocol` (String) protocol 
+  - example : TCP
+- `remote_group_id` (String) RemoteGroupId 
+  - example : 8a8048af06b048329867e57284347066
+- `remote_ip_prefix` (String) RemoteIpPrefix 
+  - example : 1.1.1.1/32
 
 ### Read-Only
 

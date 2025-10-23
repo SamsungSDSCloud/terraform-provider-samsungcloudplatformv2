@@ -3,15 +3,15 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -95,22 +95,6 @@ func (d *loadbalancerLbListenerDataSources) Schema(_ context.Context, _ datasour
 							Description: "ServicePort",
 							Optional:    true,
 						},
-						common.ToSnakeCase("ServerGroups"): schema.ListNestedAttribute{
-							Description: "ServerGroups",
-							Optional:    true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-										Description: "ServerGroupId",
-										Computed:    true,
-									},
-									common.ToSnakeCase("ServerGroupName"): schema.StringAttribute{
-										Description: "ServerGroupName",
-										Computed:    true,
-									},
-								},
-							},
-						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 							Description: "created at",
 							Computed:    true,
@@ -175,43 +159,16 @@ func (d *loadbalancerLbListenerDataSources) Read(ctx context.Context, req dataso
 	}
 
 	for _, lblistener := range data.Listeners {
-		var serverGroups []loadbalancer.LbListenerServerGroup
-		for _, serverGroup := range lblistener.ServerGroups {
-			serverGroupMap, ok := serverGroup.(map[string]interface{})
-			if !ok {
-				tflog.Error(ctx, "serverGroup is not a map")
-				continue
-			}
-
-			serverGroupID, ok := serverGroupMap["server_group_id"].(string)
-			if !ok {
-				tflog.Error(ctx, "serverGroupID is not a string")
-				continue
-			}
-
-			serverGroupName, ok := serverGroupMap["server_group_name"].(string)
-			if !ok {
-				tflog.Error(ctx, "serverGroupName is not a string")
-				continue
-			}
-
-			serverGroups = append(serverGroups, loadbalancer.LbListenerServerGroup{
-				ServerGroupId:   types.StringValue(serverGroupID),
-				ServerGroupName: types.StringValue(serverGroupName),
-			})
-		}
-
 		lblistenerState := loadbalancer.LbListener{
-			Id:           types.StringValue(lblistener.Id),
-			Name:         types.StringValue(lblistener.Name),
-			Protocol:     types.StringValue(lblistener.Protocol),
-			State:        types.StringValue(*lblistener.State.Get()),
-			ServicePort:  types.Int32Value(lblistener.ServicePort),
-			ServerGroups: serverGroups,
-			CreatedAt:    types.StringValue(lblistener.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:    types.StringValue(lblistener.CreatedBy),
-			ModifiedAt:   types.StringValue(lblistener.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:   types.StringValue(lblistener.ModifiedBy),
+			Id:          types.StringValue(lblistener.Id),
+			Name:        types.StringValue(lblistener.Name),
+			Protocol:    types.StringValue(lblistener.Protocol),
+			State:       types.StringValue(*lblistener.State.Get()),
+			ServicePort: types.Int32Value(lblistener.ServicePort),
+			CreatedAt:   types.StringValue(lblistener.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:   types.StringValue(lblistener.CreatedBy),
+			ModifiedAt:  types.StringValue(lblistener.ModifiedAt.Format(time.RFC3339)),
+			ModifiedBy:  types.StringValue(lblistener.ModifiedBy),
 		}
 
 		state.LbListeners = append(state.LbListeners, lblistenerState)

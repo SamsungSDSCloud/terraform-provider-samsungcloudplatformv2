@@ -25,12 +25,12 @@ output "lbMember" {
 }
 
 variable "id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "lb_server_group_id" {
-  type = string
+  type    = string
   default = ""
 }
 ```

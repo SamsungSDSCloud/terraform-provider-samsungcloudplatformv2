@@ -3,12 +3,12 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/virtualserver/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/virtualserver/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -180,7 +180,7 @@ func (r *virtualServerVolumeResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "volume", data.Id)
+	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, data.Id)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -218,7 +218,7 @@ func (r *virtualServerVolumeResource) Read(ctx context.Context, req resource.Rea
 		)
 		return
 	}
-	tagsMap, err := tag.GetTags(r.clients, "virtualserver", "volume", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -312,7 +312,7 @@ func (r *virtualServerVolumeResource) Update(ctx context.Context, req resource.U
 	}
 
 	tagElements := plan.Tags.Elements()
-	tagsMap, err := tag.UpdateTags(r.clients, "virtualserver", "volume", plan.Id.ValueString(), tagElements)
+	tagsMap, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, plan.Id.ValueString(), tagElements)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",

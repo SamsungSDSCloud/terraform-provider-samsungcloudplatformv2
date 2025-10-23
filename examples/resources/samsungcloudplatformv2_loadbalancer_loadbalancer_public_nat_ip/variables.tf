@@ -1,13 +1,15 @@
-variable "loadbalancer_id"{
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+variable "loadbalancer_id" {
+  type    = string
+  default = ""
 }
 variable "static_nat" {
   type = object({
-    publicip_id= string
+    publicip_id = string
   })
   default = {
-    publicip_id= "8a463aa4b1dc4f279c3f53b94dc45e74"
-    }
+    publicip_id = ""
+  }
 }
+
+
 

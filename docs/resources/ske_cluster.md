@@ -25,6 +25,7 @@ resource "samsungcloudplatformv2_ske_cluster" "cluster" {
   volume_id = var.cluster_volume_id
   private_endpoint_access_control_resources = var.private_endpoint_access_control_resources
   public_endpoint_access_control_ip = var.public_endpoint_access_control_ip
+  service_watch_logging_enabled = var.service_watch_logging_enabled
 }
 
 
@@ -34,58 +35,61 @@ output "cluster_output" {
 
 
 variable "cluster_cloud_logging_enabled" {
-  type = bool
-  default = true
+  type    = bool
+  default = false
 }
 
 variable "cluster_kubernetes_version" {
-  type = string
-  default = "v1.31.8"
+  type    = string
+  default = ""
 }
 
 variable "cluster_name" {
-  type = string
-  default = "cluster-name"
+  type    = string
+  default = ""
 }
 
 variable "cluster_security_group_id_list" {
-  type = list(string)
-  default = ["8a463aa4-b1dc-4f27-9c3f-53b94dc45e74","8a463aa4-b1dc-4f27-9c3f-53b94dc45e75"]
+  type    = list(string)
+  default = [""]
 }
 
 variable "cluster_subnet_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "cluster_vpc_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "cluster_volume_id" {
-  type = string
-  default = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "private_endpoint_access_control_resources" {
   type = list(object({
-    id = string
+    id   = string
     name = string
     type = string
   }))
-  default = [
-    {
-      id = "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
-      name = "name"
-      type = "vm"
-    }
-  ]
+  default = [{
+    id   = ""
+    name = ""
+    type = ""
+  }]
 }
 
 variable "public_endpoint_access_control_ip" {
-  type = string
-  default = "10.10.10.10"
+  type    = string
+  default = ""
+}
+
+variable "service_watch_logging_enabled" {
+  type    = bool
+  default = false
 }
 ```
 
@@ -97,6 +101,8 @@ variable "public_endpoint_access_control_ip" {
 - `cloud_logging_enabled` (Boolean) CloudLoggingEnabled
 - `kubernetes_version` (String) KubernetesVersion
 - `name` (String) Name
+- `security_group_id_list` (List of String) SecurityGroupIdList
+- `service_watch_logging_enabled` (Boolean) ServiceWatchLoggingEnabled
 - `subnet_id` (String) SubnetId
 - `volume_id` (String) VolumeId
 - `vpc_id` (String) VpcID
@@ -106,10 +112,9 @@ variable "public_endpoint_access_control_ip" {
 - `private_endpoint_access_control_resources` (Attributes List) PrivateEndpointAccessControlResources (see [below for nested schema](#nestedatt--private_endpoint_access_control_resources))
 - `public_endpoint_access_control_ip` (String) PublicEndpointAccessControlIp
 - `region` (String) Region
-- `security_group_id_list` (List of String) SecurityGroupIdList
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
- - Keys must be a maximum of 128 characters.
- - Values must be a maximum of 256 characters.
+  - Keys must be a maximum of 128 characters.
+  - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
@@ -152,6 +157,7 @@ Read-Only:
 - `public_endpoint_url` (String) PublicEndpointUrl
 - `public_kubeconfig_download_yn` (String) PublicKubeconfigDownloadYn
 - `security_group_list` (Attributes List) SecurityGroupList (see [below for nested schema](#nestedatt--cluster--security_group_list))
+- `service_watch_logging_enabled` (Boolean) ServiceWatchLoggingEnabled
 - `status` (String) Status
 - `subnet` (Attributes) Subnet (see [below for nested schema](#nestedatt--cluster--subnet))
 - `volume` (Attributes) Volume (see [below for nested schema](#nestedatt--cluster--volume))

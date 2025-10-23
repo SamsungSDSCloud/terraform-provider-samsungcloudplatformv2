@@ -18,4 +18,6 @@ resource "samsungcloudplatformv2_ske_nodepool" "nodepool" {
   volume_size = var.volume_size
   labels = var.labels
   taints = var.taints
+  server_group_id = var.server_group_id
+  advanced_settings = var.advanced_settings
 }

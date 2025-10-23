@@ -190,10 +190,9 @@ type PublicDomainNameCreate struct {
 }
 
 type HostedZoneDataSource struct { // Resource Group List request 모델을 참고하여 구조체를 구성한다.
-	Limit       types.Int32  `tfsdk:"limit"`
-	Marker      types.String `tfsdk:"marker"`
-	SortDir     types.String `tfsdk:"sort_dir"`
-	SortKey     types.String `tfsdk:"sort_key"`
+	Page        types.Int32  `tfsdk:"page"`
+	Size        types.Int32  `tfsdk:"size"`
+	Sort        types.String `tfsdk:"sort"`
 	Name        types.String `tfsdk:"name"`
 	ExactName   types.String `tfsdk:"exact_name"`
 	Type        types.String `tfsdk:"type"`

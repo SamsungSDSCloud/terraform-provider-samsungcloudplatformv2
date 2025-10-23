@@ -2,8 +2,8 @@ package dns
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/dns/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/dns/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -230,20 +230,17 @@ func (client *Client) UpdatePublicDomainNameInfomation(ctx context.Context, publ
 	return resp, err
 }
 
-func (client *Client) GetHostedZoneList(ctx context.Context, request HostedZoneDataSource) (*dns.HostedZoneListResponse, error) {
+func (client *Client) GetHostedZoneList(ctx context.Context, request HostedZoneDataSource) (*dns.HostedZoneListResponseV1Dot1, error) {
 	req := client.sdkClient.DnsV1HostedZonesApiAPI.ListHostedZone(ctx)
 
-	if !request.Limit.IsNull() {
-		req = req.Limit(request.Limit.ValueInt32())
+	if !request.Page.IsNull() {
+		req = req.Page(request.Page.ValueInt32())
 	}
-	if !request.Marker.IsNull() {
-		req = req.Marker(request.Marker.ValueString())
+	if !request.Size.IsNull() {
+		req = req.Size(request.Size.ValueInt32())
 	}
-	if !request.SortDir.IsNull() {
-		req = req.SortDir(request.SortDir.ValueString())
-	}
-	if !request.SortKey.IsNull() {
-		req = req.SortKey(request.SortKey.ValueString())
+	if !request.Sort.IsNull() {
+		req = req.Sort(request.Sort.ValueString())
 	}
 	if !request.Name.IsNull() {
 		req = req.Name(request.Name.ValueString())

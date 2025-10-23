@@ -38,18 +38,18 @@ output "cluster_output" {
 }
 
 variable "allowable_ip_addresses" {
-  type = list(string)
-  default = ["192.168.10.1/32"]
+  type    = list(string)
+  default = [""]
 }
 
 variable "dbaas_engine_version_id" {
   type    = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  default = ""
 }
 
 variable "is_combined" {
   type    = bool
-  default = true
+  default = false
 }
 
 variable "nat_enabled" {
@@ -68,13 +68,13 @@ variable "init_config_option" {
     })
   })
   default = {
-    database_port          = 9201
-    database_user_name     = "username"
-    database_user_password = "password001!"
     backup_option = {
-      retention_period_day = "7"
-      starting_time_hour   = "12"
+      retention_period_day = ""
+      starting_time_hour   = ""
     }
+    database_port          = 0
+    database_user_name     = ""
+    database_user_password = ""
   }
 }
 
@@ -91,68 +91,42 @@ variable "instance_groups" {
       role_type = string
     }))
   }))
-  default = [
-    {
-      role_type        = "MASTER_DATA"
-      server_type_name = "ses1v2m4"
-      block_storage_groups = [
-        {
-          "role_type" : "OS",
-          "volume_type" : "SSD",
-          "size_gb" : 104
-        },
-        {
-          "role_type" : "DATA",
-          "volume_type" : "SSD",
-          "size_gb" : 16
-        }
-      ]
-      instances = [
-        {
-          "role_type" : "MASTER_DATA",
-        }
-      ]
-    },
-    {
-      role_type        = "KIBANA"
-      server_type_name = "ses1v2m4"
-      block_storage_groups = [
-        {
-          "role_type" : "OS",
-          "volume_type" : "SSD",
-          "size_gb" : 104
-        }
-      ]
-      instances = [
-        {
-          "role_type" : "KIBANA",
-        }
-      ]
-    }
-  ]
+  default = [{
+    block_storage_groups = [{
+      role_type   = ""
+      size_gb     = 0
+      volume_type = ""
+    }]
+    instances = [{
+      role_type = ""
+    }]
+    role_type        = ""
+    server_type_name = ""
+  }]
 }
 
 
 variable "instance_name_prefix" {
   type    = string
-  default = "instname"
+  default = ""
 }
 
 variable "name" {
   type    = string
-  default = "name"
+  default = ""
 }
 
 variable "subnet_id" {
   type    = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  default = ""
 }
 
 variable "timezone" {
   type    = string
-  default = "Asia/Seoul"
+  default = ""
 }
 
+// OPTION
 variable "maintenance_option" {
   type = object({
     period_hour            = string
@@ -161,28 +135,26 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = "0.5"
-    starting_day_of_week   = "MON"
-    starting_time          = "0000"
-    use_maintenance_option = true
+    period_hour            = ""
+    starting_day_of_week   = ""
+    starting_time          = ""
+    use_maintenance_option = false
   }
 }
 
 variable "service_state" {
   type    = string
-  default = "RUNNING"
+  default = ""
 }
 
 variable "tags" {
-  type = map(string)
-  default = {
-    "key" : "value"
-  }
+  type    = map(string)
+  default = null
 }
 
 variable "license" {
   type    = string
-  default = "{\n   \"license\":{\n      \"uid\":\"8a463aa4-b1dc-4f27-9c3f-53b94dc45e74\",\n      \"type\":\"trial\",\n      \"issue_date_in_millis\":1745193600000,\n      \"expiry_date_in_millis\":1752969599999,\n      \"max_nodes\":3,\n      \"issued_to\":\"Samsung SDS Co., Ltd.\",\n      \"issuer\":\"API\",\n      \"signature\":\"signature data\",\n      \"start_date_in_millis\":1745193600000\n   }\n}"
+  default = ""
 }
 ```
 

@@ -33,13 +33,13 @@ output "ids" {
 }
 
 variable "security_group_id" {
-  type = string
-  default =  "8a463aa4-b1dc-4f27-9c3f-53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "size" {
   type    = number
-  default = 10
+  default = 0
 }
 
 variable "page" {
@@ -83,20 +83,30 @@ variable "service" {
 
 ### Required
 
-- `security_group_id` (String) SecurityGroupId
+- `security_group_id` (String) SecurityGroupId 
+  - example : 75a49bb9896a40a49c53e0d8b5a57c06
 
 ### Optional
 
-- `description` (String) Description
-- `direction` (String) Direction
-- `id` (String) Id
-- `page` (Number) Page
-- `remote_group_id` (String) RemoteGroupId
-- `remote_ip_prefix` (String) RemoteIpPrefix
-- `service` (String) Service
-- `size` (Number) Size
-- `sort` (String) Sort
+- `description` (String) Description 
+  - example : securityGroupRuleDescription
+- `direction` (String) Direction 
+  - example : ingress
+- `id` (String) Id 
+  - example : e09b390420d247e3b6699b2de1b44316
+- `page` (Number) Page 
+  - example : 0
+- `remote_group_id` (String) RemoteGroupId 
+  - example : 54aa099f05224ddca958b08945dfb26a
+- `remote_ip_prefix` (String) RemoteIpPrefix 
+  - example : 10.10.10.10/32
+- `service` (String) Service 
+  - example : TCP 80
+- `size` (Number) Size 
+  - example : 20
+- `sort` (String) Sort 
+  - example : created_at:desc
 
 ### Read-Only
 
-- `ids` (List of String) Security group Id List
+- `ids` (List of String) Security group rule Id List

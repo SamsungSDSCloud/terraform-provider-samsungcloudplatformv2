@@ -3,11 +3,11 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/ske/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -130,6 +130,47 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 			common.ToSnakeCase("VolumeSize"): schema.Int32Attribute{
 				Description: "VolumeSize",
 				Required:    true,
+			},
+			//v1.1
+			common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
+				Description: "ServerGroupId",
+				Required:    false,
+				Optional:    true,
+			},
+			common.ToSnakeCase("AdvancedSettings"): schema.SingleNestedAttribute{
+				Description: "AdvancedSettings",
+				Required:    false,
+				Optional:    true,
+				Attributes: map[string]schema.Attribute{
+					common.ToSnakeCase("AllowedUnsafeSysctls"): schema.StringAttribute{
+						Description: "AllowedUnsafeSysctls",
+						Required:    true,
+					},
+					common.ToSnakeCase("ContainerLogMaxFiles"): schema.Int32Attribute{
+						Description: "ContainerLogMaxFiles",
+						Required:    true,
+					},
+					common.ToSnakeCase("ContainerLogMaxSize"): schema.Int32Attribute{
+						Description: "ContainerLogMaxSize",
+						Required:    true,
+					},
+					common.ToSnakeCase("ImageGcHighThreshold"): schema.Int32Attribute{
+						Description: "ImageGcHighThreshold",
+						Required:    true,
+					},
+					common.ToSnakeCase("ImageGcLowThreshold"): schema.Int32Attribute{
+						Description: "ImageGcLowThreshold",
+						Required:    true,
+					},
+					common.ToSnakeCase("MaxPods"): schema.Int32Attribute{
+						Description: "MaxPods",
+						Required:    true,
+					},
+					common.ToSnakeCase("PodMaxPids"): schema.Int32Attribute{
+						Description: "PodMaxPids",
+						Required:    true,
+					},
+				},
 			},
 			common.ToSnakeCase("NodepoolDetail"): schema.SingleNestedAttribute{
 				Description: "NodepoolDetail",
@@ -283,6 +324,49 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 						Description: "ModifiedBy",
 						Computed:    true,
 					},
+					//v1.1
+					common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
+						Description: "ServerGroupId",
+						Computed:    true,
+						Required:    false,
+						Optional:    true,
+					},
+					common.ToSnakeCase("AdvancedSettings"): schema.SingleNestedAttribute{
+						Description: "AdvancedSettings",
+						Computed:    true,
+						Required:    false,
+						Optional:    true,
+						Attributes: map[string]schema.Attribute{
+							common.ToSnakeCase("AllowedUnsafeSysctls"): schema.StringAttribute{
+								Description: "AllowedUnsafeSysctls",
+								Computed:    true,
+							},
+							common.ToSnakeCase("ContainerLogMaxFiles"): schema.Int32Attribute{
+								Description: "ContainerLogMaxFiles",
+								Computed:    true,
+							},
+							common.ToSnakeCase("ContainerLogMaxSize"): schema.Int32Attribute{
+								Description: "ContainerLogMaxSize",
+								Computed:    true,
+							},
+							common.ToSnakeCase("ImageGcHighThreshold"): schema.Int32Attribute{
+								Description: "ImageGcHighThreshold",
+								Computed:    true,
+							},
+							common.ToSnakeCase("ImageGcLowThreshold"): schema.Int32Attribute{
+								Description: "ImageGcLowThreshold",
+								Computed:    true,
+							},
+							common.ToSnakeCase("MaxPods"): schema.Int32Attribute{
+								Description: "MaxPods",
+								Computed:    true,
+							},
+							common.ToSnakeCase("PodMaxPids"): schema.Int32Attribute{
+								Description: "PodMaxPids",
+								Computed:    true,
+							},
+						},
+					},
 				},
 			},
 		},
@@ -326,20 +410,20 @@ func (r *skeNodepoolResource) Create(ctx context.Context, req resource.CreateReq
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating nodepool",
+			"Error Creating Nodepool",
 			"Could not create nodepool, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
 
-	plan.Id = types.StringValue(data.Nodepool.Id)
+	plan.Id = types.StringPointerValue(data.Nodepool.Id)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	if plan.IsAutoScale.ValueBool() {
-		plan.DesiredNodeCount = types.Int32Value(data.Nodepool.MinNodeCount)
+		plan.DesiredNodeCount = types.Int32PointerValue(data.Nodepool.MinNodeCount)
 	} else {
-		plan.MinNodeCount = types.Int32Value(data.Nodepool.DesiredNodeCount)
-		plan.MaxNodeCount = types.Int32Value(data.Nodepool.DesiredNodeCount)
+		plan.MinNodeCount = types.Int32PointerValue(data.Nodepool.DesiredNodeCount)
+		plan.MaxNodeCount = types.Int32PointerValue(data.Nodepool.DesiredNodeCount)
 	}
 
 	diags = resp.State.Set(ctx, plan)
@@ -348,10 +432,10 @@ func (r *skeNodepoolResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	err = waitForNodepoolStatus(ctx, r.client, data.Nodepool.Id, []string{"ScalingUp"}, []string{"Running"}, true)
+	err = waitForNodepoolStatus(ctx, r.client, *data.Nodepool.Id, []string{"ScalingUp"}, []string{"Running"}, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating nodepool",
+			"Error Creating Nodepool",
 			"Error waiting for nodepool to become running: "+err.Error(),
 		)
 		return
@@ -382,7 +466,7 @@ func (r *skeNodepoolResource) Read(ctx context.Context, req resource.ReadRequest
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Nodepool",
-			"Could not read Nodepool ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			"Could not read nodepool ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
@@ -424,7 +508,7 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 				if err != nil {
 					detail := client.GetDetailFromError(err)
 					resp.Diagnostics.AddError(
-						"Error upgrade nodepool",
+						"Error Upgrade Nodepool",
 						"Could not upgrade nodepool, unexpected error: "+err.Error()+"\nReason: "+detail,
 					)
 					return
@@ -433,21 +517,21 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 				err = waitForNodepoolStatus(ctx, r.client, plan.Id.ValueString(), []string{"Updating"}, []string{"Running"}, true)
 				if err != nil {
 					resp.Diagnostics.AddError(
-						"Error updating nodepool",
+						"Error Updating Nodepool",
 						"Error waiting for nodepool to become running: "+err.Error(),
 					)
 					return
 				}
 			} else {
 				resp.Diagnostics.AddError(
-					"Error updating nodepool version",
+					"Error Updating Nodepool Version",
 					"When nodepool version update, must not modify node count",
 				)
 				return
 			}
 		} else {
 			resp.Diagnostics.AddError(
-				"Error updating nodepool version",
+				"Error Updating Nodepool Version",
 				"When nodepool version update, must not modify auto recovery and auto scale",
 			)
 			return
@@ -459,7 +543,7 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 				detail := client.GetDetailFromError(err)
 				resp.Diagnostics.AddError(
 					"Error Updating Nodepool Labels",
-					"Could not update Nodepool Labels, unexpected error: "+err.Error()+"\nReason: "+detail,
+					"Could not update nodepool labels, unexpected error: "+err.Error()+"\nReason: "+detail,
 				)
 				return
 			}
@@ -471,7 +555,7 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 				detail := client.GetDetailFromError(err)
 				resp.Diagnostics.AddError(
 					"Error Updating Nodepool Taints",
-					"Could not update Nodepool Taints, unexpected error: "+err.Error()+"\nReason: "+detail,
+					"Could not update nodepool taints, unexpected error: "+err.Error()+"\nReason: "+detail,
 				)
 				return
 			}
@@ -484,7 +568,7 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 			if err != nil {
 				detail := client.GetDetailFromError(err)
 				resp.Diagnostics.AddError(
-					"Error Updating nodepool",
+					"Error Updating Nodepool",
 					"Could not update nodepool, unexpected error: "+err.Error()+"\nReason: "+detail,
 				)
 				return
@@ -493,7 +577,7 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 			err = waitForNodepoolStatus(ctx, r.client, plan.Id.ValueString(), []string{"ScalingUp", "ScalingDown"}, []string{"Running"}, true)
 			if err != nil {
 				resp.Diagnostics.AddError(
-					"Error updating nodepool",
+					"Error Updating Nodepool",
 					"Error waiting for nodepool to become running: "+err.Error(),
 				)
 			}
@@ -517,10 +601,10 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 	plan.NodepoolDetail = nodepoolObjectValue
 	if plan.IsAutoScale.ValueBool() {
-		plan.DesiredNodeCount = types.Int32Value(data.Nodepool.MinNodeCount)
+		plan.DesiredNodeCount = types.Int32PointerValue(data.Nodepool.MinNodeCount)
 	} else {
-		plan.MinNodeCount = types.Int32Value(data.Nodepool.DesiredNodeCount)
-		plan.MaxNodeCount = types.Int32Value(data.Nodepool.DesiredNodeCount)
+		plan.MinNodeCount = types.Int32PointerValue(data.Nodepool.DesiredNodeCount)
+		plan.MaxNodeCount = types.Int32PointerValue(data.Nodepool.DesiredNodeCount)
 	}
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -553,7 +637,7 @@ func (r *skeNodepoolResource) Delete(ctx context.Context, req resource.DeleteReq
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Deleting Nodepool",
-			"Could not delete Nodepool, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not delete nodepool, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
@@ -568,41 +652,41 @@ func (r *skeNodepoolResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 }
 
-func createNodepoolDetailModel(data *scpske.NodepoolShowResponse) ske.NodepoolDetail {
+func createNodepoolDetailModel(data *scpske.NodepoolShowResponseV1Dot1) ske.NodepoolDetail {
 	nodepoolElement := data.Nodepool
 	nodepoolModel := ske.NodepoolDetail{
-		Id:                  types.StringValue(nodepoolElement.Id),
-		Name:                types.StringValue(nodepoolElement.Name),
-		AccountId:           types.StringValue(nodepoolElement.AccountId),
-		AutoRecoveryEnabled: types.BoolValue(nodepoolElement.AutoRecoveryEnabled),
-		AutoScaleEnabled:    types.BoolValue(nodepoolElement.AutoScaleEnabled),
+		Id:                  types.StringPointerValue(nodepoolElement.Id),
+		Name:                types.StringPointerValue(nodepoolElement.Name),
+		AccountId:           types.StringPointerValue(nodepoolElement.AccountId),
+		AutoRecoveryEnabled: types.BoolPointerValue(nodepoolElement.AutoRecoveryEnabled),
+		AutoScaleEnabled:    types.BoolPointerValue(nodepoolElement.AutoScaleEnabled),
 		Cluster: ske.IdMapType{
-			Id: types.StringValue(nodepoolElement.Cluster.Id),
+			Id: types.StringPointerValue(nodepoolElement.Cluster.Id),
 		},
-		CurrentNodeCount: types.Int32Value(nodepoolElement.CurrentNodeCount),
-		DesiredNodeCount: types.Int32Value(nodepoolElement.DesiredNodeCount),
+		CurrentNodeCount: types.Int32PointerValue(nodepoolElement.CurrentNodeCount),
+		DesiredNodeCount: types.Int32PointerValue(nodepoolElement.DesiredNodeCount),
 		Image: ske.Image{
 			CustomImageName: types.StringPointerValue(nodepoolElement.Image.CustomImageName.Get()),
-			Os:              types.StringValue(nodepoolElement.Image.Os),
-			OsVersion:       types.StringValue(nodepoolElement.Image.OsVersion),
+			Os:              types.StringPointerValue(nodepoolElement.Image.Os),
+			OsVersion:       types.StringPointerValue(nodepoolElement.Image.OsVersion),
 		},
 		Keypair: ske.NameMapType{
-			Name: types.StringValue(nodepoolElement.Keypair.Name),
+			Name: types.StringPointerValue(nodepoolElement.Keypair.Name),
 		},
-		KubernetesVersion: types.StringValue(nodepoolElement.KubernetesVersion),
-		MaxNodeCount:      types.Int32Value(nodepoolElement.MaxNodeCount),
-		MinNodeCount:      types.Int32Value(nodepoolElement.MinNodeCount),
+		KubernetesVersion: types.StringPointerValue(nodepoolElement.KubernetesVersion),
+		MaxNodeCount:      types.Int32PointerValue(nodepoolElement.MaxNodeCount),
+		MinNodeCount:      types.Int32PointerValue(nodepoolElement.MinNodeCount),
 		ServerType: ske.ServerType{
-			Description: types.StringValue(nodepoolElement.ServerType.Description),
-			Id:          types.StringValue(nodepoolElement.ServerType.Id),
+			Description: types.StringPointerValue(nodepoolElement.ServerType.Description),
+			Id:          types.StringPointerValue(nodepoolElement.ServerType.Id),
 		},
-		Status: types.StringValue(nodepoolElement.Status),
+		Status: types.StringPointerValue(nodepoolElement.Status),
 		VolumeType: ske.VolumeType{
-			Encrypt: types.BoolValue(nodepoolElement.VolumeType.Encrypt),
-			Id:      types.StringValue(nodepoolElement.VolumeType.Id),
-			Name:    types.StringValue(nodepoolElement.VolumeType.Name),
+			Encrypt: types.BoolPointerValue(nodepoolElement.VolumeType.Encrypt),
+			Id:      types.StringPointerValue(nodepoolElement.VolumeType.Id),
+			Name:    types.StringPointerValue(nodepoolElement.VolumeType.Name),
 		},
-		VolumeSize: types.Int32Value(nodepoolElement.VolumeSize),
+		VolumeSize: types.Int32PointerValue(nodepoolElement.VolumeSize),
 		CreatedAt:  types.StringValue(nodepoolElement.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:  types.StringValue(nodepoolElement.CreatedBy),
 		ModifiedAt: types.StringValue(nodepoolElement.ModifiedAt.Format(time.RFC3339)),
@@ -616,7 +700,7 @@ func waitForNodepoolStatus(ctx context.Context, skeClient *ske.Client, id string
 	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
 		info, httpStatus, err := skeClient.GetNodepool(ctx, id)
 		if httpStatus == 200 {
-			return info, info.Nodepool.Status, nil
+			return info, *info.Nodepool.Status, nil
 		} else if httpStatus == 404 {
 			if errorOnNotFound {
 				return nil, "", fmt.Errorf("cluster with id=%s not found", id)
@@ -633,7 +717,7 @@ func waitForNodepoolStatus(ctx context.Context, skeClient *ske.Client, id string
 			return nil, "", err
 		}
 
-		return info, info.Nodepool.Status, nil
+		return info, *info.Nodepool.Status, nil
 	})
 }
 

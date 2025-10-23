@@ -31,7 +31,7 @@ output "ids" {
 
 variable "size" {
   type    = number
-  default = 10
+  default = 0
 }
 
 variable "page" {
@@ -60,11 +60,16 @@ variable "name" {
 
 ### Optional
 
-- `id` (String) Id
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
+- `id` (String) Id 
+  - example : f09708a755e24fceb4e15f7f5c82b0c1
+- `name` (String) Name 
+  - example : sg_0911
+- `page` (Number) Page 
+  - example : 0
+- `size` (Number) Size 
+  - example : 20
+- `sort` (String) Sort 
+  - example : created_at:desc
 
 ### Read-Only
 

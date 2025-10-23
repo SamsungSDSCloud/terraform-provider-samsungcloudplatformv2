@@ -3,10 +3,10 @@ package loggingaudit
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loggingaudit" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loggingaudit" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -193,6 +193,14 @@ func (d *loggingauditTrailDataSource) Schema(_ context.Context, _ datasource.Sch
 							Description: "UserTotalYn",
 							Computed:    true,
 						},
+						common.ToSnakeCase("OrganizationTrailYn"): schema.StringAttribute{
+							Description: "OrganizationTrailYn",
+							Computed:    true,
+						},
+						common.ToSnakeCase("LogArchiveAccountId"): schema.StringAttribute{
+							Description: "LogArchiveAccountId",
+							Computed:    true,
+						},
 					},
 				},
 			},
@@ -275,6 +283,8 @@ func (d *loggingauditTrailDataSource) Read(ctx context.Context, req datasource.R
 			TrailName:              types.StringValue(trail.TrailName),
 			TrailSaveType:          types.StringValue(trail.TrailSaveType),
 			UserTotalYn:            types.StringPointerValue(trail.UserTotalYn.Get()),
+			OrganizationTrailYn:    types.StringPointerValue(trail.OrganizationTrailYn.Get()),
+			LogArchiveAccountId:    types.StringPointerValue(trail.LogArchiveAccountId.Get()),
 		}
 
 		state.Trails = append(state.Trails, trailState)

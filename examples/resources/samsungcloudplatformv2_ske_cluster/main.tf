@@ -11,4 +11,5 @@ resource "samsungcloudplatformv2_ske_cluster" "cluster" {
   volume_id = var.cluster_volume_id
   private_endpoint_access_control_resources = var.private_endpoint_access_control_resources
   public_endpoint_access_control_ip = var.public_endpoint_access_control_ip
+  service_watch_logging_enabled = var.service_watch_logging_enabled
 }

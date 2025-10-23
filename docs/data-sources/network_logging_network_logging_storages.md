@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_network_logging_network_logging_storages Data Source - samsungcloudplatformv2"
 subcategory: Network Logging Storage
 description: |-
-  List of network logging storage
+  List of network logging storages
 ---
 
 # samsungcloudplatformv2_network_logging_network_logging_storages (Data Source)
 
-List of network logging storage
+List of network logging storages
 
 ## Example Usage
 
@@ -16,6 +16,7 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_network_logging_network_logging_storages" "networkloggingstorages" {
+  limit = var.limit
   resource_type = var.resource_type
 }
 
@@ -24,9 +25,24 @@ output "networkLoggingStorages" {
   value = data.samsungcloudplatformv2_network_logging_network_logging_storages.networkloggingstorages
 }
 
+variable "limit" {
+  type    = number
+  default = 0
+}
+
+variable "marker" {
+  type    = string
+  default = ""
+}
+
+variable "sort" {
+  type    = string
+  default = ""
+}
+
 variable "resource_type" {
-  type = string
-  default =  "FIREWALL"
+  type    = string
+  default = ""
 }
 ```
 
@@ -53,7 +69,7 @@ variable "resource_type" {
 
 ### Read-Only
 
-- `network_logging_storages` (Attributes List) List of network logging storage (see [below for nested schema](#nestedatt--network_logging_storages))
+- `network_logging_storages` (Attributes List) A List of network logging storages (see [below for nested schema](#nestedatt--network_logging_storages))
 
 <a id="nestedatt--network_logging_storages"></a>
 ### Nested Schema for `network_logging_storages`

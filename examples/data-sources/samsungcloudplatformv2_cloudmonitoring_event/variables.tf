@@ -1,9 +1,10 @@
 variable "EventId" {
-  type = string
-  default = "202507180250462386612880"
+  type    = string
+  default = ""
 }
 
 variable "XResourceType" {
-  type = string
-  default = "VM"
+  type    = string
+  default = ""
 }
+

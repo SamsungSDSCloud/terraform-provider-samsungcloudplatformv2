@@ -26,7 +26,7 @@ output "access_keys" {
 
 variable "access_key_limit" {
   type    = number
-  default = 1
+  default = 0
 }
 ```
 
@@ -57,6 +57,7 @@ Read-Only:
 - `description` (String) Description
 - `expiration_timestamp` (String) ExpirationTimestamp
 - `id` (String) Id
+- `is_enabled` (Boolean) Is enabled
 - `modified_at` (String) ModifiedAt
 - `modified_by` (String) ModifiedBy
 - `parent_access_key_id` (String) ParentAccessKeyId

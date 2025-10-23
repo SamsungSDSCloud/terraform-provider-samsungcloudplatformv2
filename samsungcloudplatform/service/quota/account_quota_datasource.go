@@ -3,10 +3,10 @@ package quota
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/quota"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/quota"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -126,101 +126,106 @@ func AccountQuotaDataSourceSchema() schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"account_id": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Unique identifier for the account",
-						MarkdownDescription: "Unique identifier for the account",
+						Description:         "Unique identifier for the account\n  - example: 2b7ed60576ce404bbc734266ff1839a5",
+						MarkdownDescription: "Unique identifier for the account\n  - example: 2b7ed60576ce404bbc734266ff1839a5",
 					},
 					"account_name": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Name of the account",
-						MarkdownDescription: "Name of the account",
+						Description:         "Name of the account\n  - example: Example Account Inc.",
+						MarkdownDescription: "Name of the account\n  - example: Example Account Inc.",
 					},
 					"adjustable": schema.BoolAttribute{
 						Computed:            true,
-						Description:         "Flag indicating if additional quota is being requested",
-						MarkdownDescription: "Flag indicating if additional quota is being requested",
+						Description:         "Flag indicating if additional quota is being requested\n  - example: true",
+						MarkdownDescription: "Flag indicating if additional quota is being requested\n  - example: true",
 					},
 					"applied_value": schema.Int64Attribute{
 						Computed: true,
 					},
 					"approval": schema.BoolAttribute{
 						Computed:            true,
-						Description:         "Approval",
-						MarkdownDescription: "Approval",
+						Description:         "Approval\n  - example: false",
+						MarkdownDescription: "Approval\n  - example: false",
 					},
 					"class_value": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Value associated with the request class",
-						MarkdownDescription: "Value associated with the request class",
+						Description:         "Value associated with the request class\n  - example: global",
+						MarkdownDescription: "Value associated with the request class\n  - example: global",
 					},
 					"created_at": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Created At",
-						MarkdownDescription: "Created At",
+						Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
 					},
 					"description": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Detailed description of the quota item",
-						MarkdownDescription: "Detailed description of the quota item",
+						Description:         "Detailed description of the quota item\n  - example: Maximum disk size for virtual servers in the account",
+						MarkdownDescription: "Detailed description of the quota item\n  - example: Maximum disk size for virtual servers in the account",
 					},
 					"free_rate": schema.Int64Attribute{
 						Computed:            true,
-						Description:         "Free Rate",
-						MarkdownDescription: "Free Rate",
+						Description:         "Free Rate\n  - example: 10",
+						MarkdownDescription: "Free Rate\n  - example: 10",
 					},
 					"id": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Account Quota ID",
-						MarkdownDescription: "Account Quota ID",
+						Description:         "Account Quota ID\n  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+						MarkdownDescription: "Account Quota ID\n  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
 					},
 					"initial_value": schema.Int64Attribute{
 						Computed:            true,
-						Description:         "Initial quota value allocated",
-						MarkdownDescription: "Initial quota value allocated",
+						Description:         "Initial quota value allocated\n  - example: 100",
+						MarkdownDescription: "Initial quota value allocated\n  - example: 100",
+					},
+					"max_per_account": schema.Int64Attribute{
+						Computed:            true,
+						Description:         "Max per Account Value\n  - maximum: 9.99999999e+08\n  - minimum: 1\n  - example: 1000",
+						MarkdownDescription: "Max per Account Value\n  - maximum: 9.99999999e+08\n  - minimum: 1\n  - example: 1000",
 					},
 					"modified_at": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Modified At",
-						MarkdownDescription: "Modified At",
+						Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
 					},
 					"quota_item": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Specific quota item within the resource",
-						MarkdownDescription: "Specific quota item within the resource",
+						Description:         "Specific quota item within the resource\n  - example: QUOTA.REQUEST.COUNT",
+						MarkdownDescription: "Specific quota item within the resource\n  - example: QUOTA.REQUEST.COUNT",
 					},
 					"reduction": schema.BoolAttribute{
 						Computed:            true,
-						Description:         "Reduction",
-						MarkdownDescription: "Reduction",
+						Description:         "Reduction\n  - example: false",
+						MarkdownDescription: "Reduction\n  - example: false",
 					},
 					"request": schema.BoolAttribute{
 						Computed:            true,
-						Description:         "Reqeust ",
-						MarkdownDescription: "Reqeust ",
+						Description:         "Request \n  - example: false",
+						MarkdownDescription: "Request \n  - example: false",
 					},
 					"request_class": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Classification of the quota request (e.g., Account, Region)",
-						MarkdownDescription: "Classification of the quota request (e.g., Account, Region)",
+						Description:         "Request Class\n  - example: Account",
+						MarkdownDescription: "Request Class\n  - example: Account",
 					},
 					"resource_type": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Type of the resource (e.g., Virtual Server, Storage)",
-						MarkdownDescription: "Type of the resource (e.g., Virtual Server, Storage)",
+						Description:         "Type of the resource (e.g., Virtual Server, Storage)\n  - example: Virtual Server Disk",
+						MarkdownDescription: "Type of the resource (e.g., Virtual Server, Storage)\n  - example: Virtual Server Disk",
 					},
 					"service": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Name of the service to which quota applies",
-						MarkdownDescription: "Name of the service to which quota applies",
+						Description:         "Name of the service to which quota applies\n  - example: Virtual Server",
+						MarkdownDescription: "Name of the service to which quota applies\n  - example: Virtual Server",
 					},
 					"srn": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Service Resource Name for the quota item",
-						MarkdownDescription: "Service Resource Name for the quota item",
+						Description:         "Service Resource Name for the quota item\n  - example: srn:s::kr-west1:quota:account-quota/123456789",
+						MarkdownDescription: "Service Resource Name for the quota item\n  - example: srn:s::kr-west1:quota:account-quota/123456789",
 					},
 					"unit": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Unit in which the quota value is measured (e.g., EA, GB)",
-						MarkdownDescription: "Unit in which the quota value is measured (e.g., EA, GB)",
+						Description:         "Unit in which the quota value is measured\n  - example: GB",
+						MarkdownDescription: "Unit in which the quota value is measured\n  - example: GB",
 					},
 				},
 				Computed: true,

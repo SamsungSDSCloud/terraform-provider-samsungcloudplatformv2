@@ -10,10 +10,6 @@ const ServiceType = "scp-security-group"
 // List Request
 type SecurityGroupDataSource struct {
 	Id            types.String `tfsdk:"id"`
-	Size          types.Int32  `tfsdk:"size"`
-	Page          types.Int32  `tfsdk:"page"`
-	Sort          types.String `tfsdk:"sort"`
-	Name          types.String `tfsdk:"name"`
 	SecurityGroup types.Object `tfsdk:"security_group"`
 }
 
@@ -68,16 +64,7 @@ func (m SecurityGroup) AttributeTypes() map[string]attr.Type {
 //------------------- Security Group Rule -------------------//
 
 type SecurityGroupRuleDataSource struct {
-	Size              types.Int32  `tfsdk:"size"`
-	Page              types.Int32  `tfsdk:"page"`
-	Sort              types.String `tfsdk:"sort"`
 	Id                types.String `tfsdk:"id"`
-	SecurityGroupId   types.String `tfsdk:"security_group_id"`
-	RemoteIpPrefix    types.String `tfsdk:"remote_ip_prefix"`
-	RemoteGroupId     types.String `tfsdk:"remote_group_id"`
-	Description       types.String `tfsdk:"description"`
-	Direction         types.String `tfsdk:"direction"`
-	Service           types.String `tfsdk:"service"`
 	SecurityGroupRule types.Object `tfsdk:"security_group_rule"`
 }
 

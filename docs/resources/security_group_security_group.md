@@ -29,25 +29,22 @@ output "security_group" {
 
 
 variable "name" {
-  type = string
-  default = "terraform-sg"
+  type    = string
+  default = ""
 }
 variable "description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 
 variable "loggable" {
-  type = bool
+  type    = bool
   default = false
 }
 
 variable "security_group_tags" {
   type    = map(string)
-  default = {
-    "tf_key1" = "tf_val1",
-    "tf_key2" = "tf_val2"
-  }
+  default = null
 }
 ```
 
@@ -56,12 +53,15 @@ variable "security_group_tags" {
 
 ### Required
 
-- `name` (String) Name
+- `name` (String) Name 
+  - example : sg_0911
 
 ### Optional
 
-- `description` (String) Description
-- `loggable` (Boolean) loggable
+- `description` (String) Description 
+  - example : sg_description
+- `loggable` (Boolean) loggable 
+  - example : True
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.

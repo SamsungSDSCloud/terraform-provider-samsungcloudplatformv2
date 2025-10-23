@@ -29,23 +29,23 @@ output "directconnect_output" {
 
 
 variable "dcon_name" {
-  type = string
-  default = "directConnectName"
+  type    = string
+  default = ""
 }
 
 variable "dcon_vpc_id" {
-  type = string
-  default = "023c57b14f11483689338d085e061492"
+  type    = string
+  default = ""
 }
 
 variable "dcon_bandwidth" {
-  type = number
-  default = 1
+  type    = number
+  default = 0
 }
 
 variable "dcon_description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 ```
 

@@ -27,7 +27,7 @@ output "cluster" {
 
 variable "id" {
   type    = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  default = ""
 }
 ```
 
@@ -67,6 +67,7 @@ Read-Only:
 - `public_endpoint_url` (String) PublicEndpointUrl
 - `public_kubeconfig_download_yn` (String) PublicKubeconfigDownloadYn
 - `security_group_list` (Attributes List) SecurityGroupList (see [below for nested schema](#nestedatt--cluster--security_group_list))
+- `service_watch_logging_enabled` (Boolean) ServiceWatchLoggingEnabled
 - `status` (String) Status
 - `subnet` (Attributes) Subnet (see [below for nested schema](#nestedatt--cluster--subnet))
 - `volume` (Attributes) Volume (see [below for nested schema](#nestedatt--cluster--volume))

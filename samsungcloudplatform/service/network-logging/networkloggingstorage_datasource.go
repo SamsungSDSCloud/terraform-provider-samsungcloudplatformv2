@@ -3,10 +3,10 @@ package network_logging
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/networklogging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/networklogging"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -42,7 +42,7 @@ func (d *networkLoggingNetworkLoggingStorageDataSource) Metadata(_ context.Conte
 // Schema defines the schema for the data source.
 func (d *networkLoggingNetworkLoggingStorageDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "List of network logging storage",
+		Description: "List of network logging storages",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Limit"): schema.Int32Attribute{
 				Description: "Limit \n" +
@@ -78,7 +78,7 @@ func (d *networkLoggingNetworkLoggingStorageDataSource) Schema(_ context.Context
 				},
 			},
 			common.ToSnakeCase("NetworkLoggingStorages"): schema.ListNestedAttribute{
-				Description: "List of network logging storage",
+				Description: "A List of network logging storages",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

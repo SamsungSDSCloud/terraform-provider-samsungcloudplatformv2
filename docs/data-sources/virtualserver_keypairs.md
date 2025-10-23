@@ -40,7 +40,7 @@ variable "keypairs_filter_values" {
 
 variable "keypairs_filter_use_regex" {
   type    = bool
-  default = true
+  default = false
 }
 ```
 

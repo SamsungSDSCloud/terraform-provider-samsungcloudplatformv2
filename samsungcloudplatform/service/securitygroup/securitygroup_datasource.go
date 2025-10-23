@@ -3,10 +3,10 @@ package securitygroup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/securitygroup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -42,24 +42,9 @@ func (d *networkSecurityGroupDataSource) Schema(_ context.Context, _ datasource.
 		Description: "Security group",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Required:    true,
-			},
-			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "Id \n" +
+					"  - example : f09708a755e24fceb4e15f7f5c82b0c1",
+				Required: true,
 			},
 			common.ToSnakeCase("SecurityGroup"): schema.SingleNestedAttribute{
 				Description: "Security group",
@@ -147,7 +132,12 @@ func (d *networkSecurityGroupDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 
-	ids, err := GetSecurityGroups(d.clients, state.Page, state.Size, state.Sort, state.Name, state.Id)
+	var defaultSize types.Int32
+	var defaultPage types.Int32
+	var defaultSort types.String
+	var defaultName types.String
+
+	ids, err := GetSecurityGroups(d.clients, defaultPage, defaultSize, defaultSort, defaultName, state.Id)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(

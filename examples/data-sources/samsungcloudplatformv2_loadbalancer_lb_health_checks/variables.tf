@@ -1,29 +1,31 @@
 variable "name" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "size" {
-  type = number
-  default = 20
+  type    = number
+  default = 0
 }
 
 variable "page" {
-  type = number
+  type    = number
   default = 0
 }
 
 variable "sort" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "subnet_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 # variable "protocol" {
 #   type    = list(string)
 #   default = ["TCP", "UDP"]
 # }
+
+

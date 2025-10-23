@@ -27,7 +27,7 @@ output "account_quota" {
 
 variable "account_quota_account_quota_id" {
   type    = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  default = ""
 }
 ```
 
@@ -48,22 +48,45 @@ variable "account_quota_account_quota_id" {
 Read-Only:
 
 - `account_id` (String) Unique identifier for the account
+  - example: 2b7ed60576ce404bbc734266ff1839a5
 - `account_name` (String) Name of the account
+  - example: Example Account Inc.
 - `adjustable` (Boolean) Flag indicating if additional quota is being requested
+  - example: true
 - `applied_value` (Number)
 - `approval` (Boolean) Approval
+  - example: false
 - `class_value` (String) Value associated with the request class
+  - example: global
 - `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
 - `description` (String) Detailed description of the quota item
+  - example: Maximum disk size for virtual servers in the account
 - `free_rate` (Number) Free Rate
+  - example: 10
 - `id` (String) Account Quota ID
+  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
 - `initial_value` (Number) Initial quota value allocated
+  - example: 100
+- `max_per_account` (Number) Max per Account Value
+  - maximum: 9.99999999e+08
+  - minimum: 1
+  - example: 1000
 - `modified_at` (String) Modified At
+  - example: 2024-05-17T00:23:17Z
 - `quota_item` (String) Specific quota item within the resource
+  - example: QUOTA.REQUEST.COUNT
 - `reduction` (Boolean) Reduction
-- `request` (Boolean) Reqeust
-- `request_class` (String) Classification of the quota request (e.g., Account, Region)
+  - example: false
+- `request` (Boolean) Request 
+  - example: false
+- `request_class` (String) Request Class
+  - example: Account
 - `resource_type` (String) Type of the resource (e.g., Virtual Server, Storage)
+  - example: Virtual Server Disk
 - `service` (String) Name of the service to which quota applies
+  - example: Virtual Server
 - `srn` (String) Service Resource Name for the quota item
-- `unit` (String) Unit in which the quota value is measured (e.g., EA, GB)
+  - example: srn:s::kr-west1:quota:account-quota/123456789
+- `unit` (String) Unit in which the quota value is measured
+  - example: GB

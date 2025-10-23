@@ -1,6 +1,6 @@
 variable "size" {
   type    = number
-  default = 10
+  default = 0
 }
 
 variable "page" {
@@ -38,7 +38,7 @@ variable "kubernetes_version" {
 
 variable "clusters_region" {
   type    = string
-  default = "kr-west1"
+  default = ""
 }
 
 variable "clusters_filter_name" {
@@ -53,5 +53,7 @@ variable "clusters_filter_values" {
 
 variable "clusters_filter_use_regex" {
   type    = bool
-  default = true
+  default = false
 }
+
+

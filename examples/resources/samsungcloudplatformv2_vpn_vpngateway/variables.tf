@@ -1,36 +1,35 @@
 variable "ip_address" {
-  type = string
-  default = "10.10.10.10"
+  type    = string
+  default = ""
 }
 
 variable "ip_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "ip_type" {
-  type = string
-  default = "PUBLIC"
+  type    = string
+  default = ""
 }
 
 variable "vpc_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "name" {
-  type = string
-  default = "terraformVpnGW"
+  type    = string
+  default = ""
 }
 
 variable "description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 
 variable "tags" {
   type    = map(string)
-  default = {
-    "vpn_tag_key" = "vpn_tag_value"
-  }
+  default = null
 }
+

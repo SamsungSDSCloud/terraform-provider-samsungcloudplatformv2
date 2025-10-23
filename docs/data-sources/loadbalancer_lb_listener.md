@@ -25,8 +25,8 @@ output "lbListener" {
 }
 
 variable "id" {
-  type = string
-  default = "731b5bdf854a401aa32009db02314081"
+  type    = string
+  default = ""
 }
 ```
 
@@ -46,10 +46,11 @@ variable "id" {
 
 Optional:
 
+- `condition_type` (String) ConditionType
 - `created_at` (String) created at
 - `created_by` (String) created by
 - `description` (String) Description
-- `https_redirection` (Boolean) HttpsRedirection
+- `https_redirection` (Attributes) HttpsRedirection (see [below for nested schema](#nestedatt--lb_listener--https_redirection))
 - `insert_client_ip` (Boolean) InsertClientIp
 - `modified_at` (String) modified at
 - `modified_by` (String) modified by
@@ -57,13 +58,15 @@ Optional:
 - `persistence` (String) Persistence
 - `protocol` (String) Protocol
 - `response_timeout` (Number) ResponseTimeout
+- `routing_action` (String) RoutingAction
 - `server_group_id` (String) ServerGroupId
 - `server_group_name` (String) ServerGroupName
 - `service_port` (Number) ServicePort
 - `session_duration_time` (Number) SessionDurationTime
+- `sni_certificate` (Attributes List) SniCertificate (see [below for nested schema](#nestedatt--lb_listener--sni_certificate))
 - `ssl_certificate` (Attributes) SslCertificate (see [below for nested schema](#nestedatt--lb_listener--ssl_certificate))
 - `url_handler` (Attributes List) UrlHandler (see [below for nested schema](#nestedatt--lb_listener--url_handler))
-- `url_redirection` (Attributes List) UrlRedirection (see [below for nested schema](#nestedatt--lb_listener--url_redirection))
+- `url_redirection` (String) UrlRedirection
 - `x_forwarded_for` (Boolean) XForwardedFor
 - `x_forwarded_port` (Boolean) XForwardedPort
 - `x_forwarded_proto` (Boolean) XForwardedProto
@@ -73,6 +76,25 @@ Read-Only:
 - `id` (String) id
 - `state` (String) State
 
+<a id="nestedatt--lb_listener--https_redirection"></a>
+### Nested Schema for `lb_listener.https_redirection`
+
+Optional:
+
+- `port` (String) Port
+- `protocol` (String) Protocol
+- `response_code` (String) ResponseCode
+
+
+<a id="nestedatt--lb_listener--sni_certificate"></a>
+### Nested Schema for `lb_listener.sni_certificate`
+
+Optional:
+
+- `domain_name` (String) DomainName
+- `sni_cert_id` (String) SniCertId
+
+
 <a id="nestedatt--lb_listener--ssl_certificate"></a>
 ### Nested Schema for `lb_listener.ssl_certificate`
 
@@ -80,7 +102,6 @@ Optional:
 
 - `client_cert_id` (String) ClientCertId
 - `client_cert_level` (String) ClientCertLevel
-- `server_cert_id` (String) ServerCertId
 - `server_cert_level` (String) ServerCertLevel
 
 
@@ -89,14 +110,6 @@ Optional:
 
 Optional:
 
+- `seq` (Number) Seq
 - `server_group_id` (String) ServerGroupId
-- `url_pattern` (String) UrlPattern
-
-
-<a id="nestedatt--lb_listener--url_redirection"></a>
-### Nested Schema for `lb_listener.url_redirection`
-
-Optional:
-
-- `redirect_url_pattern` (String) RedirectUrlPattern
 - `url_pattern` (String) UrlPattern

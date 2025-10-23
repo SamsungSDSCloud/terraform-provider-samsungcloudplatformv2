@@ -1,9 +1,11 @@
 variable "name" {
-  type = string
-  default = "terraform_server_group"
+  type    = string
+  default = ""
 }
 
 variable "policy" {
-  type = string
-  default = "affinity"
+  type    = string
+  default = ""
 }
+
+

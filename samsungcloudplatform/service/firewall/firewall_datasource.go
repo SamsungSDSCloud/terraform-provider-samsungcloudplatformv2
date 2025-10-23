@@ -3,16 +3,12 @@ package firewall
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/firewall"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
 )
@@ -47,59 +43,6 @@ func (d *firewallFirewallDataSource) Schema(_ context.Context, _ datasource.Sche
 				Description: "Firewall ID \n" +
 					"  - example : 68db67f78abd405da98a6056a8ee42af",
 				Required: true,
-			},
-			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page \n" +
-					"  - example : 0",
-				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.AtLeast(0),
-				},
-			},
-			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size \n" +
-					"  - example : 20",
-				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.AtLeast(0),
-				},
-			},
-			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
-					"  - example : created_at:desc",
-				Optional: true,
-			},
-			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Firewall Name \n" +
-					"  - example : subnetName",
-				Optional: true,
-			},
-			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description: "Vpc Name \n" +
-					"  - example : vpcName",
-				Optional: true,
-			},
-			common.ToSnakeCase("ProductType"): schema.ListAttribute{
-				Description: "ProductType \n" +
-					"  - example : IGW | GGW | DGW | LB | SIGW | TGW_IGW | TGW_GGW | TGW_DGW | TGW_SIGW | TGW_BM",
-				Optional:    true,
-				ElementType: types.StringType,
-				Validators: []validator.List{
-					listvalidator.ValueStringsAre(
-						stringvalidator.OneOf("IGW", "GGW", "DGW", "LB", "SIGW", "TGW_IGW", "TGW_GGW", "TGW_DGW", "TGW_SIGW", "TGW_BM"),
-					),
-				},
-			},
-			common.ToSnakeCase("State"): schema.ListAttribute{
-				Description: "State \n" +
-					"  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR | DEPLOYING",
-				Optional:    true,
-				ElementType: types.StringType,
-				Validators: []validator.List{
-					listvalidator.ValueStringsAre(
-						stringvalidator.OneOf("CREATING", "ACTIVE", "EDITING", "DELETING", "ERROR", "DEPLOYING"),
-					),
-				},
 			},
 			common.ToSnakeCase("Firewall"): schema.SingleNestedAttribute{
 				Description: "Firewall",
@@ -216,7 +159,15 @@ func (d *firewallFirewallDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	ids, err := GetFirewallList(d.clients, state.Page, state.Size, state.Sort, state.Name, state.VpcName, state.ProductType, state.State)
+	var defaultSize types.Int32
+	var defaultPage types.Int32
+	var defaultSort types.String
+	var defaultName types.String
+	var defaultVpcName types.String
+	var defaultProductType types.List
+	var defaultState types.List
+
+	ids, err := GetFirewallList(d.clients, defaultPage, defaultSize, defaultSort, defaultName, defaultVpcName, defaultProductType, defaultState)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Firewall",

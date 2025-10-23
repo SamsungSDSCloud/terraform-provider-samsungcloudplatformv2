@@ -39,13 +39,13 @@ output "cluster_output" {
 }
 
 variable "allowable_ip_addresses" {
-  type = list(string)
-  default = ["192.168.10.1/32", "192.168.10.2/32"]
+  type    = list(string)
+  default = [""]
 }
 
 variable "dbaas_engine_version_id" {
-  type = string
-  default = "266fba6314a04d308f34a221c4f9c7a5"
+  type    = string
+  default = ""
 }
 
 variable "nat_enabled" {
@@ -66,7 +66,7 @@ variable "init_config_option" {
     database_service_name  = string
     database_user_name     = string
     database_user_password = string
-    license = string
+    license                = string
     backup_option = object({
       retention_period_day     = string
       starting_time_hour       = string
@@ -79,23 +79,23 @@ variable "init_config_option" {
     }))
   })
   default = {
-    audit_enabled          = false
-    database_collation     = "SQL_Latin1_General_CP1_CI_AS"
-    database_port          = 2866
-    database_service_name  = "Sqlserver"
-    database_user_name     = "sqlserver"
-    database_user_password = "Password001!"
-    license = "AAAAA-BBBBB-CCCCC-DDDDD-EEEEE"
+    audit_enabled = false
     backup_option = {
-      retention_period_day     = null
-      starting_time_hour       = null
-      archive_frequency_minute = null
-      full_backup_day_of_week  = null
+      archive_frequency_minute = ""
+      full_backup_day_of_week  = ""
+      retention_period_day     = ""
+      starting_time_hour       = ""
     }
+    database_collation     = ""
+    database_port          = 0
+    database_service_name  = ""
+    database_user_name     = ""
+    database_user_password = ""
     databases = [{
-      database_name = "sqlserver"
-      drive_letter = "E"
+      database_name = ""
+      drive_letter  = ""
     }]
+    license = ""
   }
 }
 
@@ -112,51 +112,41 @@ variable "instance_groups" {
       role_type = string
     }))
   }))
-  default = [
-    {
-      role_type        = "ACTIVE"
-      server_type_name = "db1v2m8"
-      block_storage_groups = [
-        {
-          "role_type" : "OS",
-          "volume_type" : "SSD",
-          "size_gb" : 104
-        },
-        {
-          "role_type" : "DATA",
-          "volume_type" : "SSD",
-          "size_gb" : 16
-        }
-      ]
-      instances = [
-        {
-          "role_type" : "ACTIVE",
-        }
-      ]
-    }
-  ]
+  default = [{
+    block_storage_groups = [{
+      role_type   = ""
+      size_gb     = 0
+      volume_type = ""
+    }]
+    instances = [{
+      role_type = ""
+    }]
+    role_type        = ""
+    server_type_name = ""
+  }]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = "instname"
+  default = ""
 }
 
 variable "name" {
   type    = string
-  default = "name"
+  default = ""
 }
 
 variable "subnet_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "timezone" {
   type    = string
-  default = "Asia/Seoul"
+  default = ""
 }
 
+// OPTION
 variable "maintenance_option" {
   type = object({
     period_hour            = string
@@ -165,10 +155,10 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = "0.5"
-    starting_day_of_week   = "MON"
-    starting_time          = "0000"
-    use_maintenance_option = true
+    period_hour            = ""
+    starting_day_of_week   = ""
+    starting_time          = ""
+    use_maintenance_option = false
   }
 }
 
@@ -184,14 +174,12 @@ variable "virtual_ip_address" {
 
 variable "service_state" {
   type    = string
-  default = "RUNNING"
+  default = ""
 }
 
 variable "tags" {
-  type = map(string)
-  default = {
-    "key" : "value"
-  }
+  type    = map(string)
+  default = null
 }
 ```
 

@@ -72,8 +72,8 @@ func (m VpnGateway) AttributeTypes() map[string]attr.Type { // VpnGateway 의 At
 }
 
 type VpnTunnelDataSource struct { // Vpn Tunnel List request 모델을 참고하여 구조체를 구성한다.
-	Id             types.String `tfsdk:"id"`
-	VpnTunnel      types.Object `tfsdk:"vpn_tunnel"`
+	Id        types.String `tfsdk:"id"`
+	VpnTunnel types.Object `tfsdk:"vpn_tunnel"`
 }
 
 type VpnTunnelDataSourceIds struct { // Vpn Tunnel List request 모델을 참고하여 구조체를 구성한다.
@@ -88,37 +88,84 @@ type VpnTunnelDataSourceIds struct { // Vpn Tunnel List request 모델을 참고
 	Ids            []types.String `tfsdk:"ids"`
 }
 
-type VpnTunnelResource struct { // Id + VpnGatewayCreateRequest
-	Id           types.String    `tfsdk:"id"`
-	Description  types.String    `tfsdk:"description"`
-	Name         types.String    `tfsdk:"name"`
-	Phase1       VpnPhase1Detail `tfsdk:"phase1"`
-	Phase2       VpnPhase2Detail `tfsdk:"phase2"`
-	VpnGatewayId types.String    `tfsdk:"vpn_gateway_id"`
-	Tags         types.Map       `tfsdk:"tags"`
-	VpnTunnel    types.Object    `tfsdk:"vpn_tunnel"`
+//type VpnTunnelResource struct { // Id + VpnGatewayCreateRequest
+//	Id           types.String    `tfsdk:"id"`
+//	Description  types.String    `tfsdk:"description"`
+//	Name         types.String    `tfsdk:"name"`
+//	Phase1       VpnPhase1Detail `tfsdk:"phase1"`
+//	Phase2       VpnPhase2Detail `tfsdk:"phase2"`
+//	VpnGatewayId types.String    `tfsdk:"vpn_gateway_id"`
+//	Tags         types.Map       `tfsdk:"tags"`
+//	VpnTunnel    types.Object    `tfsdk:"vpn_tunnel"`
+//}
+
+type VpnPhase1Detail struct { // VpnPhase1Detail
+	DiffieHellmanGroups []types.Int32  `tfsdk:"diffie_hellman_groups"`
+	DpdRetryInterval    types.Int32    `tfsdk:"dpd_retry_interval"`
+	Encryptions         []types.String `tfsdk:"encryptions"`
+	IkeVersion          types.Int32    `tfsdk:"ike_version"`
+	LifeTime            types.Int32    `tfsdk:"life_time"`
+	PeerGatewayIp       types.String   `tfsdk:"peer_gateway_ip"`
+	PreSharedKey        types.String   `tfsdk:"pre_shared_key"`
 }
 
-type VpnTunnel struct { // VpnTunnel
-	AccountId           types.String    `tfsdk:"account_id"`
-	CreatedAt           types.String    `tfsdk:"created_at"`
-	CreatedBy           types.String    `tfsdk:"created_by"`
-	Description         types.String    `tfsdk:"description"`
-	Id                  types.String    `tfsdk:"id"`
-	ModifiedAt          types.String    `tfsdk:"modified_at"`
-	ModifiedBy          types.String    `tfsdk:"modified_by"`
-	Name                types.String    `tfsdk:"name"`
-	Phase1              VpnPhase1Detail `tfsdk:"phase1"`
-	Phase2              VpnPhase2Detail `tfsdk:"phase2"`
-	State               types.String    `tfsdk:"state"`
-	VpcId               types.String    `tfsdk:"vpc_id"`
-	VpcName             types.String    `tfsdk:"vpc_name"`
-	VpnGatewayId        types.String    `tfsdk:"vpn_gateway_id"`
-	VpnGatewayIpAddress types.String    `tfsdk:"vpn_gateway_ip_address"`
-	VpnGatewayName      types.String    `tfsdk:"vpn_gateway_name"`
+type VpnPhase2Detail struct { // VpnPhase2Detail
+	DiffieHellmanGroups   []types.Int32  `tfsdk:"diffie_hellman_groups"`
+	Encryptions           []types.String `tfsdk:"encryptions"`
+	LifeTime              types.Int32    `tfsdk:"life_time"`
+	PerfectForwardSecrecy types.String   `tfsdk:"perfect_forward_secrecy"`
+	RemoteSubnet          types.String   `tfsdk:"remote_subnet"`
 }
 
-func (m VpnTunnel) AttributeTypes() map[string]attr.Type { // VpnTunnel 의 AttributeTypes 메서드를 추가한다.
+// ----------------v1.1 VPC Tunnel
+type VpnTunnelData1d1Source struct { // Vpn Tunnel List request 모델을 참고하여 구조체를 구성한다.
+	Size           types.Int32    `tfsdk:"size"` // schema mapping
+	Page           types.Int32    `tfsdk:"page"`
+	Sort           types.String   `tfsdk:"sort"`
+	Name           types.String   `tfsdk:"name"`
+	VpnGatewayId   types.String   `tfsdk:"vpn_gateway_id"`
+	VpnGatewayName types.String   `tfsdk:"vpn_gateway_name"`
+	Ids            []types.String `tfsdk:"ids"`
+}
+
+type VpnTunnel struct { // VpnTunnel v1.1
+	AccountId           types.String          `tfsdk:"account_id"`
+	CreatedAt           types.String          `tfsdk:"created_at"`
+	CreatedBy           types.String          `tfsdk:"created_by"`
+	Description         types.String          `tfsdk:"description"`
+	Id                  types.String          `tfsdk:"id"`
+	ModifiedAt          types.String          `tfsdk:"modified_at"`
+	ModifiedBy          types.String          `tfsdk:"modified_by"`
+	Name                types.String          `tfsdk:"name"`
+	Phase1              VpnPhase1v1Dot1Detail `tfsdk:"phase1"`
+	Phase2              VpnPhase2v1Dot1Detail `tfsdk:"phase2"`
+	State               types.String          `tfsdk:"state"`
+	Status              types.String          `tfsdk:"status"`
+	VpcId               types.String          `tfsdk:"vpc_id"`
+	VpcName             types.String          `tfsdk:"vpc_name"`
+	VpnGatewayId        types.String          `tfsdk:"vpn_gateway_id"`
+	VpnGatewayIpAddress types.String          `tfsdk:"vpn_gateway_ip_address"`
+	VpnGatewayName      types.String          `tfsdk:"vpn_gateway_name"`
+}
+
+type VpnPhase1v1Dot1Detail struct { // VpnPhase1Detail
+	DpdRetryInterval    types.Int32    `tfsdk:"dpd_retry_interval"`
+	IkeVersion          types.Int32    `tfsdk:"ike_version"`
+	LifeTime            types.Int32    `tfsdk:"life_time"`
+	PeerGatewayIp       types.String   `tfsdk:"peer_gateway_ip"`
+	DiffieHellmanGroups []types.Int32  `tfsdk:"diffie_hellman_groups"`
+	Encryptions         []types.String `tfsdk:"encryptions"`
+}
+
+type VpnPhase2v1Dot1Detail struct { // VpnPhase2Detail
+	DiffieHellmanGroups   []types.Int32  `tfsdk:"diffie_hellman_groups"`
+	Encryptions           []types.String `tfsdk:"encryptions"`
+	LifeTime              types.Int32    `tfsdk:"life_time"`
+	PerfectForwardSecrecy types.String   `tfsdk:"perfect_forward_secrecy"`
+	RemoteSubnets         []types.String `tfsdk:"remote_subnets"`
+}
+
+func (m VpnTunnel) AttributeTypes() map[string]attr.Type { // VpnTunnel v1.1 의 AttributeTypes 메서드를 추가한다.
 	return map[string]attr.Type{
 		"account_id":  types.StringType,
 		"created_at":  types.StringType,
@@ -140,7 +187,6 @@ func (m VpnTunnel) AttributeTypes() map[string]attr.Type { // VpnTunnel 의 Attr
 				"ike_version":        types.Int32Type,
 				"life_time":          types.Int32Type,
 				"peer_gateway_ip":    types.StringType,
-				"pre_shared_key":     types.StringType,
 			},
 		},
 		"phase2": types.ObjectType{
@@ -153,10 +199,13 @@ func (m VpnTunnel) AttributeTypes() map[string]attr.Type { // VpnTunnel 의 Attr
 				},
 				"life_time":               types.Int32Type,
 				"perfect_forward_secrecy": types.StringType,
-				"remote_subnet":           types.StringType,
+				"remote_subnets": types.ListType{
+					ElemType: types.StringType,
+				},
 			},
 		},
 		"state":                  types.StringType,
+		"status":                 types.StringType,
 		"vpc_id":                 types.StringType,
 		"vpc_name":               types.StringType,
 		"vpn_gateway_id":         types.StringType,
@@ -165,20 +214,32 @@ func (m VpnTunnel) AttributeTypes() map[string]attr.Type { // VpnTunnel 의 Attr
 	}
 }
 
-type VpnPhase1Detail struct { // VpnPhase1Detail
-	DiffieHellmanGroups []types.Int32  `tfsdk:"diffie_hellman_groups"`
-	DpdRetryInterval    types.Int32    `tfsdk:"dpd_retry_interval"`
-	Encryptions         []types.String `tfsdk:"encryptions"`
-	IkeVersion          types.Int32    `tfsdk:"ike_version"`
-	LifeTime            types.Int32    `tfsdk:"life_time"`
-	PeerGatewayIp       types.String   `tfsdk:"peer_gateway_ip"`
-	PreSharedKey        types.String   `tfsdk:"pre_shared_key"`
+// VPN tunnel create,update
+type VpnTunnel1d1Resource struct { // Id + VpnGatewayCreateRequest
+	Id           types.String        `tfsdk:"id"`
+	Description  types.String        `tfsdk:"description"`
+	Name         types.String        `tfsdk:"name"`
+	Phase1       VpnPhase1v1d1Detail `tfsdk:"phase1"`
+	Phase2       VpnPhase2v1d1Detail `tfsdk:"phase2"`
+	Tags         types.Map           `tfsdk:"tags"`
+	VpnGatewayId types.String        `tfsdk:"vpn_gateway_id"`
+	VpnTunnel    types.Object        `tfsdk:"vpn_tunnel"`
 }
 
-type VpnPhase2Detail struct { // VpnPhase2Detail
-	DiffieHellmanGroups   []types.Int32  `tfsdk:"diffie_hellman_groups"`
-	Encryptions           []types.String `tfsdk:"encryptions"`
-	LifeTime              types.Int32    `tfsdk:"life_time"`
-	PerfectForwardSecrecy types.String   `tfsdk:"perfect_forward_secrecy"`
-	RemoteSubnet          types.String   `tfsdk:"remote_subnet"`
+type VpnPhase1v1d1Detail struct { // VpnPhase1Detail
+	DpdRetryInterval          types.Int32    `tfsdk:"dpd_retry_interval"`
+	IkeVersion                types.Int32    `tfsdk:"ike_version"`
+	PeerGatewayIp             types.String   `tfsdk:"peer_gateway_ip"`
+	Phase1DiffieHellmanGroups []types.Int32  `tfsdk:"phase1_diffie_hellman_groups"`
+	Phase1Encryptions         []types.String `tfsdk:"phase1_encryptions"`
+	Phase1LifeTime            types.Int32    `tfsdk:"phase1_life_time"`
+	PreSharedKey              types.String   `tfsdk:"pre_shared_key"`
+}
+
+type VpnPhase2v1d1Detail struct { // VpnPhase2Detail
+	PerfectForwardSecrecy     types.String   `tfsdk:"perfect_forward_secrecy"`
+	Phase2DiffieHellmanGroups []types.Int32  `tfsdk:"phase2_diffie_hellman_groups"`
+	Phase2Encryptions         []types.String `tfsdk:"phase2_encryptions"`
+	Phase2LifeTime            types.Int32    `tfsdk:"phase2_life_time"`
+	RemoteSubnets             []types.String `tfsdk:"remote_subnets"`
 }

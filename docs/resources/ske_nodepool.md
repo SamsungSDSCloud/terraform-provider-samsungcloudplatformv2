@@ -32,6 +32,8 @@ resource "samsungcloudplatformv2_ske_nodepool" "nodepool" {
   volume_size = var.volume_size
   labels = var.labels
   taints = var.taints
+  server_group_id = var.server_group_id
+  advanced_settings = var.advanced_settings
 }
 
 
@@ -41,110 +43,123 @@ output "nodepool_output" {
 
 
 variable "name" {
-  type = string
-  default = "np-name"
+  type    = string
+  default = ""
 }
 
 variable "cluster_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "desired_node_count" {
-  type = number
-  default = 2
+  type    = number
+  default = 0
 }
 
 variable "image_os" {
-  type = string
-  default = "ubuntu"
+  type    = string
+  default = ""
 }
 
 variable "image_os_version" {
-  type = string
-  default = "22.04"
+  type    = string
+  default = ""
 }
 
 variable "is_auto_recovery" {
-  type = bool
+  type    = bool
   default = false
 }
 
 variable "is_auto_scale" {
-  type = bool
+  type    = bool
   default = false
 }
 
 variable "keypair_name" {
-  type = string
-  default = "ssh"
+  type    = string
+  default = ""
 }
 
 variable "kubernetes_version" {
-  type = string
-  default = "v1.31.8"
+  type    = string
+  default = ""
 }
 
 variable "max_node_count" {
-  type = number
-  default = null
+  type    = number
+  default = 0
 }
 
 variable "min_node_count" {
-  type = number
-  default = null
+  type    = number
+  default = 0
 }
 
 variable "server_type_id" {
-  type = string
-  default = "s1v1m2"
+  type    = string
+  default = ""
 }
 
 variable "volume_type_name" {
-  type = string
-  default = "SSD"
+  type    = string
+  default = ""
 }
 
 variable "volume_size" {
-  type = number
-  default = 104
+  type    = number
+  default = 0
 }
 
 variable "labels" {
   type = list(object({
-    key = string
+    key   = string
     value = string
   }))
-  default = [
-    {
-      key = "label1"
-      value = "label1"
-    },
-    {
-      key = "label2"
-      value = "label2"
-    }
-  ]
+  default = [{
+    key   = ""
+    value = ""
+  }]
 }
 
 variable "taints" {
   type = list(object({
     effect = string
-    key = string
-    value = string
+    key    = string
+    value  = string
   }))
-  default = [
-    {
-      effect = "NoSchedule"
-      key = "taint1"
-      value = "taint1"
-    },
-    {
-      effect = "NoSchedule"
-      key = "taint2"
-      value = "taint2"
-    }
-  ]
+  default = [{
+    effect = ""
+    key    = ""
+    value  = ""
+  }]
+}
+
+variable "server_group_id" {
+  type    = string
+  default = ""
+}
+
+variable "advanced_settings" {
+  type = object({
+    allowed_unsafe_sysctls  = string
+    container_log_max_files = number
+    container_log_max_size  = number
+    image_gc_high_threshold = number
+    image_gc_low_threshold  = number
+    max_pods                = number
+    pod_max_pids            = number
+  })
+  default = {
+    allowed_unsafe_sysctls  = ""
+    container_log_max_files = 0
+    container_log_max_size  = 0
+    image_gc_high_threshold = 0
+    image_gc_low_threshold  = 0
+    max_pods                = 0
+    pod_max_pids            = 0
+  }
 }
 ```
 
@@ -167,11 +182,13 @@ variable "taints" {
 
 ### Optional
 
+- `advanced_settings` (Attributes) AdvancedSettings (see [below for nested schema](#nestedatt--advanced_settings))
 - `custom_image_id` (String) CustomImageId
 - `desired_node_count` (Number) DesiredNodeCount
 - `labels` (Attributes List) Labels (see [below for nested schema](#nestedatt--labels))
 - `max_node_count` (Number) MaxNodeCount
 - `min_node_count` (Number) MinNodeCount
+- `server_group_id` (String) ServerGroupId
 - `taints` (Attributes List) Taints (see [below for nested schema](#nestedatt--taints))
 
 ### Read-Only
@@ -179,6 +196,20 @@ variable "taints" {
 - `id` (String) Identifier of the resource.
 - `last_updated` (String) Timestamp of the last Terraform update of the nodepool
 - `nodepool_detail` (Attributes) NodepoolDetail (see [below for nested schema](#nestedatt--nodepool_detail))
+
+<a id="nestedatt--advanced_settings"></a>
+### Nested Schema for `advanced_settings`
+
+Required:
+
+- `allowed_unsafe_sysctls` (String) AllowedUnsafeSysctls
+- `container_log_max_files` (Number) ContainerLogMaxFiles
+- `container_log_max_size` (Number) ContainerLogMaxSize
+- `image_gc_high_threshold` (Number) ImageGcHighThreshold
+- `image_gc_low_threshold` (Number) ImageGcLowThreshold
+- `max_pods` (Number) MaxPods
+- `pod_max_pids` (Number) PodMaxPids
+
 
 <a id="nestedatt--labels"></a>
 ### Nested Schema for `labels`
@@ -208,6 +239,11 @@ Optional:
 <a id="nestedatt--nodepool_detail"></a>
 ### Nested Schema for `nodepool_detail`
 
+Optional:
+
+- `advanced_settings` (Attributes) AdvancedSettings (see [below for nested schema](#nestedatt--nodepool_detail--advanced_settings))
+- `server_group_id` (String) ServerGroupId
+
 Read-Only:
 
 - `account_id` (String) account id
@@ -233,6 +269,20 @@ Read-Only:
 - `taints` (Attributes List) Taints (see [below for nested schema](#nestedatt--nodepool_detail--taints))
 - `volume_size` (Number) VolumeSize
 - `volume_type` (Attributes) VolumeType (see [below for nested schema](#nestedatt--nodepool_detail--volume_type))
+
+<a id="nestedatt--nodepool_detail--advanced_settings"></a>
+### Nested Schema for `nodepool_detail.advanced_settings`
+
+Read-Only:
+
+- `allowed_unsafe_sysctls` (String) AllowedUnsafeSysctls
+- `container_log_max_files` (Number) ContainerLogMaxFiles
+- `container_log_max_size` (Number) ContainerLogMaxSize
+- `image_gc_high_threshold` (Number) ImageGcHighThreshold
+- `image_gc_low_threshold` (Number) ImageGcLowThreshold
+- `max_pods` (Number) MaxPods
+- `pod_max_pids` (Number) PodMaxPids
+
 
 <a id="nestedatt--nodepool_detail--cluster"></a>
 ### Nested Schema for `nodepool_detail.cluster`

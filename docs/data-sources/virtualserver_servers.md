@@ -37,37 +37,37 @@ output "ids" {
 }
 
 variable "name" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "ip" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "state" {
-  type = string
-  default = "ACTIVE"
+  type    = string
+  default = ""
 }
 
 variable "product_category" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "vpc_id" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "server_type_id" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "auto_scaling_group_id" {
-  type = string
+  type    = string
   default = ""
 }
 
@@ -83,7 +83,7 @@ variable "servers_filter_values" {
 
 variable "servers_filter_use_regex" {
   type    = bool
-  default = true
+  default = false
 }
 ```
 

@@ -1,46 +1,46 @@
 variable "vpcendpoint_name" {
-  type = string
-  default = "vpcEndpointName"
+  type    = string
+  default = ""
 }
 
 variable "vpcendpoint_vpc_id" {
-  type = string
-  default = "7df8abb4912e4709b1cb237daccca7a8"
+  type    = string
+  default = ""
 }
 
 variable "vpcendpoint_subnet_id" {
-  type = string
-  default = "7df8abb4912e4709b1cb237daccca7a8"
+  type    = string
+  default = ""
 }
 
 variable "vpcendpoint_resource_type" {
-  type = string
-  default = "FS"
+  type    = string
+  default = ""
 }
 
 variable "vpcendpoint_resource_resource_key" {
-  type = string
-  default = "1.1.1.1"
+  type    = string
+  default = ""
 }
 
 variable "vpcendpoint_resource_resource_info" {
-  type = string
-  default = "192.168.0.1(SSD)"
+  type    = string
+  default = ""
 }
 
 variable "vpcendpoint_endpoint_ip_address" {
-  type = string
-  default = "10.10.10.10"
+  type    = string
+  default = ""
 }
 
 variable "vpcendpoint_description" {
-  type = string
-  default = "description info"
+  type    = string
+  default = ""
 }
 
 variable "vpcendpoint_tags" {
   type    = map(string)
-  default = {
-    "tf_key1" = "tf_val1"
-  }
+  default = null
 }
+
+

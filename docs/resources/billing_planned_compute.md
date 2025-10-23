@@ -34,44 +34,44 @@ output "planned_computes" {
 }
 
 variable "account_id" {
-  type = string
-  default = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  type    = string
+  default = ""
 }
 
 variable "contract_type" {
-  type = string
-  default = "03"
+  type    = string
+  default = ""
 }
 
 variable "os_type" {
-  type = string
-  default = "WINDOWS"
+  type    = string
+  default = ""
 }
 
 variable "server_type" {
-  type = string
-  default = "s1v16m128" 
+  type    = string
+  default = ""
 }
 
 variable "service_id" {
-  type = string
-  default = "VIRTUAL_SERVER"
+  type    = string
+  default = ""
 }
 
 variable "service_name" {
-  type = string
-  default = "Virtual Server"
+  type    = string
+  default = ""
 }
 
 variable "action" {
   type = string
-  default = "EXTEND_APPLY"
-  
+
+  default = ""
 }
 
 variable "region" {
-    type = string
-    default = "kr-west1"
+  type    = string
+  default = ""
 }
 ```
 

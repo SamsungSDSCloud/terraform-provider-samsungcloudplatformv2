@@ -1,7 +1,7 @@
 package vpc
 
 import (
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/vpc/1.0"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/vpc/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -570,5 +570,245 @@ func (m PrivateNatIp) AttributeTypes() map[string]attr.Type {
 		"created_by":             types.StringType,
 		"modified_at":            types.StringType,
 		"modified_by":            types.StringType,
+	}
+}
+
+// -------------------- TGW
+type TgwResource struct {
+	Id          types.String `tfsdk:"id"`
+	Description types.String `tfsdk:"description"`
+	Name        types.String `tfsdk:"name"`
+	Tags        types.Map    `tfsdk:"tags"`
+	Tgw         types.Object `tfsdk:"tgw"`
+}
+
+type TgwDataSource struct {
+	Size  types.Int32  `tfsdk:"size"`
+	Page  types.Int32  `tfsdk:"page"`
+	Sort  types.String `tfsdk:"sort"`
+	Id    types.String `tfsdk:"id"`
+	Name  types.String `tfsdk:"name"`
+	State types.String `tfsdk:"state"`
+	Tgws  []Tgw        `tfsdk:"tgws"`
+}
+
+type TgwDataSourceDetail struct {
+	Id            types.String `tfsdk:"id"`
+	Description   types.String `tfsdk:"description"`
+	Name          types.String `tfsdk:"name"`
+	AccountId     types.String `tfsdk:"account_id"`
+	Bandwidth     types.Int32  `tfsdk:"bandwidth"`
+	CreatedAt     types.String `tfsdk:"created_at"`
+	CreatedBy     types.String `tfsdk:"created_by"`
+	FirewallIds   types.String `tfsdk:"firewall_ids"`
+	ModifiedAt    types.String `tfsdk:"modified_at"`
+	ModifiedBy    types.String `tfsdk:"modified_by"`
+	State         types.String `tfsdk:"state"`
+	UplinkEnabled types.Bool   `tfsdk:"uplink_enabled"`
+}
+
+type Tgw struct {
+	Id            types.String `tfsdk:"id"`
+	Description   types.String `tfsdk:"description"`
+	Name          types.String `tfsdk:"name"`
+	AccountId     types.String `tfsdk:"account_id"`
+	Bandwidth     types.Int32  `tfsdk:"bandwidth"`
+	CreatedAt     types.String `tfsdk:"created_at"`
+	CreatedBy     types.String `tfsdk:"created_by"`
+	FirewallIds   types.String `tfsdk:"firewall_ids"`
+	ModifiedAt    types.String `tfsdk:"modified_at"`
+	ModifiedBy    types.String `tfsdk:"modified_by"`
+	State         types.String `tfsdk:"state"`
+	UplinkEnabled types.Bool   `tfsdk:"uplink_enabled"`
+}
+
+func (m Tgw) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":             types.StringType,
+		"description":    types.StringType,
+		"name":           types.StringType,
+		"account_id":     types.StringType,
+		"bandwidth":      types.Int32Type,
+		"created_at":     types.StringType,
+		"created_by":     types.StringType,
+		"firewall_ids":   types.StringType,
+		"modified_at":    types.StringType,
+		"modified_by":    types.StringType,
+		"state":          types.StringType,
+		"uplink_enabled": types.BoolType,
+	}
+}
+
+// start routing rule
+type RoutingRuleDataSource struct {
+	TransitGatewayId     types.String  `tfsdk:"transit_gateway_id"`
+	Size                 types.Int32   `tfsdk:"size"`
+	Page                 types.Int32   `tfsdk:"page"`
+	Sort                 types.String  `tfsdk:"sort"`
+	Id                   types.String  `tfsdk:"id"`
+	TgwConnectionVpcId   types.String  `tfsdk:"tgw_connection_vpc_id"`
+	TgwConnectionVpcName types.String  `tfsdk:"tgw_connection_vpc_name"`
+	SourceType           types.String  `tfsdk:"source_type"`
+	DestinationType      types.String  `tfsdk:"destination_type"`
+	DestinationCidr      types.String  `tfsdk:"destination_cidr"`
+	State                types.String  `tfsdk:"state"`
+	RoutingRules         []RoutingRule `tfsdk:"routing_rules"`
+}
+type RoutingRuleResource struct {
+	Id                 types.String `tfsdk:"id"`
+	TransitGatewayId   types.String `tfsdk:"transit_gateway_id"`
+	Description        types.String `tfsdk:"description"`
+	DestinationCidr    types.String `tfsdk:"destination_cidr"`
+	DestinationType    types.String `tfsdk:"destination_type"`
+	TgwConnectionVpcId types.String `tfsdk:"tgw_connection_vpc_id"`
+	RoutingRule        types.Object `tfsdk:"routing_rule"`
+}
+
+type RoutingRule struct {
+	AccountId               types.String `tfsdk:"account_id"`
+	CreatedAt               types.String `tfsdk:"created_at"`
+	CreatedBy               types.String `tfsdk:"created_by"`
+	Description             types.String `tfsdk:"description"`
+	DestinationCidr         types.String `tfsdk:"destination_cidr"`
+	DestinationResourceId   types.String `tfsdk:"destination_resource_id"`
+	DestinationResourceName types.String `tfsdk:"destination_resource_name"`
+	DestinationType         types.String `tfsdk:"destination_type"`
+	Id                      types.String `tfsdk:"id"`
+	ModifiedAt              types.String `tfsdk:"modified_at"`
+	ModifiedBy              types.String `tfsdk:"modified_by"`
+	SourceResourceId        types.String `tfsdk:"source_resource_id"`
+	SourceResourceName      types.String `tfsdk:"source_resource_name"`
+	SourceType              types.String `tfsdk:"source_type"`
+	State                   types.String `tfsdk:"state"`
+	TgwConnectionVpcId      types.String `tfsdk:"tgw_connection_vpc_id"`
+	TgwConnectionVpcName    types.String `tfsdk:"tgw_connection_vpc_name"`
+}
+
+// ------------------- VPC PEERING RULE -------------------//
+type VpcPeeringRuleDataSource struct {
+	// Input
+	VpcPeeringId       types.String `tfsdk:"vpc_peering_id"`       // VPC Peering ID
+	Size               types.Int32  `tfsdk:"size"`                 // size
+	Page               types.Int32  `tfsdk:"page"`                 // Page
+	Sort               types.String `tfsdk:"sort"`                 // Sort
+	Id                 types.String `tfsdk:"id"`                   // VPC Peering Rule ID
+	Name               types.String `tfsdk:"name"`                 // VPC Peering Name
+	SourceVpcId        types.String `tfsdk:"source_vpc_id"`        // Source VPC ID
+	SourceVpcType      types.String `tfsdk:"source_vpc_type"`      // Source VPC Type
+	DestinationVpcId   types.String `tfsdk:"destination_vpc_id"`   // Destination VPC ID
+	DestinationVpcType types.String `tfsdk:"destination_vpc_type"` // Destination VPC Type
+	DestinationCidr    types.String `tfsdk:"destination_cidr"`     // Destination CIDR
+	State              types.String `tfsdk:"state"`                // State
+
+	// Output
+	VpcPeeringRules []VpcPeeringRule `tfsdk:"vpc_peering_rules"`
+}
+
+type VpcPeeringRuleResource struct {
+	// Input
+	VpcPeeringId       types.String `tfsdk:"vpc_peering_id"`       // VPC Peering ID
+	DestinationCidr    types.String `tfsdk:"destination_cidr"`     // Destination CIDR
+	DestinationVpcType types.String `tfsdk:"destination_vpc_type"` // Destination VPC Type
+	Tags               types.Map    `tfsdk:"tags"`                 // Tag List
+
+	// Output
+	Id                 types.String `tfsdk:"id"`                   // VPC Peering Rule ID
+	CreatedAt          types.String `tfsdk:"created_at"`           // Created At
+	CreatedBy          types.String `tfsdk:"created_by"`           // Created By
+	DestinationVpcId   types.String `tfsdk:"destination_vpc_id"`   // Destination VPC ID
+	DestinationVpcName types.String `tfsdk:"destination_vpc_name"` // Destination VPC Name
+	ModifiedAt         types.String `tfsdk:"modified_at"`          // Modified At
+	ModifiedBy         types.String `tfsdk:"modified_by"`          // Modified By
+	SourceVpcId        types.String `tfsdk:"source_vpc_id"`        // Source VPC ID
+	SourceVpcName      types.String `tfsdk:"source_vpc_name"`      // Source VPC Name
+	SourceVpcType      types.String `tfsdk:"source_vpc_type"`      // Source VPC Type
+	State              types.String `tfsdk:"state"`                // State
+}
+
+type VpcPeeringRule struct {
+	CreatedAt          types.String `tfsdk:"created_at"`           // Created At
+	CreatedBy          types.String `tfsdk:"created_by"`           // Created By
+	DestinationCidr    types.String `tfsdk:"destination_cidr"`     // Destination CIDR
+	DestinationVpcId   types.String `tfsdk:"destination_vpc_id"`   // Destination VPC ID
+	DestinationVpcName types.String `tfsdk:"destination_vpc_name"` // Destination VPC Name
+	DestinationVpcType types.String `tfsdk:"destination_vpc_type"` // Destination VPC Type
+	Id                 types.String `tfsdk:"id"`                   // VPC Peering Rule ID
+	ModifiedAt         types.String `tfsdk:"modified_at"`          // Modified At
+	ModifiedBy         types.String `tfsdk:"modified_by"`          // Modified By
+	SourceVpcId        types.String `tfsdk:"source_vpc_id"`        // Source VPC ID
+	SourceVpcName      types.String `tfsdk:"source_vpc_name"`      // Source VPC Name
+	SourceVpcType      types.String `tfsdk:"source_vpc_type"`      // Source VPC Type
+	State              types.String `tfsdk:"state"`                // State
+	VpcPeeringId       types.String `tfsdk:"vpc_peering_id"`       // VPC Peering ID
+}
+
+func (m RoutingRule) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"account_id":                types.StringType,
+		"created_at":                types.StringType,
+		"created_by":                types.StringType,
+		"description":               types.StringType,
+		"destination_cidr":          types.StringType,
+		"destination_resource_id":   types.StringType,
+		"destination_resource_name": types.StringType,
+		"destination_type":          types.StringType,
+		"id":                        types.StringType,
+		"modified_at":               types.StringType,
+		"modified_by":               types.StringType,
+		"source_resource_id":        types.StringType,
+		"source_resource_name":      types.StringType,
+		"source_type":               types.StringType,
+		"state":                     types.StringType,
+		"tgw_connection_vpc_id":     types.StringType,
+		"tgw_connection_vpc_name":   types.StringType,
+	}
+}
+
+// end routing rule
+
+type TgwVpcConnectionDataSource struct {
+	Size              types.Int32        `tfsdk:"size"`
+	Page              types.Int32        `tfsdk:"page"`
+	Sort              types.String       `tfsdk:"sort"`
+	TransitGatewayId  types.String       `tfsdk:"transit_gateway_id"`
+	Id                types.String       `tfsdk:"id"`
+	VpcId             types.String       `tfsdk:"vpc_id"`
+	VpcName           types.String       `tfsdk:"vpc_name"`
+	State             types.String       `tfsdk:"state"`
+	TgwVpcConnections []TgwVpcConnection `tfsdk:"transit_gateway_vpc_connections"`
+}
+
+type TgwVpcConnectionResource struct {
+	Id               types.String `tfsdk:"id"`
+	VpcId            types.String `tfsdk:"vpc_id"`
+	TransitGatewayId types.String `tfsdk:"transit_gateway_id"`
+	TgwVpcConnection types.Object `tfsdk:"transit_gateway_vpc_connection"`
+}
+
+type TgwVpcConnection struct {
+	AccountId        types.String `tfsdk:"account_id"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	CreatedBy        types.String `tfsdk:"created_by"`
+	Id               types.String `tfsdk:"id"`
+	ModifiedAt       types.String `tfsdk:"modified_at"`
+	ModifiedBy       types.String `tfsdk:"modified_by"`
+	State            types.String `tfsdk:"state"`
+	TransitGatewayId types.String `tfsdk:"transit_gateway_id"`
+	VpcId            types.String `tfsdk:"vpc_id"`
+	VpcName          types.String `tfsdk:"vpc_name"`
+}
+
+func (m TgwVpcConnection) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"account_id":         types.StringType,
+		"created_at":         types.StringType,
+		"created_by":         types.StringType,
+		"id":                 types.StringType,
+		"modified_at":        types.StringType,
+		"modified_by":        types.StringType,
+		"state":              types.StringType,
+		"transit_gateway_id": types.StringType,
+		"vpc_id":             types.StringType,
+		"vpc_name":           types.StringType,
 	}
 }

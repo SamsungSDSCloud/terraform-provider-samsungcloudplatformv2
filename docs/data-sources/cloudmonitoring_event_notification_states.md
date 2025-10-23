@@ -27,13 +27,13 @@ output "eventNotificationStates" {
 }
 
 variable "XResourceType" {
-  type = string
-  default = "VM"
+  type    = string
+  default = ""
 }
 
 variable "EventId" {
-  type = string
-  default = "202507180930434086112885"
+  type    = string
+  default = ""
 }
 ```
 

@@ -3,11 +3,12 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/library/loadbalancer/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/loadbalancer/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -197,7 +198,7 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Create(ctx context.Context
 		return
 	}
 
-	plan.Id = types.StringValue(data.StaticNat.Id)
+	plan.Id = virtualserverutil.ToNullableStringValue(data.StaticNat.Id.Get())
 
 	// Map response body to schema and populate Computed attribute values
 	staticNatModel := createLoadbalancerNatModel(data)
@@ -245,25 +246,25 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Delete(ctx context.Context
 func createLoadbalancerNatModel(data *scploadbalancer.StaticNatCreateResponse) loadbalancer.LoadbalancerPublicNatIpDetail {
 	lbStaticNat := data.StaticNat
 	return loadbalancer.LoadbalancerPublicNatIpDetail{
-		AccountId:         types.StringValue(lbStaticNat.AccountId),
-		ActionType:        types.StringValue(lbStaticNat.ActionType),
+		AccountId:         virtualserverutil.ToNullableStringValue(lbStaticNat.AccountId.Get()),
+		ActionType:        virtualserverutil.ToNullableStringValue(lbStaticNat.ActionType.Get()),
 		CreatedAt:         types.StringValue(lbStaticNat.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:         types.StringValue(lbStaticNat.CreatedBy),
-		Description:       types.StringValue(lbStaticNat.Description),
-		ExternalIpAddress: types.StringValue(lbStaticNat.ExternalIpAddress),
-		Id:                types.StringValue(lbStaticNat.Id),
-		InternalIpAddress: types.StringValue(lbStaticNat.InternalIpAddress),
+		Description:       virtualserverutil.ToNullableStringValue(lbStaticNat.Description.Get()),
+		ExternalIpAddress: virtualserverutil.ToNullableStringValue(lbStaticNat.ExternalIpAddress.Get()),
+		Id:                virtualserverutil.ToNullableStringValue(lbStaticNat.Id.Get()),
+		InternalIpAddress: virtualserverutil.ToNullableStringValue(lbStaticNat.InternalIpAddress.Get()),
 		ModifiedAt:        types.StringValue(lbStaticNat.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:        types.StringValue(lbStaticNat.ModifiedBy),
-		Name:              types.StringValue(lbStaticNat.Name),
-		OwnerId:           types.StringValue(lbStaticNat.OwnerId),
-		OwnerName:         types.StringValue(lbStaticNat.OwnerName),
-		OwnerType:         types.StringValue(lbStaticNat.OwnerType),
-		PublicipId:        types.StringValue(lbStaticNat.PublicipId),
-		ServiceIpPortId:   types.StringValue(lbStaticNat.ServiceIpPortId),
-		State:             types.StringValue(lbStaticNat.State),
-		SubnetId:          types.StringValue(lbStaticNat.AccountId),
-		Type:              types.StringValue(lbStaticNat.Type),
-		VpcId:             types.StringValue(lbStaticNat.VpcId),
+		Name:              virtualserverutil.ToNullableStringValue(lbStaticNat.Name.Get()),
+		OwnerId:           virtualserverutil.ToNullableStringValue(lbStaticNat.OwnerId.Get()),
+		OwnerName:         virtualserverutil.ToNullableStringValue(lbStaticNat.OwnerName.Get()),
+		OwnerType:         virtualserverutil.ToNullableStringValue(lbStaticNat.OwnerType.Get()),
+		PublicipId:        virtualserverutil.ToNullableStringValue(lbStaticNat.PublicipId.Get()),
+		ServiceIpPortId:   virtualserverutil.ToNullableStringValue(lbStaticNat.ServiceIpPortId.Get()),
+		State:             virtualserverutil.ToNullableStringValue(lbStaticNat.State.Get()),
+		SubnetId:          virtualserverutil.ToNullableStringValue(lbStaticNat.AccountId.Get()),
+		Type:              virtualserverutil.ToNullableStringValue(lbStaticNat.Type.Get()),
+		VpcId:             virtualserverutil.ToNullableStringValue(lbStaticNat.VpcId.Get()),
 	}
 }
