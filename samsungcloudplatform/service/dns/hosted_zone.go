@@ -3,12 +3,12 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -113,6 +113,14 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 						Description: "PoolId",
 						Optional:    true,
 					},
+					common.ToSnakeCase("PrivateDnsId"): schema.StringAttribute{
+						Description: "PrivateDnsId",
+						Optional:    true,
+					},
+					common.ToSnakeCase("PrivateDnsName"): schema.StringAttribute{
+						Description: "PrivateDnsName",
+						Optional:    true,
+					},
 					common.ToSnakeCase("ProjectId"): schema.StringAttribute{
 						Description: "ProjectId",
 						Optional:    true,
@@ -166,6 +174,10 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "Name",
+						Optional:    true,
+					},
+					common.ToSnakeCase("PrivateDnsId"): schema.StringAttribute{
+						Description: "PrivateDnsId",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
@@ -241,7 +253,7 @@ func (r *dnsHostedZoneResource) Create(ctx context.Context, req resource.CreateR
 
 	plan.Id = types.StringValue(data.Id)
 
-	hostedZoneModel := convertHostedZone(convertHostedZoneShowResponseToHostedZone(*dataForShow))
+	hostedZoneModel := convertHostedZoneShowResponseV1Dot2ToHostedZone(*dataForShow)
 
 	hostedZoneOjbectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
 	plan.Zone = hostedZoneOjbectValue
@@ -275,7 +287,7 @@ func (r *dnsHostedZoneResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	hostedZoneModel := convertHostedZone(convertHostedZoneShowResponseToHostedZone(*data))
+	hostedZoneModel := convertHostedZoneShowResponseV1Dot2ToHostedZone(*data)
 
 	hostedZoneObjectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
 	state.Zone = hostedZoneObjectValue
@@ -328,7 +340,7 @@ func (r *dnsHostedZoneResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	hostedZoneModel := convertHostedZone(convertHostedZoneShowResponseToHostedZone(*dataForShow))
+	hostedZoneModel := convertHostedZoneShowResponseV1Dot2ToHostedZone(*dataForShow)
 
 	hostedZoneObjectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
 	state.Zone = hostedZoneObjectValue
@@ -361,7 +373,7 @@ func (r *dnsHostedZoneResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	hostedZoneModel := convertHostedZone(convertHostedZoneDeleteResponseToHostedZone(*data))
+	hostedZoneModel := convertHostedZoneDeleteResponseToHostedZone(*data)
 
 	hostedZoneObjectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
 	state.Zone = hostedZoneObjectValue

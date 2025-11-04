@@ -1,7 +1,7 @@
 package ske
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -143,6 +143,12 @@ type ClusterKubeconfigDataSource struct {
 	Kubeconfig     types.String `tfsdk:"kubeconfig"`
 }
 
+type ClusterUserKubeconfigDataSource struct {
+	ClusterId      types.String `tfsdk:"cluster_id"`
+	KubeconfigType types.String `tfsdk:"kubeconfig_type"`
+	Kubeconfig     types.String `tfsdk:"kubeconfig"`
+}
+
 type KubernetesVersionDataSources struct {
 	Region             types.String               `tfsdk:"region"` // region field 를 추가한다.
 	KubernetesVersions []KubernetesVersionSummary `tfsdk:"kubernetes_versions"`
@@ -166,8 +172,8 @@ type NodepoolDataSource struct {
 }
 
 type NodepoolDataSources struct {
-	ClusterId types.String `tfsdk:"cluster_id"`
-	Nodepools []Nodepool   `tfsdk:"nodepools"`
+	ClusterId types.String      `tfsdk:"cluster_id"`
+	Nodepools []NodepoolSummary `tfsdk:"nodepools"`
 }
 
 type NodepoolnodeDataSources struct {
@@ -175,7 +181,7 @@ type NodepoolnodeDataSources struct {
 	Nodes      []NodeInNodepool `tfsdk:"nodes"`
 }
 
-type Nodepool struct {
+type NodepoolSummary struct {
 	Id                  types.String      `tfsdk:"id"`
 	Name                types.String      `tfsdk:"name"`
 	AccountId           types.String      `tfsdk:"account_id"`
@@ -205,8 +211,8 @@ type NodepoolResource struct {
 	DesiredNodeCount  types.Int32       `tfsdk:"desired_node_count"`
 	ImageOs           types.String      `tfsdk:"image_os"`
 	ImageOsVersion    types.String      `tfsdk:"image_os_version"`
-	Labels            []Labels          `tfsdk:"labels"`
-	Taints            []Taints          `tfsdk:"taints"`
+	Labels            []Label           `tfsdk:"labels"`
+	Taints            []Taint           `tfsdk:"taints"`
 	IsAutoRecovery    types.Bool        `tfsdk:"is_auto_recovery"`
 	IsAutoScale       types.Bool        `tfsdk:"is_auto_scale"`
 	KeypairName       types.String      `tfsdk:"keypair_name"`
@@ -218,10 +224,10 @@ type NodepoolResource struct {
 	VolumeSize        types.Int32       `tfsdk:"volume_size"`
 	ServerGroupId     types.String      `tfsdk:"server_group_id"`   // v1.1
 	AdvancedSettings  *AdvancedSettings `tfsdk:"advanced_settings"` // v1.1
-	NodepoolDetail    types.Object      `tfsdk:"nodepool_detail"`
+	Nodepool          types.Object      `tfsdk:"nodepool"`
 }
 
-type NodepoolDetail struct {
+type Nodepool struct {
 	Id                  types.String      `tfsdk:"id"`
 	Name                types.String      `tfsdk:"name"`
 	AccountId           types.String      `tfsdk:"account_id"`
@@ -233,8 +239,8 @@ type NodepoolDetail struct {
 	Image               Image             `tfsdk:"image"`
 	Keypair             NameMapType       `tfsdk:"keypair"`
 	KubernetesVersion   types.String      `tfsdk:"kubernetes_version"`
-	Labels              []Labels          `tfsdk:"labels"`
-	Taints              []Taints          `tfsdk:"taints"`
+	Labels              []Label           `tfsdk:"labels"`
+	Taints              []Taint           `tfsdk:"taints"`
 	MaxNodeCount        types.Int32       `tfsdk:"max_node_count"`
 	MinNodeCount        types.Int32       `tfsdk:"min_node_count"`
 	ServerType          ServerType        `tfsdk:"server_type"`
@@ -249,7 +255,7 @@ type NodepoolDetail struct {
 	AdvancedSettings    *AdvancedSettings `tfsdk:"advanced_settings"` // v1.1
 }
 
-func (m NodepoolDetail) AttributeTypes() map[string]attr.Type {
+func (m Nodepool) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":                    types.StringType,
 		"name":                  types.StringType,

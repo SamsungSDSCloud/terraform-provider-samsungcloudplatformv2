@@ -1,3 +1,5 @@
 output "vpcpeeringrule_output" {
-  value = samsungcloudplatformv2_vpc_vpc_peering_rule.create_peering_rule
+  value = {
+    vpc_peering_rule: samsungcloudplatformv2_vpc_vpc_peering_rule.create_peering_rule.vpc_peering_rule
+  }
 }

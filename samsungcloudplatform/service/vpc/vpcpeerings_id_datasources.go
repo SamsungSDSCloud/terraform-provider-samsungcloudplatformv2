@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpcv1"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -34,18 +34,18 @@ type vpcPeeringIdDataSource struct {
 
 // Metadata returns the data source type name.
 func (d *vpcPeeringIdDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vpc_peering"
+	resp.TypeName = req.ProviderTypeName + "_vpc_vpc_peering"
 }
 
 // Schema defines the schema for the data source.
 func (d *vpcPeeringIdDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "vpc peering detail.",
+		Description: "Show Vpc peering",
 
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "Id",
-				Optional:    true,
+				Required:    true,
 			},
 			common.ToSnakeCase("VpcPeering"): schema.SingleNestedAttribute{
 				Description: "A detail of VpcPeering.",
@@ -76,15 +76,12 @@ func (d *vpcPeeringIdDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 						Computed:    true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description\n" +
-							"  - example : Tgw description\n" +
-							"  - maxLength : 50\n" +
-							"  - minLength : 1",
-						Optional: true,
+						Description: "Description",
+						Computed:    true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
 						Description: "Id",
-						Optional:    true,
+						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
 						Description: "ModifiedAt",
@@ -95,12 +92,8 @@ func (d *vpcPeeringIdDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 						Computed:    true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name\n" +
-							"  - example : Tgw name\n" +
-							"  - pattern : ^[a-zA-Z0-9]*$\n" +
-							"  - maxLength : 20\n" +
-							"  - minLength : 3",
-						Required: true,
+						Description: "Name",
+						Computed:    true,
 					},
 					common.ToSnakeCase("RequesterVpcAccountId"): schema.StringAttribute{
 						Description: "RequesterVpcAccountId",
@@ -116,7 +109,6 @@ func (d *vpcPeeringIdDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 					},
 					common.ToSnakeCase("DeleteRequesterAccountId"): schema.StringAttribute{
 						Description: "DeleteRequesterAccountId",
-						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
@@ -166,8 +158,8 @@ func (d *vpcPeeringIdDataSource) Read(ctx context.Context, req datasource.ReadRe
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error reading internet gateway",
-			"Could not read internet gateway, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error reading vpc peering detail",
+			"Could not read vpc peering detail, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}

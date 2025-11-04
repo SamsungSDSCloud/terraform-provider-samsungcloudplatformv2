@@ -2,8 +2,8 @@ package directconnect
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	directconnect "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/direct-connect/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	directconnect "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/direct-connect/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

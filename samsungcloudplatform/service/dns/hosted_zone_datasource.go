@@ -3,10 +3,10 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -103,6 +103,14 @@ func (d *dnsHostedZoneDataSource) Schema(_ context.Context, _ datasource.SchemaR
 						Description: "PoolId",
 						Optional:    true,
 					},
+					common.ToSnakeCase("PrivateDnsId"): schema.StringAttribute{
+						Description: "PrivateDnsId",
+						Optional:    true,
+					},
+					common.ToSnakeCase("PrivateDnsName"): schema.StringAttribute{
+						Description: "PrivateDnsName",
+						Optional:    true,
+					},
 					common.ToSnakeCase("ProjectId"): schema.StringAttribute{
 						Description: "ProjectId",
 						Optional:    true,
@@ -185,7 +193,7 @@ func (d *dnsHostedZoneDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	hostedZoneState := convertHostedZone(convertHostedZoneShowResponseToHostedZone(*data))
+	hostedZoneState := convertHostedZoneShowResponseV1Dot2ToHostedZone(*data)
 
 	hostedZoneObjectValue, _ := types.ObjectValueFrom(ctx, hostedZoneState.AttributeTypes(), hostedZoneState)
 	state.HostedZoneDetail = hostedZoneObjectValue

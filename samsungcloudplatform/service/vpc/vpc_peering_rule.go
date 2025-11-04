@@ -6,14 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -42,7 +43,7 @@ func (r *vpcVpcPeeringRuleResource) Metadata(_ context.Context, req resource.Met
 // Schema defines the schema for the resource.
 func (r *vpcVpcPeeringRuleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "VPC Peering Rule Resource",
+		Description: "VPC Peering Rule",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("VpcPeeringId"): schema.StringAttribute{
@@ -50,63 +51,90 @@ func (r *vpcVpcPeeringRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Required:    true,
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-				Description: "Destination CIDR",
-				Required:    true,
+				Description: "Destination CIDR\n" +
+					"  - Example : 192.168.1.0/24 \n",
+				Required: true,
 			},
 			common.ToSnakeCase("DestinationVpcType"): schema.StringAttribute{
-				Description: "Destination VPC Type",
-				Required:    true,
+				Description: "Destination VPC Type \n" +
+					"  - Example : REQUESTER_VPC | APPROVER_VPC\n" +
+					"  - Reference : VpcPeeringRuleDestinationVpcType",
+				Required: true,
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 
 			// Output
-			common.ToSnakeCase("ID"): schema.StringAttribute{
-				Description: "VPC Peering Rule ID",
+			common.ToSnakeCase("VpcPeeringRule"): schema.SingleNestedAttribute{
+				Description: "VPC Peering Rule details",
 				Computed:    true,
-			},
-			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created At",
-				Computed:    true,
-			},
-			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description: "Created By",
-				Computed:    true,
-			},
-			common.ToSnakeCase("DestinationVpcId"): schema.StringAttribute{
-				Description: "Destination VPC ID",
-				Computed:    true,
-			},
-			common.ToSnakeCase("DestinationVpcName"): schema.StringAttribute{
-				Description: "Destination VPC Name",
-				Computed:    true,
-			},
-			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "VPC Peering Rule ID",
-				Computed:    true,
-			},
-			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-				Description: "Modified At",
-				Computed:    true,
-			},
-			common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-				Description: "Modified By",
-				Computed:    true,
-			},
-			common.ToSnakeCase("SourceVpcId"): schema.StringAttribute{
-				Description: "Source VPC ID",
-				Computed:    true,
-			},
-			common.ToSnakeCase("SourceVpcName"): schema.StringAttribute{
-				Description: "Source VPC Name",
-				Computed:    true,
-			},
-			common.ToSnakeCase("SourceVpcType"): schema.StringAttribute{
-				Description: "Source VPC Type",
-				Computed:    true,
-			},
-			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Computed:    true,
+				Attributes: map[string]schema.Attribute{
+					common.ToSnakeCase("Id"): schema.StringAttribute{
+						Description: "VPC Peering Rule ID",
+						Computed:    true,
+					},
+					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
+						Description: "Created At\n" +
+							"  - Example : 2024-05-17T00:23:17Z",
+						Computed: true,
+					},
+					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+						Description: "Created By\n" +
+							"  - Example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
+					},
+					common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
+						Description: "Destination CIDR",
+						Computed:    true,
+					},
+					common.ToSnakeCase("DestinationVpcId"): schema.StringAttribute{
+						Description: "Destination VPC ID",
+						Computed:    true,
+					},
+					common.ToSnakeCase("DestinationVpcName"): schema.StringAttribute{
+						Description: "Destination VPC Name",
+						Computed:    true,
+					},
+					common.ToSnakeCase("DestinationVpcType"): schema.StringAttribute{
+						Description: "Destination VPC Type\n" +
+							"  - Example : REQUESTER_VPC | APPROVER_VPC\n" +
+							"  - Reference : VpcPeeringRuleDestinationVpcType",
+						Computed: true,
+					},
+					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+						Description: "Modified At\n" +
+							"  - Example : 2024-05-17T00:23:17Z",
+						Computed: true,
+					},
+					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+						Description: "Modified By\n" +
+							"  - Example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
+					},
+					common.ToSnakeCase("SourceVpcId"): schema.StringAttribute{
+						Description: "Source VPC ID",
+						Computed:    true,
+					},
+					common.ToSnakeCase("SourceVpcName"): schema.StringAttribute{
+						Description: "Source VPC Name",
+						Computed:    true,
+					},
+					common.ToSnakeCase("SourceVpcType"): schema.StringAttribute{
+						Description: "Source VPC Type\n" +
+							"  - Example : REQUESTER_VPC | APPROVER_VPC\n" +
+							"  - Reference : VpcPeeringRuleDestinationVpcType",
+						Computed: true,
+					},
+					common.ToSnakeCase("State"): schema.StringAttribute{
+						Description: "State\n" +
+							"  - Example : CREATING | ACTIVE | DELETING | DELETED | ERROR\n" +
+							"  - Reference : RoutingRuleState",
+						Computed: true,
+					},
+					common.ToSnakeCase("VpcPeeringId"): schema.StringAttribute{
+						Description: "VPC Peering ID",
+						Computed:    true,
+					},
+				},
 			},
 		},
 	}
@@ -154,21 +182,27 @@ func (r *vpcVpcPeeringRuleResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	plan.Id = types.StringValue(result.VpcPeeringRule.Id)
-	plan.CreatedAt = types.StringValue(result.VpcPeeringRule.CreatedAt.Format(time.RFC3339))
-	plan.CreatedBy = types.StringValue(result.VpcPeeringRule.CreatedBy)
-	plan.DestinationVpcId = types.StringValue(result.VpcPeeringRule.DestinationVpcId)
-	plan.DestinationVpcName = types.StringValue(result.VpcPeeringRule.DestinationVpcName)
-	plan.ModifiedAt = types.StringValue(result.VpcPeeringRule.ModifiedAt.Format(time.RFC3339))
-	plan.ModifiedBy = types.StringValue(result.VpcPeeringRule.ModifiedBy)
-	plan.SourceVpcId = types.StringValue(result.VpcPeeringRule.SourceVpcId)
-	plan.SourceVpcName = types.StringValue(result.VpcPeeringRule.SourceVpcName)
-	plan.SourceVpcType = types.StringValue(string(result.VpcPeeringRule.SourceVpcType))
-	plan.State = types.StringValue(string(result.VpcPeeringRule.State))
+	// Set the nested structure in the plan
+	vpcPeeringModel := vpc.VpcPeeringRule{
+		Id:                 types.StringValue(result.VpcPeeringRule.Id),
+		CreatedAt:          types.StringValue(result.VpcPeeringRule.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:          types.StringValue(result.VpcPeeringRule.CreatedBy),
+		DestinationVpcId:   types.StringValue(result.VpcPeeringRule.DestinationVpcId),
+		DestinationVpcName: types.StringValue(result.VpcPeeringRule.DestinationVpcName),
+		DestinationCidr:    types.StringValue(result.VpcPeeringRule.DestinationCidr),
+		ModifiedAt:         types.StringValue(result.VpcPeeringRule.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:         types.StringValue(result.VpcPeeringRule.ModifiedBy),
+		SourceVpcId:        types.StringValue(result.VpcPeeringRule.SourceVpcId),
+		SourceVpcName:      types.StringValue(result.VpcPeeringRule.SourceVpcName),
+		SourceVpcType:      types.StringValue(string(result.VpcPeeringRule.SourceVpcType)),
+		State:              types.StringValue(string(result.VpcPeeringRule.State)),
+		DestinationVpcType: types.StringValue(string(result.VpcPeeringRule.DestinationVpcType)),
+		VpcPeeringId:       types.StringValue(plan.VpcPeeringId.ValueString()),
+	}
+	vpcPeeringRuleValue, _ := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
+	plan.VpcPeeringRule = vpcPeeringRuleValue
 
-	diags = resp.State.Set(ctx, plan)
-
-	err = waitForVpcPeeringRuleStatus(ctx, r.client, plan.VpcPeeringId.ValueString(), plan.Id.ValueString(), []string{}, []string{"ACTIVE"})
+	err = waitForVpcPeeringRuleStatus(ctx, r.client, plan.VpcPeeringId.ValueString(), result.VpcPeeringRule.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating vpc peering rule",
@@ -177,16 +211,12 @@ func (r *vpcVpcPeeringRuleResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	readReq := resource.ReadRequest{
-		State: resp.State,
+	// Set refreshed state
+	diags = resp.State.Set(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, readReq, readResp)
-
-	resp.State = readResp.State
-
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -199,7 +229,17 @@ func (r *vpcVpcPeeringRuleResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	data, status, err := r.client.GetVpcPeeringRule(ctx, state.VpcPeeringId.ValueString(), state.Id.ValueString())
+	var rule vpc.VpcPeeringRule
+	errR := state.VpcPeeringRule.As(ctx, &rule, basetypes.ObjectAsOptions{})
+	if errR != nil {
+		resp.Diagnostics.AddError(
+			"Failed to parse VPC peering rule",
+			fmt.Sprintf("An error occurred while parsing VPC peering rule: %s", errR),
+		)
+		return
+	}
+
+	data, status, err := r.client.GetVpcPeeringRule(ctx, state.VpcPeeringId.ValueString(), rule.Id.ValueString())
 	if err != nil {
 		// Check if the error indicates the resource was not found
 		if status == 404 {
@@ -214,17 +254,25 @@ func (r *vpcVpcPeeringRuleResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	state.Id = types.StringValue(data.Id)
-	state.CreatedAt = types.StringValue(data.CreatedAt.Format(time.RFC3339))
-	state.CreatedBy = types.StringValue(data.CreatedBy)
-	state.DestinationVpcId = types.StringValue(data.DestinationVpcId)
-	state.DestinationVpcName = types.StringValue(data.DestinationVpcName)
-	state.ModifiedAt = types.StringValue(data.ModifiedAt.Format(time.RFC3339))
-	state.ModifiedBy = types.StringValue(data.ModifiedBy)
-	state.SourceVpcId = types.StringValue(data.SourceVpcId)
-	state.SourceVpcName = types.StringValue(data.SourceVpcName)
-	state.SourceVpcType = types.StringValue(string(data.SourceVpcType))
-	state.State = types.StringValue(string(data.State))
+	// Set the nested structure in the plan
+	vpcPeeringModel := vpc.VpcPeeringRule{
+		Id:                 types.StringValue(data.Id),
+		CreatedAt:          types.StringValue(data.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:          types.StringValue(data.CreatedBy),
+		DestinationVpcId:   types.StringValue(data.DestinationVpcId),
+		DestinationVpcName: types.StringValue(data.DestinationVpcName),
+		DestinationCidr:    types.StringValue(data.DestinationCidr),
+		ModifiedAt:         types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:         types.StringValue(data.ModifiedBy),
+		SourceVpcId:        types.StringValue(data.SourceVpcId),
+		SourceVpcName:      types.StringValue(data.SourceVpcName),
+		SourceVpcType:      types.StringValue(string(data.SourceVpcType)),
+		State:              types.StringValue(string(data.State)),
+		DestinationVpcType: types.StringValue(string(data.DestinationVpcType)),
+		VpcPeeringId:       types.StringValue(data.VpcPeeringId),
+	}
+	vpcPeeringRuleValue, _ := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
+	state.VpcPeeringRule = vpcPeeringRuleValue
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -240,7 +288,17 @@ func (r *vpcVpcPeeringRuleResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	err := r.client.DeleteVpcPeeringRule(ctx, state.VpcPeeringId.ValueString(), state.Id.ValueString())
+	var rule vpc.VpcPeeringRule
+	errR := state.VpcPeeringRule.As(ctx, &rule, basetypes.ObjectAsOptions{})
+	if errR != nil {
+		resp.Diagnostics.AddError(
+			"Failed to parse VPC peering rule",
+			fmt.Sprintf("An error occurred while parsing VPC peering rule: %s", errR),
+		)
+		return
+	}
+
+	err := r.client.DeleteVpcPeeringRule(ctx, state.VpcPeeringId.ValueString(), rule.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -250,11 +308,11 @@ func (r *vpcVpcPeeringRuleResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	err = waitForVpcPeeringRuleStatus(ctx, r.client, state.VpcPeeringId.ValueString(), state.Id.ValueString(), []string{}, []string{"DELETED"})
+	err = waitForVpcPeeringRuleStatus(ctx, r.client, state.VpcPeeringId.ValueString(), rule.Id.ValueString(), []string{}, []string{"DELETED"})
 	if err != nil && !strings.Contains(err.Error(), "404") {
 		resp.Diagnostics.AddError(
-			"Error deleting vpc endpoint",
-			"Error waiting for vpc endpoint to become deleted: "+err.Error(),
+			"Error deleting VPC peering rule",
+			"Error waiting for VPC peering rule to become deleted: "+err.Error(),
 		)
 		return
 	}

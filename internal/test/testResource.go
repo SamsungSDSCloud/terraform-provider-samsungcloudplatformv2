@@ -3,7 +3,7 @@ package test
 import (
 	"bufio"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/internal/util"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/internal/util"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"

@@ -3,11 +3,12 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/ske/converter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -172,8 +173,8 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 					},
 				},
 			},
-			common.ToSnakeCase("NodepoolDetail"): schema.SingleNestedAttribute{
-				Description: "NodepoolDetail",
+			common.ToSnakeCase("Nodepool"): schema.SingleNestedAttribute{
+				Description: "Nodepool",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
@@ -474,7 +475,7 @@ func (r *skeNodepoolResource) Read(ctx context.Context, req resource.ReadRequest
 	nodepoolModel := createNodepoolDetailModel(data)
 
 	nodepoolObjectValue, diags := types.ObjectValueFrom(ctx, nodepoolModel.AttributeTypes(), nodepoolModel)
-	state.NodepoolDetail = nodepoolObjectValue
+	state.Nodepool = nodepoolObjectValue
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -599,7 +600,7 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 	nodepoolObjectValue, diags := types.ObjectValueFrom(ctx, nodepoolModel.AttributeTypes(), nodepoolModel)
 
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
-	plan.NodepoolDetail = nodepoolObjectValue
+	plan.Nodepool = nodepoolObjectValue
 	if plan.IsAutoScale.ValueBool() {
 		plan.DesiredNodeCount = types.Int32PointerValue(data.Nodepool.MinNodeCount)
 	} else {
@@ -652,9 +653,9 @@ func (r *skeNodepoolResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 }
 
-func createNodepoolDetailModel(data *scpske.NodepoolShowResponseV1Dot1) ske.NodepoolDetail {
+func createNodepoolDetailModel(data *scpske.NodepoolShowResponseV1Dot1) ske.Nodepool {
 	nodepoolElement := data.Nodepool
-	nodepoolModel := ske.NodepoolDetail{
+	nodepoolModel := ske.Nodepool{
 		Id:                  types.StringPointerValue(nodepoolElement.Id),
 		Name:                types.StringPointerValue(nodepoolElement.Name),
 		AccountId:           types.StringPointerValue(nodepoolElement.AccountId),
@@ -686,11 +687,15 @@ func createNodepoolDetailModel(data *scpske.NodepoolShowResponseV1Dot1) ske.Node
 			Id:      types.StringPointerValue(nodepoolElement.VolumeType.Id),
 			Name:    types.StringPointerValue(nodepoolElement.VolumeType.Name),
 		},
-		VolumeSize: types.Int32PointerValue(nodepoolElement.VolumeSize),
-		CreatedAt:  types.StringValue(nodepoolElement.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:  types.StringValue(nodepoolElement.CreatedBy),
-		ModifiedAt: types.StringValue(nodepoolElement.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy: types.StringValue(nodepoolElement.ModifiedBy),
+		VolumeSize:       types.Int32PointerValue(nodepoolElement.VolumeSize),
+		Labels:           converter.MakeNodepoolLabelsModel(data.Nodepool.Labels),
+		Taints:           converter.MakeNodepoolTaintsModel(data.Nodepool.Taints),
+		ServerGroupId:    types.StringPointerValue(nodepoolElement.ServerGroupId.Get()),
+		AdvancedSettings: converter.MakeNodepoolAdvancedSettingsModel(data.Nodepool.AdvancedSettings),
+		CreatedAt:        types.StringValue(nodepoolElement.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:        types.StringValue(nodepoolElement.CreatedBy),
+		ModifiedAt:       types.StringValue(nodepoolElement.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:       types.StringValue(nodepoolElement.ModifiedBy),
 	}
 
 	return nodepoolModel

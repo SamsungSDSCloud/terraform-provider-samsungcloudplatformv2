@@ -2,8 +2,10 @@ package ske
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.1"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"io"
 )
 
@@ -47,6 +49,8 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		securityGroupIdList = append(securityGroupIdList, securityGroupId.ValueString())
 	}
 
+	tags := convertTags(request.Tags.Elements())
+
 	req = req.ClusterCreateRequestV1Dot1(scpske.ClusterCreateRequestV1Dot1{
 		Name:                                  request.Name.ValueString(),
 		KubernetesVersion:                     request.KubernetesVersion.ValueString(),
@@ -58,6 +62,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		PrivateEndpointAccessControlResources: convertPrivateEndpointAccessControlResources(request.PrivateEndpointAccessControlResources),
 		PublicEndpointAccessControlIp:         *scpske.NewNullableString(request.PublicEndpointAccessControlIp.ValueStringPointer()),
 		ServiceWatchLoggingEnabled:            request.ServiceWatchLoggingEnabled.ValueBoolPointer(), // v1.1
+		Tags:                                  tags,
 	})
 
 	resp, _, err := req.Execute()
@@ -156,6 +161,23 @@ func (client *Client) GetKubeConfig(ctx context.Context, clusterId string, kubec
 	req := client.sdkClient.SkeV1ClustersApiAPI.CreateClusterKubeconfig(ctx, clusterId)
 
 	req = req.KubeconfigType(scpske.ClusterKubeconfigType(kubeconfig_type))
+
+	resp, err := req.Execute()
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+	byteArray, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(byteArray), err
+}
+
+func (client *Client) GetUserKubeConfig(ctx context.Context, clusterId string, kubeconfigType string) (string, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.ShowClusterUserKubeconfig(ctx, clusterId)
+	req = req.KubeconfigType(scpske.ClusterKubeconfigType(kubeconfigType))
 
 	resp, err := req.Execute()
 	if err != nil {
@@ -305,7 +327,7 @@ func convertPrivateEndpointAccessControlResources(privateEndpointAccessControlRe
 	return result
 }
 
-func convertLablels(lablels []Labels) []scpske.NodepoolLabel {
+func convertLablels(lablels []Label) []scpske.NodepoolLabel {
 	result := make([]scpske.NodepoolLabel, len(lablels))
 	for i, lablel := range lablels {
 		sKey := lablel.Key.ValueString()
@@ -318,7 +340,7 @@ func convertLablels(lablels []Labels) []scpske.NodepoolLabel {
 	return result
 }
 
-func convertTaints(taints []Taints) []scpske.NodepoolTaint {
+func convertTaints(taints []Taint) []scpske.NodepoolTaint {
 	result := make([]scpske.NodepoolTaint, len(taints))
 
 	for i, taint := range taints {
@@ -354,4 +376,16 @@ func convertAdvancedSettings(advancedSettings *AdvancedSettings) scpske.Nullable
 		result.Unset()
 	}
 	return result
+}
+
+func convertTags(elements map[string]attr.Value) []scpske.Tag {
+	var tags []scpske.Tag
+	for k, v := range elements {
+		tagObject := scpske.Tag{
+			Key:   k,
+			Value: v.(types.String).ValueString(),
+		}
+		tags = append(tags, tagObject)
+	}
+	return tags
 }

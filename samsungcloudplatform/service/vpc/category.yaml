@@ -17,7 +17,14 @@ category:
   vpc_private_nats: VPC
   vpc_private_nat_ip: VPC
   vpc_private_nat_ips: VPC
+  vpc_vpc_peering: VPC
   vpc_vpc_peerings: VPC
-  vpc_transitgateway: VPC
-  vpc_transitgateways: VPC
-  vpc_transitgateway_vpc_connections: VPC
+  vpc_transit_gateway: VPC
+  vpc_transit_gateways: VPC
+  vpc_transit_gateway_vpc_connection: VPC
+  vpc_transit_gateway_vpc_connections: VPC
+  vpc_vpc_peering_rule : VPC
+  vpc_vpc_peering_rules : VPC
+  vpc_transit_gateway_rule : VPC
+  vpc_transit_gateway_rules : VPC
+  vpc_vpc_peering_approval : VPC

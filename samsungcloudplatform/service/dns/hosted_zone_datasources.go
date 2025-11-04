@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/dns/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -145,6 +145,14 @@ func (d *dnsHostedZoneDataSources) Schema(_ context.Context, _ datasource.Schema
 							Description: "PoolId",
 							Optional:    true,
 						},
+						common.ToSnakeCase("PrivateDnsId"): schema.StringAttribute{
+							Description: "PrivateDnsId",
+							Optional:    true,
+						},
+						common.ToSnakeCase("PrivateDnsName"): schema.StringAttribute{
+							Description: "PrivateDnsName",
+							Optional:    true,
+						},
 						common.ToSnakeCase("ProjectId"): schema.StringAttribute{
 							Description: "ProjectId",
 							Optional:    true,
@@ -229,7 +237,7 @@ func (d *dnsHostedZoneDataSources) Read(ctx context.Context, req datasource.Read
 	}
 
 	for _, hostedZone := range data.HostedZones {
-		hostedZoneState := convertHostedZone(hostedZone)
+		hostedZoneState := convertHostedZoneShowResponseV1Dot2ToHostedZone(convertHostedZoneV1Dot2ToHostedZoneShowResponseV1Dot2(hostedZone))
 
 		state.HostedZones = append(state.HostedZones, hostedZoneState)
 
@@ -243,11 +251,18 @@ func (d *dnsHostedZoneDataSources) Read(ctx context.Context, req datasource.Read
 
 }
 
-func convertHostedZone(hostedZone scpdns.HostedZone) dns.HostedZone {
+func convertHostedZoneV1Dot2ToHostedZoneShowResponseV1Dot2(hostedZoneV1Dot2 scpdns.HostedZoneV1Dot2) scpdns.HostedZoneShowResponseV1Dot2 {
+	hostedZoneShowResponseV1Dot2 := scpdns.HostedZoneShowResponseV1Dot2{}
+	data, _ := json.Marshal(hostedZoneV1Dot2)
+	json.Unmarshal(data, &hostedZoneShowResponseV1Dot2)
+	return hostedZoneShowResponseV1Dot2
+}
+
+func convertHostedZoneShowResponseV1Dot2ToHostedZone(hostedZoneShowResponseV1Dot2 scpdns.HostedZoneShowResponseV1Dot2) dns.HostedZone {
 
 	var attributes *dns.Attributes
-	if hostedZone.Attributes != nil {
-		serviceTier, ok := hostedZone.Attributes["service_tier"].(string)
+	if hostedZoneShowResponseV1Dot2.Attributes != nil {
+		serviceTier, ok := hostedZoneShowResponseV1Dot2.Attributes["service_tier"].(string)
 		if ok {
 			attributes = &dns.Attributes{
 				ServiceTier: types.StringValue(serviceTier),
@@ -256,8 +271,8 @@ func convertHostedZone(hostedZone scpdns.HostedZone) dns.HostedZone {
 	}
 
 	var links *dns.Links
-	if hostedZone.Links != nil {
-		self, ok := hostedZone.Links["self"].(string)
+	if hostedZoneShowResponseV1Dot2.Links != nil {
+		self, ok := hostedZoneShowResponseV1Dot2.Links["self"].(string)
 		if ok {
 			links = &dns.Links{
 				Self: types.StringValue(self),
@@ -266,59 +281,84 @@ func convertHostedZone(hostedZone scpdns.HostedZone) dns.HostedZone {
 	}
 
 	// Masters 슬라이스 변환
-	masters := make([]types.String, len(hostedZone.Masters))
-	for i, s := range hostedZone.Masters {
+	masters := make([]types.String, len(hostedZoneShowResponseV1Dot2.Masters))
+	for i, s := range hostedZoneShowResponseV1Dot2.Masters {
 		masters[i] = types.StringValue(s)
 	}
 
 	return dns.HostedZone{
-		Action:         types.StringValue(hostedZone.Action),
+		Action:         types.StringValue(hostedZoneShowResponseV1Dot2.Action),
 		Attributes:     attributes,
-		CreatedAt:      virtualserverutil.ToNullableStringValue(hostedZone.CreatedAt.Get()),
-		Description:    virtualserverutil.ToNullableStringValue(hostedZone.Description.Get()),
-		Email:          types.StringValue(hostedZone.Email),
-		HostedZoneType: virtualserverutil.ToNullableStringValue(hostedZone.HostedZoneType.Get()),
-		Id:             types.StringValue(hostedZone.Id),
+		CreatedAt:      virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.CreatedAt.Get()),
+		Description:    virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.Description.Get()),
+		Email:          types.StringValue(hostedZoneShowResponseV1Dot2.Email),
+		HostedZoneType: virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.HostedZoneType.Get()),
+		Id:             types.StringValue(hostedZoneShowResponseV1Dot2.Id),
 		Links:          links,
 		Masters:        masters,
-		Name:           types.StringValue(hostedZone.Name),
-		PoolId:         types.StringValue(hostedZone.PoolId),
-		ProjectId:      types.StringValue(hostedZone.ProjectId),
-		Serial:         types.Int32Value(hostedZone.Serial),
-		Shared:         common.ToNullableBoolValue(hostedZone.Shared.Get()),
-		Status:         types.StringValue(hostedZone.Status),
-		TransferredAt:  virtualserverutil.ToNullableStringValue(hostedZone.TransferredAt.Get()),
-		Ttl:            common.ToNullableInt32Value(hostedZone.Ttl.Get()),
-		Type:           virtualserverutil.ToNullableStringValue(hostedZone.Type.Get()),
-		UpdatedAt:      virtualserverutil.ToNullableStringValue(hostedZone.UpdatedAt.Get()),
-		Version:        common.ToNullableInt32Value(hostedZone.Version.Get()),
+		Name:           types.StringValue(hostedZoneShowResponseV1Dot2.Name),
+		PoolId:         types.StringValue(hostedZoneShowResponseV1Dot2.PoolId),
+		PrivateDnsId:   virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.PrivateDnsId.Get()),
+		PrivateDnsName: virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.PrivateDnsName.Get()),
+		ProjectId:      types.StringValue(hostedZoneShowResponseV1Dot2.ProjectId),
+		Serial:         types.Int32Value(hostedZoneShowResponseV1Dot2.Serial),
+		Shared:         common.ToNullableBoolValue(hostedZoneShowResponseV1Dot2.Shared.Get()),
+		Status:         types.StringValue(hostedZoneShowResponseV1Dot2.Status),
+		TransferredAt:  virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.TransferredAt.Get()),
+		Ttl:            common.ToNullableInt32Value(hostedZoneShowResponseV1Dot2.Ttl.Get()),
+		Type:           virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.Type.Get()),
+		UpdatedAt:      virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.UpdatedAt.Get()),
+		Version:        common.ToNullableInt32Value(hostedZoneShowResponseV1Dot2.Version.Get()),
 	}
 }
 
-func convertHostedZoneShowResponseToHostedZone(a scpdns.HostedZoneShowResponse) scpdns.HostedZone {
-	b := scpdns.HostedZone{}
-	data, _ := json.Marshal(a)
-	json.Unmarshal(data, &b)
-	return b
-}
+func convertHostedZoneDeleteResponseToHostedZone(hostedZoneDeleteResponse scpdns.HostedZoneDeleteResponse) dns.HostedZone {
+	var attributes *dns.Attributes
+	if hostedZoneDeleteResponse.Attributes != nil {
+		serviceTier, ok := hostedZoneDeleteResponse.Attributes["service_tier"].(string)
+		if ok {
+			attributes = &dns.Attributes{
+				ServiceTier: types.StringValue(serviceTier),
+			}
+		}
+	}
 
-func convertHostedZoneCreateResponseToHostedZone(a scpdns.HostedZoneCreateResponse) scpdns.HostedZone {
-	b := scpdns.HostedZone{}
-	data, _ := json.Marshal(a)
-	json.Unmarshal(data, &b)
-	return b
-}
+	var links *dns.Links
+	if hostedZoneDeleteResponse.Links != nil {
+		self, ok := hostedZoneDeleteResponse.Links["self"].(string)
+		if ok {
+			links = &dns.Links{
+				Self: types.StringValue(self),
+			}
+		}
+	}
 
-func convertHostedZoneSetResponseToHostedZone(a scpdns.HostedZoneSetResponse) scpdns.HostedZone {
-	b := scpdns.HostedZone{}
-	data, _ := json.Marshal(a)
-	json.Unmarshal(data, &b)
-	return b
-}
+	// Masters 슬라이스 변환
+	masters := make([]types.String, len(hostedZoneDeleteResponse.Masters))
+	for i, s := range hostedZoneDeleteResponse.Masters {
+		masters[i] = types.StringValue(s)
+	}
 
-func convertHostedZoneDeleteResponseToHostedZone(a scpdns.HostedZoneDeleteResponse) scpdns.HostedZone {
-	b := scpdns.HostedZone{}
-	data, _ := json.Marshal(a)
-	json.Unmarshal(data, &b)
-	return b
+	return dns.HostedZone{
+		Action:         types.StringValue(hostedZoneDeleteResponse.Action),
+		Attributes:     attributes,
+		CreatedAt:      virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.CreatedAt.Get()),
+		Description:    virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.Description.Get()),
+		Email:          types.StringValue(hostedZoneDeleteResponse.Email),
+		HostedZoneType: virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.HostedZoneType.Get()),
+		Id:             types.StringValue(hostedZoneDeleteResponse.Id),
+		Links:          links,
+		Masters:        masters,
+		Name:           types.StringValue(hostedZoneDeleteResponse.Name),
+		PoolId:         types.StringValue(hostedZoneDeleteResponse.PoolId),
+		ProjectId:      types.StringValue(hostedZoneDeleteResponse.ProjectId),
+		Serial:         types.Int32Value(hostedZoneDeleteResponse.Serial),
+		Shared:         common.ToNullableBoolValue(hostedZoneDeleteResponse.Shared.Get()),
+		Status:         types.StringValue(hostedZoneDeleteResponse.Status),
+		TransferredAt:  virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.TransferredAt.Get()),
+		Ttl:            common.ToNullableInt32Value(hostedZoneDeleteResponse.Ttl.Get()),
+		Type:           virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.Type.Get()),
+		UpdatedAt:      virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.UpdatedAt.Get()),
+		Version:        common.ToNullableInt32Value(hostedZoneDeleteResponse.Version.Get()),
+	}
 }

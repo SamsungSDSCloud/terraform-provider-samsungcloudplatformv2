@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sort"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpiam1d0 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/iam/1.0"
-	scpiam1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/iam/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpiam1d0 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.0"
+	scpiam1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )

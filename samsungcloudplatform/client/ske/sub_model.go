@@ -43,12 +43,12 @@ type NameMapType struct {
 	Name types.String `tfsdk:"name"`
 }
 
-type Labels struct {
+type Label struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
 }
 
-type Taints struct {
+type Taint struct {
 	Effect types.String `tfsdk:"effect"`
 	Key    types.String `tfsdk:"key"`
 	Value  types.String `tfsdk:"value"`

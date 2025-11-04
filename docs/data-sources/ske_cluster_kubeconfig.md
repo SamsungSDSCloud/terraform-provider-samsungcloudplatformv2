@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_ske_cluster_kubeconfig Data Source - samsungcloudplatformv2"
-subcategory: Kubernetes Engine Cluster Kubeconfig
+subcategory: Kubernetes Engine
 description: |-
   Cluster Kubeconfig
 ---

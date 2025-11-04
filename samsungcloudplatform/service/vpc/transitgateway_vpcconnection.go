@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/vpc/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -57,7 +57,7 @@ func (r *vpcTgwVpcConnectionResource) Configure(ctx context.Context, req resourc
 }
 
 func (v vpcTgwVpcConnectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vpc_transitgateway_vpcconnection"
+	resp.TypeName = req.ProviderTypeName + "_vpc_transit_gateway_vpc_connection"
 }
 
 func (v *vpcTgwVpcConnectionResource) Schema(ctx context.Context, request resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -77,7 +77,7 @@ func (v *vpcTgwVpcConnectionResource) Schema(ctx context.Context, request resour
 			},
 			common.ToSnakeCase("TransitGatewayId"): schema.StringAttribute{
 				Description: "TransitGateway Id",
-				Optional:    true,
+				Required:    true,
 			},
 			common.ToSnakeCase("TransitGatewayVpcConnection"): schema.SingleNestedAttribute{
 				Description: "transit gateway vpc connection",

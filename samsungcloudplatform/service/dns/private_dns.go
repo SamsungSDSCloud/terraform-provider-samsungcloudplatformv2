@@ -3,13 +3,13 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/dns/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.2"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -187,30 +187,21 @@ func (r *dnsPrivateDnsResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	var inActivePrivateDns *scpdns.PrivateDns
-
-	for _, privateDns := range listData.PrivateDns {
-		if privateDns.State == "INACTIVE" {
-			inActivePrivateDns = &privateDns
-		}
-	}
-
-	if inActivePrivateDns != nil && inActivePrivateDns.Name != plan.PrivateDnsCreate.Name.ValueString() {
-		// ERROR
-		resp.Diagnostics.AddError(
-			"Error create Private DNS",
-			"Activate the DNS in an inactive state. Request with the same name as the inactive DNS("+inActivePrivateDns.Name+").",
-		)
-		return
-	}
-
 	var data *scpdns.PrivateDnsShowResponse
 	var err error
 
-	if inActivePrivateDns != nil && inActivePrivateDns.Name == plan.PrivateDnsCreate.Name.ValueString() {
-		// ACTIVATE
-		data, err = r.client.ActivatePrivateDns(ctx, plan)
-	} else {
+	isActivated := false
+
+	for _, privateDns := range listData.PrivateDns {
+		if privateDns.State == "INACTIVE" && privateDns.Name == plan.PrivateDnsCreate.Name.ValueString() {
+			// ACTIVATE
+			data, err = r.client.ActivatePrivateDns(ctx, plan)
+			isActivated = true
+			break
+		}
+	}
+
+	if !isActivated {
 		// CREATE
 		data, err = r.client.CreatePrivateDns(ctx, plan)
 	}

@@ -1,8 +1,9 @@
 category:
-  ske_cluster: Kubernetes Engine Cluster
-  ske_clusters: Kubernetes Engine Cluster
-  ske_cluster_kubeconfig: Kubernetes Engine Cluster Kubeconfig
-  ske_kubernetes_versions: Kubernetes Engine Version
-  ske_nodepool: Kubernetes Engine Nodepool
-  ske_nodepools: Kubernetes Engine Nodepool
-  ske_nodepoolnodes: Kubernetes Engine Nodepool Node
+  ske_cluster: Kubernetes Engine
+  ske_clusters: Kubernetes Engine
+  ske_cluster_kubeconfig: Kubernetes Engine
+  ske_cluster_user_kubeconfig: Kubernetes Engine
+  ske_kubernetes_versions: Kubernetes Engine
+  ske_nodepool: Kubernetes Engine
+  ske_nodepools: Kubernetes Engine
+  ske_nodepoolnodes: Kubernetes Engine

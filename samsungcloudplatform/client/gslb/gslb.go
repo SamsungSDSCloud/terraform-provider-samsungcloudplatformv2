@@ -2,8 +2,8 @@ package gslb
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/gslb/1.0" // terraform-sdk-samsungcloudplatformv2 에서 resourcemanager 라이브러리를 import 한다.
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/gslb/1.0" // terraform-sdk-samsungcloudplatformv2 에서 resourcemanager 라이브러리를 import 한다.
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

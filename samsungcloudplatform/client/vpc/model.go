@@ -1,7 +1,7 @@
 package vpc
 
 import (
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/vpc/1.0"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -593,18 +593,8 @@ type TgwDataSource struct {
 }
 
 type TgwDataSourceDetail struct {
-	Id            types.String `tfsdk:"id"`
-	Description   types.String `tfsdk:"description"`
-	Name          types.String `tfsdk:"name"`
-	AccountId     types.String `tfsdk:"account_id"`
-	Bandwidth     types.Int32  `tfsdk:"bandwidth"`
-	CreatedAt     types.String `tfsdk:"created_at"`
-	CreatedBy     types.String `tfsdk:"created_by"`
-	FirewallIds   types.String `tfsdk:"firewall_ids"`
-	ModifiedAt    types.String `tfsdk:"modified_at"`
-	ModifiedBy    types.String `tfsdk:"modified_by"`
-	State         types.String `tfsdk:"state"`
-	UplinkEnabled types.Bool   `tfsdk:"uplink_enabled"`
+	Id             types.String `tfsdk:"id"`
+	TransitGateway types.Object `tfsdk:"transit_gateway"`
 }
 
 type Tgw struct {
@@ -712,17 +702,7 @@ type VpcPeeringRuleResource struct {
 	Tags               types.Map    `tfsdk:"tags"`                 // Tag List
 
 	// Output
-	Id                 types.String `tfsdk:"id"`                   // VPC Peering Rule ID
-	CreatedAt          types.String `tfsdk:"created_at"`           // Created At
-	CreatedBy          types.String `tfsdk:"created_by"`           // Created By
-	DestinationVpcId   types.String `tfsdk:"destination_vpc_id"`   // Destination VPC ID
-	DestinationVpcName types.String `tfsdk:"destination_vpc_name"` // Destination VPC Name
-	ModifiedAt         types.String `tfsdk:"modified_at"`          // Modified At
-	ModifiedBy         types.String `tfsdk:"modified_by"`          // Modified By
-	SourceVpcId        types.String `tfsdk:"source_vpc_id"`        // Source VPC ID
-	SourceVpcName      types.String `tfsdk:"source_vpc_name"`      // Source VPC Name
-	SourceVpcType      types.String `tfsdk:"source_vpc_type"`      // Source VPC Type
-	State              types.String `tfsdk:"state"`                // State
+	VpcPeeringRule types.Object `tfsdk:"vpc_peering_rule"`
 }
 
 type VpcPeeringRule struct {
@@ -741,6 +721,27 @@ type VpcPeeringRule struct {
 	State              types.String `tfsdk:"state"`                // State
 	VpcPeeringId       types.String `tfsdk:"vpc_peering_id"`       // VPC Peering ID
 }
+
+func (m VpcPeeringRule) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"created_at":           types.StringType,
+		"created_by":           types.StringType,
+		"destination_cidr":     types.StringType,
+		"destination_vpc_id":   types.StringType,
+		"destination_vpc_name": types.StringType,
+		"destination_vpc_type": types.StringType,
+		"id":                   types.StringType,
+		"modified_at":          types.StringType,
+		"modified_by":          types.StringType,
+		"source_vpc_id":        types.StringType,
+		"source_vpc_name":      types.StringType,
+		"source_vpc_type":      types.StringType,
+		"state":                types.StringType,
+		"vpc_peering_id":       types.StringType,
+	}
+}
+
+// end VPC PEERING RULE
 
 func (m RoutingRule) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{

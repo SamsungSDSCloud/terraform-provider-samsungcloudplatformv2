@@ -72,6 +72,7 @@ Optional:
 - `description` (String) Description
 - `email` (String) Email
 - `name` (String) Name
+- `private_dns_id` (String) PrivateDnsId
 - `type` (String) Type
 
 
@@ -91,6 +92,8 @@ Optional:
 - `masters` (List of String) Masters
 - `name` (String) Name
 - `pool_id` (String) PoolId
+- `private_dns_id` (String) PrivateDnsId
+- `private_dns_name` (String) PrivateDnsName
 - `project_id` (String) ProjectId
 - `serial` (Number) Serial
 - `shared` (Boolean) Shared

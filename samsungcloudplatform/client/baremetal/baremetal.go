@@ -2,8 +2,8 @@ package baremetal
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpbaremetal1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/baremetal/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpbaremetal1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/baremetal/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"math"
 	"net/http"

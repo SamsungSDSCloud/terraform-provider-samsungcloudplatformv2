@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_ske_kubernetes_versions Data Source - samsungcloudplatformv2"
-subcategory: Kubernetes Engine Version
+subcategory: Kubernetes Engine
 description: |-
   Kubernetes Version List
 ---

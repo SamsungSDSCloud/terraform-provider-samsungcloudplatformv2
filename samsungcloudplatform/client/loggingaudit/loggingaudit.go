@@ -2,8 +2,8 @@ package loggingaudit
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/loggingaudit/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loggingaudit/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 

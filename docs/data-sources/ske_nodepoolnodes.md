@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_ske_nodepoolnodes Data Source - samsungcloudplatformv2"
-subcategory: Kubernetes Engine Nodepool Node
+subcategory: Kubernetes Engine
 description: |-
   list of nodepoolnode.
 ---

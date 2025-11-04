@@ -2,7 +2,7 @@ package testcli
 
 import (
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/internal/test"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/internal/test"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"

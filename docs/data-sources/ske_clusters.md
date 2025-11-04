@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_ske_clusters Data Source - samsungcloudplatformv2"
-subcategory: Kubernetes Engine Cluster
+subcategory: Kubernetes Engine
 description: |-
   list of cluster.
 ---

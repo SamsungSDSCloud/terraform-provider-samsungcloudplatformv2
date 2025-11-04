@@ -3,11 +3,12 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/ske/converter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,7 +44,7 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "Id",
-				Optional:    true,
+				Required:    true,
 			},
 			common.ToSnakeCase("Nodepool"): schema.SingleNestedAttribute{
 				Description: "Nodepool",
@@ -263,17 +264,7 @@ func (d *skeNodepoolDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	var labels []ske.Labels
-	for _, label := range data.Nodepool.Labels {
-		labels = append(labels, d.makeNodepoolLabelsModel((*scpske.NodepoolLabel)(&label)))
-	}
-
-	var taints []ske.Taints
-	for _, taint := range data.Nodepool.Taints {
-		taints = append(taints, d.makeNodepoolTaintsModel((*scpske.NodepoolTaint)(&taint)))
-	}
-
-	nodepoolModel := ske.NodepoolDetail{
+	nodepoolModel := ske.Nodepool{
 		Id:                  types.StringPointerValue(data.Nodepool.Id),
 		Name:                types.StringPointerValue(data.Nodepool.Name),
 		AccountId:           types.StringPointerValue(data.Nodepool.AccountId),
@@ -293,8 +284,8 @@ func (d *skeNodepoolDataSource) Read(ctx context.Context, req datasource.ReadReq
 			Name: types.StringPointerValue(data.Nodepool.Keypair.Name),
 		},
 		KubernetesVersion: types.StringPointerValue(data.Nodepool.KubernetesVersion),
-		Labels:            labels,
-		Taints:            taints,
+		Labels:            converter.MakeNodepoolLabelsModel(data.Nodepool.Labels),
+		Taints:            converter.MakeNodepoolTaintsModel(data.Nodepool.Taints),
 		MaxNodeCount:      types.Int32PointerValue(data.Nodepool.MaxNodeCount),
 		MinNodeCount:      types.Int32PointerValue(data.Nodepool.MinNodeCount),
 		ServerType: ske.ServerType{
@@ -313,7 +304,7 @@ func (d *skeNodepoolDataSource) Read(ctx context.Context, req datasource.ReadReq
 		ModifiedAt:       types.StringValue(data.Nodepool.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:       types.StringValue(data.Nodepool.ModifiedBy),
 		ServerGroupId:    types.StringPointerValue(data.Nodepool.ServerGroupId.Get()),
-		AdvancedSettings: d.makeNodepoolAdvancedSettingsModel(data.Nodepool.AdvancedSettings),
+		AdvancedSettings: converter.MakeNodepoolAdvancedSettingsModel(data.Nodepool.AdvancedSettings),
 	}
 	nodepoolObjectValue, diags := types.ObjectValueFrom(ctx, nodepoolModel.AttributeTypes(), nodepoolModel)
 	state.Nodepool = nodepoolObjectValue
@@ -331,36 +322,6 @@ func (d *skeNodepoolDataSource) makeExternalResourceModel(externalResource *scps
 		Id:   types.StringValue(externalResource.GetId()),
 		Name: types.StringValue(externalResource.GetName()),
 	}
-}
-func (d *skeNodepoolDataSource) makeNodepoolLabelsModel(nodepoolLabels *scpske.NodepoolLabel) ske.Labels {
-	return ske.Labels{
-		Key:   types.StringValue(nodepoolLabels.GetKey()),
-		Value: types.StringValue(nodepoolLabels.GetValue()),
-	}
-}
-
-func (d *skeNodepoolDataSource) makeNodepoolTaintsModel(nodepoolTaints *scpske.NodepoolTaint) ske.Taints {
-	return ske.Taints{
-		Effect: types.StringValue(string(nodepoolTaints.GetEffect())),
-		Key:    types.StringValue(nodepoolTaints.GetKey()),
-		Value:  types.StringValue(nodepoolTaints.GetValue()),
-	}
-}
-
-func (d *skeNodepoolDataSource) makeNodepoolAdvancedSettingsModel(advancedSettings scpske.NullableNodepoolAdvancedSettings) *ske.AdvancedSettings {
-	value := advancedSettings.Get()
-	if value != nil {
-		return &ske.AdvancedSettings{
-			AllowedUnsafeSysctls: types.StringValue(value.AllowedUnsafeSysctls),
-			ContainerLogMaxFiles: types.Int32Value(value.ContainerLogMaxFiles),
-			ContainerLogMaxSize:  types.Int32Value(value.ContainerLogMaxSize),
-			ImageGcHighThreshold: types.Int32Value(value.ImageGcHighThreshold),
-			ImageGcLowThreshold:  types.Int32Value(value.ImageGcLowThreshold),
-			MaxPods:              types.Int32Value(value.MaxPods),
-			PodMaxPids:           types.Int32Value(value.PodMaxPids),
-		}
-	}
-	return nil
 }
 
 //// datasource.DataSourceWithConfigure Interface Methods

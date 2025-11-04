@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_ske_nodepool Resource - samsungcloudplatformv2"
-subcategory: Kubernetes Engine Nodepool
+subcategory: Kubernetes Engine
 description: |-
   nodepool
 ---
@@ -195,7 +195,7 @@ variable "advanced_settings" {
 
 - `id` (String) Identifier of the resource.
 - `last_updated` (String) Timestamp of the last Terraform update of the nodepool
-- `nodepool_detail` (Attributes) NodepoolDetail (see [below for nested schema](#nestedatt--nodepool_detail))
+- `nodepool` (Attributes) Nodepool (see [below for nested schema](#nestedatt--nodepool))
 
 <a id="nestedatt--advanced_settings"></a>
 ### Nested Schema for `advanced_settings`
@@ -236,12 +236,12 @@ Optional:
 - `value` (String) Value
 
 
-<a id="nestedatt--nodepool_detail"></a>
-### Nested Schema for `nodepool_detail`
+<a id="nestedatt--nodepool"></a>
+### Nested Schema for `nodepool`
 
 Optional:
 
-- `advanced_settings` (Attributes) AdvancedSettings (see [below for nested schema](#nestedatt--nodepool_detail--advanced_settings))
+- `advanced_settings` (Attributes) AdvancedSettings (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
 - `server_group_id` (String) ServerGroupId
 
 Read-Only:
@@ -249,29 +249,29 @@ Read-Only:
 - `account_id` (String) account id
 - `auto_recovery_enabled` (Boolean) AutoRecoveryEnabled
 - `auto_scale_enabled` (Boolean) AutoScaleEnabled
-- `cluster` (Attributes) Cluster (see [below for nested schema](#nestedatt--nodepool_detail--cluster))
+- `cluster` (Attributes) Cluster (see [below for nested schema](#nestedatt--nodepool--cluster))
 - `created_at` (String) CreatedAt
 - `created_by` (String) CreatedBy
 - `current_node_count` (Number) CurrentNodeCount
 - `desired_node_count` (Number) DesiredNodeCount
 - `id` (String) id
-- `image` (Attributes) Image (see [below for nested schema](#nestedatt--nodepool_detail--image))
-- `keypair` (Attributes) Keypair (see [below for nested schema](#nestedatt--nodepool_detail--keypair))
+- `image` (Attributes) Image (see [below for nested schema](#nestedatt--nodepool--image))
+- `keypair` (Attributes) Keypair (see [below for nested schema](#nestedatt--nodepool--keypair))
 - `kubernetes_version` (String) KubernetesVersion
-- `labels` (Attributes List) Labels (see [below for nested schema](#nestedatt--nodepool_detail--labels))
+- `labels` (Attributes List) Labels (see [below for nested schema](#nestedatt--nodepool--labels))
 - `max_node_count` (Number) MaxNodeCount
 - `min_node_count` (Number) MinNodeCount
 - `modified_at` (String) ModifiedAt
 - `modified_by` (String) ModifiedBy
 - `name` (String) name
-- `server_type` (Attributes) ServerType (see [below for nested schema](#nestedatt--nodepool_detail--server_type))
+- `server_type` (Attributes) ServerType (see [below for nested schema](#nestedatt--nodepool--server_type))
 - `status` (String) Status
-- `taints` (Attributes List) Taints (see [below for nested schema](#nestedatt--nodepool_detail--taints))
+- `taints` (Attributes List) Taints (see [below for nested schema](#nestedatt--nodepool--taints))
 - `volume_size` (Number) VolumeSize
-- `volume_type` (Attributes) VolumeType (see [below for nested schema](#nestedatt--nodepool_detail--volume_type))
+- `volume_type` (Attributes) VolumeType (see [below for nested schema](#nestedatt--nodepool--volume_type))
 
-<a id="nestedatt--nodepool_detail--advanced_settings"></a>
-### Nested Schema for `nodepool_detail.advanced_settings`
+<a id="nestedatt--nodepool--advanced_settings"></a>
+### Nested Schema for `nodepool.advanced_settings`
 
 Read-Only:
 
@@ -284,16 +284,16 @@ Read-Only:
 - `pod_max_pids` (Number) PodMaxPids
 
 
-<a id="nestedatt--nodepool_detail--cluster"></a>
-### Nested Schema for `nodepool_detail.cluster`
+<a id="nestedatt--nodepool--cluster"></a>
+### Nested Schema for `nodepool.cluster`
 
 Read-Only:
 
 - `id` (String) Id
 
 
-<a id="nestedatt--nodepool_detail--image"></a>
-### Nested Schema for `nodepool_detail.image`
+<a id="nestedatt--nodepool--image"></a>
+### Nested Schema for `nodepool.image`
 
 Read-Only:
 
@@ -302,16 +302,16 @@ Read-Only:
 - `os_version` (String) OsVersion
 
 
-<a id="nestedatt--nodepool_detail--keypair"></a>
-### Nested Schema for `nodepool_detail.keypair`
+<a id="nestedatt--nodepool--keypair"></a>
+### Nested Schema for `nodepool.keypair`
 
 Read-Only:
 
 - `name` (String) Name
 
 
-<a id="nestedatt--nodepool_detail--labels"></a>
-### Nested Schema for `nodepool_detail.labels`
+<a id="nestedatt--nodepool--labels"></a>
+### Nested Schema for `nodepool.labels`
 
 Read-Only:
 
@@ -319,8 +319,8 @@ Read-Only:
 - `value` (String) Value
 
 
-<a id="nestedatt--nodepool_detail--server_type"></a>
-### Nested Schema for `nodepool_detail.server_type`
+<a id="nestedatt--nodepool--server_type"></a>
+### Nested Schema for `nodepool.server_type`
 
 Read-Only:
 
@@ -328,8 +328,8 @@ Read-Only:
 - `id` (String) Id
 
 
-<a id="nestedatt--nodepool_detail--taints"></a>
-### Nested Schema for `nodepool_detail.taints`
+<a id="nestedatt--nodepool--taints"></a>
+### Nested Schema for `nodepool.taints`
 
 Read-Only:
 
@@ -338,8 +338,8 @@ Read-Only:
 - `value` (String) Value
 
 
-<a id="nestedatt--nodepool_detail--volume_type"></a>
-### Nested Schema for `nodepool_detail.volume_type`
+<a id="nestedatt--nodepool--volume_type"></a>
+### Nested Schema for `nodepool.volume_type`
 
 Read-Only:
 

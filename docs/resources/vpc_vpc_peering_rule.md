@@ -1,13 +1,13 @@
 ---
 page_title: "samsungcloudplatformv2_vpc_vpc_peering_rule Resource - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_vpc_vpc_peering_rule
+subcategory: VPC
 description: |-
-  VPC Peering Rule Resource
+  VPC Peering Rule
 ---
 
 # samsungcloudplatformv2_vpc_vpc_peering_rule (Resource)
 
-VPC Peering Rule Resource
+VPC Peering Rule
 
 ## Example Usage
 
@@ -19,12 +19,14 @@ resource "samsungcloudplatformv2_vpc_vpc_peering_rule" "create_peering_rule" {
   vpc_peering_id        = var.vpc_peering_id
   destination_cidr      = var.destination_cidr
   destination_vpc_type  = var.destination_vpc_type
-  tags                  = var.tags != null ? var.tags : null
+  tags                  = var.tags
 }
 
 
 output "vpcpeeringrule_output" {
-  value = samsungcloudplatformv2_vpc_vpc_peering_rule.create_peering_rule
+  value = {
+    vpc_peering_rule: samsungcloudplatformv2_vpc_vpc_peering_rule.create_peering_rule.vpc_peering_rule
+  }
 }
 
 
@@ -56,7 +58,10 @@ variable "tags" {
 ### Required
 
 - `destination_cidr` (String) Destination CIDR
-- `destination_vpc_type` (String) Destination VPC Type
+  - Example : 192.168.1.0/24
+- `destination_vpc_type` (String) Destination VPC Type 
+  - Example : REQUESTER_VPC | APPROVER_VPC
+  - Reference : VpcPeeringRuleDestinationVpcType
 - `vpc_peering_id` (String) VPC Peering ID
 
 ### Optional
@@ -67,14 +72,34 @@ variable "tags" {
 
 ### Read-Only
 
+- `vpc_peering_rule` (Attributes) VPC Peering Rule details (see [below for nested schema](#nestedatt--vpc_peering_rule))
+
+<a id="nestedatt--vpc_peering_rule"></a>
+### Nested Schema for `vpc_peering_rule`
+
+Read-Only:
+
 - `created_at` (String) Created At
+  - Example : 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
+  - Example : 90dddfc2b1e04edba54ba2b41539a9ac
+- `destination_cidr` (String) Destination CIDR
 - `destination_vpc_id` (String) Destination VPC ID
 - `destination_vpc_name` (String) Destination VPC Name
+- `destination_vpc_type` (String) Destination VPC Type
+  - Example : REQUESTER_VPC | APPROVER_VPC
+  - Reference : VpcPeeringRuleDestinationVpcType
 - `id` (String) VPC Peering Rule ID
 - `modified_at` (String) Modified At
+  - Example : 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
+  - Example : 90dddfc2b1e04edba54ba2b41539a9ac
 - `source_vpc_id` (String) Source VPC ID
 - `source_vpc_name` (String) Source VPC Name
 - `source_vpc_type` (String) Source VPC Type
+  - Example : REQUESTER_VPC | APPROVER_VPC
+  - Reference : VpcPeeringRuleDestinationVpcType
 - `state` (String) State
+  - Example : CREATING | ACTIVE | DELETING | DELETED | ERROR
+  - Reference : RoutingRuleState
+- `vpc_peering_id` (String) VPC Peering ID

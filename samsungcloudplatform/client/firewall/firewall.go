@@ -3,8 +3,8 @@ package firewall
 import (
 	"context"
 	"fmt"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/firewall/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/firewall/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

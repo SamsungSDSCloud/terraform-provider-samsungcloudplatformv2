@@ -215,6 +215,8 @@ type HostedZone struct {
 	Masters        []types.String `tfsdk:"masters"`
 	Name           types.String   `tfsdk:"name"`
 	PoolId         types.String   `tfsdk:"pool_id"`
+	PrivateDnsId   types.String   `tfsdk:"private_dns_id"`
+	PrivateDnsName types.String   `tfsdk:"private_dns_name"`
 	ProjectId      types.String   `tfsdk:"project_id"`
 	Serial         types.Int32    `tfsdk:"serial"`
 	Shared         types.Bool     `tfsdk:"shared"`
@@ -252,19 +254,21 @@ func (m HostedZone) AttributeTypes() map[string]attr.Type {
 		"links": types.ObjectType{AttrTypes: map[string]attr.Type{
 			"self": types.StringType,
 		}},
-		"id":             types.StringType,
-		"masters":        types.ListType{ElemType: types.StringType},
-		"name":           types.StringType,
-		"pool_id":        types.StringType,
-		"project_id":     types.StringType,
-		"serial":         types.Int32Type,
-		"shared":         types.BoolType,
-		"status":         types.StringType,
-		"transferred_at": types.StringType,
-		"ttl":            types.Int32Type,
-		"type":           types.StringType,
-		"updated_at":     types.StringType,
-		"version":        types.Int32Type,
+		"id":               types.StringType,
+		"masters":          types.ListType{ElemType: types.StringType},
+		"name":             types.StringType,
+		"pool_id":          types.StringType,
+		"private_dns_id":   types.StringType,
+		"private_dns_name": types.StringType,
+		"project_id":       types.StringType,
+		"serial":           types.Int32Type,
+		"shared":           types.BoolType,
+		"status":           types.StringType,
+		"transferred_at":   types.StringType,
+		"ttl":              types.Int32Type,
+		"type":             types.StringType,
+		"updated_at":       types.StringType,
+		"version":          types.Int32Type,
 	}
 }
 
@@ -276,10 +280,11 @@ type HostedZoneResource struct {
 }
 
 type HostedZoneCreate struct {
-	Description types.String `tfsdk:"description"`
-	Email       types.String `tfsdk:"email"`
-	Name        types.String `tfsdk:"name"`
-	Type        types.String `tfsdk:"type"`
+	Description  types.String `tfsdk:"description"`
+	Email        types.String `tfsdk:"email"`
+	Name         types.String `tfsdk:"name"`
+	PrivateDnsId types.String `tfsdk:"private_dns_id"`
+	Type         types.String `tfsdk:"type"`
 }
 
 type RecordDataSource struct { // Resource Group List request 모델을 참고하여 구조체를 구성한다.

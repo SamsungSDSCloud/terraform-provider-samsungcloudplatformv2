@@ -3,13 +3,13 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/ske/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -408,6 +408,10 @@ func (r *skeClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	if err != nil {
 		return
 	}
+	err = r.syncTags(ctx, state, &plan, resp)
+	if err != nil {
+		return
+	}
 
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -567,6 +571,32 @@ func (r *skeClusterResource) syncServiceWatchLoggingEnabled(ctx context.Context,
 	return nil
 }
 
+func (r *skeClusterResource) syncTags(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
+	if plan.Tags.Equal(state.Tags) {
+		return nil
+	}
+	_, err := tag.UpdateTags(r.clients, "ske", "cluster", plan.Id.ValueString(), plan.Tags.Elements())
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Updating Tags",
+			"Could not update tags, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return err
+	}
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Cluster",
+			"Error waiting for cluster to become running: "+err.Error(),
+		)
+		return err
+	}
+	plan.Id = types.StringValue(plan.Id.ValueString())
+	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
+	return nil
+}
+
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *skeClusterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
@@ -659,7 +689,7 @@ func (r *skeClusterResource) makePrivateEndpointAccessControlResourceModel(priva
 	return ske.PrivateEndpointAccessControlResource{
 		Id:   types.StringValue(privateEndpointAccessControlResource.GetId()),
 		Name: types.StringValue(privateEndpointAccessControlResource.GetName()),
-		Type: types.StringValue(privateEndpointAccessControlResource.GetName()),
+		Type: types.StringValue(privateEndpointAccessControlResource.GetType()),
 	}
 }
 

@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/client/vpcv1"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v2/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -38,13 +38,13 @@ type vpcPeeringResource struct {
 
 // Metadata returns the data source type name.
 func (r *vpcPeeringResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vpc_peering"
+	resp.TypeName = req.ProviderTypeName + "_vpc_vpc_peering"
 }
 
 // Schema defines the schema for the data source.
 func (r *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "vpcpeering",
+		Description: "Vpc peering",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
@@ -56,23 +56,23 @@ func (r *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			common.ToSnakeCase("ApproverVpcAccountId"): schema.StringAttribute{
 				Description: "approver_vpc_account_id",
-				Optional:    true,
+				Required:    true,
 			},
 			common.ToSnakeCase("ApproverVpcId"): schema.StringAttribute{
 				Description: "approver_vpc_id",
-				Optional:    true,
+				Required:    true,
 			},
 			common.ToSnakeCase("RequesterVpcId"): schema.StringAttribute{
 				Description: "requester_vpc_id",
-				Optional:    true,
+				Required:    true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "Name",
-				Optional:    true,
+				Required:    true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Description",
-				Required:    true,
+				Optional:    true,
 			},
 			common.ToSnakeCase("VpcPeering"): schema.SingleNestedAttribute{
 				Description: "VpcPeering",
@@ -104,11 +104,11 @@ func (r *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "Description",
-						Optional:    true,
+						Computed:    true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
 						Description: "Id",
-						Optional:    true,
+						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
 						Description: "ModifiedAt",
@@ -120,7 +120,7 @@ func (r *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "Name",
-						Required:    true,
+						Computed:    true,
 					},
 					common.ToSnakeCase("RequesterVpcAccountId"): schema.StringAttribute{
 						Description: "RequesterVpcAccountId",
@@ -136,7 +136,6 @@ func (r *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					},
 					common.ToSnakeCase("DeleteRequesterAccountId"): schema.StringAttribute{
 						Description: "DeleteRequesterAccountId",
-						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/client"
-	scpbilling "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v2/library/billingplan/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpbilling "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/billingplan/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

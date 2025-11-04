@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_ske_cluster Resource - samsungcloudplatformv2"
-subcategory: Kubernetes Engine Cluster
+subcategory: Kubernetes Engine
 description: |-
   cluster
 ---
@@ -26,6 +26,9 @@ resource "samsungcloudplatformv2_ske_cluster" "cluster" {
   private_endpoint_access_control_resources = var.private_endpoint_access_control_resources
   public_endpoint_access_control_ip = var.public_endpoint_access_control_ip
   service_watch_logging_enabled = var.service_watch_logging_enabled
+  tags = {
+      "terraform_key" = "terraform_value"
+  }
 }
 
 

@@ -343,49 +343,23 @@
 				<li><a href='resources/virtualserver_keypair' target='contentFrame'>virtualserver_keypair</a></li>
 			</ul>
 		</div>
-		<p class='category collapsible-header'>Kubernetes Engine Cluster</p>
+		<p class='category collapsible-header'>Kubernetes Engine</p>
 		<div class='collapsible'>
 			<p>Data Sources</p>
 			<ul>
 				<li><a href='data-sources/ske_cluster' target='contentFrame'>ske_cluster</a></li>
-				<li><a href='data-sources/ske_clusters' target='contentFrame'>ske_clusters</a></li>
-			</ul>
-			<p>Resources</p>
-			<ul>
-				<li><a href='resources/ske_cluster' target='contentFrame'>ske_cluster</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>Kubernetes Engine Cluster Kubeconfig</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
 				<li><a href='data-sources/ske_cluster_kubeconfig' target='contentFrame'>ske_cluster_kubeconfig</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>Kubernetes Engine Nodepool</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
+				<li><a href='data-sources/ske_cluster_user_kubeconfig' target='contentFrame'>ske_cluster_user_kubeconfig</a></li>
+				<li><a href='data-sources/ske_clusters' target='contentFrame'>ske_clusters</a></li>
+				<li><a href='data-sources/ske_kubernetes_versions' target='contentFrame'>ske_kubernetes_versions</a></li>
 				<li><a href='data-sources/ske_nodepool' target='contentFrame'>ske_nodepool</a></li>
+				<li><a href='data-sources/ske_nodepoolnodes' target='contentFrame'>ske_nodepoolnodes</a></li>
 				<li><a href='data-sources/ske_nodepools' target='contentFrame'>ske_nodepools</a></li>
 			</ul>
 			<p>Resources</p>
 			<ul>
+				<li><a href='resources/ske_cluster' target='contentFrame'>ske_cluster</a></li>
 				<li><a href='resources/ske_nodepool' target='contentFrame'>ske_nodepool</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>Kubernetes Engine Nodepool Node</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/ske_nodepoolnodes' target='contentFrame'>ske_nodepoolnodes</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>Kubernetes Engine Version</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/ske_kubernetes_versions' target='contentFrame'>ske_kubernetes_versions</a></li>
 			</ul>
 		</div>
 		<p class='category collapsible-header'>LB Certificate</p>
@@ -687,7 +661,14 @@
 				<li><a href='data-sources/vpc_private_nats' target='contentFrame'>vpc_private_nats</a></li>
 				<li><a href='data-sources/vpc_publicips' target='contentFrame'>vpc_publicips</a></li>
 				<li><a href='data-sources/vpc_subnets' target='contentFrame'>vpc_subnets</a></li>
+				<li><a href='data-sources/vpc_transit_gateway' target='contentFrame'>vpc_transit_gateway</a></li>
+				<li><a href='data-sources/vpc_transit_gateway_rules' target='contentFrame'>vpc_transit_gateway_rules</a></li>
+				<li><a href='data-sources/vpc_transit_gateway_vpc_connections' target='contentFrame'>vpc_transit_gateway_vpc_connections</a></li>
+				<li><a href='data-sources/vpc_transit_gateways' target='contentFrame'>vpc_transit_gateways</a></li>
 				<li><a href='data-sources/vpc_vpc_endpoints' target='contentFrame'>vpc_vpc_endpoints</a></li>
+				<li><a href='data-sources/vpc_vpc_peering' target='contentFrame'>vpc_vpc_peering</a></li>
+				<li><a href='data-sources/vpc_vpc_peering_rules' target='contentFrame'>vpc_vpc_peering_rules</a></li>
+				<li><a href='data-sources/vpc_vpc_peerings' target='contentFrame'>vpc_vpc_peerings</a></li>
 				<li><a href='data-sources/vpc_vpcs' target='contentFrame'>vpc_vpcs</a></li>
 			</ul>
 			<p>Resources</p>
@@ -699,9 +680,14 @@
 				<li><a href='resources/vpc_private_nat_ip' target='contentFrame'>vpc_private_nat_ip</a></li>
 				<li><a href='resources/vpc_publicip' target='contentFrame'>vpc_publicip</a></li>
 				<li><a href='resources/vpc_subnet' target='contentFrame'>vpc_subnet</a></li>
-				<li><a href='resources/vpc_transitgateway' target='contentFrame'>vpc_transitgateway</a></li>
+				<li><a href='resources/vpc_transit_gateway' target='contentFrame'>vpc_transit_gateway</a></li>
+				<li><a href='resources/vpc_transit_gateway_rule' target='contentFrame'>vpc_transit_gateway_rule</a></li>
+				<li><a href='resources/vpc_transit_gateway_vpc_connection' target='contentFrame'>vpc_transit_gateway_vpc_connection</a></li>
 				<li><a href='resources/vpc_vpc' target='contentFrame'>vpc_vpc</a></li>
 				<li><a href='resources/vpc_vpc_endpoint' target='contentFrame'>vpc_vpc_endpoint</a></li>
+				<li><a href='resources/vpc_vpc_peering' target='contentFrame'>vpc_vpc_peering</a></li>
+				<li><a href='resources/vpc_vpc_peering_approval' target='contentFrame'>vpc_vpc_peering_approval</a></li>
+				<li><a href='resources/vpc_vpc_peering_rule' target='contentFrame'>vpc_vpc_peering_rule</a></li>
 			</ul>
 		</div>
 		<p class='category collapsible-header'>VPN Gateway</p>
@@ -762,87 +748,6 @@
 			<p>Resources</p>
 			<ul>
 				<li><a href='resources/virtualserver_volume' target='contentFrame'>virtualserver_volume</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_transitgateway</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/transitgateway' target='contentFrame'>transitgateway</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_transitgateway_vpc_connections</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/transitgateway_vpc_connections' target='contentFrame'>transitgateway_vpc_connections</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_transitgateways</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/transitgateways' target='contentFrame'>transitgateways</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_vpc_peering</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/vpc_peering' target='contentFrame'>vpc_peering</a></li>
-			</ul>
-			<p>Resources</p>
-			<ul>
-				<li><a href='resources/vpc_peering' target='contentFrame'>vpc_peering</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_vpc_peering_approval</p>
-		<div class='collapsible'>
-			<p>Resources</p>
-			<ul>
-				<li><a href='resources/vpc_peering_approval' target='contentFrame'>vpc_peering_approval</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_vpc_peerings</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/vpc_peerings' target='contentFrame'>vpc_peerings</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_vpc_transitgateway_routing_rule</p>
-		<div class='collapsible'>
-			<p>Resources</p>
-			<ul>
-				<li><a href='resources/vpc_transitgateway_routing_rule' target='contentFrame'>vpc_transitgateway_routing_rule</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_vpc_transitgateway_routing_rules</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/vpc_transitgateway_routing_rules' target='contentFrame'>vpc_transitgateway_routing_rules</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_vpc_transitgateway_vpcconnection</p>
-		<div class='collapsible'>
-			<p>Resources</p>
-			<ul>
-				<li><a href='resources/vpc_transitgateway_vpcconnection' target='contentFrame'>vpc_transitgateway_vpcconnection</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_vpc_vpc_peering_rule</p>
-		<div class='collapsible'>
-			<p>Resources</p>
-			<ul>
-				<li><a href='resources/vpc_vpc_peering_rule' target='contentFrame'>vpc_vpc_peering_rule</a></li>
-			</ul>
-		</div>
-		<p class='category collapsible-header'>samsungcloudplatformv2_vpc_vpc_peering_rules</p>
-		<div class='collapsible'>
-			<p>Data Sources</p>
-			<ul>
-				<li><a href='data-sources/vpc_vpc_peering_rules' target='contentFrame'>vpc_vpc_peering_rules</a></li>
 			</ul>
 		</div>
 	</div>
