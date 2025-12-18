@@ -42,6 +42,14 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 	return resp, err
 }
 
+// engine version
+func (client *Client) GetEngineVersionList(ctx context.Context) (*vertica.EngineListResponse, error) {
+	req := client.sdkClient.VerticaV1VerticaMasterDataApiAPI.VerticaListEngineVersions(ctx)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 // create (ctx, clusterResource) - (asyncResponse)
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*vertica.AsyncResponse, error) {
 	req := client.sdkClient.VerticaV1VerticaClustersApiAPI.VerticaCreateCluster(ctx)

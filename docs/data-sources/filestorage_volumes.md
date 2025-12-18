@@ -64,7 +64,7 @@ variable "type_name" {
   - example : 'my_volume' 
   - maxLength: 21  
   - minLength: 3  
-  - pattern: '^[a-z]([a-z0-9_]){2,20}$'
+  - pattern: `^[a-z]([a-z0-9_]){2,20}$`
 - `offset` (Number) Offset 
   - example : 0 
   - maximum: 10000  
@@ -73,7 +73,7 @@ variable "type_name" {
   - example : 'created_at:asc'
 - `type_name` (String) Volume Type Name 
   - example : 'HDD' 
-  - pattern: '^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$'
+  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$`
 
 ### Read-Only
 

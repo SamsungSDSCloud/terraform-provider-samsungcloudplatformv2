@@ -34,15 +34,11 @@ variable "size" {
 
 ### Optional
 
-- `description` (String) Description
-- `email` (String) Email
-- `exact_name` (String) ExactName
 - `name` (String) Name
 - `page` (Number) Page
 - `size` (Number) Size
 - `sort` (String) Sort
 - `status` (String) Status
-- `ttl` (Number) Ttl
 - `type` (String) Type
 
 ### Read-Only
@@ -54,43 +50,16 @@ variable "size" {
 
 Optional:
 
-- `action` (String) Action
-- `attributes` (Attributes) Attributes (see [below for nested schema](#nestedatt--hosted_zones--attributes))
 - `created_at` (String) CreatedAt
+- `created_by` (String) CreatedBy
 - `description` (String) Description
-- `email` (String) Email
 - `hosted_zone_type` (String) HostedZoneType
 - `id` (String) Id
-- `masters` (List of String) Masters
+- `modified_at` (String) ModifiedAt
+- `modified_by` (String) ModifiedBy
 - `name` (String) Name
 - `pool_id` (String) PoolId
 - `private_dns_id` (String) PrivateDnsId
 - `private_dns_name` (String) PrivateDnsName
-- `project_id` (String) ProjectId
-- `serial` (Number) Serial
-- `shared` (Boolean) Shared
 - `status` (String) Status
-- `transferred_at` (String) TransferredAt
 - `ttl` (Number) Ttl
-- `type` (String) Type
-- `updated_at` (String) UpdatedAt
-- `version` (Number) Version
-
-Read-Only:
-
-- `links` (Attributes) Links (see [below for nested schema](#nestedatt--hosted_zones--links))
-
-<a id="nestedatt--hosted_zones--attributes"></a>
-### Nested Schema for `hosted_zones.attributes`
-
-Optional:
-
-- `service_tier` (String) ServiceTier
-
-
-<a id="nestedatt--hosted_zones--links"></a>
-### Nested Schema for `hosted_zones.links`
-
-Optional:
-
-- `self` (String) Self

@@ -8,7 +8,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.0"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -58,7 +58,7 @@ func VolumeResourceSchema() schema.Schema {
 					"  - example : 'cifspwd0!!' \n" +
 					"  - maxLength: 20  \n" +
 					"  - minLength: 6  \n" +
-					"  - pattern: '^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$' \n",
+					"  - pattern: `^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$` \n",
 			},
 			"created_at": schema.StringAttribute{
 				Computed: true,
@@ -95,7 +95,7 @@ func VolumeResourceSchema() schema.Schema {
 					"  - example : 'my_volume' \n" +
 					"  - maxLength: 21  \n" +
 					"  - minLength: 3  \n" +
-					"  - pattern: '^[a-z]([a-z0-9_]){2,20}$' \n",
+					"  - pattern: `^[a-z]([a-z0-9_]){2,20}$` \n",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]([a-z0-9_]){2,20}$"), "Enter 3~21 char.(lower case, numbers, _) starting with lower case."),
 				},
@@ -115,7 +115,7 @@ func VolumeResourceSchema() schema.Schema {
 				Required: true,
 				Description: "Protocol \n" +
 					"  - example : 'NFS' \n" +
-					"  - pattern: '^(NFS|CIFS)$' \n",
+					"  - pattern: `^(NFS|CIFS)$` \n",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile("^(NFS|CIFS)$"), "Protocol must be one of (NFS, CIFS)."),
 				},
@@ -139,10 +139,7 @@ func VolumeResourceSchema() schema.Schema {
 				Required: true,
 				Description: "Volume Type Name \n" +
 					"  - example : 'HDD' \n" +
-					"  - pattern: '^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$' \n",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile("^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$"), "Volume type name must be one of (HDD, SSD, HighPerformanceSSD)."),
-				},
+					"  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$` \n",
 			},
 			// 별도로 Optional: true 추가
 			"usage": schema.Int32Attribute{
@@ -171,7 +168,7 @@ func VolumeResourceSchema() schema.Schema {
 						common.ToSnakeCase("ObjectType"): schema.StringAttribute{
 							Description: "Object Type" +
 								"  - example : 'VM' \n" +
-								"  - pattern: '^(VM|BM|GPU|GPU_NODE|ENDPOINT)$' \n",
+								"  - pattern: `^(VM|BM|GPU|GPU_NODE|ENDPOINT)$` \n",
 							Computed: true,
 							Optional: true,
 							PlanModifiers: []planmodifier.String{

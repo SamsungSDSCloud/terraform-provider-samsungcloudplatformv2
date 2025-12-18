@@ -10,8 +10,11 @@ resource "samsungcloudplatformv2_virtualserver_server" "server" {
   lock            = var.lock
   user_data       = var.user_data
   boot_volume     = var.boot_volume
-  server_group_id = var.server_group_id
   security_groups = var.security_groups
+
+  server_group_id = var.server_group_id
+  # if server group type is partition,
+  partition_number = var.partition_number
 
   networks        = {
     interface_1 : {

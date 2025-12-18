@@ -16,8 +16,19 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_vpc_endpoints" "vpcendpoints" {
-  limit = var.vpc_endpoint_limit
+  id = var.id
+  name = var.name
+  vpc_id = var.vpc_id
+  vpc_name = var.vpc_name
+  resource_type = var.resource_type
+  resource_key = var.resource_key
+  endpoint_ip_address = var.endpoint_ip_address
+  state = var.state
+  limit = var.limit
+  marker = var.marker
+  sort = var.sort
 }
+
 
 
 output "vpcendpoints" {
@@ -25,9 +36,59 @@ output "vpcendpoints" {
 }
 
 
-variable "vpc_endpoint_limit" {
+variable "id" {
+  type    = string
+  default = ""
+}
+
+variable "name" {
+  type    = string
+  default = ""
+}
+
+variable "vpc_id" {
+  type    = string
+  default = ""
+}
+
+variable "vpc_name" {
+  type    = string
+  default = ""
+}
+
+variable "resource_type" {
+  type    = string
+  default = ""
+}
+
+variable "resource_key" {
+  type    = string
+  default = ""
+}
+
+variable "endpoint_ip_address" {
+  type    = string
+  default = ""
+}
+
+variable "state" {
+  type    = string
+  default = ""
+}
+
+variable "limit" {
   type    = number
   default = 0
+}
+
+variable "marker" {
+  type    = string
+  default = ""
+}
+
+variable "sort" {
+  type    = string
+  default = ""
 }
 ```
 
@@ -51,10 +112,10 @@ variable "vpc_endpoint_limit" {
 - `name` (String) VPC Endpoint Name 
   - example : vpcName
 - `resource_key` (String) VPC Endpoint Resource Key 
-  - example(case: SCR) : 07c5364702384471b650147321b52173 
+  - example(case: SCR/DNS) : 07c5364702384471b650147321b52173 
   - example(case: FS/OBS) : 1.1.1.1
 - `resource_type` (String) VPC Endpoint Resource Type 
-  - example : FS | OBS | SCR
+  - example : FS | OBS | SCR | DNS
 - `sort` (String) Sort 
   - example : created_at:desc
 - `state` (String) State 

@@ -10,7 +10,8 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/backup/1.0"
+	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/backup/1.1"
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -89,8 +90,11 @@ func (r *backupBackupResource) Schema(_ context.Context, _ resource.SchemaReques
 			},
 			common.ToSnakeCase("EncryptEnabled"): schema.BoolAttribute{
 				Description: "Whether to use Encryption \n" +
-					"  - example: false",
+					"  - example: true",
 				Required: true,
+				Validators: []validator.Bool{
+					boolvalidator.Equals(true),
+				},
 			},
 			common.ToSnakeCase("RetentionPeriod"): schema.StringAttribute{
 				Description: "Backup retention period \n" +
@@ -221,7 +225,7 @@ func (r *backupBackupResource) Create(ctx context.Context, req resource.CreateRe
 	}
 }
 
-func (r *backupBackupResource) MapGetResponseToState(ctx context.Context, getData *scpbackup.BackupDetailResponse, plan backup.BackupResource, tagsMap types.Map) (backup.BackupResource, error) {
+func (r *backupBackupResource) MapGetResponseToState(ctx context.Context, getData *scpbackup.BackupDetailResponse1Dot1, plan backup.BackupResource, tagsMap types.Map) (backup.BackupResource, error) {
 	getSchedules, err := r.client.GetScheduleList(ctx, getData.Id)
 	if err != nil {
 		return backup.BackupResource{}, err

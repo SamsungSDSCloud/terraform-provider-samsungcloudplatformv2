@@ -143,6 +143,7 @@ Read-Only:
 - `metadata` (Map of String) Metadata
 - `modified_at` (String) Modified at
 - `name` (String) Name
+- `partition_number` (Number) Partition Number
 - `planned_compute_os_type` (String) Planned compute os type
 - `product_category` (String) Product category
 - `product_offering` (String) Product offering

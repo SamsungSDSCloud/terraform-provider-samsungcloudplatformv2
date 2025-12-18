@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.0"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -539,7 +539,7 @@ func (client *Client) GetVpcEndpointList(ctx context.Context, request VpcEndpoin
 		req = req.Sort(request.Sort.ValueString())
 	}
 	if !request.Id.IsNull() {
-		req = req.Id(request.Sort.ValueString())
+		req = req.Id(request.Id.ValueString())
 	}
 	if !request.Name.IsNull() {
 		req = req.Name(request.Name.ValueString())

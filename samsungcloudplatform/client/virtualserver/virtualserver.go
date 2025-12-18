@@ -361,6 +361,7 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 		Tags:            TagsObject,
 		UserData:        *scpvirtualserver.NewNullableString(request.UserData.ValueStringPointer()),
 		Volumes:         volumes,
+		PartitionNumber: *scpvirtualserver.NewNullableInt32(request.PartitionNumber.ValueInt32Pointer()),
 	}
 
 	virtualservercommon.UnsetNilFields(reqState)
@@ -450,22 +451,6 @@ func (client *Client) UpdateServerLock(ctx context.Context, serverId string) err
 
 func (client *Client) UpdateServerUnlock(ctx context.Context, serverId string) error {
 	req := client.sdkClient.VirtualserverV1ServerActionAPI.UnlockVirtualServer(ctx, serverId)
-	_, err := req.Execute()
-	return err
-}
-
-func (client *Client) UpdateServerSecurityGroupAttach(ctx context.Context, serverId string, securityGroupId string) error {
-	req := client.sdkClient.VirtualserverV1ServerActionAPI.AttachVirtualServerSecurityGroup(ctx, serverId)
-	reqState := &scpvirtualserver.ServerSecurityGroupActionRequestBody{
-		SecurityGroupId: securityGroupId,
-	}
-	req = req.ServerSecurityGroupActionRequestBody(*reqState)
-	_, err := req.Execute()
-	return err
-}
-
-func (client *Client) UpdateServerSecurityGroupDetach(ctx context.Context, serverId string, securityGroupId string) error {
-	req := client.sdkClient.VirtualserverV1ServerActionAPI.DetachVirtualServerSecurityGroup(ctx, serverId, securityGroupId)
 	_, err := req.Execute()
 	return err
 }

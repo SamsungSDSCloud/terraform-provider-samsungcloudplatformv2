@@ -6,6 +6,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -141,17 +142,17 @@ func (d *loadbalancerLbCertificateDataSources) Read(ctx context.Context, req dat
 	for _, lbcertificate := range data.Certificates {
 
 		lbcertificateState := loadbalancer.LbCertificate{
-			CertKind:    types.StringValue(*lbcertificate.CertKind),
-			Cn:          types.StringValue(*lbcertificate.Cn),
-			CreatedAt:   types.StringValue(lbcertificate.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:   types.StringValue(lbcertificate.CreatedBy),
+			CertKind:    types.StringValue(lbcertificate.CertKind),
+			Cn:          types.StringValue(lbcertificate.Cn),
+			CreatedAt:   loadbalancerutil.ToNullableTimeString(lbcertificate.CreatedAt),
+			CreatedBy:   loadbalancerutil.ToNullableStringValue(lbcertificate.CreatedBy.Get()),
 			Id:          types.StringValue(lbcertificate.Id),
-			ModifiedAt:  types.StringValue(lbcertificate.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:  types.StringValue(lbcertificate.ModifiedBy),
-			Name:        types.StringValue(*lbcertificate.Name),
+			ModifiedAt:  loadbalancerutil.ToNullableTimeString(lbcertificate.ModifiedAt),
+			ModifiedBy:  loadbalancerutil.ToNullableStringValue(lbcertificate.ModifiedBy.Get()),
+			Name:        types.StringValue(lbcertificate.Name),
 			NotAfterDt:  types.StringValue(lbcertificate.NotAfterDt.Format(time.RFC3339)),
 			NotBeforeDt: types.StringValue(lbcertificate.NotBeforeDt.Format(time.RFC3339)),
-			State:       types.StringValue(*lbcertificate.State),
+			State:       types.StringValue(lbcertificate.State),
 		}
 
 		state.LbCertificates = append(state.LbCertificates, lbcertificateState)

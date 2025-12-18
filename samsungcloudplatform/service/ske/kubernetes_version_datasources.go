@@ -46,12 +46,14 @@ func (d *skeKubernetesVersionDataSources) Schema(ctx context.Context, req dataso
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Computed:    true,
+							Description:         "Description\n  - example: v1.29.8",
+							MarkdownDescription: "Description\n  - example: v1.29.8",
+							Computed:            true,
 						},
 						common.ToSnakeCase("KubernetesVersion"): schema.StringAttribute{
-							Description: "Kubernetes Version",
-							Computed:    true,
+							Description:         "Kubernetes Version\n  - example: v1.29.8",
+							MarkdownDescription: "Kubernetes Version\n  - example: v1.29.8",
+							Computed:            true,
 						},
 					},
 				},

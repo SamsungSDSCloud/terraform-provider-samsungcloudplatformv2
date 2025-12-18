@@ -3,7 +3,7 @@ package backup
 import (
 	"context"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/backup/1.0"
+	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/backup/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"math"
 	"strings"
@@ -83,7 +83,7 @@ func (client *Client) CreateBackup(ctx context.Context, request BackupResource) 
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.BackupCreateRequest(scpbackup.BackupCreateRequest{
+	req = req.BackupCreateRequest1Dot1(scpbackup.BackupCreateRequest1Dot1{
 		Name:            request.Name.ValueString(),
 		PolicyCategory:  scpbackup.BackupPolicyCategory(request.PolicyCategory.ValueString()),
 		PolicyType:      scpbackup.BackupPolicyType(request.PolicyType.ValueString()),
@@ -99,7 +99,7 @@ func (client *Client) CreateBackup(ctx context.Context, request BackupResource) 
 	return resp, err
 }
 
-func (client *Client) GetBackup(ctx context.Context, backupId string) (*scpbackup.BackupDetailResponse, error) {
+func (client *Client) GetBackup(ctx context.Context, backupId string) (*scpbackup.BackupDetailResponse1Dot1, error) {
 	req := client.sdkClient.BackupV1BackupsApiAPI.ShowBackup(ctx, backupId)
 
 	resp, _, err := req.Execute()

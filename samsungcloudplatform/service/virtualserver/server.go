@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
 	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
@@ -224,6 +225,11 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
 				Description: "Vpc ID",
+				Computed:    true,
+			},
+			common.ToSnakeCase("PartitionNumber"): schema.Int32Attribute{
+				Description: "Partition Number",
+				Optional:    true,
 				Computed:    true,
 			},
 			"tags": tag.ResourceSchema(),
@@ -631,6 +637,7 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 		BootVolume:            bootVolume,
 		ExtraVolumes:          extraVolumeObject,
 		VpcId:                 virtualserverutil.ToNullableStringValue(resp.VpcId.Get()),
+		PartitionNumber:       virtualserverutil.ToNullableInt32Value(resp.PartitionNumber.Get()),
 		Tags:                  tagsMap,
 	}, nil
 }
@@ -699,33 +706,17 @@ func (r *virtualServerServerResource) handlerUpdateServerSecurityGroup(ctx conte
 	req.Plan.Get(ctx, &plan)
 	req.State.Get(ctx, &state)
 
-	planSecurityGroupMap := make(map[string]bool)
-	stateSecurityGroupMap := make(map[string]bool)
+	var securityGroups []string
+	diags := plan.SecurityGroups.ElementsAs(ctx, &securityGroups, false)
+	resp.Diagnostics.Append(diags...)
 
-	for _, v := range plan.SecurityGroups.Elements() {
-		planSecurityGroupMap[v.(types.String).ValueString()] = true
-	}
-	for _, v := range state.SecurityGroups.Elements() {
-		stateSecurityGroupMap[v.(types.String).ValueString()] = true
-	}
+	var networkMap map[string]virtualserver.ServerResourceNetwork
+	state.Networks.ElementsAs(ctx, &networkMap, false)
 
-	// Attach
-	for _, v := range plan.SecurityGroups.Elements() {
-		if !stateSecurityGroupMap[v.(types.String).ValueString()] {
-			err := r.client.UpdateServerSecurityGroupAttach(ctx, plan.Id.ValueString(), v.(types.String).ValueString())
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	// Detach
-	for _, v := range state.SecurityGroups.Elements() {
-		if !planSecurityGroupMap[v.(types.String).ValueString()] {
-			err := r.client.UpdateServerSecurityGroupDetach(ctx, plan.Id.ValueString(), v.(types.String).ValueString())
-			if err != nil {
-				return err
-			}
+	for _, network := range networkMap {
+		_, err := r.clients.Vpc.UpdatePort(ctx, network.PortId.ValueString(), vpc.PortResource{SecurityGroups: securityGroups})
+		if err != nil {
+			return err
 		}
 	}
 

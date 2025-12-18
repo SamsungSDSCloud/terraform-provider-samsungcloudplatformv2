@@ -1,11 +1,15 @@
 package common
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"io/ioutil"
 	"log"
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -225,4 +229,29 @@ func ToNullableInt32Value(v *int32) types.Int32 {
 		return types.Int32Null()
 	}
 	return types.Int32Value(*v)
+}
+
+func CreateTlsConfig() (*tls.Config, error) {
+	certPath := os.Getenv("SSL_CERT_FILE")
+	var certPool *x509.CertPool
+	var err error
+
+	if certPath == "" {
+		certPool, err = x509.SystemCertPool()
+	} else {
+		crt, err := ioutil.ReadFile(certPath)
+		if err != nil {
+			return nil, err
+		}
+		certPool = x509.NewCertPool()
+		certPool.AppendCertsFromPEM(crt)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &tls.Config{
+		RootCAs: certPool,
+	}, nil
 }

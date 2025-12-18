@@ -173,6 +173,7 @@ type Server struct {
 	State                 types.String    `tfsdk:"state"`
 	Volumes               []ServerVolume  `tfsdk:"volumes"`
 	VpcId                 types.String    `tfsdk:"vpc_id"`
+	PartitionNumber       types.Int32     `tfsdk:"partition_number"`
 }
 
 type ServerAddress struct {
@@ -231,6 +232,7 @@ type ServerResource struct {
 	BootVolume            ServerResourceVolume `tfsdk:"boot_volume"`
 	ExtraVolumes          types.Map            `tfsdk:"extra_volumes"`
 	VpcId                 types.String         `tfsdk:"vpc_id"`
+	PartitionNumber       types.Int32          `tfsdk:"partition_number"`
 	Tags                  types.Map            `tfsdk:"tags"`
 }
 
@@ -326,7 +328,8 @@ func (m Server) AttributeTypes() map[string]attr.Type {
 		"volumes": types.ListType{
 			ElemType: volumesObjectType,
 		},
-		"vpc_id": types.StringType,
+		"vpc_id":           types.StringType,
+		"partition_number": types.Int32Type,
 	}
 }
 
@@ -344,22 +347,24 @@ type ServerGroupDataSource struct {
 }
 
 type ServerGroup struct {
-	Id        types.String `tfsdk:"id"`
-	Name      types.String `tfsdk:"name"`
-	Policy    types.String `tfsdk:"policy"`
-	AccountId types.String `tfsdk:"account_id"`
-	UserId    types.String `tfsdk:"user_id"`
-	Members   types.List   `tfsdk:"members"`
+	Id            types.String `tfsdk:"id"`
+	Name          types.String `tfsdk:"name"`
+	Policy        types.String `tfsdk:"policy"`
+	AccountId     types.String `tfsdk:"account_id"`
+	UserId        types.String `tfsdk:"user_id"`
+	Members       types.List   `tfsdk:"members"`
+	PartitionSize types.Int32  `tfsdk:"partition_size"`
 }
 
 type ServerGroupResource struct {
-	Id        types.String `tfsdk:"id"`
-	Name      types.String `tfsdk:"name"`
-	Policy    types.String `tfsdk:"policy"`
-	AccountId types.String `tfsdk:"account_id"`
-	UserId    types.String `tfsdk:"user_id"`
-	Members   types.List   `tfsdk:"members"`
-	Tags      types.Map    `tfsdk:"tags"`
+	Id            types.String `tfsdk:"id"`
+	Name          types.String `tfsdk:"name"`
+	Policy        types.String `tfsdk:"policy"`
+	AccountId     types.String `tfsdk:"account_id"`
+	UserId        types.String `tfsdk:"user_id"`
+	Members       types.List   `tfsdk:"members"`
+	PartitionSize types.Int32  `tfsdk:"partition_size"`
+	Tags          types.Map    `tfsdk:"tags"`
 }
 
 func (m ServerGroup) AttributeTypes() map[string]attr.Type {
@@ -372,6 +377,7 @@ func (m ServerGroup) AttributeTypes() map[string]attr.Type {
 		"members": types.ListType{
 			ElemType: types.StringType,
 		},
+		"partition_size": types.Int32Type,
 	}
 }
 

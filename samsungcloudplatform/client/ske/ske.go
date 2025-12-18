@@ -25,8 +25,9 @@ func NewClient(config *scpsdk.Configuration) *Client {
 
 func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSourceIds) (*scpske.ClusterListResponse, error) {
 	req := client.sdkClient.SkeV1ClustersApiAPI.ListClusters(ctx)
-
-	req = req.Size(request.Size.ValueInt32())
+	if request.Size != nil {
+		req = req.Size(*request.Size)
+	}
 	if request.Page != nil {
 		req = req.Page(*request.Page)
 	}
@@ -61,7 +62,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		SecurityGroupIdList:                   securityGroupIdList,
 		PrivateEndpointAccessControlResources: convertPrivateEndpointAccessControlResources(request.PrivateEndpointAccessControlResources),
 		PublicEndpointAccessControlIp:         *scpske.NewNullableString(request.PublicEndpointAccessControlIp.ValueStringPointer()),
-		ServiceWatchLoggingEnabled:            request.ServiceWatchLoggingEnabled.ValueBoolPointer(), // v1.1
+		ServiceWatchLoggingEnabled:            request.ServiceWatchLoggingEnabled.ValueBool(), // v1.1
 		Tags:                                  tags,
 	})
 
@@ -214,23 +215,23 @@ func (client *Client) CreateNodepool(ctx context.Context, request NodepoolResour
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.CreateNodepool(ctx)
 
 	req = req.NodepoolCreateRequestV1Dot1(scpske.NodepoolCreateRequestV1Dot1{
-		Name:              request.Name.ValueStringPointer(),
-		ClusterId:         request.ClusterId.ValueStringPointer(),
+		Name:              request.Name.ValueString(),
+		ClusterId:         request.ClusterId.ValueString(),
 		CustomImageId:     *scpske.NewNullableString(request.CustomImageId.ValueStringPointer()),
 		DesiredNodeCount:  *scpske.NewNullableInt32(request.DesiredNodeCount.ValueInt32Pointer()),
-		ImageOs:           request.ImageOs.ValueStringPointer(),
-		ImageOsVersion:    request.ImageOsVersion.ValueStringPointer(),
+		ImageOs:           request.ImageOs.ValueString(),
+		ImageOsVersion:    request.ImageOsVersion.ValueString(),
 		Labels:            convertLablels(request.Labels),
 		Taints:            convertTaints(request.Taints),
-		IsAutoRecovery:    request.IsAutoRecovery.ValueBoolPointer(),
-		IsAutoScale:       request.IsAutoScale.ValueBoolPointer(),
-		KeypairName:       request.KeypairName.ValueStringPointer(),
-		KubernetesVersion: request.KubernetesVersion.ValueStringPointer(),
+		IsAutoRecovery:    request.IsAutoRecovery.ValueBool(),
+		IsAutoScale:       request.IsAutoScale.ValueBool(),
+		KeypairName:       request.KeypairName.ValueString(),
+		KubernetesVersion: request.KubernetesVersion.ValueString(),
 		MaxNodeCount:      *scpske.NewNullableInt32(request.MaxNodeCount.ValueInt32Pointer()),
 		MinNodeCount:      *scpske.NewNullableInt32(request.MinNodeCount.ValueInt32Pointer()),
-		ServerTypeId:      request.ServerTypeId.ValueStringPointer(),
-		VolumeTypeName:    request.VolumeTypeName.ValueStringPointer(),
-		VolumeSize:        request.VolumeSize.ValueInt32Pointer(),
+		ServerTypeId:      request.ServerTypeId.ValueString(),
+		VolumeTypeName:    request.VolumeTypeName.ValueString(),
+		VolumeSize:        request.VolumeSize.ValueInt32(),
 		ServerGroupId:     *scpske.NewNullableString(request.ServerGroupId.ValueStringPointer()), // v1.1
 		AdvancedSettings:  convertAdvancedSettings(request.AdvancedSettings),                     // v1.1
 	})
@@ -315,13 +316,10 @@ func (client *Client) GetNodepoolNodeList(ctx context.Context, request Nodepooln
 func convertPrivateEndpointAccessControlResources(privateEndpointAccessControlResources []PrivateEndpointAccessControlResource) []scpske.PrivateEndpointAccessControlResource {
 	result := make([]scpske.PrivateEndpointAccessControlResource, len(privateEndpointAccessControlResources))
 	for i, privateEndpointAccessControlResource := range privateEndpointAccessControlResources {
-		sId := privateEndpointAccessControlResource.Id.ValueString()
-		sName := privateEndpointAccessControlResource.Name.ValueString()
-		sType := privateEndpointAccessControlResource.Type.ValueString()
 		result[i] = scpske.PrivateEndpointAccessControlResource{
-			Id:   &sId,
-			Name: &sName,
-			Type: &sType,
+			Id:   privateEndpointAccessControlResource.Id.ValueString(),
+			Name: privateEndpointAccessControlResource.Name.ValueString(),
+			Type: privateEndpointAccessControlResource.Type.ValueString(),
 		}
 	}
 	return result
@@ -329,9 +327,9 @@ func convertPrivateEndpointAccessControlResources(privateEndpointAccessControlRe
 
 func convertLablels(lablels []Label) []scpske.NodepoolLabel {
 	result := make([]scpske.NodepoolLabel, len(lablels))
-	for i, lablel := range lablels {
-		sKey := lablel.Key.ValueString()
-		sValue := lablel.Value.ValueString()
+	for i, label := range lablels {
+		sKey := label.Key.ValueString()
+		sValue := label.Value.ValueString()
 		result[i] = scpske.NodepoolLabel{
 			Key:   sKey,
 			Value: &sValue,
@@ -344,26 +342,21 @@ func convertTaints(taints []Taint) []scpske.NodepoolTaint {
 	result := make([]scpske.NodepoolTaint, len(taints))
 
 	for i, taint := range taints {
-		sEffect := scpske.TaintEffectEnum(taint.Effect.ValueString())
-		sKey := taint.Key.ValueString()
-		sValue := taint.Value.ValueString()
-
 		result[i] = scpske.NodepoolTaint{
-			Effect: &sEffect,
-			Key:    sKey,
-			Value:  &sValue,
+			Effect: scpske.TaintEffectEnum(taint.Effect.ValueString()),
+			Key:    taint.Key.ValueString(),
+			Value:  taint.Value.ValueStringPointer(),
 		}
 	}
 	return result
 }
 
 // List of TaintEffectEnum
-
 func convertAdvancedSettings(advancedSettings *AdvancedSettings) scpske.NullableNodepoolAdvancedSettings {
 	result := scpske.NullableNodepoolAdvancedSettings{}
 	if advancedSettings != nil {
 		value := scpske.NodepoolAdvancedSettings{
-			AllowedUnsafeSysctls: advancedSettings.AllowedUnsafeSysctls.ValueString(),
+			AllowedUnsafeSysctls: advancedSettings.AllowedUnsafeSysctls.ValueStringPointer(),
 			ContainerLogMaxFiles: advancedSettings.ContainerLogMaxFiles.ValueInt32(),
 			ContainerLogMaxSize:  advancedSettings.ContainerLogMaxSize.ValueInt32(),
 			ImageGcHighThreshold: advancedSettings.ImageGcHighThreshold.ValueInt32(),

@@ -13,6 +13,6 @@ resource "samsungcloudplatformv2_ske_cluster" "cluster" {
   public_endpoint_access_control_ip = var.public_endpoint_access_control_ip
   service_watch_logging_enabled = var.service_watch_logging_enabled
   tags = {
-      "terraform_key" = "terraform_value"
+    "terraform_key" = "terraform_value"
   }
 }

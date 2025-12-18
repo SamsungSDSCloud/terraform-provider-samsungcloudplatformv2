@@ -3,7 +3,7 @@ package dns
 import (
 	"context"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.2"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -230,7 +230,7 @@ func (client *Client) UpdatePublicDomainNameInfomation(ctx context.Context, publ
 	return resp, err
 }
 
-func (client *Client) GetHostedZoneList(ctx context.Context, request HostedZoneDataSource) (*dns.HostedZoneListResponseV1Dot2, error) {
+func (client *Client) GetHostedZoneList(ctx context.Context, request HostedZoneDataSource) (*dns.HostedZoneListResponseV1Dot3, error) {
 	req := client.sdkClient.DnsV1HostedZonesApiAPI.ListHostedZone(ctx)
 
 	if !request.Page.IsNull() {
@@ -245,36 +245,24 @@ func (client *Client) GetHostedZoneList(ctx context.Context, request HostedZoneD
 	if !request.Name.IsNull() {
 		req = req.Name(request.Name.ValueString())
 	}
-	if !request.ExactName.IsNull() {
-		req = req.ExactName(request.ExactName.ValueString())
-	}
 	if !request.Type.IsNull() {
-		req = req.Type_(request.Type.ValueString())
-	}
-	if !request.Email.IsNull() {
-		req = req.Email(request.Email.ValueString())
+		req = req.Type_(dns.HostedZoneType(request.Type.ValueString()))
 	}
 	if !request.Status.IsNull() {
-		req = req.Status(request.Status.ValueString())
-	}
-	if !request.Description.IsNull() {
-		req = req.Description(request.Description.ValueString())
-	}
-	if !request.Ttl.IsNull() {
-		req = req.Ttl(request.Ttl.ValueInt32())
+		req = req.Status(dns.HostedZoneState(request.Status.ValueString()))
 	}
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) GetHostedZone(ctx context.Context, hostedZoneId string) (*dns.HostedZoneShowResponseV1Dot2, error) {
+func (client *Client) GetHostedZone(ctx context.Context, hostedZoneId string) (*dns.HostedZoneShowResponseV1Dot3, error) {
 	req := client.sdkClient.DnsV1HostedZonesApiAPI.ShowHostedZone(ctx, hostedZoneId)
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err
 }
 
-func (client *Client) CreateHostedZone(ctx context.Context, request HostedZoneResource) (*dns.HostedZoneCreateResponse, error) {
+func (client *Client) CreateHostedZone(ctx context.Context, request HostedZoneResource) (*dns.HostedZoneShowResponseV1Dot3, error) {
 	req := client.sdkClient.DnsV1HostedZonesApiAPI.CreateHostedZone(ctx) // 호출을 위한 구조체를 반환 받는다.
 
 	var hostedZoneTags []dns.Tag
@@ -288,40 +276,38 @@ func (client *Client) CreateHostedZone(ctx context.Context, request HostedZoneRe
 		hostedZoneTags = append(hostedZoneTags, tagObject)
 	}
 
-	hostedZoneElement := dns.HostedZoneCreateRequestV1Dot2{
+	hostedZoneElement := dns.HostedZoneCreateRequestV1Dot3{
 		Description:  *dns.NewNullableString(request.HostedZoneCreate.Description.ValueStringPointer()),
-		Email:        request.HostedZoneCreate.Email.ValueString(),
 		Name:         request.HostedZoneCreate.Name.ValueString(),
 		PrivateDnsId: *dns.NewNullableString(request.HostedZoneCreate.PrivateDnsId.ValueStringPointer()),
-		Type:         *dns.NewNullableString(request.HostedZoneCreate.Type.ValueStringPointer()),
+		Type:         dns.HostedZoneType(request.HostedZoneCreate.Type.ValueString()),
 		Tags:         hostedZoneTags,
 	}
 
-	req = req.HostedZoneCreateRequestV1Dot2(hostedZoneElement)
+	req = req.HostedZoneCreateRequestV1Dot3(hostedZoneElement)
 
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err
 }
 
-func (client *Client) UpdateHostedZone(ctx context.Context, hostedZoneId string, request HostedZoneResource) (*dns.HostedZoneSetResponse, error) {
+func (client *Client) UpdateHostedZone(ctx context.Context, hostedZoneId string, request HostedZoneResource) (*dns.HostedZoneShowResponseV1Dot3, error) {
 	req := client.sdkClient.DnsV1HostedZonesApiAPI.SetHostedZone(ctx, hostedZoneId)
 
 	hostedZoneSet := request.HostedZoneCreate
 
-	req = req.HostedZoneSetRequest(dns.HostedZoneSetRequest{
+	req = req.HostedZoneSetRequestV1Dot3(dns.HostedZoneSetRequestV1Dot3{
 		Description: *dns.NewNullableString(hostedZoneSet.Description.ValueStringPointer()),
-		Email:       *dns.NewNullableString(hostedZoneSet.Email.ValueStringPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) DeleteHostedZone(ctx context.Context, hostedZoneId string) (*dns.HostedZoneDeleteResponse, error) {
+func (client *Client) DeleteHostedZone(ctx context.Context, hostedZoneId string) error {
 	req := client.sdkClient.DnsV1HostedZonesApiAPI.DeleteHostedZone(ctx, hostedZoneId)
 
-	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
-	return resp, err
+	_, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
+	return err
 }
 
 func (client *Client) GetRecordList(ctx context.Context, request RecordDataSource) (*dns.RecordListResponse, error) {

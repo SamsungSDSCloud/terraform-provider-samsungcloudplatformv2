@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/ske/converter"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.1"
@@ -40,204 +39,272 @@ func (d *skeNodepoolDataSource) Metadata(_ context.Context, req datasource.Metad
 
 func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "nodepool",
+		Description: "show nodepool",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Required:    true,
-			},
-			common.ToSnakeCase("Nodepool"): schema.SingleNestedAttribute{
-				Description: "Nodepool",
-				Computed:    true,
+			"nodepool": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "id",
-						Computed:    true,
+					"account_id": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Account ID\n  - example: 617b3d0e90c24a5fa1f65a3824861354",
+						MarkdownDescription: "Account ID\n  - example: 617b3d0e90c24a5fa1f65a3824861354",
 					},
-					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "name",
-						Computed:    true,
-					},
-					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "account id",
-						Computed:    true,
-					},
-					common.ToSnakeCase("AutoRecoveryEnabled"): schema.BoolAttribute{
-						Description: "AutoRecoveryEnabled",
-						Computed:    true,
-					},
-					common.ToSnakeCase("AutoScaleEnabled"): schema.BoolAttribute{
-						Description: "AutoScaleEnabled",
-						Computed:    true,
-					},
-					common.ToSnakeCase("Cluster"): schema.SingleNestedAttribute{
-						Description: "Cluster",
-						Computed:    true,
+					"advanced_settings": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("Id"): schema.StringAttribute{
-								Description: "Id",
-								Computed:    true,
+							"allowed_unsafe_sysctls": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Node Pool Allowed unsafe sysctls\n  - example: kernel.msg*,net.ipv4.route.min_pmtu",
+								MarkdownDescription: "Node Pool Allowed unsafe sysctls\n  - example: kernel.msg*,net.ipv4.route.min_pmtu",
+							},
+							"container_log_max_files": schema.Int64Attribute{
+								Computed:            true,
+								Description:         "Node Pool container log max files\n  - maximum: 10\n  - minimum: 2\n  - example: 5",
+								MarkdownDescription: "Node Pool container log max files\n  - maximum: 10\n  - minimum: 2\n  - example: 5",
+							},
+							"container_log_max_size": schema.Int64Attribute{
+								Computed:            true,
+								Description:         "Node Pool container log max size\n  - maximum: 100\n  - minimum: 10\n  - example: 10",
+								MarkdownDescription: "Node Pool container log max size\n  - maximum: 100\n  - minimum: 10\n  - example: 10",
+							},
+							"image_gc_high_threshold": schema.Int64Attribute{
+								Computed:            true,
+								Description:         "Node Pool image GC high threshold percent\n  - maximum: 85\n  - minimum: 10\n  - example: 85",
+								MarkdownDescription: "Node Pool image GC high threshold percent\n  - maximum: 85\n  - minimum: 10\n  - example: 85",
+							},
+							"image_gc_low_threshold": schema.Int64Attribute{
+								Computed:            true,
+								Description:         "Node Pool image GC low threshold percent\n  - maximum: 85\n  - minimum: 10\n  - example: 80",
+								MarkdownDescription: "Node Pool image GC low threshold percent\n  - maximum: 85\n  - minimum: 10\n  - example: 80",
+							},
+							"max_pods": schema.Int64Attribute{
+								Computed:            true,
+								Description:         "Node Pool max pod number\n  - maximum: 250\n  - minimum: 10\n  - example: 110",
+								MarkdownDescription: "Node Pool max pod number\n  - maximum: 250\n  - minimum: 10\n  - example: 110",
+							},
+							"pod_max_pids": schema.Int64Attribute{
+								Computed:            true,
+								Description:         "Node Pool Pod Max pids constraint\n  - maximum: 4.194304e+06\n  - minimum: 1024\n  - example: 4096",
+								MarkdownDescription: "Node Pool Pod Max pids constraint\n  - maximum: 4.194304e+06\n  - minimum: 1024\n  - example: 4096",
 							},
 						},
+						Computed:            true,
+						Description:         "Node Pool Advanced Settings",
+						MarkdownDescription: "Node Pool Advanced Settings",
 					},
-					common.ToSnakeCase("CurrentNodeCount"): schema.Int32Attribute{
-						Description: "CurrentNodeCount",
-						Computed:    true,
+					"auto_recovery_enabled": schema.BoolAttribute{
+						Computed:            true,
+						Description:         "Is Auto Recovery\n  - example: true",
+						MarkdownDescription: "Is Auto Recovery\n  - example: true",
 					},
-					common.ToSnakeCase("DesiredNodeCount"): schema.Int32Attribute{
-						Description: "DesiredNodeCount",
-						Computed:    true,
+					"auto_scale_enabled": schema.BoolAttribute{
+						Computed:            true,
+						Description:         "Is Auto Scale\n  - example: true",
+						MarkdownDescription: "Is Auto Scale\n  - example: true",
 					},
-					common.ToSnakeCase("Image"): schema.SingleNestedAttribute{
-						Description: "Image",
-						Computed:    true,
+					"cluster": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("CustomImageName"): schema.StringAttribute{
-								Description: "CustomImageName",
-								Computed:    true,
-							},
-							common.ToSnakeCase("Os"): schema.StringAttribute{
-								Description: "Os",
-								Computed:    true,
-							},
-							common.ToSnakeCase("OsVersion"): schema.StringAttribute{
-								Description: "OsVersion",
-								Computed:    true,
+							"id": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Cluster ID\n  - example: 70a599e031e749b7b260868f441e862b",
+								MarkdownDescription: "Cluster ID\n  - example: 70a599e031e749b7b260868f441e862b",
 							},
 						},
+						Computed:            true,
+						Description:         "Cluster",
+						MarkdownDescription: "Cluster",
 					},
-					common.ToSnakeCase("Keypair"): schema.SingleNestedAttribute{
-						Description: "Keypair",
-						Computed:    true,
+					"created_at": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+					},
+					"created_by": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+					},
+					"current_node_count": schema.Int64Attribute{
+						Computed:            true,
+						Description:         "Current Node Count\n  - example: 1",
+						MarkdownDescription: "Current Node Count\n  - example: 1",
+					},
+					"desired_node_count": schema.Int64Attribute{
+						Computed:            true,
+						Description:         "Desired Node Count\n  - example: 2",
+						MarkdownDescription: "Desired Node Count\n  - example: 2",
+					},
+					"id": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Nodepool ID\n  - example: bdfda539-bd2e-4a5c-9021-ec6d52d1ca79",
+						MarkdownDescription: "Nodepool ID\n  - example: bdfda539-bd2e-4a5c-9021-ec6d52d1ca79",
+					},
+					"image": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("Name"): schema.StringAttribute{
-								Description: "Name",
-								Computed:    true,
+							"custom_image_name": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Custom Image Name\n  - example: custom-image",
+								MarkdownDescription: "Custom Image Name\n  - example: custom-image",
+							},
+							"os": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Image OS\n  - example: ubuntu",
+								MarkdownDescription: "Image OS\n  - example: ubuntu",
+							},
+							"os_version": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Image OS Version\n  - example: 22.04",
+								MarkdownDescription: "Image OS Version\n  - example: 22.04",
 							},
 						},
+						Computed:            true,
+						Description:         "Image",
+						MarkdownDescription: "Image",
 					},
-					common.ToSnakeCase("KubernetesVersion"): schema.StringAttribute{
-						Description: "KubernetesVersion",
-						Computed:    true,
+					"keypair": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Keypair Name\n  - example: test_keypair",
+								MarkdownDescription: "Keypair Name\n  - example: test_keypair",
+							},
+						},
+						Computed:            true,
+						Description:         "Keypair Name",
+						MarkdownDescription: "Keypair Name",
 					},
-					common.ToSnakeCase("Labels"): schema.ListNestedAttribute{
-						Description: "Labels",
-						Computed:    true,
+					"kubernetes_version": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Kubernetes Version\n  - example: v1.29.8",
+						MarkdownDescription: "Kubernetes Version\n  - example: v1.29.8",
+					},
+					"labels": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
-							Attributes: d.makeNodepoolLabelsSchema(),
+							Attributes: map[string]schema.Attribute{
+								"key": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Node Pool Label Key\n  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$\n  - example: example.com/my-app",
+									MarkdownDescription: "Node Pool Label Key\n  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$\n  - example: example.com/my-app",
+								},
+								"value": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Node Pool Label Value\n  - maxLength: 63\n  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$\n  - example: bar",
+									MarkdownDescription: "Node Pool Label Value\n  - maxLength: 63\n  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$\n  - example: bar",
+								},
+							},
 						},
+						Computed:            true,
+						Description:         "Node Pool Labels",
+						MarkdownDescription: "Node Pool Labels",
 					},
-					common.ToSnakeCase("Taints"): schema.ListNestedAttribute{
-						Description: "Taints",
-						Computed:    true,
+					"max_node_count": schema.Int64Attribute{
+						Computed:            true,
+						Description:         "Max Node Count\n  - example: 5",
+						MarkdownDescription: "Max Node Count\n  - example: 5",
+					},
+					"min_node_count": schema.Int64Attribute{
+						Computed:            true,
+						Description:         "Min Node Count\n  - example: 1",
+						MarkdownDescription: "Min Node Count\n  - example: 1",
+					},
+					"modified_at": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
+					},
+					"modified_by": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+					},
+					"name": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Nodepool Name\n  - example: sample-nodepool",
+						MarkdownDescription: "Nodepool Name\n  - example: sample-nodepool",
+					},
+					"server_group_id": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Server Group ID\n  - example: 2b8d33d5-4de5-40a5-a34c-7e30204133xc",
+						MarkdownDescription: "Server Group ID\n  - example: 2b8d33d5-4de5-40a5-a34c-7e30204133xc",
+					},
+					"server_type": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"description": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Server Type Description\n  - example: Standard",
+								MarkdownDescription: "Server Type Description\n  - example: Standard",
+							},
+							"id": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Server Type ID\n  - example: 10a599e031e749b7b260868f441e862b",
+								MarkdownDescription: "Server Type ID\n  - example: 10a599e031e749b7b260868f441e862b",
+							},
+						},
+						Computed:            true,
+						Description:         "Server Type",
+						MarkdownDescription: "Server Type",
+					},
+					"status": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Node Pool Status\n  - example: Running",
+						MarkdownDescription: "Node Pool Status\n  - example: Running",
+					},
+					"taints": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
-							Attributes: d.makeNodepoolTaintsSchema(),
+							Attributes: map[string]schema.Attribute{
+								"effect": schema.StringAttribute{
+									Computed:            true,
+									Description:         "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]",
+									MarkdownDescription: "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]",
+								},
+								"key": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Node Pool Taint Key\n  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$\n  - example: example.com/my-app",
+									MarkdownDescription: "Node Pool Taint Key\n  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$\n  - example: example.com/my-app",
+								},
+								"value": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Node Pool Taint Value\n  - maxLength: 63\n  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$\n  - example: bar",
+									MarkdownDescription: "Node Pool Taint Value\n  - maxLength: 63\n  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$\n  - example: bar",
+								},
+							},
 						},
+						Computed:            true,
+						Description:         "Node Pool Taints",
+						MarkdownDescription: "Node Pool Taints",
 					},
-					common.ToSnakeCase("MaxNodeCount"): schema.Int32Attribute{
-						Description: "MaxNodeCount",
-						Computed:    true,
+					"volume_size": schema.Int64Attribute{
+						Computed:            true,
+						Description:         "Volume Size\n  - example: 104",
+						MarkdownDescription: "Volume Size\n  - example: 104",
 					},
-					common.ToSnakeCase("MinNodeCount"): schema.Int32Attribute{
-						Description: "MinNodeCount",
-						Computed:    true,
-					},
-					common.ToSnakeCase("ServerType"): schema.SingleNestedAttribute{
-						Description: "ServerType",
-						Computed:    true,
+					"volume_type": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("Description"): schema.StringAttribute{
-								Description: "Description",
-								Computed:    true,
+							"encrypt": schema.BoolAttribute{
+								Computed:            true,
+								Description:         "Volume Type Encrypt\n  - example: true",
+								MarkdownDescription: "Volume Type Encrypt\n  - example: true",
 							},
-							common.ToSnakeCase("Id"): schema.StringAttribute{
-								Description: "Id",
-								Computed:    true,
+							"id": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Volume Type ID\n  - example: 10a599e031e749b7b260868f441e862b",
+								MarkdownDescription: "Volume Type ID\n  - example: 10a599e031e749b7b260868f441e862b",
 							},
-						},
-					},
-					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Computed:    true,
-					},
-					common.ToSnakeCase("VolumeType"): schema.SingleNestedAttribute{
-						Description: "VolumeType",
-						Computed:    true,
-						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("Encrypt"): schema.BoolAttribute{
-								Description: "Encrypt",
-								Computed:    true,
-							},
-							common.ToSnakeCase("Id"): schema.StringAttribute{
-								Description: "Id",
-								Computed:    true,
-							},
-							common.ToSnakeCase("Name"): schema.StringAttribute{
-								Description: "Name",
-								Computed:    true,
+							"name": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Volume Type Name\n  - example: SSD",
+								MarkdownDescription: "Volume Type Name\n  - example: SSD",
 							},
 						},
-					},
-					common.ToSnakeCase("VolumeSize"): schema.Int32Attribute{
-						Description: "VolumeSize",
-						Computed:    true,
-					},
-					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
-					},
-					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
-					},
-					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
-					},
-					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
-					},
-					common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-						Description: "ServerGroupId",
-						Computed:    true,
-					},
-					common.ToSnakeCase("AdvancedSettings"): schema.SingleNestedAttribute{
-						Description: "AdvancedSettings",
-						Computed:    true,
-						Required:    false,
-						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("AllowedUnsafeSysctls"): schema.StringAttribute{
-								Description: "AllowedUnsafeSysctls",
-								Computed:    true,
-							},
-							common.ToSnakeCase("ContainerLogMaxFiles"): schema.Int32Attribute{
-								Description: "ContainerLogMaxFiles",
-								Computed:    true,
-							},
-							common.ToSnakeCase("ContainerLogMaxSize"): schema.Int32Attribute{
-								Description: "ContainerLogMaxSize",
-								Computed:    true,
-							},
-							common.ToSnakeCase("ImageGcHighThreshold"): schema.Int32Attribute{
-								Description: "ImageGcHighThreshold",
-								Computed:    true,
-							},
-							common.ToSnakeCase("ImageGcLowThreshold"): schema.Int32Attribute{
-								Description: "ImageGcLowThreshold",
-								Computed:    true,
-							},
-							common.ToSnakeCase("MaxPods"): schema.Int32Attribute{
-								Description: "MaxPods",
-								Computed:    true,
-							},
-							common.ToSnakeCase("PodMaxPids"): schema.Int32Attribute{
-								Description: "PodMaxPids",
-								Computed:    true,
-							},
-						},
+						Computed:            true,
+						Description:         "Volume Type",
+						MarkdownDescription: "Volume Type",
 					},
 				},
+				Computed: true,
+			},
+			"id": schema.StringAttribute{
+				Required:            true,
+				Description:         "Nodepool ID\n  - example: bdfda539-bd2e-4a5c-9021-ec6d52d1ca79",
+				MarkdownDescription: "Nodepool ID\n  - example: bdfda539-bd2e-4a5c-9021-ec6d52d1ca79",
 			},
 		},
 	}
@@ -265,40 +332,40 @@ func (d *skeNodepoolDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	nodepoolModel := ske.Nodepool{
-		Id:                  types.StringPointerValue(data.Nodepool.Id),
-		Name:                types.StringPointerValue(data.Nodepool.Name),
-		AccountId:           types.StringPointerValue(data.Nodepool.AccountId),
-		AutoRecoveryEnabled: types.BoolPointerValue(data.Nodepool.AutoRecoveryEnabled),
-		AutoScaleEnabled:    types.BoolPointerValue(data.Nodepool.AutoScaleEnabled),
+		Id:                  types.StringValue(data.Nodepool.Id),
+		Name:                types.StringValue(data.Nodepool.Name),
+		AccountId:           types.StringValue(data.Nodepool.AccountId),
+		AutoRecoveryEnabled: types.BoolValue(data.Nodepool.AutoRecoveryEnabled),
+		AutoScaleEnabled:    types.BoolValue(data.Nodepool.AutoScaleEnabled),
 		Cluster: ske.IdMapType{
-			Id: types.StringPointerValue(data.Nodepool.Cluster.Id),
+			Id: types.StringValue(data.Nodepool.Cluster.Id),
 		},
-		CurrentNodeCount: types.Int32PointerValue(data.Nodepool.CurrentNodeCount),
-		DesiredNodeCount: types.Int32PointerValue(data.Nodepool.DesiredNodeCount),
+		CurrentNodeCount: types.Int32Value(data.Nodepool.CurrentNodeCount),
+		DesiredNodeCount: types.Int32Value(data.Nodepool.DesiredNodeCount),
 		Image: ske.Image{
 			CustomImageName: types.StringPointerValue(data.Nodepool.Image.CustomImageName.Get()),
-			Os:              types.StringPointerValue(data.Nodepool.Image.Os),
-			OsVersion:       types.StringPointerValue(data.Nodepool.Image.OsVersion),
+			Os:              types.StringValue(data.Nodepool.Image.Os),
+			OsVersion:       types.StringValue(data.Nodepool.Image.OsVersion),
 		},
 		Keypair: ske.NameMapType{
-			Name: types.StringPointerValue(data.Nodepool.Keypair.Name),
+			Name: types.StringValue(data.Nodepool.Keypair.Name),
 		},
-		KubernetesVersion: types.StringPointerValue(data.Nodepool.KubernetesVersion),
+		KubernetesVersion: types.StringValue(data.Nodepool.KubernetesVersion),
 		Labels:            converter.MakeNodepoolLabelsModel(data.Nodepool.Labels),
 		Taints:            converter.MakeNodepoolTaintsModel(data.Nodepool.Taints),
-		MaxNodeCount:      types.Int32PointerValue(data.Nodepool.MaxNodeCount),
-		MinNodeCount:      types.Int32PointerValue(data.Nodepool.MinNodeCount),
+		MaxNodeCount:      types.Int32Value(data.Nodepool.MaxNodeCount),
+		MinNodeCount:      types.Int32Value(data.Nodepool.MinNodeCount),
 		ServerType: ske.ServerType{
-			Description: types.StringPointerValue(data.Nodepool.ServerType.Description),
-			Id:          types.StringPointerValue(data.Nodepool.ServerType.Id),
+			Description: types.StringValue(data.Nodepool.ServerType.Description),
+			Id:          types.StringValue(data.Nodepool.ServerType.Id),
 		},
-		Status: types.StringPointerValue(data.Nodepool.Status),
+		Status: types.StringValue(data.Nodepool.Status),
 		VolumeType: ske.VolumeType{
-			Encrypt: types.BoolPointerValue(data.Nodepool.VolumeType.Encrypt),
-			Id:      types.StringPointerValue(data.Nodepool.VolumeType.Id),
-			Name:    types.StringPointerValue(data.Nodepool.VolumeType.Name),
+			Encrypt: types.BoolValue(data.Nodepool.VolumeType.Encrypt),
+			Id:      types.StringValue(data.Nodepool.VolumeType.Id),
+			Name:    types.StringValue(data.Nodepool.VolumeType.Name),
 		},
-		VolumeSize:       types.Int32PointerValue(data.Nodepool.VolumeSize),
+		VolumeSize:       types.Int32Value(data.Nodepool.VolumeSize),
 		CreatedAt:        types.StringValue(data.Nodepool.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:        types.StringValue(data.Nodepool.CreatedBy),
 		ModifiedAt:       types.StringValue(data.Nodepool.ModifiedAt.Format(time.RFC3339)),
@@ -345,48 +412,4 @@ func (d *skeNodepoolDataSource) Configure(_ context.Context, req datasource.Conf
 
 	d.client = inst.Client.Ske
 	d.clients = inst.Client
-}
-
-// private
-func (d *skeNodepoolDataSource) makeExternalResourceSchema() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		common.ToSnakeCase("Id"): schema.StringAttribute{
-			Description: "External Resource Id",
-			Computed:    true,
-		},
-		common.ToSnakeCase("Name"): schema.StringAttribute{
-			Description: "External Resource Id",
-			Computed:    true,
-		},
-	}
-}
-
-func (d *skeNodepoolDataSource) makeNodepoolLabelsSchema() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		common.ToSnakeCase("Key"): schema.StringAttribute{
-			Description: "Key",
-			Computed:    true,
-		},
-		common.ToSnakeCase("Value"): schema.StringAttribute{
-			Description: "Value",
-			Computed:    true,
-		},
-	}
-}
-
-func (d *skeNodepoolDataSource) makeNodepoolTaintsSchema() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		common.ToSnakeCase("Effect"): schema.StringAttribute{
-			Description: "Effect",
-			Computed:    true,
-		},
-		common.ToSnakeCase("Key"): schema.StringAttribute{
-			Description: "Key",
-			Computed:    true,
-		},
-		common.ToSnakeCase("Value"): schema.StringAttribute{
-			Description: "Value",
-			Computed:    true,
-		},
-	}
 }

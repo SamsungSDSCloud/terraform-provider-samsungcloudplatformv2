@@ -80,13 +80,13 @@ variable "tags" {
   - example : 'my_volume' 
   - maxLength: 21  
   - minLength: 3  
-  - pattern: '^[a-z]([a-z0-9_]){2,20}$'
+  - pattern: `^[a-z]([a-z0-9_]){2,20}$`
 - `protocol` (String) Protocol 
   - example : 'NFS' 
-  - pattern: '^(NFS|CIFS)$'
+  - pattern: `^(NFS|CIFS)$`
 - `type_name` (String) Volume Type Name 
   - example : 'HDD' 
-  - pattern: '^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$'
+  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$`
 
 ### Optional
 
@@ -95,7 +95,7 @@ variable "tags" {
   - example : 'cifspwd0!!' 
   - maxLength: 20  
   - minLength: 6  
-  - pattern: '^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$'
+  - pattern: `^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$`
 - `file_unit_recovery_enabled` (Boolean) File Unit Recovery Enabled 
   - example : 'true'
 - `path` (String) Volume Mount Path 
@@ -132,4 +132,4 @@ Optional:
 - `object_id` (String) Object Id 
   - example : '43fq3347-02q4-4aa8-ccf9-affe4917bb6f'
 - `object_type` (String) Object Type  - example : 'VM' 
-  - pattern: '^(VM|BM|GPU|GPU_NODE|ENDPOINT)$'
+  - pattern: `^(VM|BM|GPU|GPU_NODE|ENDPOINT)$`

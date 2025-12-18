@@ -1,3 +1,4 @@
 category:
   sqlserver_cluster: Sqlserver
   sqlserver_clusters: Sqlserver
+  sqlserver_engine_version: Sqlserver

@@ -9,8 +9,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpsdkiam1d0 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.0"
-	scpsdkiam1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.1"
+	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -710,7 +709,7 @@ func (r *iamGroupResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 }
 
-func getGroupMembers(_members []scpsdkiam1d0.GroupMember) []iam.Member {
+func getGroupMembers(_members []scpsdkiam.GroupMember) []iam.Member {
 	var members []iam.Member
 
 	for _, member := range _members {
@@ -753,113 +752,14 @@ func getPolicies(ctx context.Context, _policies interface{}) ([]iam.Policy, bool
 	var policies []iam.Policy
 
 	switch v := _policies.(type) {
-	case []scpsdkiam1d0.Policy:
-		policies = _getPolicies1D0(ctx, v, policies)
-	case []scpsdkiam1d1.Policy:
-
-		policies = _getPolicies1D1(ctx, v, policies)
+	case []scpsdkiam.Policy:
+		policies = _getPolicies(ctx, v, policies)
 	}
 
 	return policies, false
 }
 
-func _getPolicies1D0(ctx context.Context, _policies []scpsdkiam1d0.Policy, policies []iam.Policy) []iam.Policy {
-	for _, policy := range _policies {
-
-		var policyVersions []iam.PolicyVersion
-		//policy versions
-		for _, policyVersion := range policy.PolicyVersions {
-
-			var statements []iam.Statement
-			for _, _statement := range policyVersion.PolicyDocument.Statement {
-
-				// resource
-				resources := make([]types.String, 0, len(_statement.Resource))
-				for _, _resource := range _statement.Resource {
-					resources = append(resources, types.StringValue(_resource))
-				}
-
-				// action
-				actions := make([]types.String, 0, len(_statement.Action))
-				for _, _action := range _statement.Action {
-					actions = append(actions, types.StringValue(_action))
-				}
-
-				// not action
-				notActions := make([]types.String, 0, len(_statement.NotAction))
-				for _, _notAction := range _statement.NotAction {
-					notActions = append(notActions, types.StringValue(_notAction))
-				}
-
-				// principal
-				principal, _ := convertPrincipal(ctx, _statement.Principal)
-
-				// condition
-				condition, _ := convertCondition(ctx, _statement.Condition)
-
-				statement := iam.Statement{
-					Sid:       types.StringPointerValue(_statement.Sid),
-					Effect:    types.StringValue(_statement.Effect),
-					Resource:  resources,
-					Action:    actions,
-					NotAction: notActions,
-					Principal: principal,
-					Condition: condition,
-				}
-
-				statements = append(statements, statement)
-			}
-
-			policyDocument := iam.PolicyDocument{
-				Version:   types.StringValue(policyVersion.PolicyDocument.Version),
-				Statement: statements,
-			}
-
-			policyVersionState := iam.PolicyVersion{
-				CreatedAt:         types.StringValue(policyVersion.CreatedAt.Format(time.RFC3339)),
-				CreatedBy:         types.StringValue(policyVersion.CreatedBy),
-				Id:                types.StringValue(*policyVersion.Id),
-				ModifiedAt:        types.StringValue(policyVersion.ModifiedAt.Format(time.RFC3339)),
-				ModifiedBy:        types.StringValue(policyVersion.ModifiedBy),
-				PolicyDocument:    policyDocument,
-				PolicyId:          types.StringValue(*policyVersion.PolicyId),
-				PolicyVersionName: types.StringValue(*policyVersion.PolicyVersionName),
-			}
-			policyVersions = append(policyVersions, policyVersionState)
-
-		}
-
-		policyState := iam.Policy{
-			AccountId:        types.StringPointerValue(policy.AccountId.Get()),
-			CreatedAt:        types.StringValue(policy.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:        types.StringValue(policy.CreatedBy),
-			CreatorEmail:     types.StringPointerValue(policy.CreatorEmail.Get()),
-			CreatorName:      types.StringPointerValue(policy.CreatorName.Get()),
-			DefaultVersionId: types.StringValue(*policy.DefaultVersionId),
-			Description:      types.StringPointerValue(policy.Description.Get()),
-			DomainName:       types.StringValue(policy.DomainName),
-			Id:               types.StringValue(*policy.Id),
-			ModifiedAt:       types.StringValue(policy.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:       types.StringValue(policy.ModifiedBy),
-			ModifierEmail:    types.StringPointerValue(policy.ModifierEmail.Get()),
-			ModifierName:     types.StringPointerValue(policy.ModifierName.Get()),
-			PolicyCategory:   types.StringValue(string(*policy.PolicyCategory)),
-			PolicyName:       types.StringValue(*policy.PolicyName),
-			PolicyType:       types.StringValue(string(*policy.PolicyType)),
-			PolicyVersions:   policyVersions,
-			ResourceType:     types.StringPointerValue(policy.ResourceType.Get()),
-			ServiceName:      types.StringPointerValue(policy.ServiceName.Get()),
-			ServiceType:      types.StringPointerValue(policy.ServiceType.Get()),
-			Srn:              types.StringValue(policy.Srn),
-			State:            types.StringValue(string(*policy.State)),
-		}
-
-		policies = append(policies, policyState)
-	}
-	return policies
-}
-
-func _getPolicies1D1(ctx context.Context, _policies []scpsdkiam1d1.Policy, policies []iam.Policy) []iam.Policy {
+func _getPolicies(ctx context.Context, _policies []scpsdkiam.Policy, policies []iam.Policy) []iam.Policy {
 	for _, policy := range _policies {
 
 		var policyVersions []iam.PolicyVersion

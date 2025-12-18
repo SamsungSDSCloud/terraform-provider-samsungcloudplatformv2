@@ -27,7 +27,7 @@ resource "samsungcloudplatformv2_ske_cluster" "cluster" {
   public_endpoint_access_control_ip = var.public_endpoint_access_control_ip
   service_watch_logging_enabled = var.service_watch_logging_enabled
   tags = {
-      "terraform_key" = "terraform_value"
+    "terraform_key" = "terraform_value"
   }
 }
 
@@ -101,38 +101,52 @@ variable "service_watch_logging_enabled" {
 
 ### Required
 
-- `cloud_logging_enabled` (Boolean) CloudLoggingEnabled
-- `kubernetes_version` (String) KubernetesVersion
-- `name` (String) Name
-- `security_group_id_list` (List of String) SecurityGroupIdList
-- `service_watch_logging_enabled` (Boolean) ServiceWatchLoggingEnabled
-- `subnet_id` (String) SubnetId
-- `volume_id` (String) VolumeId
-- `vpc_id` (String) VpcID
+- `cloud_logging_enabled` (Boolean) Cloud Logging Enabled
+  - example: true
+- `kubernetes_version` (String) Cluster Version
+  - pattern: ^v[0-9]{1}\.[0-9]{1,2}\.[0-9]{1,2}$
+  - example: v1.29.8
+- `name` (String) Cluster Name
+  - maxLength: 30
+  - minLength: 3
+  - pattern: ^[a-z][a-z0-9\-]*[a-z0-9]$
+  - example: sample-cluster
+- `security_group_id_list` (List of String) Security Group ID List
+  - example: [bdfda539-bd2e-4a5c-9021-ec6d52d1ca79]
+- `service_watch_logging_enabled` (Boolean) Service Watch Enabled
+  - example: true
+- `subnet_id` (String) Subnet ID
+  - example: 023c57b14f11483689338d085e061492
+- `volume_id` (String) Volume ID
+  - example: [bfdbabf2-04d9-4e8b-a205-020f8e6da438]
+- `vpc_id` (String) VPC ID
+  - example: 7df8abb4912e4709b1cb237daccca7a8
 
 ### Optional
 
-- `private_endpoint_access_control_resources` (Attributes List) PrivateEndpointAccessControlResources (see [below for nested schema](#nestedatt--private_endpoint_access_control_resources))
-- `public_endpoint_access_control_ip` (String) PublicEndpointAccessControlIp
-- `region` (String) Region
+- `private_endpoint_access_control_resources` (Attributes List) Private Endpoint Access Control Resources (see [below for nested schema](#nestedatt--private_endpoint_access_control_resources))
+- `public_endpoint_access_control_ip` (String) Public Endpoint Access Control IP
+  - example: 192.168.0.0
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `cluster` (Attributes) Cluster (see [below for nested schema](#nestedatt--cluster))
+- `cluster` (Attributes) (see [below for nested schema](#nestedatt--cluster))
 - `id` (String) Identifier of the resource.
-- `last_updated` (String) Timestamp of the last Terraform update of the cluster
 
 <a id="nestedatt--private_endpoint_access_control_resources"></a>
 ### Nested Schema for `private_endpoint_access_control_resources`
 
 Required:
 
-- `id` (String) External Resource Id
-- `name` (String) External Resource Name
-- `type` (String) External Resource Type
+- `id` (String) Private Endpoint Access Control Resource ID
+  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+- `name` (String) Private Endpoint Access Control Resource Name
+  - example: sample-name
+- `type` (String) Private Endpoint Access Control Resource Type
+  - example: vm
 
 
 <a id="nestedatt--cluster"></a>
@@ -140,39 +154,60 @@ Required:
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `cloud_logging_enabled` (Boolean) CloudLoggingEnabled
-- `cluster_namespace` (String) ClusterNamespace
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `id` (String) Id
-- `kubernetes_version` (String) KubernetesVersion
-- `managed_security_group` (Attributes) ManagedSecurityGroup (see [below for nested schema](#nestedatt--cluster--managed_security_group))
-- `max_node_count` (Number) MaxNodeCount
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `node_count` (Number) NodeCount
-- `private_endpoint_access_control_resources` (Attributes List) PrivateEndpointAccessControlResources (see [below for nested schema](#nestedatt--cluster--private_endpoint_access_control_resources))
-- `private_endpoint_url` (String) PrivateEndpointUrl
-- `private_kubeconfig_download_yn` (String) PrivateKubeconfigDownloadYn
-- `public_endpoint_access_control_ip` (String) PublicEndpointAccessControlIp
-- `public_endpoint_url` (String) PublicEndpointUrl
-- `public_kubeconfig_download_yn` (String) PublicKubeconfigDownloadYn
-- `security_group_list` (Attributes List) SecurityGroupList (see [below for nested schema](#nestedatt--cluster--security_group_list))
-- `service_watch_logging_enabled` (Boolean) ServiceWatchLoggingEnabled
-- `status` (String) Status
-- `subnet` (Attributes) Subnet (see [below for nested schema](#nestedatt--cluster--subnet))
-- `volume` (Attributes) Volume (see [below for nested schema](#nestedatt--cluster--volume))
-- `vpc` (Attributes) Vpc (see [below for nested schema](#nestedatt--cluster--vpc))
+- `account_id` (String) Account ID
+  - example: 617b3d0e90c24a5fa1f65a3824861354
+- `cloud_logging_enabled` (Boolean) Cloud Logging Enabled
+  - example: true
+- `cluster_namespace` (String) Cluster Namespace
+  - example: sample-cluster-12345
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `id` (String) ID
+  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
+- `kubernetes_version` (String) Cluster Version
+  - example: v1.29.8
+- `managed_security_group` (Attributes) Managed Security Group (see [below for nested schema](#nestedatt--cluster--managed_security_group))
+- `max_node_count` (Number) Cluster Max Node Count
+  - example: 5
+- `modified_at` (String) Modified At
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) Cluster Name
+  - example: sample-cluster
+- `node_count` (Number) Cluster Node Count
+  - example: 5
+- `private_endpoint_access_control_resources` (Attributes List) Private Endpoint Access Control Resources (see [below for nested schema](#nestedatt--cluster--private_endpoint_access_control_resources))
+- `private_endpoint_url` (String) Private Kubeconfig Download Yn
+  - example: N
+- `private_kubeconfig_download_yn` (String) Private Endpoint URL
+  - example: https://sample-cluster.ske.private.kr-west1.samsungsdscloud.com:6443
+- `public_endpoint_access_control_ip` (String) Public Endpoint Access Control IP
+  - example: 192.168.0.0
+- `public_endpoint_url` (String) Public Endpoint URL
+  - example: https://sample-cluster.ske.kr-west1.samsungsdscloud.com:6443
+- `public_kubeconfig_download_yn` (String) Public Kubeconfig Download Yn
+  - example: N
+- `security_group_list` (Attributes List) Connected Security Group List (see [below for nested schema](#nestedatt--cluster--security_group_list))
+- `service_watch_logging_enabled` (Boolean) Service Watch Enabled
+  - example: true
+- `status` (String) Cluster Status
+  - example: RUNNING
+- `subnet` (Attributes) Subnet of Cluster (see [below for nested schema](#nestedatt--cluster--subnet))
+- `volume` (Attributes) Connected File Storage (see [below for nested schema](#nestedatt--cluster--volume))
+- `vpc` (Attributes) VPC of Cluster (see [below for nested schema](#nestedatt--cluster--vpc))
 
 <a id="nestedatt--cluster--managed_security_group"></a>
 ### Nested Schema for `cluster.managed_security_group`
 
 Read-Only:
 
-- `id` (String) External Resource Id
-- `name` (String) External Resource Id
+- `id` (String) External Resource ID
+  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+- `name` (String) External Resource name
+  - example: sample-name
 
 
 <a id="nestedatt--cluster--private_endpoint_access_control_resources"></a>
@@ -180,9 +215,12 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) External Resource Id
-- `name` (String) External Resource Name
-- `type` (String) External Resource Type
+- `id` (String) Private Endpoint Access Control Resource ID
+  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+- `name` (String) Private Endpoint Access Control Resource Name
+  - example: sample-name
+- `type` (String) Private Endpoint Access Control Resource Type
+  - example: vm
 
 
 <a id="nestedatt--cluster--security_group_list"></a>
@@ -190,8 +228,10 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) External Resource Id
-- `name` (String) External Resource Id
+- `id` (String) External Resource ID
+  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+- `name` (String) External Resource name
+  - example: sample-name
 
 
 <a id="nestedatt--cluster--subnet"></a>
@@ -199,8 +239,10 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) External Resource Id
-- `name` (String) External Resource Id
+- `id` (String) External Resource ID
+  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+- `name` (String) External Resource name
+  - example: sample-name
 
 
 <a id="nestedatt--cluster--volume"></a>
@@ -208,8 +250,10 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) External Resource Id
-- `name` (String) External Resource Id
+- `id` (String) External Resource ID
+  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+- `name` (String) External Resource name
+  - example: sample-name
 
 
 <a id="nestedatt--cluster--vpc"></a>
@@ -217,5 +261,7 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) External Resource Id
-- `name` (String) External Resource Id
+- `id` (String) External Resource ID
+  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+- `name` (String) External Resource name
+  - example: sample-name

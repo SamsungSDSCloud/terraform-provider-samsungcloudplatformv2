@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.1"
+	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -386,7 +386,7 @@ func (client *Client) CreateLbListener(ctx context.Context, request LbListenerRe
 	} else {
 		urlHandlerInterfaces = nil
 	}
-	lbListenerElement := loadbalancer.LbListenerCreateRequest{
+	lbListenerElement := loadbalancer.LbListenerCreateRequestV1Dot2{
 		Listener: loadbalancer.ListenerForCreate{
 			Description:         *loadbalancer.NewNullableString(lbListener.Description.ValueStringPointer()),
 			InsertClientIp:      *loadbalancer.NewNullableBool(lbListener.InsertClientIp.ValueBoolPointer()),
@@ -405,12 +405,12 @@ func (client *Client) CreateLbListener(ctx context.Context, request LbListenerRe
 			XForwardedFor:       *loadbalancer.NewNullableBool(lbListener.XForwardedFor.ValueBoolPointer()),
 			XForwardedPort:      *loadbalancer.NewNullableBool(lbListener.XForwardedPort.ValueBoolPointer()),
 			XForwardedProto:     *loadbalancer.NewNullableBool(lbListener.XForwardedProto.ValueBoolPointer()),
-			RoutingAction:       *loadbalancer.NewNullableRoutingAction((*loadbalancer.RoutingAction)(lbListener.RoutingAction.ValueStringPointer())),
+			RoutingAction:       loadbalancer.RoutingAction(lbListener.RoutingAction.ValueString()),
 			ConditionType:       *loadbalancer.NewNullableConditionType((*loadbalancer.ConditionType)(lbListener.ConditionType.ValueStringPointer())),
 		},
 	}
 
-	req = req.LbListenerCreateRequest(lbListenerElement)
+	req = req.LbListenerCreateRequestV1Dot2(lbListenerElement)
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -460,7 +460,7 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 		}
 	}
 
-	lbListenerElement := loadbalancer.LbListenerSetRequest{
+	lbListenerElement := loadbalancer.LbListenerSetRequestV1Dot2{
 		Listener: loadbalancer.ListenerForSet{
 			Description:         *loadbalancer.NewNullableString(lbListener.Description.ValueStringPointer()),
 			InsertClientIp:      *loadbalancer.NewNullableBool(lbListener.InsertClientIp.ValueBoolPointer()),
@@ -541,7 +541,7 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 	test, err := json.Marshal(lbListenerElement)
 	print(test)
 
-	req = req.LbListenerSetRequest(lbListenerElement)
+	req = req.LbListenerSetRequestV1Dot2(lbListenerElement)
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -605,7 +605,7 @@ func (client *Client) CreateLbHealthCheck(ctx context.Context, request LbHealthC
 		VpcId:               lbHealthCheck.VpcId.ValueString(),
 		SubnetId:            lbHealthCheck.SubnetId.ValueString(),
 		Protocol:            loadbalancer.LbMonitorProtocol(lbHealthCheck.Protocol.ValueString()),
-		HealthCheckPort:     lbHealthCheck.HealthCheckPort.ValueInt32Pointer(),
+		HealthCheckPort:     *loadbalancer.NewNullableInt32(lbHealthCheck.HealthCheckPort.ValueInt32Pointer()),
 		HealthCheckInterval: lbHealthCheck.HealthCheckInterval.ValueInt32Pointer(),
 		HealthCheckTimeout:  lbHealthCheck.HealthCheckTimeout.ValueInt32Pointer(),
 		HealthCheckCount:    lbHealthCheck.HealthCheckCount.ValueInt32Pointer(),

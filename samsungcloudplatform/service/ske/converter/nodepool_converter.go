@@ -26,7 +26,7 @@ func MakeNodepoolAdvancedSettingsModel(advancedSettings scpske.NullableNodepoolA
 	value := advancedSettings.Get()
 	if value != nil {
 		return &ske.AdvancedSettings{
-			AllowedUnsafeSysctls: types.StringValue(value.AllowedUnsafeSysctls),
+			AllowedUnsafeSysctls: types.StringPointerValue(value.AllowedUnsafeSysctls),
 			ContainerLogMaxFiles: types.Int32Value(value.ContainerLogMaxFiles),
 			ContainerLogMaxSize:  types.Int32Value(value.ContainerLogMaxSize),
 			ImageGcHighThreshold: types.Int32Value(value.ImageGcHighThreshold),

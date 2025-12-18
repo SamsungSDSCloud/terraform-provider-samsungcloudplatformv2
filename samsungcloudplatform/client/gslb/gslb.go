@@ -2,8 +2,9 @@ package gslb
 
 import (
 	"context"
+
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/gslb/1.0" // terraform-sdk-samsungcloudplatformv2 에서 resourcemanager 라이브러리를 import 한다.
+	gslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/gslb/1.1" // terraform-sdk-samsungcloudplatformv2 에서 resourcemanager 라이브러리를 import 한다.
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -48,7 +49,7 @@ func (client *Client) GetGslb(ctx context.Context, gslbId string) (*gslb.GslbSho
 	return resp, err
 }
 
-func (client *Client) GetGslbResourceList(ctx context.Context, request GslbResourceDataSource) (*gslb.GslbResourceListResponse, error) {
+func (client *Client) GetGslbResourceList(ctx context.Context, request GslbResourceDataSource) (*gslb.GslbResourceListResponseV1Dot1, error) {
 	req := client.sdkClient.GslbV1GslbResourcesApiAPI.ListGslbResources(ctx, request.GslbId.ValueString())
 
 	if !request.Size.IsNull() {
@@ -96,19 +97,18 @@ func (client *Client) CreateGslb(ctx context.Context, request GslbResource) (*gs
 		}
 	}
 
-	gslbResources := make([]gslb.GslbResource, len(gslbCreate.Resources))
+	gslbResources := make([]gslb.GslbResourceV1Dot1, len(gslbCreate.Resources))
 
 	for i, gslbResource := range gslbCreate.Resources {
-		gslbResources[i] = gslb.GslbResource{
+		gslbResources[i] = gslb.GslbResourceV1Dot1{
 			Description: *gslb.NewNullableString(gslbResource.Description.ValueStringPointer()),
 			Destination: gslbResource.Destination.ValueString(),
-			Disabled:    *gslb.NewNullableBool(gslbResource.Disabled.ValueBoolPointer()),
 			Region:      gslbResource.Region.ValueString(),
 			Weight:      *gslb.NewNullableInt32(gslbResource.Weight.ValueInt32Pointer()),
 		}
 	}
 
-	gslbElement := gslb.GslbCreateRequest{
+	gslbElement := gslb.GslbCreateRequestV1Dot1{
 		Algorithm:   gslbCreate.Algorithm.ValueString(),
 		Description: *gslb.NewNullableString(gslbCreate.Description.ValueStringPointer()),
 		EnvUsage:    gslbCreate.EnvUsage.ValueString(),
@@ -118,7 +118,7 @@ func (client *Client) CreateGslb(ctx context.Context, request GslbResource) (*gs
 		Tags:        GslbTags,
 	}
 
-	req = req.GslbCreateRequest(gslbElement)
+	req = req.GslbCreateRequestV1Dot1(gslbElement)
 
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err
@@ -149,19 +149,18 @@ func (client *Client) UpdateGslbResource(ctx context.Context, gslbId string, req
 	req := client.sdkClient.GslbV1GslbResourcesApiAPI.SetGslbResources(ctx, gslbId)
 
 	gslbResources := request.GslbCreate.Resources
-	var convertedGslbResources []gslb.GslbResource
+	var convertedGslbResources []gslb.GslbResourceSetRequestV1Dot1
 
 	for _, gslbResource := range gslbResources {
-		convertedGslbResources = append(convertedGslbResources, gslb.GslbResource{
+		convertedGslbResources = append(convertedGslbResources, gslb.GslbResourceSetRequestV1Dot1{
 			Description: *gslb.NewNullableString(gslbResource.Description.ValueStringPointer()),
 			Destination: gslbResource.Destination.ValueString(),
-			Disabled:    *gslb.NewNullableBool(gslbResource.Disabled.ValueBoolPointer()),
 			Region:      gslbResource.Region.ValueString(),
 			Weight:      *gslb.NewNullableInt32(gslbResource.Weight.ValueInt32Pointer()),
 		})
 	}
 
-	req = req.GslbResourceSetRequest(gslb.GslbResourceSetRequest{
+	req = req.GslbResourcesSetRequest(gslb.GslbResourcesSetRequest{
 		Resources: convertedGslbResources,
 	})
 
@@ -188,3 +187,44 @@ func (client *Client) UpdateGslbHealthCheck(ctx context.Context, gslbId string, 
 	resp, _, err := req.Execute()
 	return resp, err
 }
+
+// #region Regional Routing Control
+func (client *Client) GetGslbRegionalRoutingControlList(ctx context.Context, request GslbRegionalRoutingControlListDataSource) (*gslb.GslbRoutingControlListResponse, error) {
+	req := client.sdkClient.GslbV1GslbsApiAPI.ListGslbsRegionalRoutingControl(ctx)
+
+	if !request.Size.IsNull() {
+		req = req.Size(request.Size.ValueInt32())
+	}
+	if !request.Page.IsNull() {
+		req = req.Page(request.Page.ValueInt32())
+	}
+	if !request.Sort.IsNull() {
+		req = req.Sort(request.Sort.ValueString())
+	}
+	if !request.Region.IsNull() {
+		req = req.Region(request.Region.ValueString())
+	}
+	if !request.Status.IsNull() {
+		req = req.Status(request.Status.ValueString())
+	}
+	if !request.Name.IsNull() {
+		req = req.Name(request.Name.ValueString())
+	}
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) UpdateGslbRegionalRoutingControl(ctx context.Context, request GslbRegionalRoutingControlUpdateDataSource) (*gslb.GslbRoutingControlResponse, error) {
+	req := client.sdkClient.GslbV1GslbsApiAPI.SetGslbRegionalRoutingControl(ctx, request.GslbId.ValueString())
+
+	req = req.GslbRoutingControlRequest(gslb.GslbRoutingControlRequest{
+		Region: request.Region.ValueString(),
+		Status: request.Status.ValueString(),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+// #endregion

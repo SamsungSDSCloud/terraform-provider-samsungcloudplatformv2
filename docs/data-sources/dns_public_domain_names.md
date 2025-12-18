@@ -52,6 +52,7 @@ Optional:
 - `expired_date` (String) ExpiredDate
 - `id` (String) Id
 - `name` (String) Name
+- `register_email` (String) Register email
 - `start_date` (String) StartDate
 - `status` (String) Status
 

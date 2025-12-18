@@ -45,6 +45,14 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 	return resp, err
 }
 
+// engine version
+func (client *Client) GetEngineVersionList(ctx context.Context) (*postgresql.EngineListResponse, error) {
+	req := client.sdkClient.PostgresqlV1PostgresqlMasterDataApiAPI.PostgresqlListEngineVersions(ctx)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 // create (ctx, clusterResource) - (asyncResponse)
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*postgresql.AsyncResponse, error) {
 	req := client.sdkClient.PostgresqlV1PostgresqlClustersApiAPI.PostgresqlCreateCluster(ctx)
@@ -52,7 +60,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	// AllowableIpAddresses
 	var allowableIpAddresses []string
 
-	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown(){
+	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown() {
 		allowableIpAddresses = []string{}
 	} else {
 		for _, elem := range request.AllowableIpAddresses.Elements() {

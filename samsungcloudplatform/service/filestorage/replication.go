@@ -6,7 +6,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.0"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -72,13 +72,13 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 					"  - example : 'my_volume' \n" +
 					"  - maxLength: 21  \n" +
 					"  - minLength: 3  \n" +
-					"  - pattern: '^[a-z]([a-z0-9_]){2,20}$' \n",
+					"  - pattern: `^[a-z]([a-z0-9_]){2,20}$` \n",
 				Required: true,
 			},
 			"replication_frequency": schema.StringAttribute{
 				Description: "Replication Frequency \n" +
 					"  - example : '5min' \n" +
-					"  - pattern: '^(5min|hourly|daily|weekly|monthly)$' \n",
+					"  - pattern: `^(5min|hourly|daily|weekly|monthly)$` \n",
 				Required: true,
 			},
 			"region": schema.StringAttribute{
@@ -96,7 +96,7 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 					"  - example : 'cifspwd0!!' \n" +
 					"  - maxLength: 20  \n" +
 					"  - minLength: 6  \n" +
-					"  - pattern: '^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$' \n",
+					"  - pattern: `^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$` \n",
 				Optional:  true,
 				WriteOnly: true,
 			},
@@ -108,7 +108,7 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 			"replication_policy": schema.StringAttribute{
 				Description: "Replication Policy \n" +
 					"  - example : 'use' \n" +
-					"  - pattern: '^(use|paused)$' \n",
+					"  - pattern: `^(use|paused)$` \n",
 				Optional: true,
 				Computed: true,
 			},
@@ -160,7 +160,7 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 			"replication_update_type": schema.StringAttribute{
 				Description: "Replication Update Type \n" +
 					"  - example : 'policy' \n" +
-					"  - pattern: '^(policy|modify_schedule)$' \n",
+					"  - pattern: `^(policy|modify_schedule)$` \n",
 				Optional: true,
 			},
 			"backup_retention_count": schema.Int32Attribute{
@@ -176,7 +176,7 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 			"replication_type": schema.StringAttribute{
 				Description: "Replication Type \n" +
 					"  - example : 'replication' \n" +
-					"  - pattern: '^(replication|backup)$' \n",
+					"  - pattern: `^(replication|backup)$` \n",
 				Required: true,
 			},
 		},
@@ -330,7 +330,7 @@ func (f *fileStorageReplicationResource) Delete(ctx context.Context, request res
 		err = f.client.DeleteVolume(ctx, state.ReplicationVolumeId.ValueString())
 
 	} else {
-		err = f.client.DeleteVolumeReplication(ctx, state.ReplicationId.ValueString(), state.ReplicationId.ValueString())
+		err = f.client.DeleteVolumeReplication(ctx, state.ReplicationId.ValueString(), state.ReplicationVolumeId.ValueString())
 	}
 
 	if err != nil {

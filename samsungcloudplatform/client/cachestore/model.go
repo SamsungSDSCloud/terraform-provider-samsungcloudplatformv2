@@ -213,3 +213,20 @@ type UpdateHandler struct {
 	Fields  []string
 	Handler func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error
 }
+
+// --------------- Engine Version ------------ //
+
+type EngineVersionDataSource struct {
+	Contents []EngineVersion `tfsdk:"contents"`
+}
+
+type EngineVersion struct {
+	EndOfService     types.Bool   `tfsdk:"end_of_service"`
+	Id               types.String `tfsdk:"id"`
+	MajorVersion     types.String `tfsdk:"major_version"`
+	Name             types.String `tfsdk:"name"`
+	OsType           types.String `tfsdk:"os_type"`
+	OsVersion        types.String `tfsdk:"os_version"`
+	ProductImageType types.String `tfsdk:"product_image_type"`
+	SoftwareVersion  types.String `tfsdk:"software_version"`
+}

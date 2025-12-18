@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -94,7 +95,7 @@ func (r *baremetalBlockStorageVolume) Schema(ctx context.Context, request resour
 			common.ToSnakeCase("attachments"): schema.ListNestedAttribute{
 				Description: "List of server id and type. \n" +
 					"  - example : [{object_type='BM', object_id='83c3c73d457345e3829ee6d5557c0011'}] \n" +
-					"  - maxLength : 5 \n" +
+					"  - maxLength : 8 \n" +
 					"  - minLength : 1 \n",
 
 				Required: true,
@@ -117,7 +118,34 @@ func (r *baremetalBlockStorageVolume) Schema(ctx context.Context, request resour
 					},
 				},
 				Validators: []validator.List{
-					listvalidator.SizeBetween(0, 5),
+					listvalidator.SizeBetween(0, 8),
+				},
+			},
+			common.ToSnakeCase("qos"): schema.SingleNestedAttribute{
+				Description: "Volume QoS. (It can only be set on an SSD.) \n" +
+					"  - example : {iops=3000, throughput=125}\n",
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"iops": schema.Int32Attribute{
+						Description: "IOPS. \n" +
+							"  - example : 3000 \n" +
+							"  - maximum : 16000 \n" +
+							"  - minimum : 3000 \n",
+						Required: true,
+						Validators: []validator.Int32{
+							int32validator.Between(3000, 16000),
+						},
+					},
+					"throughput": schema.Int32Attribute{
+						Description: "Throughput. \n" +
+							"  - example : 125 \n" +
+							"  - maximum : 1000 \n" +
+							"  - minimum : 125 \n",
+						Required: true,
+						Validators: []validator.Int32{
+							int32validator.Between(125, 1000),
+						},
+					},
 				},
 			},
 		},
@@ -153,6 +181,14 @@ func (r *baremetalBlockStorageVolume) ModifyPlan(ctx context.Context, request re
 
 	// for creating
 	if plan.Id.IsUnknown() {
+		if plan.DiskType.ValueString() == "HDD" && !plan.QoS.IsNull() {
+			response.Diagnostics.AddError("Could not set QoS to HDD",
+				"If the disk type is HDD, QoS settings cannot be configured.")
+		}
+		if plan.DiskType.ValueString() == "SSD" && plan.QoS.IsNull() {
+			response.Diagnostics.AddError("Missing QoS Configuration",
+				"When the disk type is SSD, QoS configuration is required.\n")
+		}
 		return
 	}
 
@@ -356,6 +392,18 @@ func (r *baremetalBlockStorageVolume) Update(ctx context.Context, request resour
 		}
 	}
 
+	stateIops, stateThroughput := r.getIopsAndThroughputFrom(state.QoS)
+	planIops, planThroughput := r.getIopsAndThroughputFrom(plan.QoS)
+	if stateIops != planIops || stateThroughput != planThroughput {
+		_, _, err := r.client.UpdateBlockStorageQoS(ctx, plan.Id.ValueString(), planIops, planThroughput)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			response.Diagnostics.AddError("Error updating Block Storage(BM)",
+				"Could not update Block Storage(BM), unexpected error:"+err.Error()+"\nReason: "+detail)
+			return
+		}
+	}
+
 	tagElements := plan.Tags.Elements()
 	tagsMap, err := tag.UpdateTags(r.clients, "baremetal-blockstorage", "volume", plan.Id.ValueString(), tagElements)
 	if err != nil {
@@ -460,4 +508,11 @@ func (r *baremetalBlockStorageVolume) waitForBlockStorageState(ctx context.Conte
 		}
 		return info, strings.ToUpper(string(*info.Result.State)), nil
 	})
+}
+
+func (r *baremetalBlockStorageVolume) getIopsAndThroughputFrom(qos types.Object) (int32, int32) {
+	attributes := qos.Attributes()
+	iops, _ := strconv.ParseInt(attributes["iops"].String(), 10, 32)
+	throughput, _ := strconv.ParseInt(attributes["throughput"].String(), 10, 32)
+	return int32(iops), int32(throughput)
 }

@@ -24,8 +24,11 @@ resource "samsungcloudplatformv2_virtualserver_server" "server" {
   lock            = var.lock
   user_data       = var.user_data
   boot_volume     = var.boot_volume
-  server_group_id = var.server_group_id
   security_groups = var.security_groups
+
+  server_group_id = var.server_group_id
+  # if server group type is partition,
+  partition_number = var.partition_number
 
   networks        = {
     interface_1 : {
@@ -105,6 +108,11 @@ variable "server_group_id" {
   default = ""
 }
 
+variable "partition_number" {
+  type    = number
+  default = 0
+}
+
 variable "security_groups" {
   type    = list(string)
   default = [""]
@@ -148,6 +156,7 @@ variable "extra_volumes_volume_1_delete_on_termination" {
 - `image_id` (String) Image ID
 - `lock` (Boolean) Lock
 - `metadata` (Map of String) Metadata
+- `partition_number` (Number) Partition Number
 - `product_category` (String) Product category
 - `product_offering` (String) Product offering
 - `security_groups` (List of String) Security groups

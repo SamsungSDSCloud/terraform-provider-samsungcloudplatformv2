@@ -71,6 +71,10 @@ func (d *virtualServerServerGroupDataSource) Schema(_ context.Context, _ datasou
 						Computed:    true,
 						ElementType: types.StringType,
 					},
+					common.ToSnakeCase("PartitionSize"): schema.Int32Attribute{
+						Description: "Partition Size",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -139,12 +143,13 @@ func (d *virtualServerServerGroupDataSource) Read(ctx context.Context, req datas
 		}
 
 		serverGroupModel := virtualserver.ServerGroup{
-			Id:        types.StringValue(serverGroup.Id),
-			Name:      types.StringValue(serverGroup.Name),
-			Policy:    types.StringValue(serverGroup.Policy),
-			AccountId: types.StringValue(serverGroup.AccountId),
-			UserId:    types.StringValue(serverGroup.UserId),
-			Members:   types.ListValueMust(types.StringType, members),
+			Id:            types.StringValue(serverGroup.Id),
+			Name:          types.StringValue(serverGroup.Name),
+			Policy:        types.StringValue(serverGroup.Policy),
+			AccountId:     types.StringValue(serverGroup.AccountId),
+			UserId:        types.StringValue(serverGroup.UserId),
+			Members:       types.ListValueMust(types.StringType, members),
+			PartitionSize: types.Int32PointerValue(serverGroup.PartitionSize.Get()),
 		}
 		serverGroupObjectValue, _ := types.ObjectValueFrom(ctx, serverGroupModel.AttributeTypes(), serverGroupModel)
 		state.ServerGroup = serverGroupObjectValue

@@ -1,3 +1,4 @@
 category:
   postgresql_cluster: Postgresql
   postgresql_clusters: Postgresql
+  postgresql_engine_version: Postgresql

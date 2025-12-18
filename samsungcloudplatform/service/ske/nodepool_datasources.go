@@ -38,7 +38,7 @@ func (d *skeNodepoolDataSources) Schema(_ context.Context, _ datasource.SchemaRe
 		Description: "list of nodepool.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("ClusterId"): schema.StringAttribute{
-				Description: "ClusterId",
+				Description: "ClusterId\n  - example: 628a6c3f05454f2699da171a0c2f50b1",
 				Required:    true,
 			},
 			common.ToSnakeCase("Nodepools"): schema.ListNestedAttribute{
@@ -47,31 +47,31 @@ func (d *skeNodepoolDataSources) Schema(_ context.Context, _ datasource.SchemaRe
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
+							Description: "Id\n  - example: 0d9ef630-a557-48f3-b6fa-04d054834d11",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
+							Description: "Name\n  - example: test-nodepool",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
+							Description: "AccountId\n  - example: 27bb070b564349f8a31cc60734cc36a5",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AutoRecoveryEnabled"): schema.BoolAttribute{
-							Description: "AutoRecoveryEnabled",
+							Description: "AutoRecoveryEnabled\n  - example: false",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AutoScaleEnabled"): schema.BoolAttribute{
-							Description: "AutoScaleEnabled",
+							Description: "AutoScaleEnabled\n  - example: false",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CurrentNodeCount"): schema.Int32Attribute{
-							Description: "Name",
+							Description: "Name\n  - example: 1",
 							Computed:    true,
 						},
 						common.ToSnakeCase("DesiredNodeCount"): schema.Int32Attribute{
-							Description: "AccountId",
+							Description: "AccountId\n  - example: 1",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Image"): schema.SingleNestedAttribute{
@@ -79,21 +79,21 @@ func (d *skeNodepoolDataSources) Schema(_ context.Context, _ datasource.SchemaRe
 							Computed:    true,
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("CustomImageName"): schema.StringAttribute{
-									Description: "CustomImageName",
+									Description: "CustomImageName\n  - example: null",
 									Computed:    true,
 								},
 								common.ToSnakeCase("Os"): schema.StringAttribute{
-									Description: "Os",
+									Description: "Os\n  - example: ubuntu",
 									Computed:    true,
 								},
 								common.ToSnakeCase("OsVersion"): schema.StringAttribute{
-									Description: "OsVersion",
+									Description: "OsVersion\n  - example: 22.04",
 									Computed:    true,
 								},
 							},
 						},
 						common.ToSnakeCase("KubernetesVersion"): schema.StringAttribute{
-							Description: "KubernetesVersion",
+							Description: "KubernetesVersion\n  - example: v1.31.8",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ServerType"): schema.SingleNestedAttribute{
@@ -101,17 +101,17 @@ func (d *skeNodepoolDataSources) Schema(_ context.Context, _ datasource.SchemaRe
 							Computed:    true,
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Description"): schema.StringAttribute{
-									Description: "Description",
+									Description: "Description\n  - example: vCPU 1 | Memory 2G",
 									Computed:    true,
 								},
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "Id",
+									Description: "Id\n  - example: s1v1m2",
 									Computed:    true,
 								},
 							},
 						},
 						common.ToSnakeCase("Status"): schema.StringAttribute{
-							Description: "Status",
+							Description: "Status\n  - example: Running",
 							Computed:    true,
 						},
 						common.ToSnakeCase("VolumeType"): schema.SingleNestedAttribute{
@@ -119,11 +119,11 @@ func (d *skeNodepoolDataSources) Schema(_ context.Context, _ datasource.SchemaRe
 							Computed:    true,
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "Id",
+									Description: "Id\n  - example: a6d4a8a2-4db1-45bb-b85c-9f3a57b304c6",
 									Computed:    true,
 								},
 								common.ToSnakeCase("Name"): schema.StringAttribute{
-									Description: "Name",
+									Description: "Name\n  - example: SSD",
 									Computed:    true,
 								},
 							},
@@ -180,27 +180,27 @@ func (d *skeNodepoolDataSources) Read(ctx context.Context, req datasource.ReadRe
 	// Map response body to model
 	for _, nodepool := range contents {
 		nodepoolState := ske.NodepoolSummary{
-			Id:                  types.StringPointerValue(nodepool.Id),
-			Name:                types.StringPointerValue(nodepool.Name),
-			AccountId:           types.StringPointerValue(nodepool.AccountId),
-			AutoRecoveryEnabled: types.BoolPointerValue(nodepool.AutoRecoveryEnabled),
-			AutoScaleEnabled:    types.BoolPointerValue(nodepool.AutoScaleEnabled),
-			CurrentNodeCount:    types.Int32PointerValue(nodepool.CurrentNodeCount),
-			DesiredNodeCount:    types.Int32PointerValue(nodepool.DesiredNodeCount),
+			Id:                  types.StringValue(nodepool.Id),
+			Name:                types.StringValue(nodepool.Name),
+			AccountId:           types.StringValue(nodepool.AccountId),
+			AutoRecoveryEnabled: types.BoolValue(nodepool.AutoRecoveryEnabled),
+			AutoScaleEnabled:    types.BoolValue(nodepool.AutoScaleEnabled),
+			CurrentNodeCount:    types.Int32Value(nodepool.CurrentNodeCount),
+			DesiredNodeCount:    types.Int32Value(nodepool.DesiredNodeCount),
 			Image: ske.Image{
 				CustomImageName: types.StringPointerValue(nodepool.Image.CustomImageName.Get()),
-				Os:              types.StringPointerValue(nodepool.Image.Os),
-				OsVersion:       types.StringPointerValue(nodepool.Image.OsVersion),
+				Os:              types.StringValue(nodepool.Image.Os),
+				OsVersion:       types.StringValue(nodepool.Image.OsVersion),
 			},
-			KubernetesVersion: types.StringPointerValue(nodepool.KubernetesVersion),
+			KubernetesVersion: types.StringValue(nodepool.KubernetesVersion),
 			ServerType: ske.ServerType{
-				Description: types.StringPointerValue(nodepool.ServerType.Description),
-				Id:          types.StringPointerValue(nodepool.ServerType.Id),
+				Description: types.StringValue(nodepool.ServerType.Description),
+				Id:          types.StringValue(nodepool.ServerType.Id),
 			},
-			Status: types.StringPointerValue(nodepool.Status),
+			Status: types.StringValue(nodepool.Status),
 			VolumeType: ske.VolumeTypeSummary{
-				Id:   types.StringPointerValue(nodepool.VolumeType.Id),
-				Name: types.StringPointerValue(nodepool.VolumeType.Name),
+				Id:   types.StringValue(nodepool.VolumeType.Id),
+				Name: types.StringValue(nodepool.VolumeType.Name),
 			},
 		}
 

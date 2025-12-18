@@ -38,8 +38,9 @@ func (d *skeNodepoolnodeDataSources) Schema(_ context.Context, _ datasource.Sche
 		Description: "list of nodepoolnode.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("NodepoolId"): schema.StringAttribute{
-				Description: "NodepoolId",
-				Required:    true,
+				Description:         "Nodepool ID\n  - example: 9b618b5b-5508-4836-b014-d2d3fb438c28",
+				MarkdownDescription: "Nodepool ID\n  - example: 9b618b5b-5508-4836-b014-d2d3fb438c28",
+				Required:            true,
 			},
 			common.ToSnakeCase("Nodes"): schema.ListNestedAttribute{
 				Description: "A list of node",
@@ -47,16 +48,19 @@ func (d *skeNodepoolnodeDataSources) Schema(_ context.Context, _ datasource.Sche
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Computed:    true,
+							Description:         "Name\n  - example: ske-tf-test-vtr8s-s78gk",
+							MarkdownDescription: "Name\n  - example: ske-tf-test-vtr8s-s78gk",
+							Computed:            true,
 						},
 						common.ToSnakeCase("KubernetesVersion"): schema.StringAttribute{
-							Description: "KubernetesVersion",
-							Computed:    true,
+							Description:         "KubernetesVersion\n  - example: v1.29.8",
+							MarkdownDescription: "KubernetesVersion\n  - example: v1.29.8",
+							Computed:            true,
 						},
 						common.ToSnakeCase("Status"): schema.StringAttribute{
-							Description: "Status",
-							Computed:    true,
+							Description:         "Status\n  - example: Ready",
+							MarkdownDescription: "Status\n  - example: Ready",
+							Computed:            true,
 						},
 					},
 				},
@@ -111,9 +115,9 @@ func (d *skeNodepoolnodeDataSources) Read(ctx context.Context, req datasource.Re
 	// Map response body to model
 	for _, node := range contents {
 		nodeState := ske.NodeInNodepool{
-			Name:              types.StringPointerValue(node.Name),
-			KubernetesVersion: types.StringPointerValue(node.KubernetesVersion),
-			Status:            types.StringPointerValue(node.Status),
+			Name:              types.StringValue(node.Name),
+			KubernetesVersion: types.StringValue(node.KubernetesVersion),
+			Status:            types.StringValue(node.Status),
 		}
 
 		state.Nodes = append(state.Nodes, nodeState)

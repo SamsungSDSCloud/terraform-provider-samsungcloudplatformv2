@@ -29,6 +29,17 @@ variable "attachments" {
   }]
 }
 
+variable "qos" {
+  type = object({
+    iops       = number
+    throughput = number
+  })
+  default = {
+    iops       = 0
+    throughput = 0
+  }
+}
+
 variable "tags" {
   type    = map(string)
   default = null

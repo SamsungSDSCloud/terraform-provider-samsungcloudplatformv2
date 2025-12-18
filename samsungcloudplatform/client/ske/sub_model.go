@@ -55,7 +55,7 @@ type Taint struct {
 }
 
 type AdvancedSettings struct {
-	AllowedUnsafeSysctls types.String `tfsdk:"allowed_unsafe_sysctls"`
+	AllowedUnsafeSysctls types.String `tfsdk:"allowed_unsafe_sysctls"` // TODO: check type
 	ContainerLogMaxFiles types.Int32  `tfsdk:"container_log_max_files"`
 	ContainerLogMaxSize  types.Int32  `tfsdk:"container_log_max_size"`
 	ImageGcHighThreshold types.Int32  `tfsdk:"image_gc_high_threshold"`

@@ -9,10 +9,8 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -42,123 +40,133 @@ func (d *vpcPeeringsDataSource) Metadata(_ context.Context, req datasource.Metad
 // Schema defines the schema for the data source.
 func (d *vpcPeeringsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of vpc peering.",
+		Description: "List of vpc peering.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size (between 1 and 10000)",
-				Optional:    true,
-				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
-				},
+				Description: "Size\n" +
+					"  - Example: 20",
+				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "Page\n" +
+					"  - Example: 0",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "Sort\n" +
+					"  - Example: created_at:desc",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
+				Description: "VPC Peering Name",
 				Optional:    true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
+				Description: "State\n" +
+					"  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING",
+				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "id",
+				Description: "VPC Peering ID",
 				Optional:    true,
 			},
 			common.ToSnakeCase("RequesterVpcId"): schema.StringAttribute{
-				Description: "RequesterVpcId",
+				Description: "Requester VPC ID",
 				Optional:    true,
 			},
 			common.ToSnakeCase("RequesterVpcName"): schema.StringAttribute{
-				Description: "RequesterVpcName",
+				Description: "Requester VPC Name",
 				Optional:    true,
 			},
 			common.ToSnakeCase("ApproverVpcId"): schema.StringAttribute{
-				Description: "ApproverVpcId",
+				Description: "Approver VPC ID",
 				Optional:    true,
 			},
 			common.ToSnakeCase("ApproverVpcName"): schema.StringAttribute{
-				Description: "ApproverVpcName",
+				Description: "Approver VPC Name",
 				Optional:    true,
 			},
 			common.ToSnakeCase("AccountType"): schema.StringAttribute{
-				Description: "AccountType",
-				Optional:    true,
+				Description: "Account Type\n" +
+					"  - Enum: SAME | DIFFERENT",
+				Optional: true,
 			},
 			common.ToSnakeCase("VpcPeerings"): schema.ListNestedAttribute{
-				Description: "A list vpc peering.",
+				Description: "Vpc Peerings",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("AccountType"): schema.StringAttribute{
-							Description: "AccountType",
-							Computed:    true,
+							Description: "Account Type\n" +
+								"  - Enum: SAME | DIFFERENT",
+							Computed: true,
 						},
 						common.ToSnakeCase("ApproverVpcAccountId"): schema.StringAttribute{
-							Description: "ApproverVpcAccountId",
+							Description: "Approver VPC Account ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ApproverVpcId"): schema.StringAttribute{
-							Description: "ApproverVpcId",
+							Description: "Approver VPC ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ApproverVpcName"): schema.StringAttribute{
-							Description: "ApproverVpcName",
+							Description: "Approver VPC Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
+							Description: "Created At\n" +
+								"  - Example: 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Computed:    true,
+							Description: "Created By\n" +
+								"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
+							Description: "VPC Peering Description",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
+							Description: "VPC Peering ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
+							Description: "Modified At\n" +
+								"  - Example: 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Computed:    true,
+							Description: "Modified By\n" +
+								"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Computed:    true,
+							Description: "VPC Peering Name\n" +
+								"  - Minimum length: 3\n" +
+								"  - Maximum length: 20\n" +
+								"  - Pattern: ^[a-zA-Z0-9-]*$",
+							Computed: true,
 						},
 						common.ToSnakeCase("RequesterVpcAccountId"): schema.StringAttribute{
-							Description: "RequesterVpcAccountId",
+							Description: "Requester VPC Account ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("RequesterVpcId"): schema.StringAttribute{
-							Description: "RequesterVpcId",
+							Description: "Requester VPC ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("RequesterVpcName"): schema.StringAttribute{
-							Description: "RequesterVpcName",
+							Description: "Requester VPC Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("DeleteRequesterAccountId"): schema.StringAttribute{
-							Description: "DeleteRequesterAccountId",
+							Description: "Requester VPC Account ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State" +
-								" - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
+							Description: "State\n" +
+								"  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING",
 							Computed: true,
 						},
 					},

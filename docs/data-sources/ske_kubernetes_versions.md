@@ -48,4 +48,6 @@ variable "region" {
 Read-Only:
 
 - `description` (String) Description
+  - example: v1.29.8
 - `kubernetes_version` (String) Kubernetes Version
+  - example: v1.29.8

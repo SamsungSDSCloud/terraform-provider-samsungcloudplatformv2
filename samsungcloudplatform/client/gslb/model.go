@@ -102,24 +102,29 @@ func (m GslbDetail) AttributeTypes() map[string]attr.Type {
 }
 
 type GslbResourceDataSource struct { // Resource Group List request 모델을 참고하여 구조체를 구성한다.
-	Size          types.Int32          `tfsdk:"size"`
-	Page          types.Int32          `tfsdk:"page"`
-	Sort          types.String         `tfsdk:"sort"`
-	GslbId        types.String         `tfsdk:"gslb_id"`
+	// Input
+	Size   types.Int32  `tfsdk:"size"`
+	Page   types.Int32  `tfsdk:"page"`
+	Sort   types.String `tfsdk:"sort"`
+	GslbId types.String `tfsdk:"gslb_id"`
+
+	// Output
+	TotalCount    types.Int32          `tfsdk:"total_count"`
 	GslbResources []GslbResourceDetail `tfsdk:"gslb_resources"`
 }
 
 type GslbResourceDetail struct {
-	CreatedAt   types.String `tfsdk:"created_at"`
-	CreatedBy   types.String `tfsdk:"created_by"`
-	Description types.String `tfsdk:"description"`
-	Destination types.String `tfsdk:"destination"`
-	Disabled    types.Bool   `tfsdk:"disabled"`
-	Id          types.String `tfsdk:"id"`
-	ModifiedAt  types.String `tfsdk:"modified_at"`
-	ModifiedBy  types.String `tfsdk:"modified_by"`
-	Region      types.String `tfsdk:"region"`
-	Weight      types.Int32  `tfsdk:"weight"`
+	CreatedAt         types.String `tfsdk:"created_at"`
+	CreatedBy         types.String `tfsdk:"created_by"`
+	Description       types.String `tfsdk:"description"`
+	Destination       types.String `tfsdk:"destination"`
+	HealthCheckStatus types.String `tfsdk:"health_check_status"`
+	Id                types.String `tfsdk:"id"`
+	ModifiedAt        types.String `tfsdk:"modified_at"`
+	ModifiedBy        types.String `tfsdk:"modified_by"`
+	Region            types.String `tfsdk:"region"`
+	Status            types.String `tfsdk:"status"`
+	Weight            types.Int32  `tfsdk:"weight"`
 }
 
 type GslbResource struct {
@@ -153,7 +158,62 @@ type HealthCheckCreate struct {
 type GslbResourceCreate struct {
 	Description types.String `tfsdk:"description"`
 	Destination types.String `tfsdk:"destination"`
-	Disabled    types.Bool   `tfsdk:"disabled"`
 	Region      types.String `tfsdk:"region"`
 	Weight      types.Int32  `tfsdk:"weight"`
+}
+
+type GslbRegionalRoutingControlListDataSource struct { // Resource Group List request 모델을 참고하여 구조체를 구성한다.
+	// Input
+	Size   types.Int32  `tfsdk:"size"`
+	Page   types.Int32  `tfsdk:"page"`
+	Sort   types.String `tfsdk:"sort"`
+	Region types.String `tfsdk:"region"`
+	Status types.String `tfsdk:"status"`
+	Name   types.String `tfsdk:"name"`
+
+	// Output
+	TotalCount    types.Int32          `tfsdk:"total_count"`
+	RegionalGslbs []GslbRoutingControl `tfsdk:"regional_gslbs"`
+}
+
+type GslbRoutingControl struct {
+	Algorithm                   types.String `tfsdk:"algorithm"`
+	CreatedAt                   types.String `tfsdk:"created_at"`
+	CreatedBy                   types.String `tfsdk:"created_by"`
+	Description                 types.String `tfsdk:"description"`
+	EnvUsage                    types.String `tfsdk:"env_usage"`
+	Id                          types.String `tfsdk:"id"`
+	LinkedRegionalResourceCount types.Int32  `tfsdk:"linked_regional_resource_count"`
+	ModifiedAt                  types.String `tfsdk:"modified_at"`
+	ModifiedBy                  types.String `tfsdk:"modified_by"`
+	Name                        types.String `tfsdk:"name"`
+	Region                      types.String `tfsdk:"region"`
+	Status                      types.String `tfsdk:"status"`
+}
+
+func (m GslbRoutingControl) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"algorithm":                      types.StringType,
+		"created_at":                     types.StringType,
+		"created_by":                     types.StringType,
+		"description":                    types.StringType,
+		"env_usage":                      types.StringType,
+		"id":                             types.StringType,
+		"linked_regional_resource_count": types.Int32Type,
+		"modified_at":                    types.StringType,
+		"modified_by":                    types.StringType,
+		"name":                           types.StringType,
+		"region":                         types.StringType,
+		"status":                         types.StringType,
+	}
+}
+
+type GslbRegionalRoutingControlUpdateDataSource struct { // Resource Group List request 모델을 참고하여 구조체를 구성한다.
+	// Input
+	GslbId types.String `tfsdk:"gslb_id"`
+	Region types.String `tfsdk:"region"`
+	Status types.String `tfsdk:"status"`
+
+	// Output
+	RegionalGslb types.Object `tfsdk:"regional_gslb"`
 }

@@ -94,12 +94,13 @@ variable "vpcendpoint_tags" {
 - `resource_info` (String) VPC Endpoint Resource Info 
   - example(case: FS) : 192.168.0.1(SSD) 
   - example(case: OBS) : https://xxx.samsungsdscloud.com 
-  - example(case: SCR) : xxx.samsungsdscloud.com(Auth)
+  - example(case: SCR) : xxx.samsungsdscloud.com(Auth) 
+  - example(case: DNS) : Private DNS Name
 - `resource_key` (String) VPC Endpoint Resource Key 
-  - example(case: SCR) : 07c5364702384471b650147321b52173 
+  - example(case: SCR/DNS) : 07c5364702384471b650147321b52173 
   - example(case: FS/OBS) : 1.1.1.1
 - `resource_type` (String) VPC Endpoint Resource Type 
-  - example : FS | OBS | SCR
+  - example : FS | OBS | SCR | DNS
 - `subnet_id` (String) Subnet ID 
   - example : 7df8abb4912e4709b1cb237daccca7a8
 - `vpc_id` (String) VPC ID 

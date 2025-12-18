@@ -42,8 +42,10 @@ variable "kubeconfig_type" {
 
 ### Required
 
-- `cluster_id` (String) Cluster Id
+- `cluster_id` (String) Cluster ID
+  - example: 628a6c3f05454f2699da171a0c2f50b1
 - `kubeconfig_type` (String) Kubeconfig Type
+  - example: private
 
 ### Read-Only
 

@@ -26,6 +26,7 @@ resource "samsungcloudplatformv2_loggingaudit_trail" "trail" {
   user_total_yn= var.user_total_yn
   organization_trail_yn = var.organization_trail_yn
   log_archive_account_id = var.log_archive_account_id
+
 }
 
 

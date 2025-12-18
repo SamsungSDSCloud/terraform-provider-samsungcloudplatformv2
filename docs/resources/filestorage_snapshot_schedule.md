@@ -77,15 +77,15 @@ Optional:
 
 - `day_of_week` (String) Day Of Week 
   - example : 'MON' 
-  - pattern: '^(SUN|MON|TUE|WED|THU|FRI|SAT)$'
+  - pattern: `^(SUN|MON|TUE|WED|THU|FRI|SAT)$`
 - `frequency` (String) Frequency 
   - example : 'DAILY' 
-  - pattern: '^(WEEKLY|DAILY)$'
+  - pattern: `^(WEEKLY|DAILY)$`
 - `hour` (String) Hour 
   - example : '0' 
   - maximum : 23 
   - minimum : 0  
-  - pattern: '^([0-9]|1[0-9]|2[0-3])$'
+  - pattern: `^([0-9]|1[0-9]|2[0-3])$`
 
 Read-Only:
 

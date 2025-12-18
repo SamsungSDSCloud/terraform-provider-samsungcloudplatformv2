@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.1"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"regexp"
 	"time"
 )
 
@@ -39,128 +41,225 @@ func (d *skeClusterDataSource) Metadata(_ context.Context, req datasource.Metada
 
 func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "cluster.",
+		Description: "show cluster",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Required:    true,
-			},
-			common.ToSnakeCase("Cluster"): schema.SingleNestedAttribute{
-				Description: "cluster",
-				Computed:    true,
+			"cluster": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+					"account_id": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Account ID\n  - example: 617b3d0e90c24a5fa1f65a3824861354",
+						MarkdownDescription: "Account ID\n  - example: 617b3d0e90c24a5fa1f65a3824861354",
 					},
-					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+					"cloud_logging_enabled": schema.BoolAttribute{
+						Computed:            true,
+						Description:         "Cloud Logging Enabled\n  - example: true",
+						MarkdownDescription: "Cloud Logging Enabled\n  - example: true",
 					},
-					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+					"cluster_namespace": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Cluster Namespace\n  - example: sample-cluster-12345",
+						MarkdownDescription: "Cluster Namespace\n  - example: sample-cluster-12345",
 					},
-					common.ToSnakeCase("CloudLoggingEnabled"): schema.BoolAttribute{
-						Description: "CloudLoggingEnabled",
-						Computed:    true,
+					"created_at": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
 					},
-					common.ToSnakeCase("KubernetesVersion"): schema.StringAttribute{
-						Description: "KubernetesVersion",
-						Computed:    true,
+					"created_by": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
 					},
-					common.ToSnakeCase("ClusterNamespace"): schema.StringAttribute{
-						Description: "ClusterNamespace",
-						Computed:    true,
+					"id": schema.StringAttribute{
+						Computed:            true,
+						Description:         "ID\n  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+						MarkdownDescription: "ID\n  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
 					},
-					common.ToSnakeCase("MaxNodeCount"): schema.Int32Attribute{
-						Description: "MaxNodeCount",
-						Computed:    true,
+					"kubernetes_version": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Cluster Version\n  - example: v1.29.8",
+						MarkdownDescription: "Cluster Version\n  - example: v1.29.8",
 					},
-					common.ToSnakeCase("NodeCount"): schema.Int32Attribute{
-						Description: "NodeCount",
-						Computed:    true,
-					},
-					common.ToSnakeCase("PrivateEndpointUrl"): schema.StringAttribute{
-						Description: "PrivateEndpointUrl",
-						Computed:    true,
-					},
-					common.ToSnakeCase("PrivateKubeconfigDownloadYn"): schema.StringAttribute{
-						Description: "PrivateKubeconfigDownloadYn",
-						Computed:    true,
-					},
-					common.ToSnakeCase("PrivateEndpointAccessControlResources"): schema.ListNestedAttribute{
-						Description: "PrivateEndpointAccessControlResources",
-						Computed:    true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: d.makePrivateEndpointAccessControlResourceSchema(),
+					"managed_security_group": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Managed Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								MarkdownDescription: "Managed Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+							},
+							"name": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Managed Security Group Name\n  - example: sample-name",
+								MarkdownDescription: "Managed Security Group Name\n  - example: sample-name",
+							},
 						},
+						Computed:            true,
+						Description:         "Managed Security Group",
+						MarkdownDescription: "Managed Security Group",
 					},
-					common.ToSnakeCase("PublicEndpointUrl"): schema.StringAttribute{
-						Description: "PublicEndpointUrl",
-						Computed:    true,
+					"max_node_count": schema.Int64Attribute{
+						Computed:            true,
+						Description:         "Cluster Max Node Count\n  - example: 5",
+						MarkdownDescription: "Cluster Max Node Count\n  - example: 5",
 					},
-					common.ToSnakeCase("PublicKubeconfigDownloadYn"): schema.StringAttribute{
-						Description: "PublicKubeconfigDownloadYn",
-						Computed:    true,
+					"modified_at": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
 					},
-					common.ToSnakeCase("PublicEndpointAccessControlIp"): schema.StringAttribute{
-						Description: "PublicEndpointAccessControlIp",
-						Computed:    true,
+					"modified_by": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
 					},
-					common.ToSnakeCase("Vpc"): schema.SingleNestedAttribute{
-						Description: "Vpc",
-						Computed:    true,
-						Attributes:  d.makeExternalResourceSchema(),
+					"name": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Cluster Name\n  - example: sample-cluster",
+						MarkdownDescription: "Cluster Name\n  - example: sample-cluster",
 					},
-					common.ToSnakeCase("Subnet"): schema.SingleNestedAttribute{
-						Description: "Subnet",
-						Computed:    true,
-						Attributes:  d.makeExternalResourceSchema(),
+					"node_count": schema.Int64Attribute{
+						Computed:            true,
+						Description:         "Cluster Node Count\n  - example: 5",
+						MarkdownDescription: "Cluster Node Count\n  - example: 5",
 					},
-
-					common.ToSnakeCase("Volume"): schema.SingleNestedAttribute{
-						Description: "Volume",
-						Computed:    true,
-						Attributes:  d.makeExternalResourceSchema(),
-					},
-					common.ToSnakeCase("SecurityGroupList"): schema.ListNestedAttribute{
-						Description: "SecurityGroupList",
-						Computed:    true,
+					"private_endpoint_access_control_resources": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
-							Attributes: d.makeExternalResourceSchema(),
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Private Endpoint Access Control Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+									MarkdownDescription: "Private Endpoint Access Control Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								},
+								"name": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Private Endpoint Access Control Resource Name\n  - example: sample-name",
+									MarkdownDescription: "Private Endpoint Access Control Resource Name\n  - example: sample-name",
+								},
+								"type": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Private Endpoint Access Control Resource Type\n  - example: vm",
+									MarkdownDescription: "Private Endpoint Access Control Resource Type\n  - example: vm",
+								},
+							},
 						},
+						Computed:            true,
+						Description:         "Private Endpoint Access Control Resources",
+						MarkdownDescription: "Private Endpoint Access Control Resources",
 					},
-					common.ToSnakeCase("ManagedSecurityGroup"): schema.SingleNestedAttribute{
-						Description: "ManagedSecurityGroup",
-						Computed:    true,
-						Attributes:  d.makeExternalResourceSchema(),
+					"private_endpoint_url": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Private Kubeconfig Download Yn\n  - example: N",
+						MarkdownDescription: "Private Kubeconfig Download Yn\n  - example: N",
 					},
-					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+					"private_kubeconfig_download_yn": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Private Endpoint URL\n  - example: https://sample-cluster.ske.private.kr-west1.samsungsdscloud.com:6443",
+						MarkdownDescription: "Private Endpoint URL\n  - example: https://sample-cluster.ske.private.kr-west1.samsungsdscloud.com:6443",
 					},
-					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+					"public_endpoint_access_control_ip": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Public Endpoint Access Control IP\n  - example: 192.168.0.0",
+						MarkdownDescription: "Public Endpoint Access Control IP\n  - example: 192.168.0.0",
 					},
-					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+					"public_endpoint_url": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Public Endpoint URL\n  - example: https://sample-cluster.ske.kr-west1.samsungsdscloud.com:6443",
+						MarkdownDescription: "Public Endpoint URL\n  - example: https://sample-cluster.ske.kr-west1.samsungsdscloud.com:6443",
 					},
-					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+					"public_kubeconfig_download_yn": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Public Kubeconfig Download Yn\n  - example: N",
+						MarkdownDescription: "Public Kubeconfig Download Yn\n  - example: N",
 					},
-					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Computed:    true,
+					"security_group_list": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+									MarkdownDescription: "Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								},
+								"name": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Security Group Name\n  - example: sample-name",
+									MarkdownDescription: "Security Group Name\n  - example: sample-name",
+								},
+							},
+						},
+						Computed:            true,
+						Description:         "Connected Security Group List",
+						MarkdownDescription: "Connected Security Group List",
 					},
-					// v1.1
-					common.ToSnakeCase("ServiceWatchLoggingEnabled"): schema.BoolAttribute{
-						Description: "ServiceWatchLoggingEnabled",
-						Computed:    true,
+					"service_watch_logging_enabled": schema.BoolAttribute{
+						Computed:            true,
+						Description:         "Service Watch Enabled\n  - example: true",
+						MarkdownDescription: "Service Watch Enabled\n  - example: true",
 					},
+					"status": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Cluster Status\n  - example: RUNNING",
+						MarkdownDescription: "Cluster Status\n  - example: RUNNING",
+					},
+					"subnet": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Subnet ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								MarkdownDescription: "Subnet ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+							},
+							"name": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Subnet Name\n  - example: sample-name",
+								MarkdownDescription: "Subnet Name\n  - example: sample-name",
+							},
+						},
+						Computed:            true,
+						Description:         "Subnet of Cluster",
+						MarkdownDescription: "Subnet of Cluster",
+					},
+					"volume": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Volume ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								MarkdownDescription: "Volume ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+							},
+							"name": schema.StringAttribute{
+								Computed:            true,
+								Description:         "Volume Name\n  - example: sample-name",
+								MarkdownDescription: "Volume Name\n  - example: sample-name",
+							},
+						},
+						Computed:            true,
+						Description:         "Connected File Storage",
+						MarkdownDescription: "Connected File Storage",
+					},
+					"vpc": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:            true,
+								Description:         "VPC ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								MarkdownDescription: "VPC ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+							},
+							"name": schema.StringAttribute{
+								Computed:            true,
+								Description:         "VPC Name\n  - example: sample-name",
+								MarkdownDescription: "VPC Name\n  - example: sample-name",
+							},
+						},
+						Computed:            true,
+						Description:         "VPC of Cluster",
+						MarkdownDescription: "VPC of Cluster",
+					},
+				},
+				Computed: true,
+			},
+			"id": schema.StringAttribute{
+				Required:            true,
+				Description:         "Cluster ID\n  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+				MarkdownDescription: "Cluster ID\n  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile("^[0-9a-f]{32}$"), ""),
 				},
 			},
 		},
@@ -204,7 +303,7 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		Id:                                    types.StringValue(cluster.Id),
 		Name:                                  types.StringValue(cluster.Name),
 		AccountId:                             types.StringValue(cluster.AccountId),
-		CloudLoggingEnabled:                   types.BoolPointerValue(cluster.CloudLoggingEnabled),
+		CloudLoggingEnabled:                   types.BoolValue(cluster.CloudLoggingEnabled),
 		KubernetesVersion:                     types.StringValue(cluster.KubernetesVersion),
 		ClusterNamespace:                      types.StringValue(cluster.ClusterNamespace),
 		MaxNodeCount:                          types.Int32PointerValue(cluster.MaxNodeCount.Get()),
@@ -225,7 +324,7 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		ModifiedAt:                            types.StringValue(cluster.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:                            types.StringValue(cluster.ModifiedBy),
 		Status:                                types.StringValue(cluster.Status),
-		ServiceWatchLoggingEnabled:            types.BoolPointerValue(cluster.ServiceWatchLoggingEnabled),
+		ServiceWatchLoggingEnabled:            types.BoolValue(cluster.ServiceWatchLoggingEnabled),
 	}
 	clusterObjectValue, _ := types.ObjectValueFrom(ctx, clusterModel.AttributeTypes(), clusterModel)
 	println("clusterObjectValue:", clusterObjectValue.String())
@@ -275,35 +374,4 @@ func (d *skeClusterDataSource) Configure(_ context.Context, req datasource.Confi
 
 	d.client = inst.Client.Ske
 	d.clients = inst.Client
-}
-
-// private
-func (d *skeClusterDataSource) makeExternalResourceSchema() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		common.ToSnakeCase("Id"): schema.StringAttribute{
-			Description: "External Resource Id",
-			Computed:    true,
-		},
-		common.ToSnakeCase("Name"): schema.StringAttribute{
-			Description: "External Resource Id",
-			Computed:    true,
-		},
-	}
-}
-
-func (d *skeClusterDataSource) makePrivateEndpointAccessControlResourceSchema() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		common.ToSnakeCase("Id"): schema.StringAttribute{
-			Description: "Private Endpoint Access ControlResource Id",
-			Computed:    true,
-		},
-		common.ToSnakeCase("Name"): schema.StringAttribute{
-			Description: "Private Endpoint Access ControlResource Name",
-			Computed:    true,
-		},
-		common.ToSnakeCase("Type"): schema.StringAttribute{
-			Description: "Private Endpoint Access ControlResource Type",
-			Computed:    true,
-		},
-	}
 }

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_ske_nodepool Data Source - samsungcloudplatformv2"
 subcategory: Kubernetes Engine
 description: |-
-  nodepool
+  show nodepool
 ---
 
 # samsungcloudplatformv2_ske_nodepool (Data Source)
 
-nodepool
+show nodepool
 
 ## Example Usage
 
@@ -36,55 +36,92 @@ variable "id" {
 
 ### Required
 
-- `id` (String) Id
+- `id` (String) Nodepool ID
+  - example: bdfda539-bd2e-4a5c-9021-ec6d52d1ca79
 
 ### Read-Only
 
-- `nodepool` (Attributes) Nodepool (see [below for nested schema](#nestedatt--nodepool))
+- `nodepool` (Attributes) (see [below for nested schema](#nestedatt--nodepool))
 
 <a id="nestedatt--nodepool"></a>
 ### Nested Schema for `nodepool`
 
 Read-Only:
 
-- `account_id` (String) account id
-- `advanced_settings` (Attributes) AdvancedSettings (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
-- `auto_recovery_enabled` (Boolean) AutoRecoveryEnabled
-- `auto_scale_enabled` (Boolean) AutoScaleEnabled
+- `account_id` (String) Account ID
+  - example: 617b3d0e90c24a5fa1f65a3824861354
+- `advanced_settings` (Attributes) Node Pool Advanced Settings (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
+- `auto_recovery_enabled` (Boolean) Is Auto Recovery
+  - example: true
+- `auto_scale_enabled` (Boolean) Is Auto Scale
+  - example: true
 - `cluster` (Attributes) Cluster (see [below for nested schema](#nestedatt--nodepool--cluster))
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `current_node_count` (Number) CurrentNodeCount
-- `desired_node_count` (Number) DesiredNodeCount
-- `id` (String) id
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `current_node_count` (Number) Current Node Count
+  - example: 1
+- `desired_node_count` (Number) Desired Node Count
+  - example: 2
+- `id` (String) Nodepool ID
+  - example: bdfda539-bd2e-4a5c-9021-ec6d52d1ca79
 - `image` (Attributes) Image (see [below for nested schema](#nestedatt--nodepool--image))
-- `keypair` (Attributes) Keypair (see [below for nested schema](#nestedatt--nodepool--keypair))
-- `kubernetes_version` (String) KubernetesVersion
-- `labels` (Attributes List) Labels (see [below for nested schema](#nestedatt--nodepool--labels))
-- `max_node_count` (Number) MaxNodeCount
-- `min_node_count` (Number) MinNodeCount
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) name
-- `server_group_id` (String) ServerGroupId
-- `server_type` (Attributes) ServerType (see [below for nested schema](#nestedatt--nodepool--server_type))
-- `status` (String) Status
-- `taints` (Attributes List) Taints (see [below for nested schema](#nestedatt--nodepool--taints))
-- `volume_size` (Number) VolumeSize
-- `volume_type` (Attributes) VolumeType (see [below for nested schema](#nestedatt--nodepool--volume_type))
+- `keypair` (Attributes) Keypair Name (see [below for nested schema](#nestedatt--nodepool--keypair))
+- `kubernetes_version` (String) Kubernetes Version
+  - example: v1.29.8
+- `labels` (Attributes List) Node Pool Labels (see [below for nested schema](#nestedatt--nodepool--labels))
+- `max_node_count` (Number) Max Node Count
+  - example: 5
+- `min_node_count` (Number) Min Node Count
+  - example: 1
+- `modified_at` (String) Modified At
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) Nodepool Name
+  - example: sample-nodepool
+- `server_group_id` (String) Server Group ID
+  - example: 2b8d33d5-4de5-40a5-a34c-7e30204133xc
+- `server_type` (Attributes) Server Type (see [below for nested schema](#nestedatt--nodepool--server_type))
+- `status` (String) Node Pool Status
+  - example: Running
+- `taints` (Attributes List) Node Pool Taints (see [below for nested schema](#nestedatt--nodepool--taints))
+- `volume_size` (Number) Volume Size
+  - example: 104
+- `volume_type` (Attributes) Volume Type (see [below for nested schema](#nestedatt--nodepool--volume_type))
 
 <a id="nestedatt--nodepool--advanced_settings"></a>
 ### Nested Schema for `nodepool.advanced_settings`
 
 Read-Only:
 
-- `allowed_unsafe_sysctls` (String) AllowedUnsafeSysctls
-- `container_log_max_files` (Number) ContainerLogMaxFiles
-- `container_log_max_size` (Number) ContainerLogMaxSize
-- `image_gc_high_threshold` (Number) ImageGcHighThreshold
-- `image_gc_low_threshold` (Number) ImageGcLowThreshold
-- `max_pods` (Number) MaxPods
-- `pod_max_pids` (Number) PodMaxPids
+- `allowed_unsafe_sysctls` (String) Node Pool Allowed unsafe sysctls
+  - example: kernel.msg*,net.ipv4.route.min_pmtu
+- `container_log_max_files` (Number) Node Pool container log max files
+  - maximum: 10
+  - minimum: 2
+  - example: 5
+- `container_log_max_size` (Number) Node Pool container log max size
+  - maximum: 100
+  - minimum: 10
+  - example: 10
+- `image_gc_high_threshold` (Number) Node Pool image GC high threshold percent
+  - maximum: 85
+  - minimum: 10
+  - example: 85
+- `image_gc_low_threshold` (Number) Node Pool image GC low threshold percent
+  - maximum: 85
+  - minimum: 10
+  - example: 80
+- `max_pods` (Number) Node Pool max pod number
+  - maximum: 250
+  - minimum: 10
+  - example: 110
+- `pod_max_pids` (Number) Node Pool Pod Max pids constraint
+  - maximum: 4.194304e+06
+  - minimum: 1024
+  - example: 4096
 
 
 <a id="nestedatt--nodepool--cluster"></a>
@@ -92,7 +129,8 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) Id
+- `id` (String) Cluster ID
+  - example: 70a599e031e749b7b260868f441e862b
 
 
 <a id="nestedatt--nodepool--image"></a>
@@ -100,9 +138,12 @@ Read-Only:
 
 Read-Only:
 
-- `custom_image_name` (String) CustomImageName
-- `os` (String) Os
-- `os_version` (String) OsVersion
+- `custom_image_name` (String) Custom Image Name
+  - example: custom-image
+- `os` (String) Image OS
+  - example: ubuntu
+- `os_version` (String) Image OS Version
+  - example: 22.04
 
 
 <a id="nestedatt--nodepool--keypair"></a>
@@ -110,7 +151,8 @@ Read-Only:
 
 Read-Only:
 
-- `name` (String) Name
+- `name` (String) Keypair Name
+  - example: test_keypair
 
 
 <a id="nestedatt--nodepool--labels"></a>
@@ -118,8 +160,13 @@ Read-Only:
 
 Read-Only:
 
-- `key` (String) Key
-- `value` (String) Value
+- `key` (String) Node Pool Label Key
+  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$
+  - example: example.com/my-app
+- `value` (String) Node Pool Label Value
+  - maxLength: 63
+  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+  - example: bar
 
 
 <a id="nestedatt--nodepool--server_type"></a>
@@ -127,8 +174,10 @@ Read-Only:
 
 Read-Only:
 
-- `description` (String) Description
-- `id` (String) Id
+- `description` (String) Server Type Description
+  - example: Standard
+- `id` (String) Server Type ID
+  - example: 10a599e031e749b7b260868f441e862b
 
 
 <a id="nestedatt--nodepool--taints"></a>
@@ -136,9 +185,14 @@ Read-Only:
 
 Read-Only:
 
-- `effect` (String) Effect
-- `key` (String) Key
-- `value` (String) Value
+- `effect` (String) - enum: ["NoSchedule","NoExecute","PreferNoSchedule"]
+- `key` (String) Node Pool Taint Key
+  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$
+  - example: example.com/my-app
+- `value` (String) Node Pool Taint Value
+  - maxLength: 63
+  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+  - example: bar
 
 
 <a id="nestedatt--nodepool--volume_type"></a>
@@ -146,6 +200,9 @@ Read-Only:
 
 Read-Only:
 
-- `encrypt` (Boolean) Encrypt
-- `id` (String) Id
-- `name` (String) Name
+- `encrypt` (Boolean) Volume Type Encrypt
+  - example: true
+- `id` (String) Volume Type ID
+  - example: 10a599e031e749b7b260868f441e862b
+- `name` (String) Volume Type Name
+  - example: SSD

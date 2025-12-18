@@ -1,15 +1,15 @@
 variable "hosted_zone" {
   type = object({
-    description = string
-    email       = string
-    name        = string
-    type        = string
+    description    = string
+    name           = string
+    private_dns_id = string
+    type           = string
   })
   default = {
-    description = ""
-    email       = ""
-    name        = ""
-    type        = ""
+    description    = ""
+    name           = ""
+    private_dns_id = ""
+    type           = ""
   }
 }
 

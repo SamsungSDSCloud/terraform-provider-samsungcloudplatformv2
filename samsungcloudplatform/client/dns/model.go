@@ -85,15 +85,16 @@ type PublicDomainNameDataSource struct { // Resource Group List request 모델�
 }
 
 type PublicDomainName struct {
-	CreatedAt   types.String `tfsdk:"created_at"`
-	CreatedBy   types.String `tfsdk:"created_by"`
-	ExpiredDate types.String `tfsdk:"expired_date"`
-	Id          types.String `tfsdk:"id"`
-	ModifiedAt  types.String `tfsdk:"modified_at"`
-	ModifiedBy  types.String `tfsdk:"modified_by"`
-	Name        types.String `tfsdk:"name"`
-	StartDate   types.String `tfsdk:"start_date"`
-	Status      types.String `tfsdk:"status"`
+	CreatedAt     types.String `tfsdk:"created_at"`
+	CreatedBy     types.String `tfsdk:"created_by"`
+	ExpiredDate   types.String `tfsdk:"expired_date"`
+	Id            types.String `tfsdk:"id"`
+	ModifiedAt    types.String `tfsdk:"modified_at"`
+	ModifiedBy    types.String `tfsdk:"modified_by"`
+	Name          types.String `tfsdk:"name"`
+	RegisterEmail types.String `tfsdk:"register_email"`
+	StartDate     types.String `tfsdk:"start_date"`
+	Status        types.String `tfsdk:"status"`
 }
 
 type PublicDomainNameDataSourceDetail struct {
@@ -194,38 +195,25 @@ type HostedZoneDataSource struct { // Resource Group List request 모델을 참�
 	Size        types.Int32  `tfsdk:"size"`
 	Sort        types.String `tfsdk:"sort"`
 	Name        types.String `tfsdk:"name"`
-	ExactName   types.String `tfsdk:"exact_name"`
 	Type        types.String `tfsdk:"type"`
-	Email       types.String `tfsdk:"email"`
 	Status      types.String `tfsdk:"status"`
-	Description types.String `tfsdk:"description"`
-	Ttl         types.Int32  `tfsdk:"ttl"`
 	HostedZones []HostedZone `tfsdk:"hosted_zones"`
 }
 
 type HostedZone struct {
-	Action         types.String   `tfsdk:"action"`
-	Attributes     *Attributes    `tfsdk:"attributes"`
-	CreatedAt      types.String   `tfsdk:"created_at"`
-	Description    types.String   `tfsdk:"description"`
-	Email          types.String   `tfsdk:"email"`
-	HostedZoneType types.String   `tfsdk:"hosted_zone_type"`
-	Id             types.String   `tfsdk:"id"`
-	Links          *Links         `tfsdk:"links"`
-	Masters        []types.String `tfsdk:"masters"`
-	Name           types.String   `tfsdk:"name"`
-	PoolId         types.String   `tfsdk:"pool_id"`
-	PrivateDnsId   types.String   `tfsdk:"private_dns_id"`
-	PrivateDnsName types.String   `tfsdk:"private_dns_name"`
-	ProjectId      types.String   `tfsdk:"project_id"`
-	Serial         types.Int32    `tfsdk:"serial"`
-	Shared         types.Bool     `tfsdk:"shared"`
-	Status         types.String   `tfsdk:"status"`
-	TransferredAt  types.String   `tfsdk:"transferred_at"`
-	Ttl            types.Int32    `tfsdk:"ttl"`
-	Type           types.String   `tfsdk:"type"`
-	UpdatedAt      types.String   `tfsdk:"updated_at"`
-	Version        types.Int32    `tfsdk:"version"`
+	CreatedAt      types.String `tfsdk:"created_at"`
+	CreatedBy      types.String `tfsdk:"created_by"`
+	Description    types.String `tfsdk:"description"`
+	HostedZoneType types.String `tfsdk:"hosted_zone_type"`
+	Id             types.String `tfsdk:"id"`
+	ModifiedAt     types.String `tfsdk:"modified_at"`
+	ModifiedBy     types.String `tfsdk:"modified_by"`
+	Name           types.String `tfsdk:"name"`
+	PoolId         types.String `tfsdk:"pool_id"`
+	PrivateDnsId   types.String `tfsdk:"private_dns_id"`
+	PrivateDnsName types.String `tfsdk:"private_dns_name"`
+	Status         types.String `tfsdk:"status"`
+	Ttl            types.Int32  `tfsdk:"ttl"`
 }
 
 type Attributes struct {
@@ -243,32 +231,19 @@ type HostedZoneDataSourceDetail struct {
 
 func (m HostedZone) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"action": types.StringType,
-		"attributes": types.ObjectType{AttrTypes: map[string]attr.Type{
-			"service_tier": types.StringType,
-		}},
 		"created_at":       types.StringType,
+		"created_by":       types.StringType,
 		"description":      types.StringType,
-		"email":            types.StringType,
 		"hosted_zone_type": types.StringType,
-		"links": types.ObjectType{AttrTypes: map[string]attr.Type{
-			"self": types.StringType,
-		}},
 		"id":               types.StringType,
-		"masters":          types.ListType{ElemType: types.StringType},
+		"modified_at":      types.StringType,
+		"modified_by":      types.StringType,
 		"name":             types.StringType,
 		"pool_id":          types.StringType,
 		"private_dns_id":   types.StringType,
 		"private_dns_name": types.StringType,
-		"project_id":       types.StringType,
-		"serial":           types.Int32Type,
-		"shared":           types.BoolType,
 		"status":           types.StringType,
-		"transferred_at":   types.StringType,
 		"ttl":              types.Int32Type,
-		"type":             types.StringType,
-		"updated_at":       types.StringType,
-		"version":          types.Int32Type,
 	}
 }
 
@@ -281,7 +256,6 @@ type HostedZoneResource struct {
 
 type HostedZoneCreate struct {
 	Description  types.String `tfsdk:"description"`
-	Email        types.String `tfsdk:"email"`
 	Name         types.String `tfsdk:"name"`
 	PrivateDnsId types.String `tfsdk:"private_dns_id"`
 	Type         types.String `tfsdk:"type"`

@@ -103,7 +103,7 @@ variable "tags" {
 ### Required
 
 - `encrypt_enabled` (Boolean) Whether to use Encryption 
-  - example: false
+  - example: true
 - `name` (String) Backup name 
   - example: 'terraformtestbackup01'
 - `policy_category` (String) Backup policy category 

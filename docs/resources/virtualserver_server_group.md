@@ -59,4 +59,5 @@ variable "policy" {
 - `account_id` (String) Account ID
 - `id` (String) Identifier of the resource.
 - `members` (List of String) Members
+- `partition_size` (Number) Partition Size
 - `user_id` (String) User ID

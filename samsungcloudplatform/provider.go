@@ -7,6 +7,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -20,7 +21,8 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ provider.Provider = &samsungcloudplatformv2Provider{}
+	_ provider.Provider                       = &samsungcloudplatformv2Provider{}
+	_ provider.ProviderWithEphemeralResources = &samsungcloudplatformv2Provider{}
 )
 
 // New is a helper function to simplify provider server and testing implementation.
@@ -204,6 +206,7 @@ func (p *samsungcloudplatformv2Provider) Configure(ctx context.Context, req prov
 	// type Configure methods.
 	resp.DataSourceData = inst
 	resp.ResourceData = inst
+	resp.EphemeralResourceData = inst
 
 	tflog.Info(ctx, "Configured samsungcloudplatformv2 client", map[string]any{"success": true})
 }
@@ -216,4 +219,9 @@ func (p *samsungcloudplatformv2Provider) DataSources(_ context.Context) []func()
 // Resources defines the resources implemented in the provider.
 func (p *samsungcloudplatformv2Provider) Resources(_ context.Context) []func() resource.Resource {
 	return service.ResourceConstructors
+}
+
+// Resources defines the resources implemented in the provider.
+func (p *samsungcloudplatformv2Provider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
+	return service.EphemeralResourceConstructors
 }

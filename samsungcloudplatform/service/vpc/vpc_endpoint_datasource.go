@@ -92,12 +92,12 @@ func (d *vpcVpcEndpointDataSource) Schema(_ context.Context, _ datasource.Schema
 			},
 			common.ToSnakeCase("ResourceType"): schema.StringAttribute{
 				Description: "VPC Endpoint Resource Type \n" +
-					"  - example : FS | OBS | SCR",
+					"  - example : FS | OBS | SCR | DNS",
 				Optional: true,
 			},
 			common.ToSnakeCase("ResourceKey"): schema.StringAttribute{
 				Description: "VPC Endpoint Resource Key \n" +
-					"  - example(case: SCR) : 07c5364702384471b650147321b52173 \n" +
+					"  - example(case: SCR/DNS) : 07c5364702384471b650147321b52173 \n" +
 					"  - example(case: FS/OBS) : 1.1.1.1",
 				Optional: true,
 			},

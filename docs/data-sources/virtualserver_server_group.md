@@ -82,5 +82,6 @@ Read-Only:
 - `id` (String) ID
 - `members` (List of String) Members
 - `name` (String) Name
+- `partition_size` (Number) Partition Size
 - `policy` (String) Policy
 - `user_id` (String) User ID

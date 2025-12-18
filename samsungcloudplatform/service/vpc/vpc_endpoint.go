@@ -73,12 +73,12 @@ func (r *vpcVpcEndpointResource) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			common.ToSnakeCase("ResourceType"): schema.StringAttribute{
 				Description: "VPC Endpoint Resource Type \n" +
-					"  - example : FS | OBS | SCR",
+					"  - example : FS | OBS | SCR | DNS",
 				Required: true,
 			},
 			common.ToSnakeCase("ResourceKey"): schema.StringAttribute{
 				Description: "VPC Endpoint Resource Key \n" +
-					"  - example(case: SCR) : 07c5364702384471b650147321b52173 \n" +
+					"  - example(case: SCR/DNS) : 07c5364702384471b650147321b52173 \n" +
 					"  - example(case: FS/OBS) : 1.1.1.1",
 				Required: true,
 			},
@@ -86,7 +86,8 @@ func (r *vpcVpcEndpointResource) Schema(_ context.Context, _ resource.SchemaRequ
 				Description: "VPC Endpoint Resource Info \n" +
 					"  - example(case: FS) : 192.168.0.1(SSD) \n" +
 					"  - example(case: OBS) : https://xxx.samsungsdscloud.com \n" +
-					"  - example(case: SCR) : xxx.samsungsdscloud.com(Auth)",
+					"  - example(case: SCR) : xxx.samsungsdscloud.com(Auth) \n" +
+					"  - example(case: DNS) : Private DNS Name",
 				Required: true,
 			},
 			common.ToSnakeCase("EndpointIpAddress"): schema.StringAttribute{

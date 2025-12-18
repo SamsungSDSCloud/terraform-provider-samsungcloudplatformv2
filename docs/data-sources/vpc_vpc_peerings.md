@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_vpc_peerings Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  list of vpc peering.
+  List of vpc peering.
 ---
 
 # samsungcloudplatformv2_vpc_vpc_peerings (Data Source)
 
-list of vpc peering.
+List of vpc peering.
 
 ## Example Usage
 
@@ -95,40 +95,54 @@ variable "state" {
 
 ### Optional
 
-- `account_type` (String) AccountType
-- `approver_vpc_id` (String) ApproverVpcId
-- `approver_vpc_name` (String) ApproverVpcName
-- `id` (String) id
-- `name` (String) Name
+- `account_type` (String) Account Type
+  - Enum: SAME | DIFFERENT
+- `approver_vpc_id` (String) Approver VPC ID
+- `approver_vpc_name` (String) Approver VPC Name
+- `id` (String) VPC Peering ID
+- `name` (String) VPC Peering Name
 - `page` (Number) Page
-- `requester_vpc_id` (String) RequesterVpcId
-- `requester_vpc_name` (String) RequesterVpcName
-- `size` (Number) Size (between 1 and 10000)
+  - Example: 0
+- `requester_vpc_id` (String) Requester VPC ID
+- `requester_vpc_name` (String) Requester VPC Name
+- `size` (Number) Size
+  - Example: 20
 - `sort` (String) Sort
+  - Example: created_at:desc
 - `state` (String) State
+  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING
 
 ### Read-Only
 
-- `vpc_peerings` (Attributes List) A list vpc peering. (see [below for nested schema](#nestedatt--vpc_peerings))
+- `vpc_peerings` (Attributes List) Vpc Peerings (see [below for nested schema](#nestedatt--vpc_peerings))
 
 <a id="nestedatt--vpc_peerings"></a>
 ### Nested Schema for `vpc_peerings`
 
 Read-Only:
 
-- `account_type` (String) AccountType
-- `approver_vpc_account_id` (String) ApproverVpcAccountId
-- `approver_vpc_id` (String) ApproverVpcId
-- `approver_vpc_name` (String) ApproverVpcName
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `delete_requester_account_id` (String) DeleteRequesterAccountId
-- `description` (String) Description
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `requester_vpc_account_id` (String) RequesterVpcAccountId
-- `requester_vpc_id` (String) RequesterVpcId
-- `requester_vpc_name` (String) RequesterVpcName
-- `state` (String) State - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING
+- `account_type` (String) Account Type
+  - Enum: SAME | DIFFERENT
+- `approver_vpc_account_id` (String) Approver VPC Account ID
+- `approver_vpc_id` (String) Approver VPC ID
+- `approver_vpc_name` (String) Approver VPC Name
+- `created_at` (String) Created At
+  - Example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By
+  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `delete_requester_account_id` (String) Requester VPC Account ID
+- `description` (String) VPC Peering Description
+- `id` (String) VPC Peering ID
+- `modified_at` (String) Modified At
+  - Example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By
+  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) VPC Peering Name
+  - Minimum length: 3
+  - Maximum length: 20
+  - Pattern: ^[a-zA-Z0-9-]*$
+- `requester_vpc_account_id` (String) Requester VPC Account ID
+- `requester_vpc_id` (String) Requester VPC ID
+- `requester_vpc_name` (String) Requester VPC Name
+- `state` (String) State
+  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING

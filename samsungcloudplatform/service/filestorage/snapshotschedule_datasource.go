@@ -61,13 +61,13 @@ func (d *fileStorageSnapshotScheduleDataSource) Schema(_ context.Context, _ data
 						common.ToSnakeCase("DayOfWeek"): schema.StringAttribute{
 							Description: "Day Of Week \n" +
 								"  - example : 'MON' \n" +
-								"  - pattern: '^(SUN|MON|TUE|WED|THU|FRI|SAT)$' \n",
+								"  - pattern: `^(SUN|MON|TUE|WED|THU|FRI|SAT)$` \n",
 							Computed: true,
 						},
 						common.ToSnakeCase("Frequency"): schema.StringAttribute{
 							Description: "Frequency \n" +
 								"  - example : 'DAILY' \n" +
-								"  - pattern: '^(WEEKLY|DAILY)$' \n",
+								"  - pattern: `^(WEEKLY|DAILY)$` \n",
 							Computed: true,
 						},
 						common.ToSnakeCase("Hour"): schema.StringAttribute{
@@ -75,7 +75,7 @@ func (d *fileStorageSnapshotScheduleDataSource) Schema(_ context.Context, _ data
 								"  - example : '0' \n" +
 								"  - maximum : 23 \n" +
 								"  - minimum : 0  \n" +
-								"  - pattern: '^([0-9]|1[0-9]|2[0-3])$' \n",
+								"  - pattern: `^([0-9]|1[0-9]|2[0-3])$` \n",
 							Computed: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{Description: "ID", Computed: true},

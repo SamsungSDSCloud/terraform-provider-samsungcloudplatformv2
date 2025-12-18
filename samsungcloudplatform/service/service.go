@@ -4,8 +4,11 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/backup"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/baremetal"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/baremetalblockstorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/budget"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/cachestore"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/certificatemanager"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/cloudmonitoring"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/configinspection"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/directconnect"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/dns"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/epas"
@@ -32,6 +35,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/vpc"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/vpn"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -130,6 +134,15 @@ var ResourceConstructors = []func() resource.Resource{
 
 	//peering
 	vpc.NewVpcPeeringResource,
+
+	//budget
+	budget.NewBudgetBudgetResource,
+
+	configinspection.NewConfigInspectionDiagnosisResource,
+
+	//certificatemanager
+	certificatemanager.NewCertificateManagerResource,
+	certificatemanager.NewCertificateManagerSelfSignResource,
 }
 
 var DataSourceConstructors = []func() datasource.DataSource{
@@ -226,22 +239,31 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	// Database
 	mysql.NewMysqlClusterDataSource,
 	mysql.NewMysqlClusterDataSources,
+	mysql.NewMysqlEngineVersionDataSources,
 	mariadb.NewMariadbClusterDataSource,
 	mariadb.NewMariadbClusterDataSources,
+	mariadb.NewMariadbEngineVersionDataSources,
 	postgresql.NewPostgresqlClusterDataSource,
 	postgresql.NewPostgresqlClusterDataSources,
+	postgresql.NewPostgresqlEngineVersionDataSources,
 	epas.NewEpasClusterDataSource,
 	epas.NewEpasClusterDataSources,
+	epas.NewEpasEngineVersionDataSources,
 	sqlserver.NewSqlserverClusterDataSource,
 	sqlserver.NewSqlserverClusterDataSources,
+	sqlserver.NewSqlserverlEngineVersionDataSources,
 	cachestore.NewCachestoreClusterDataSource,
 	cachestore.NewCachestoreClusterDataSources,
+	cachestore.NewCachestoreEngineVersionDataSources,
 	searchengine.NewSearchengineClusterDataSource,
 	searchengine.NewSearchengineClusterDataSources,
+	searchengine.NewSearchengineEngineVersionDataSources,
 	vertica.NewVerticaClusterDataSource,
 	vertica.NewVerticaClusterDataSources,
+	vertica.NewVerticaEngineVersionDataSources,
 	eventstreams.NewEventstreamsClusterDataSource,
 	eventstreams.NewEventstreamsClusterDataSources,
+	eventstreams.NewEventstreamsEngineVersionDataSources,
 
 	// LoadBalancer
 	loadbalancer.NewLoadbalancerLoadbalancerDataSources,
@@ -276,6 +298,8 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	gslb.NewGslbGslbDataSources,
 	gslb.NewGslbGslbDataSource,
 	gslb.NewGslbGslbResourceDataSources,
+	gslb.NewGslbGslbRRCDataSources,
+	gslb.NewgslbGslbRRCUpdateDataSource,
 
 	// Dns
 	dns.NewDnsPrivateDnsDataSources,
@@ -292,7 +316,24 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	loadbalancer.NewLoadbalancerLbCertificateDataSources,
 	loadbalancer.NewLoadbalancerLbCertificateDataSource,
 
+	// config inspections
+	configinspection.NewConfigInspectionConfigInspectionDataSource,
+	configinspection.NewConfigInspectionConfigInspectionDataSources,
+	configinspection.NewConfigInspectionDiagnosisDataSources,
+	configinspection.NewConfigInspectionDiagnosisDataSource,
+	configinspection.NewConfigInspectionDiagnosisRequestDataSource,
+
 	// vpc peering
 	vpc.NewVpcVpcPeeringsDataSource,
 	vpc.NewVpcVpcPeeringIdDataSource,
+
+	// certificatemanager
+	certificatemanager.NewCertificateManagerDataSource,
+	certificatemanager.NewCertificateManagerDetailDataSource,
+
+	// budget
+	budget.NewBudgetBudgetDataSource,
+	budget.NewBudgetBudgetDataSources,
 }
+
+var EphemeralResourceConstructors = []func() ephemeral.EphemeralResource{}

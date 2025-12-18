@@ -44,6 +44,14 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 	return resp, err
 }
 
+// engine version
+func (client *Client) GetEngineVersionList(ctx context.Context) (*mysql.EngineListResponse, error) {
+	req := client.sdkClient.MysqlV1MysqlMasterDataApiAPI.MysqlListEngineVersions(ctx)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*mysql.AsyncResponse, error) {
 	req := client.sdkClient.MysqlV1MysqlClustersApiAPI.MysqlCreateCluster(ctx)
 

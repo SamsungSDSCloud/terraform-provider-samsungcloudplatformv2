@@ -2,3 +2,5 @@ category:
   gslb_gslb: GSLB
   gslb_gslbs: GSLB
   gslb_gslb_resources: GSLB
+  gslb_gslb_rrcs: GSLB
+  gslb_gslb_rrc_update: GSLB

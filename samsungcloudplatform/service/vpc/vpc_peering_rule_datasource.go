@@ -67,7 +67,8 @@ func (d *vpcVpcPeeringRuleDataSource) Schema(_ context.Context, _ datasource.Sch
 				Description: "VPC Peering Rule ID",
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Name",
 			},
 			common.ToSnakeCase("SourceVpcId"): schema.StringAttribute{
 				Optional:    true,

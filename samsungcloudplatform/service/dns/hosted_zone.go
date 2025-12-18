@@ -56,30 +56,16 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "A detail of HostedZone.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("Action"): schema.StringAttribute{
-						Description: "Action",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Attributes"): schema.SingleNestedAttribute{
-						Description: "Attributes",
-						Optional:    true,
-						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("ServiceTier"): schema.StringAttribute{
-								Description: "ServiceTier",
-								Optional:    true,
-							},
-						},
-					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 						Description: "CreatedAt",
 						Optional:    true,
 					},
-					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
+					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+						Description: "CreatedBy",
 						Optional:    true,
 					},
-					common.ToSnakeCase("Email"): schema.StringAttribute{
-						Description: "Email",
+					common.ToSnakeCase("Description"): schema.StringAttribute{
+						Description: "Description",
 						Optional:    true,
 					},
 					common.ToSnakeCase("HostedZoneType"): schema.StringAttribute{
@@ -90,20 +76,13 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 						Description: "Id",
 						Optional:    true,
 					},
-					common.ToSnakeCase("Links"): schema.SingleNestedAttribute{
-						Description: "Links",
+					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+						Description: "ModifiedAt",
 						Optional:    true,
-						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("Self"): schema.StringAttribute{
-								Description: "Self",
-								Optional:    true,
-							},
-						},
 					},
-					common.ToSnakeCase("Masters"): schema.ListAttribute{
-						Description: "Masters",
+					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+						Description: "ModifiedBy",
 						Optional:    true,
-						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "Name",
@@ -121,40 +100,12 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 						Description: "PrivateDnsName",
 						Optional:    true,
 					},
-					common.ToSnakeCase("ProjectId"): schema.StringAttribute{
-						Description: "ProjectId",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Serial"): schema.Int32Attribute{
-						Description: "Serial",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Shared"): schema.BoolAttribute{
-						Description: "Shared",
-						Optional:    true,
-					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
 						Description: "Status",
 						Optional:    true,
 					},
-					common.ToSnakeCase("TransferredAt"): schema.StringAttribute{
-						Description: "TransferredAt",
-						Optional:    true,
-					},
 					common.ToSnakeCase("Ttl"): schema.Int32Attribute{
 						Description: "Ttl",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Optional:    true,
-					},
-					common.ToSnakeCase("UpdatedAt"): schema.StringAttribute{
-						Description: "UpdatedAt",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Version"): schema.Int32Attribute{
-						Description: "Version",
 						Optional:    true,
 					},
 				},
@@ -162,14 +113,9 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 			common.ToSnakeCase("HostedZoneCreate"): schema.SingleNestedAttribute{
 				Description: "Create HostedZone.",
 				Optional:    true,
-
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "Description",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Email"): schema.StringAttribute{
-						Description: "Email",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
@@ -253,7 +199,7 @@ func (r *dnsHostedZoneResource) Create(ctx context.Context, req resource.CreateR
 
 	plan.Id = types.StringValue(data.Id)
 
-	hostedZoneModel := convertHostedZoneShowResponseV1Dot2ToHostedZone(*dataForShow)
+	hostedZoneModel := convertHostedZoneShowResponseV1Dot3ToHostedZone(*dataForShow)
 
 	hostedZoneOjbectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
 	plan.Zone = hostedZoneOjbectValue
@@ -287,7 +233,7 @@ func (r *dnsHostedZoneResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	hostedZoneModel := convertHostedZoneShowResponseV1Dot2ToHostedZone(*data)
+	hostedZoneModel := convertHostedZoneShowResponseV1Dot3ToHostedZone(*data)
 
 	hostedZoneObjectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
 	state.Zone = hostedZoneObjectValue
@@ -303,11 +249,20 @@ func (r *dnsHostedZoneResource) Read(ctx context.Context, req resource.ReadReque
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *dnsHostedZoneResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { // 아직 정의하지 않은 Update 메서드를 추가한다.
 	// Retrieve values from plan
-
+	var oldState dns.HostedZoneResource
+	req.State.Get(ctx, &oldState)
 	var state dns.HostedZoneResource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if checkModifiedFieldsExcludingDescription(oldState, state) {
+		resp.Diagnostics.AddError(
+			"Error updating HostedZone",
+			"Hosted zones cannot be modified except for the description field.",
+		)
 		return
 	}
 
@@ -340,7 +295,7 @@ func (r *dnsHostedZoneResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	hostedZoneModel := convertHostedZoneShowResponseV1Dot2ToHostedZone(*dataForShow)
+	hostedZoneModel := convertHostedZoneShowResponseV1Dot3ToHostedZone(*dataForShow)
 
 	hostedZoneObjectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
 	state.Zone = hostedZoneObjectValue
@@ -363,7 +318,7 @@ func (r *dnsHostedZoneResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	data, err := r.client.DeleteHostedZone(ctx, state.Id.ValueString())
+	err := r.client.DeleteHostedZone(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -372,11 +327,6 @@ func (r *dnsHostedZoneResource) Delete(ctx context.Context, req resource.DeleteR
 		)
 		return
 	}
-
-	hostedZoneModel := convertHostedZoneDeleteResponseToHostedZone(*data)
-
-	hostedZoneObjectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
-	state.Zone = hostedZoneObjectValue
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -392,6 +342,22 @@ func waitForHostedZoneStatus(ctx context.Context, hostedZoneClient *dns.Client, 
 		if err != nil {
 			return nil, "", err
 		}
-		return info, info.Status, nil
+		return info, string(info.Status), nil
 	})
+}
+
+func checkModifiedFieldsExcludingDescription(oldState dns.HostedZoneResource, newState dns.HostedZoneResource) bool {
+	oldHostedZone := oldState.HostedZoneCreate
+	newHostedZone := newState.HostedZoneCreate
+
+	if oldHostedZone.Type != newHostedZone.Type {
+		return true
+	}
+	if oldHostedZone.Name != newHostedZone.Name {
+		return true
+	}
+	if oldHostedZone.PrivateDnsId != newHostedZone.PrivateDnsId {
+		return true
+	}
+	return false
 }

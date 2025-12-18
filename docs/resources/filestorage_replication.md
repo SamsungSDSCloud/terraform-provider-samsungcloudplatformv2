@@ -86,15 +86,15 @@ variable "replication_policy" {
   - example : 'my_volume' 
   - maxLength: 21  
   - minLength: 3  
-  - pattern: '^[a-z]([a-z0-9_]){2,20}$'
+  - pattern: `^[a-z]([a-z0-9_]){2,20}$`
 - `region` (String) Region 
   - example : 'kr-west1'
 - `replication_frequency` (String) Replication Frequency 
   - example : '5min' 
-  - pattern: '^(5min|hourly|daily|weekly|monthly)$'
+  - pattern: `^(5min|hourly|daily|weekly|monthly)$`
 - `replication_type` (String) Replication Type 
   - example : 'replication' 
-  - pattern: '^(replication|backup)$'
+  - pattern: `^(replication|backup)$`
 - `volume_id` (String) Source Volume ID 
   - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
 
@@ -108,13 +108,13 @@ variable "replication_policy" {
   - example : 'cifspwd0!!' 
   - maxLength: 20  
   - minLength: 6  
-  - pattern: '^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$'
+  - pattern: `^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$`
 - `replication_policy` (String) Replication Policy 
   - example : 'use' 
-  - pattern: '^(use|paused)$'
+  - pattern: `^(use|paused)$`
 - `replication_update_type` (String) Replication Update Type 
   - example : 'policy' 
-  - pattern: '^(policy|modify_schedule)$'
+  - pattern: `^(policy|modify_schedule)$`
 
 ### Read-Only
 

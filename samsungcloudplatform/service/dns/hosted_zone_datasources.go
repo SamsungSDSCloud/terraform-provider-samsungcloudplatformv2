@@ -9,10 +9,11 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.2"
+	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -59,28 +60,12 @@ func (d *dnsHostedZoneDataSources) Schema(_ context.Context, _ datasource.Schema
 				Description: "Name",
 				Optional:    true,
 			},
-			common.ToSnakeCase("ExactName"): schema.StringAttribute{
-				Description: "ExactName",
-				Optional:    true,
-			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
 				Description: "Type",
 				Optional:    true,
 			},
-			common.ToSnakeCase("Email"): schema.StringAttribute{
-				Description: "Email",
-				Optional:    true,
-			},
 			common.ToSnakeCase("Status"): schema.StringAttribute{
 				Description: "Status",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Ttl"): schema.Int32Attribute{
-				Description: "Ttl",
 				Optional:    true,
 			},
 			common.ToSnakeCase("HostedZones"): schema.ListNestedAttribute{
@@ -88,30 +73,16 @@ func (d *dnsHostedZoneDataSources) Schema(_ context.Context, _ datasource.Schema
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						common.ToSnakeCase("Action"): schema.StringAttribute{
-							Description: "Action",
-							Optional:    true,
-						},
-						common.ToSnakeCase("Attributes"): schema.SingleNestedAttribute{
-							Description: "Attributes",
-							Optional:    true,
-							Attributes: map[string]schema.Attribute{
-								common.ToSnakeCase("ServiceTier"): schema.StringAttribute{
-									Description: "ServiceTier",
-									Optional:    true,
-								},
-							},
-						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 							Description: "CreatedAt",
 							Optional:    true,
 						},
-						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
+						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+							Description: "CreatedBy",
 							Optional:    true,
 						},
-						common.ToSnakeCase("Email"): schema.StringAttribute{
-							Description: "Email",
+						common.ToSnakeCase("Description"): schema.StringAttribute{
+							Description: "Description",
 							Optional:    true,
 						},
 						common.ToSnakeCase("HostedZoneType"): schema.StringAttribute{
@@ -122,20 +93,13 @@ func (d *dnsHostedZoneDataSources) Schema(_ context.Context, _ datasource.Schema
 							Description: "Id",
 							Optional:    true,
 						},
-						common.ToSnakeCase("Links"): schema.SingleNestedAttribute{
-							Description: "Links",
-							Computed:    true,
-							Attributes: map[string]schema.Attribute{
-								common.ToSnakeCase("Self"): schema.StringAttribute{
-									Description: "Self",
-									Optional:    true,
-								},
-							},
-						},
-						common.ToSnakeCase("Masters"): schema.ListAttribute{
-							Description: "Masters",
+						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+							Description: "ModifiedAt",
 							Optional:    true,
-							ElementType: types.StringType,
+						},
+						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+							Description: "ModifiedBy",
+							Optional:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
 							Description: "Name",
@@ -153,40 +117,12 @@ func (d *dnsHostedZoneDataSources) Schema(_ context.Context, _ datasource.Schema
 							Description: "PrivateDnsName",
 							Optional:    true,
 						},
-						common.ToSnakeCase("ProjectId"): schema.StringAttribute{
-							Description: "ProjectId",
-							Optional:    true,
-						},
-						common.ToSnakeCase("Serial"): schema.Int32Attribute{
-							Description: "Serial",
-							Optional:    true,
-						},
-						common.ToSnakeCase("Shared"): schema.BoolAttribute{
-							Description: "Shared",
-							Optional:    true,
-						},
 						common.ToSnakeCase("Status"): schema.StringAttribute{
 							Description: "Status",
 							Optional:    true,
 						},
-						common.ToSnakeCase("TransferredAt"): schema.StringAttribute{
-							Description: "TransferredAt",
-							Optional:    true,
-						},
 						common.ToSnakeCase("Ttl"): schema.Int32Attribute{
 							Description: "Ttl",
-							Optional:    true,
-						},
-						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Type",
-							Optional:    true,
-						},
-						common.ToSnakeCase("UpdatedAt"): schema.StringAttribute{
-							Description: "UpdatedAt",
-							Optional:    true,
-						},
-						common.ToSnakeCase("Version"): schema.Int32Attribute{
-							Description: "Version",
 							Optional:    true,
 						},
 					},
@@ -237,7 +173,7 @@ func (d *dnsHostedZoneDataSources) Read(ctx context.Context, req datasource.Read
 	}
 
 	for _, hostedZone := range data.HostedZones {
-		hostedZoneState := convertHostedZoneShowResponseV1Dot2ToHostedZone(convertHostedZoneV1Dot2ToHostedZoneShowResponseV1Dot2(hostedZone))
+		hostedZoneState := convertHostedZoneShowResponseV1Dot3ToHostedZone(convertHostedZoneV1Dot3ToHostedZoneShowResponseV1Dot3(hostedZone))
 
 		state.HostedZones = append(state.HostedZones, hostedZoneState)
 
@@ -251,114 +187,36 @@ func (d *dnsHostedZoneDataSources) Read(ctx context.Context, req datasource.Read
 
 }
 
-func convertHostedZoneV1Dot2ToHostedZoneShowResponseV1Dot2(hostedZoneV1Dot2 scpdns.HostedZoneV1Dot2) scpdns.HostedZoneShowResponseV1Dot2 {
-	hostedZoneShowResponseV1Dot2 := scpdns.HostedZoneShowResponseV1Dot2{}
-	data, _ := json.Marshal(hostedZoneV1Dot2)
-	json.Unmarshal(data, &hostedZoneShowResponseV1Dot2)
-	return hostedZoneShowResponseV1Dot2
+func convertHostedZoneV1Dot3ToHostedZoneShowResponseV1Dot3(hostedZoneV1Dot3 scpdns.HostedZoneV1Dot3) scpdns.HostedZoneShowResponseV1Dot3 {
+	hostedZoneShowResponseV1Dot3 := scpdns.HostedZoneShowResponseV1Dot3{}
+	data, _ := json.Marshal(hostedZoneV1Dot3)
+	json.Unmarshal(data, &hostedZoneShowResponseV1Dot3)
+	return hostedZoneShowResponseV1Dot3
 }
 
-func convertHostedZoneShowResponseV1Dot2ToHostedZone(hostedZoneShowResponseV1Dot2 scpdns.HostedZoneShowResponseV1Dot2) dns.HostedZone {
+func convertHostedZoneShowResponseV1Dot3ToHostedZone(hostedZoneShowResponseV1Dot3 scpdns.HostedZoneShowResponseV1Dot3) dns.HostedZone {
 
-	var attributes *dns.Attributes
-	if hostedZoneShowResponseV1Dot2.Attributes != nil {
-		serviceTier, ok := hostedZoneShowResponseV1Dot2.Attributes["service_tier"].(string)
-		if ok {
-			attributes = &dns.Attributes{
-				ServiceTier: types.StringValue(serviceTier),
-			}
-		}
-	}
-
-	var links *dns.Links
-	if hostedZoneShowResponseV1Dot2.Links != nil {
-		self, ok := hostedZoneShowResponseV1Dot2.Links["self"].(string)
-		if ok {
-			links = &dns.Links{
-				Self: types.StringValue(self),
-			}
-		}
-	}
-
-	// Masters 슬라이스 변환
-	masters := make([]types.String, len(hostedZoneShowResponseV1Dot2.Masters))
-	for i, s := range hostedZoneShowResponseV1Dot2.Masters {
-		masters[i] = types.StringValue(s)
+	var hostedZoneType *string
+	if hostedZoneShowResponseV1Dot3.HostedZoneType != nil {
+		s := string(*hostedZoneShowResponseV1Dot3.HostedZoneType)
+		hostedZoneType = &s
+	} else {
+		hostedZoneType = nil
 	}
 
 	return dns.HostedZone{
-		Action:         types.StringValue(hostedZoneShowResponseV1Dot2.Action),
-		Attributes:     attributes,
-		CreatedAt:      virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.CreatedAt.Get()),
-		Description:    virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.Description.Get()),
-		Email:          types.StringValue(hostedZoneShowResponseV1Dot2.Email),
-		HostedZoneType: virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.HostedZoneType.Get()),
-		Id:             types.StringValue(hostedZoneShowResponseV1Dot2.Id),
-		Links:          links,
-		Masters:        masters,
-		Name:           types.StringValue(hostedZoneShowResponseV1Dot2.Name),
-		PoolId:         types.StringValue(hostedZoneShowResponseV1Dot2.PoolId),
-		PrivateDnsId:   virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.PrivateDnsId.Get()),
-		PrivateDnsName: virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.PrivateDnsName.Get()),
-		ProjectId:      types.StringValue(hostedZoneShowResponseV1Dot2.ProjectId),
-		Serial:         types.Int32Value(hostedZoneShowResponseV1Dot2.Serial),
-		Shared:         common.ToNullableBoolValue(hostedZoneShowResponseV1Dot2.Shared.Get()),
-		Status:         types.StringValue(hostedZoneShowResponseV1Dot2.Status),
-		TransferredAt:  virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.TransferredAt.Get()),
-		Ttl:            common.ToNullableInt32Value(hostedZoneShowResponseV1Dot2.Ttl.Get()),
-		Type:           virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.Type.Get()),
-		UpdatedAt:      virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot2.UpdatedAt.Get()),
-		Version:        common.ToNullableInt32Value(hostedZoneShowResponseV1Dot2.Version.Get()),
-	}
-}
-
-func convertHostedZoneDeleteResponseToHostedZone(hostedZoneDeleteResponse scpdns.HostedZoneDeleteResponse) dns.HostedZone {
-	var attributes *dns.Attributes
-	if hostedZoneDeleteResponse.Attributes != nil {
-		serviceTier, ok := hostedZoneDeleteResponse.Attributes["service_tier"].(string)
-		if ok {
-			attributes = &dns.Attributes{
-				ServiceTier: types.StringValue(serviceTier),
-			}
-		}
-	}
-
-	var links *dns.Links
-	if hostedZoneDeleteResponse.Links != nil {
-		self, ok := hostedZoneDeleteResponse.Links["self"].(string)
-		if ok {
-			links = &dns.Links{
-				Self: types.StringValue(self),
-			}
-		}
-	}
-
-	// Masters 슬라이스 변환
-	masters := make([]types.String, len(hostedZoneDeleteResponse.Masters))
-	for i, s := range hostedZoneDeleteResponse.Masters {
-		masters[i] = types.StringValue(s)
-	}
-
-	return dns.HostedZone{
-		Action:         types.StringValue(hostedZoneDeleteResponse.Action),
-		Attributes:     attributes,
-		CreatedAt:      virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.CreatedAt.Get()),
-		Description:    virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.Description.Get()),
-		Email:          types.StringValue(hostedZoneDeleteResponse.Email),
-		HostedZoneType: virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.HostedZoneType.Get()),
-		Id:             types.StringValue(hostedZoneDeleteResponse.Id),
-		Links:          links,
-		Masters:        masters,
-		Name:           types.StringValue(hostedZoneDeleteResponse.Name),
-		PoolId:         types.StringValue(hostedZoneDeleteResponse.PoolId),
-		ProjectId:      types.StringValue(hostedZoneDeleteResponse.ProjectId),
-		Serial:         types.Int32Value(hostedZoneDeleteResponse.Serial),
-		Shared:         common.ToNullableBoolValue(hostedZoneDeleteResponse.Shared.Get()),
-		Status:         types.StringValue(hostedZoneDeleteResponse.Status),
-		TransferredAt:  virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.TransferredAt.Get()),
-		Ttl:            common.ToNullableInt32Value(hostedZoneDeleteResponse.Ttl.Get()),
-		Type:           virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.Type.Get()),
-		UpdatedAt:      virtualserverutil.ToNullableStringValue(hostedZoneDeleteResponse.UpdatedAt.Get()),
-		Version:        common.ToNullableInt32Value(hostedZoneDeleteResponse.Version.Get()),
+		CreatedAt:      types.StringValue(hostedZoneShowResponseV1Dot3.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:      types.StringValue(hostedZoneShowResponseV1Dot3.CreatedBy),
+		Description:    virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot3.Description.Get()),
+		HostedZoneType: virtualserverutil.ToNullableStringValue(hostedZoneType),
+		Id:             types.StringValue(hostedZoneShowResponseV1Dot3.Id),
+		ModifiedAt:     types.StringValue(hostedZoneShowResponseV1Dot3.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:     types.StringValue(hostedZoneShowResponseV1Dot3.ModifiedBy),
+		Name:           types.StringValue(hostedZoneShowResponseV1Dot3.Name),
+		PoolId:         types.StringValue(hostedZoneShowResponseV1Dot3.PoolId),
+		PrivateDnsId:   virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot3.PrivateDnsId.Get()),
+		PrivateDnsName: virtualserverutil.ToNullableStringValue(hostedZoneShowResponseV1Dot3.PrivateDnsName.Get()),
+		Status:         types.StringValue(string(hostedZoneShowResponseV1Dot3.Status)),
+		Ttl:            common.ToNullableInt32Value(hostedZoneShowResponseV1Dot3.Ttl.Get()),
 	}
 }

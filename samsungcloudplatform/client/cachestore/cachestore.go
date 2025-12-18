@@ -42,6 +42,15 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 	return resp, err
 }
 
+// engine version
+func (client *Client) GetEngineVersionList(ctx context.Context) (*cachestore.EngineListResponse, error) {
+	req := client.sdkClient.CachestoreV1CacheStoreMasterDataApiAPI.CachestoreListEngineVersions(ctx)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+
 // create (ctx, clusterResource) - (asyncResponse)
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*cachestore.AsyncResponse, error) {
 	req := client.sdkClient.CachestoreV1CacheStoreClustersApiAPI.CachestoreCreateCluster(ctx)

@@ -48,7 +48,7 @@ variable "size" {
 - `destination_vpc_id` (String) Destination VPC ID
 - `destination_vpc_type` (String) Destination VPC Type
 - `id` (String) VPC Peering Rule ID
-- `name` (String)
+- `name` (String) Name
 - `page` (Number) Page 
   - Example: 0
 - `size` (Number) Size 

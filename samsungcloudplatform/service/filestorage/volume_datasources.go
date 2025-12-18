@@ -64,7 +64,7 @@ func (d *fileStorageVolumeDataSources) Schema(_ context.Context, _ datasource.Sc
 					"  - example : 'my_volume' \n" +
 					"  - maxLength: 21  \n" +
 					"  - minLength: 3  \n" +
-					"  - pattern: '^[a-z]([a-z0-9_]){2,20}$' \n",
+					"  - pattern: `^[a-z]([a-z0-9_]){2,20}$` \n",
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 21),
@@ -73,7 +73,7 @@ func (d *fileStorageVolumeDataSources) Schema(_ context.Context, _ datasource.Sc
 			common.ToSnakeCase("TypeName"): schema.StringAttribute{
 				Description: "Volume Type Name \n" +
 					"  - example : 'HDD' \n" +
-					"  - pattern: '^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$' \n",
+					"  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$` \n",
 				Optional: true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{

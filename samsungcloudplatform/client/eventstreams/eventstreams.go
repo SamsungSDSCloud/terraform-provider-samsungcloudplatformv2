@@ -42,6 +42,14 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 	return resp, err
 }
 
+// engine version
+func (client *Client) GetEngineVersionList(ctx context.Context) (*eventstreams.EngineListResponse, error) {
+	req := client.sdkClient.EventstreamsV1EventStreamsMasterDataApiAPI.EventstreamsListEngineVersions(ctx)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 // create (ctx, clusterResource) - (asyncResponse)
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*eventstreams.AsyncResponse, error) {
 	req := client.sdkClient.EventstreamsV1EventStreamsClustersApiAPI.EventstreamsCreateCluster(ctx)

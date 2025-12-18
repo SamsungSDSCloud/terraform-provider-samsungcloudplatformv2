@@ -70,6 +70,10 @@ func (r *virtualServerServerGroupResource) Schema(_ context.Context, _ resource.
 				Computed:    true,
 				ElementType: types.StringType,
 			},
+			common.ToSnakeCase("PartitionSize"): schema.Int32Attribute{
+				Description: "Partition Size",
+				Computed:    true,
+			},
 			"tags": tag.ResourceSchema(),
 		},
 	}
@@ -102,13 +106,14 @@ func (r *virtualServerServerGroupResource) MapGetResponseToState(resp *scpvirtua
 	}
 
 	return virtualserver.ServerGroupResource{
-		Id:        types.StringValue(resp.Id),
-		Name:      types.StringValue(resp.Name),
-		Policy:    types.StringValue(resp.Policy),
-		AccountId: types.StringValue(resp.AccountId),
-		UserId:    types.StringValue(resp.UserId),
-		Members:   types.ListValueMust(types.StringType, members),
-		Tags:      tagsMap,
+		Id:            types.StringValue(resp.Id),
+		Name:          types.StringValue(resp.Name),
+		Policy:        types.StringValue(resp.Policy),
+		AccountId:     types.StringValue(resp.AccountId),
+		UserId:        types.StringValue(resp.UserId),
+		Members:       types.ListValueMust(types.StringType, members),
+		PartitionSize: types.Int32PointerValue(resp.PartitionSize.Get()),
+		Tags:          tagsMap,
 	}
 }
 

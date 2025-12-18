@@ -1,3 +1,4 @@
 category:
   mariadb_cluster: Mariadb
   mariadb_clusters: Mariadb
+  mariadb_engine_version: Mariadb

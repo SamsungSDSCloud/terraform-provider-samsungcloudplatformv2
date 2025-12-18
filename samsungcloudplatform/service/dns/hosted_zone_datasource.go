@@ -46,30 +46,16 @@ func (d *dnsHostedZoneDataSource) Schema(_ context.Context, _ datasource.SchemaR
 				Description: "A detail of HostedZone.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("Action"): schema.StringAttribute{
-						Description: "Action",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Attributes"): schema.SingleNestedAttribute{
-						Description: "Attributes",
-						Optional:    true,
-						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("ServiceTier"): schema.StringAttribute{
-								Description: "ServiceTier",
-								Optional:    true,
-							},
-						},
-					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 						Description: "CreatedAt",
 						Optional:    true,
 					},
-					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
+					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+						Description: "CreatedBy",
 						Optional:    true,
 					},
-					common.ToSnakeCase("Email"): schema.StringAttribute{
-						Description: "Email",
+					common.ToSnakeCase("Description"): schema.StringAttribute{
+						Description: "Description",
 						Optional:    true,
 					},
 					common.ToSnakeCase("HostedZoneType"): schema.StringAttribute{
@@ -80,20 +66,13 @@ func (d *dnsHostedZoneDataSource) Schema(_ context.Context, _ datasource.SchemaR
 						Description: "Id",
 						Optional:    true,
 					},
-					common.ToSnakeCase("Links"): schema.SingleNestedAttribute{
-						Description: "Links",
+					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+						Description: "ModifiedAt",
 						Optional:    true,
-						Attributes: map[string]schema.Attribute{
-							common.ToSnakeCase("Self"): schema.StringAttribute{
-								Description: "Self",
-								Optional:    true,
-							},
-						},
 					},
-					common.ToSnakeCase("Masters"): schema.ListAttribute{
-						Description: "Masters",
+					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+						Description: "ModifiedBy",
 						Optional:    true,
-						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "Name",
@@ -111,40 +90,12 @@ func (d *dnsHostedZoneDataSource) Schema(_ context.Context, _ datasource.SchemaR
 						Description: "PrivateDnsName",
 						Optional:    true,
 					},
-					common.ToSnakeCase("ProjectId"): schema.StringAttribute{
-						Description: "ProjectId",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Serial"): schema.Int32Attribute{
-						Description: "Serial",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Shared"): schema.BoolAttribute{
-						Description: "Shared",
-						Optional:    true,
-					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
 						Description: "Status",
 						Optional:    true,
 					},
-					common.ToSnakeCase("TransferredAt"): schema.StringAttribute{
-						Description: "TransferredAt",
-						Optional:    true,
-					},
 					common.ToSnakeCase("Ttl"): schema.Int32Attribute{
 						Description: "Ttl",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Optional:    true,
-					},
-					common.ToSnakeCase("UpdatedAt"): schema.StringAttribute{
-						Description: "UpdatedAt",
-						Optional:    true,
-					},
-					common.ToSnakeCase("Version"): schema.Int32Attribute{
-						Description: "Version",
 						Optional:    true,
 					},
 				},
@@ -193,7 +144,7 @@ func (d *dnsHostedZoneDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	hostedZoneState := convertHostedZoneShowResponseV1Dot2ToHostedZone(*data)
+	hostedZoneState := convertHostedZoneShowResponseV1Dot3ToHostedZone(*data)
 
 	hostedZoneObjectValue, _ := types.ObjectValueFrom(ctx, hostedZoneState.AttributeTypes(), hostedZoneState)
 	state.HostedZoneDetail = hostedZoneObjectValue

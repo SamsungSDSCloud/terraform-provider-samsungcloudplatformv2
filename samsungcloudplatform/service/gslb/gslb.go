@@ -3,19 +3,20 @@ package gslb
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/gslb"
+	gslb "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/gslb"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpgslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/gslb/1.0"
+	scpgslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/gslb/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -46,97 +47,110 @@ func (r *gslbGslbResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Description: "Gslb.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
+			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "Identifier of the resource.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"tags": tag.ResourceSchema(),
+			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 			common.ToSnakeCase("Gslb"): schema.SingleNestedAttribute{
 				Description: "A detail of Gslb.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Algorithm"): schema.StringAttribute{
 						Description: "Algorithm",
-						Optional:    true,
+						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Optional:    true,
+						Description: "Created at\n" +
+							"  - Example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Optional:    true,
+						Description: "Created by\n" +
+							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "Description",
-						Optional:    true,
+						Computed:    true,
 					},
 					common.ToSnakeCase("EnvUsage"): schema.StringAttribute{
 						Description: "EnvUsage",
-						Optional:    true,
+						Computed:    true,
 					},
 					common.ToSnakeCase("HealthCheck"): schema.SingleNestedAttribute{
 						Description: "HealthCheck",
-						Optional:    true,
+						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-								Description: "created at",
-								Optional:    true,
+								Description: "Created at\n" +
+									"  - Example: 2024-05-17T00:23:17Z",
+								Computed: true,
 							},
 							common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-								Description: "created by",
-								Optional:    true,
+								Description: "Created by\n" +
+									"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+								Computed: true,
 							},
 							common.ToSnakeCase("HealthCheckInterval"): schema.Int32Attribute{
-								Description: "HealthCheckInterval",
-								Optional:    true,
+								Description: "The GSLB Health Check Interval.\n" +
+									"  - Range: 5 to 299",
+								Computed: true,
 							},
 							common.ToSnakeCase("HealthCheckProbeTimeout"): schema.Int32Attribute{
-								Description: "HealthCheckProbeTimeout",
-								Optional:    true,
+								Description: "The GSLB Health Check Probe Timeout.\n" +
+									"  - Range: 5 to 300",
+								Computed: true,
 							},
 							common.ToSnakeCase("HealthCheckUserId"): schema.StringAttribute{
-								Description: "HealthCheckUserId",
-								Optional:    true,
+								Description: "The GSLB Health Check User Name.\n" +
+									"  - Max length: 60",
+								Computed: true,
 							},
 							common.ToSnakeCase("HealthCheckUserPassword"): schema.StringAttribute{
-								Description: "HealthCheckUserPassword",
-								Optional:    true,
-							},
-							common.ToSnakeCase("Id"): schema.StringAttribute{
-								Description: "id",
+								Description: "The GSLB Health Check Password.",
 								Computed:    true,
 							},
+							common.ToSnakeCase("Id"): schema.StringAttribute{
+								Description: "ID\n" +
+									"  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+								Computed: true,
+							},
 							common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-								Description: "modified at",
-								Optional:    true,
+								Description: "Modified at\n" +
+									"  - Example: 2024-05-17T00:23:17Z",
+								Computed: true,
 							},
 							common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-								Description: "modified by",
-								Optional:    true,
+								Description: "Modified by\n" +
+									"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+								Computed: true,
 							},
 							common.ToSnakeCase("Protocol"): schema.StringAttribute{
-								Description: "Protocol",
-								Optional:    true,
+								Description: "The GSLB Health Check Protocol.",
+								Computed:    true,
 							},
 							common.ToSnakeCase("ReceiveString"): schema.StringAttribute{
-								Description: "ReceiveString",
-								Optional:    true,
+								Description: "The GSLB Health Check Receive String.\n" +
+									"  - Max length: 300",
+								Computed: true,
 							},
 							common.ToSnakeCase("SendString"): schema.StringAttribute{
-								Description: "SendString",
-								Optional:    true,
+								Description: "The GSLB Health Check Send String.",
+								Computed:    true,
 							},
 							common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
-								Description: "ServicePort",
-								Optional:    true,
+								Description: "The GSLB Health Check Service Port.\n" +
+									"  - Range: 1 to 65535",
+								Computed: true,
 							},
 							common.ToSnakeCase("Timeout"): schema.Int32Attribute{
-								Description: "Timeout",
-								Optional:    true,
+								Description: "The GSLB Health Check Timeout.\n" +
+									"  - Range: 6 to 300",
+								Computed: true,
 							},
 						},
 					},
@@ -146,15 +160,17 @@ func (r *gslbGslbResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					},
 					common.ToSnakeCase("LinkedResourceCount"): schema.Int32Attribute{
 						Description: "LinkedResourceCount",
-						Optional:    true,
+						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Optional:    true,
+						Description: "Modified at\n" +
+							"  - Example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Optional:    true,
+						Description: "Modified by\n" +
+							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "Name",
@@ -168,12 +184,11 @@ func (r *gslbGslbResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			},
 			common.ToSnakeCase("GslbCreate"): schema.SingleNestedAttribute{
 				Description: "Create Gslb.",
-				Optional:    true,
-
+				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Algorithm"): schema.StringAttribute{
 						Description: "Algorithm",
-						Optional:    true,
+						Required:    true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "Description",
@@ -181,57 +196,63 @@ func (r *gslbGslbResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					},
 					common.ToSnakeCase("EnvUsage"): schema.StringAttribute{
 						Description: "EnvUsage",
-						Optional:    true,
+						Required:    true,
 					},
 					common.ToSnakeCase("HealthCheck"): schema.SingleNestedAttribute{
 						Description: "HealthCheck",
 						Optional:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("HealthCheckInterval"): schema.Int32Attribute{
-								Description: "HealthCheckInterval",
-								Optional:    true,
+								Description: "The GSLB Health Check Interval.\n" +
+									"  - Range: 5 to 299",
+								Optional: true,
 							},
 							common.ToSnakeCase("HealthCheckProbeTimeout"): schema.Int32Attribute{
-								Description: "HealthCheckProbeTimeout",
-								Optional:    true,
+								Description: "The GSLB Health Check Probe Timeout.\n" +
+									"  - Range: 5 to 300",
+								Optional: true,
 							},
 							common.ToSnakeCase("HealthCheckUserId"): schema.StringAttribute{
-								Description: "HealthCheckUserId",
-								Optional:    true,
+								Description: "The GSLB Health Check User Name.\n" +
+									"  - Max Length: 60",
+								Optional: true,
 							},
 							common.ToSnakeCase("HealthCheckUserPassword"): schema.StringAttribute{
-								Description: "HealthCheckUserPassword",
+								Description: "The GSLB Health Check Password.",
 								Optional:    true,
 							},
 							common.ToSnakeCase("Protocol"): schema.StringAttribute{
-								Description: "Protocol",
-								Optional:    true,
+								Description: "The GSLB Health Check Protocol.",
+								Required:    true,
 							},
 							common.ToSnakeCase("ReceiveString"): schema.StringAttribute{
-								Description: "ReceiveString",
-								Optional:    true,
+								Description: "The GSLB Health Check Receive String.\n" +
+									"  - Max Length: 300",
+								Optional: true,
 							},
 							common.ToSnakeCase("SendString"): schema.StringAttribute{
-								Description: "SendString",
+								Description: "The GSLB Health Check Send String.",
 								Optional:    true,
 							},
 							common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
-								Description: "ServicePort",
-								Optional:    true,
+								Description: "The GSLB Health Check Service Port.\n" +
+									"  - Range: 1 to 65535",
+								Optional: true,
 							},
 							common.ToSnakeCase("Timeout"): schema.Int32Attribute{
-								Description: "Timeout",
-								Optional:    true,
+								Description: "The GSLB Health Check Timeout.\n" +
+									"  - Range: 6 to 300",
+								Optional: true,
 							},
 						},
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "Name",
-						Optional:    true,
+						Required:    true,
 					},
 					common.ToSnakeCase("Resources"): schema.ListNestedAttribute{
 						Description: "Resources",
-						Optional:    true,
+						Required:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Description"): schema.StringAttribute{
@@ -240,10 +261,6 @@ func (r *gslbGslbResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 								},
 								common.ToSnakeCase("Destination"): schema.StringAttribute{
 									Description: "Destination",
-									Optional:    true,
-								},
-								common.ToSnakeCase("Disabled"): schema.BoolAttribute{
-									Description: "Disabled",
 									Optional:    true,
 								},
 								common.ToSnakeCase("Region"): schema.StringAttribute{
@@ -314,12 +331,12 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	plan.Id = types.StringValue(data.Gslb.Id)
-	data, err = r.client.GetGslb(ctx, data.Gslb.Id)
+	data, _ = r.client.GetGslb(ctx, data.Gslb.Id)
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbOjbectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
-	plan.Gslb = gslbOjbectValue
+	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	plan.Gslb = gslbObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -423,8 +440,8 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 	updateErr := waitForGslbStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"ACTIVE"})
 	if updateErr != nil {
 		resp.Diagnostics.AddError(
-			"Error updating gslb",
-			"Error updating for gslb to become active: "+updateErr.Error(),
+			"Error updating Gslb",
+			"Error updating for Gslb to become active: "+updateErr.Error(),
 		)
 		return
 	}
@@ -488,8 +505,8 @@ func (r *gslbGslbResource) Delete(ctx context.Context, req resource.DeleteReques
 
 func convertResponseToGslb(data *scpgslb.GslbShowResponse) gslb.GslbDetail {
 	var healthCheck *gslb.HealthCheck
-	var healthCheckFromData = data.Gslb.HealthCheck.Get()
-	if healthCheckFromData != nil {
+	if data.Gslb.HealthCheck.IsSet() {
+		var healthCheckFromData = data.Gslb.HealthCheck.Get()
 		healthCheck = &gslb.HealthCheck{
 			CreatedAt:               types.StringValue(healthCheckFromData.CreatedAt.Format(time.RFC3339)),
 			CreatedBy:               types.StringValue(healthCheckFromData.CreatedBy),
@@ -550,10 +567,6 @@ func gslbResourceChanged(oldState gslb.GslbResource, newState gslb.GslbResource)
 		}
 
 		if oldResource.Destination != newResource.Destination {
-			return true
-		}
-
-		if oldResource.Disabled != newResource.Disabled {
 			return true
 		}
 

@@ -43,7 +43,7 @@ type ClusterResource struct {
 	Timezone             types.String      `tfsdk:"timezone"`
 	VipPublicIpId        types.String      `tfsdk:"vip_public_ip_id"`
 	//VipPublicIpAddress   types.String      `tfsdk:"vip_public_ip_address"`
-	VirtualIpAddress     types.String      `tfsdk:"virtual_ip_address"`
+	VirtualIpAddress types.String `tfsdk:"virtual_ip_address"`
 }
 
 // List Clusters의 Response
@@ -132,11 +132,11 @@ type ClusterDetail struct {
 	Timezone             types.String      `tfsdk:"timezone"`
 	VipPublicIpId        types.String      `tfsdk:"vip_public_ip_id"`
 	//VipPublicIpAddress   types.String      `tfsdk:"vip_public_ip_address"`
-	VirtualIpAddress     types.String      `tfsdk:"virtual_ip_address"`
-	CreatedAt            types.String      `tfsdk:"created_at"`
-	CreatedBy            types.String      `tfsdk:"created_by"`
-	ModifiedAt           types.String      `tfsdk:"modified_at"`
-	ModifiedBy           types.String      `tfsdk:"modified_by"`
+	VirtualIpAddress types.String `tfsdk:"virtual_ip_address"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	CreatedBy        types.String `tfsdk:"created_by"`
+	ModifiedAt       types.String `tfsdk:"modified_at"`
+	ModifiedBy       types.String `tfsdk:"modified_by"`
 }
 
 func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
@@ -217,18 +217,18 @@ func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 				},
 			},
 		},
-		"role_type":             types.StringType,
-		"service_state":         types.StringType,
-		"software_version":      types.StringType,
-		"subnet_id":             types.StringType,
-		"timezone":              types.StringType,
-		"vip_public_ip_id":      types.StringType,
+		"role_type":        types.StringType,
+		"service_state":    types.StringType,
+		"software_version": types.StringType,
+		"subnet_id":        types.StringType,
+		"timezone":         types.StringType,
+		"vip_public_ip_id": types.StringType,
 		//"vip_public_ip_address": types.StringType,
-		"virtual_ip_address":    types.StringType,
-		"created_at":            types.StringType,
-		"created_by":            types.StringType,
-		"modified_at":           types.StringType,
-		"modified_by":           types.StringType,
+		"virtual_ip_address": types.StringType,
+		"created_at":         types.StringType,
+		"created_by":         types.StringType,
+		"modified_at":        types.StringType,
+		"modified_by":        types.StringType,
 	}
 }
 
@@ -237,4 +237,21 @@ func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 type UpdateHandler struct {
 	Fields  []string
 	Handler func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error
+}
+
+// --------------- Engine Version ------------ //
+
+type EngineVersionDataSource struct {
+	Contents []EngineVersion `tfsdk:"contents"`
+}
+
+type EngineVersion struct {
+	EndOfService     types.Bool   `tfsdk:"end_of_service"`
+	Id               types.String `tfsdk:"id"`
+	MajorVersion     types.String `tfsdk:"major_version"`
+	Name             types.String `tfsdk:"name"`
+	OsType           types.String `tfsdk:"os_type"`
+	OsVersion        types.String `tfsdk:"os_version"`
+	ProductImageType types.String `tfsdk:"product_image_type"`
+	SoftwareVersion  types.String `tfsdk:"software_version"`
 }

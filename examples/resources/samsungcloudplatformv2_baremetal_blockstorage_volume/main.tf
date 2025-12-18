@@ -7,6 +7,7 @@ resource "samsungcloudplatformv2_baremetal_blockstorage_volume" "volume"{
   disk_type = var.disk_type
   size_gb = var.size_gb
   attachments = var.attachments
+  qos = var.qos
   tags = var.tags
   timeouts {
     create = var.create_timeouts

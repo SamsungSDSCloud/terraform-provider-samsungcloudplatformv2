@@ -6,7 +6,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -182,21 +182,21 @@ func (d *loadBalancerLbHealthCheckDataSource) Read(ctx context.Context, req data
 
 	var lbHealthCheckState = loadbalancer.LbHealthCheckDetail{
 		Name:                types.StringValue(data.LbHealthCheck.Name),
-		VpcId:               virtualserverutil.ToNullableStringValue(data.LbHealthCheck.VpcId.Get()),
-		SubnetId:            virtualserverutil.ToNullableStringValue(data.LbHealthCheck.SubnetId.Get()),
-		Protocol:            virtualserverutil.ToNullableStringValue((*string)(data.LbHealthCheck.Protocol)),
-		HealthCheckPort:     types.Int32Value(data.LbHealthCheck.HealthCheckPort),
+		VpcId:               loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.VpcId.Get()),
+		SubnetId:            loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.SubnetId.Get()),
+		Protocol:            loadbalancerutil.ToNullableStringValue((*string)(data.LbHealthCheck.Protocol)),
+		HealthCheckPort:     loadbalancerutil.ToNullableInt32Value(data.LbHealthCheck.HealthCheckPort.Get()),
 		HealthCheckInterval: types.Int32Value(*data.LbHealthCheck.HealthCheckInterval),
 		HealthCheckTimeout:  types.Int32Value(*data.LbHealthCheck.HealthCheckTimeout),
 		HealthCheckCount:    types.Int32Value(*data.LbHealthCheck.HealthCheckCount),
-		HttpMethod:          virtualserverutil.ToNullableStringValue(data.LbHealthCheck.HttpMethod.Get()),
-		HealthCheckUrl:      virtualserverutil.ToNullableStringValue(data.LbHealthCheck.HealthCheckUrl.Get()),
-		ResponseCode:        virtualserverutil.ToNullableStringValue(data.LbHealthCheck.ResponseCode.Get()),
-		RequestData:         virtualserverutil.ToNullableStringValue(data.LbHealthCheck.RequestData.Get()),
+		HttpMethod:          loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.HttpMethod.Get()),
+		HealthCheckUrl:      loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.HealthCheckUrl.Get()),
+		ResponseCode:        loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.ResponseCode.Get()),
+		RequestData:         loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.RequestData.Get()),
 		HealthCheckType:     types.StringValue(string(data.LbHealthCheck.HealthCheckType)),
-		Description:         virtualserverutil.ToNullableStringValue(data.LbHealthCheck.Description.Get()),
+		Description:         loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.Description.Get()),
 		State:               types.StringValue(data.LbHealthCheck.State),
-		AccountId:           virtualserverutil.ToNullableStringValue(data.LbHealthCheck.AccountId.Get()),
+		AccountId:           loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.AccountId.Get()),
 		ModifiedBy:          types.StringValue(data.LbHealthCheck.ModifiedBy),
 		ModifiedAt:          types.StringValue(data.LbHealthCheck.ModifiedAt.Format(time.RFC3339)),
 		CreatedBy:           types.StringValue(data.LbHealthCheck.CreatedBy),

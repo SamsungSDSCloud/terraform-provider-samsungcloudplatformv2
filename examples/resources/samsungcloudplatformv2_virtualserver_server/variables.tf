@@ -51,6 +51,11 @@ variable "server_group_id" {
   default = ""
 }
 
+variable "partition_number" {
+  type    = number
+  default = 0
+}
+
 variable "security_groups" {
   type    = list(string)
   default = [""]

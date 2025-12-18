@@ -38,12 +38,14 @@ func (d *skeClusterUserKubeconfigDataSource) Schema(_ context.Context, _ datasou
 		Description: "Cluster User Kubeconfig",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("ClusterId"): schema.StringAttribute{
-				Description: "Cluster Id",
-				Required:    true,
+				Description:         "Cluster ID\n  - example: 628a6c3f05454f2699da171a0c2f50b1",
+				MarkdownDescription: "Cluster ID\n  - example: 628a6c3f05454f2699da171a0c2f50b1",
+				Required:            true,
 			},
 			common.ToSnakeCase("KubeconfigType"): schema.StringAttribute{
-				Description: "Kubeconfig Type",
-				Required:    true,
+				Description:         "Kubeconfig Type\n  - example: private",
+				MarkdownDescription: "Kubeconfig Type\n  - example: private",
+				Required:            true,
 			},
 			common.ToSnakeCase("Kubeconfig"): schema.StringAttribute{
 				Description: "Kubeconfig",

@@ -21,6 +21,7 @@ resource "samsungcloudplatformv2_baremetal_blockstorage_volume" "volume"{
   disk_type = var.disk_type
   size_gb = var.size_gb
   attachments = var.attachments
+  qos = var.qos
   tags = var.tags
   timeouts {
     create = var.create_timeouts
@@ -66,6 +67,17 @@ variable "attachments" {
   }]
 }
 
+variable "qos" {
+  type = object({
+    iops       = number
+    throughput = number
+  })
+  default = {
+    iops       = 0
+    throughput = 0
+  }
+}
+
 variable "tags" {
   type    = map(string)
   default = null
@@ -89,7 +101,7 @@ variable "delete_timeouts" {
 
 - `attachments` (Attributes List) List of server id and type. 
   - example : [{object_type='BM', object_id='83c3c73d457345e3829ee6d5557c0011'}] 
-  - maxLength : 5 
+  - maxLength : 8 
   - minLength : 1 (see [below for nested schema](#nestedatt--attachments))
 - `disk_type` (String) Disk type. 
   - example : SSD 
@@ -106,6 +118,8 @@ variable "delete_timeouts" {
 
 ### Optional
 
+- `qos` (Attributes) Volume QoS. (It can only be set on an SSD.) 
+  - example : {iops=3000, throughput=125} (see [below for nested schema](#nestedatt--qos))
 - `region` (String) Region
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -127,6 +141,21 @@ Required:
 - `object_type` (String) Object type. 
   - example : 'BM' 
   - pattern : 'BM|MNGC'
+
+
+<a id="nestedatt--qos"></a>
+### Nested Schema for `qos`
+
+Required:
+
+- `iops` (Number) IOPS. 
+  - example : 3000 
+  - maximum : 16000 
+  - minimum : 3000
+- `throughput` (Number) Throughput. 
+  - example : 125 
+  - maximum : 1000 
+  - minimum : 125
 
 
 <a id="nestedblock--timeouts"></a>

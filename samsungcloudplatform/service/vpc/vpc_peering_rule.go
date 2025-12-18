@@ -211,12 +211,18 @@ func (r *vpcVpcPeeringRuleResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	// Set refreshed state
-	diags = resp.State.Set(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	resp.State.Set(ctx, plan)
+
+	// Refresh resource state
+	readReq := resource.ReadRequest{
+		State: resp.State,
 	}
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, readReq, readResp)
+
+	resp.State = readResp.State
 }
 
 // Read refreshes the Terraform state with the latest data.

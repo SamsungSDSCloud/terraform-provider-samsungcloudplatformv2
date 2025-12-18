@@ -34,7 +34,8 @@ variable "nodepool_id" {
 
 ### Required
 
-- `nodepool_id` (String) NodepoolId
+- `nodepool_id` (String) Nodepool ID
+  - example: 9b618b5b-5508-4836-b014-d2d3fb438c28
 
 ### Read-Only
 
@@ -46,5 +47,8 @@ variable "nodepool_id" {
 Read-Only:
 
 - `kubernetes_version` (String) KubernetesVersion
+  - example: v1.29.8
 - `name` (String) Name
+  - example: ske-tf-test-vtr8s-s78gk
 - `status` (String) Status
+  - example: Ready

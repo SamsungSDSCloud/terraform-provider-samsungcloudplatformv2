@@ -26,16 +26,16 @@ output "hosted_zone" {
 
 variable "hosted_zone" {
   type = object({
-    description = string
-    email       = string
-    name        = string
-    type        = string
+    description    = string
+    name           = string
+    private_dns_id = string
+    type           = string
   })
   default = {
-    description = ""
-    email       = ""
-    name        = ""
-    type        = ""
+    description    = ""
+    name           = ""
+    private_dns_id = ""
+    type           = ""
   }
 }
 
@@ -70,7 +70,6 @@ variable "tag" {
 Optional:
 
 - `description` (String) Description
-- `email` (String) Email
 - `name` (String) Name
 - `private_dns_id` (String) PrivateDnsId
 - `type` (String) Type
@@ -81,40 +80,16 @@ Optional:
 
 Optional:
 
-- `action` (String) Action
-- `attributes` (Attributes) Attributes (see [below for nested schema](#nestedatt--zone--attributes))
 - `created_at` (String) CreatedAt
+- `created_by` (String) CreatedBy
 - `description` (String) Description
-- `email` (String) Email
 - `hosted_zone_type` (String) HostedZoneType
 - `id` (String) Id
-- `links` (Attributes) Links (see [below for nested schema](#nestedatt--zone--links))
-- `masters` (List of String) Masters
+- `modified_at` (String) ModifiedAt
+- `modified_by` (String) ModifiedBy
 - `name` (String) Name
 - `pool_id` (String) PoolId
 - `private_dns_id` (String) PrivateDnsId
 - `private_dns_name` (String) PrivateDnsName
-- `project_id` (String) ProjectId
-- `serial` (Number) Serial
-- `shared` (Boolean) Shared
 - `status` (String) Status
-- `transferred_at` (String) TransferredAt
 - `ttl` (Number) Ttl
-- `type` (String) Type
-- `updated_at` (String) UpdatedAt
-- `version` (Number) Version
-
-<a id="nestedatt--zone--attributes"></a>
-### Nested Schema for `zone.attributes`
-
-Optional:
-
-- `service_tier` (String) ServiceTier
-
-
-<a id="nestedatt--zone--links"></a>
-### Nested Schema for `zone.links`
-
-Optional:
-
-- `self` (String) Self

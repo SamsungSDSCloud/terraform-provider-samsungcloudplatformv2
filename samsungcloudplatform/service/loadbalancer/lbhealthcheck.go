@@ -6,10 +6,10 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.1"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -359,26 +359,33 @@ func (r *loadbalancerLbHealthCheckResource) Delete(ctx context.Context, req reso
 	}
 }
 
+func ToNullableInt32Value(v *int32) types.Int32 {
+	if v == nil {
+		return types.Int32Null()
+	}
+	return types.Int32Value(*v)
+}
+
 func createLbHealthCheckModel(data *scploadbalancer.LbHealthCheckShowResponse) loadbalancer.LbHealthCheckDetail {
 	lbHealthCheck := data.LbHealthCheck
 
 	return loadbalancer.LbHealthCheckDetail{
 		Name:                types.StringValue(lbHealthCheck.Name),
-		VpcId:               virtualserverutil.ToNullableStringValue(lbHealthCheck.VpcId.Get()),
-		SubnetId:            virtualserverutil.ToNullableStringValue(lbHealthCheck.SubnetId.Get()),
-		Protocol:            virtualserverutil.ToNullableStringValue((*string)(lbHealthCheck.Protocol)),
-		HealthCheckPort:     types.Int32Value(lbHealthCheck.HealthCheckPort),
+		VpcId:               loadbalancerutil.ToNullableStringValue(lbHealthCheck.VpcId.Get()),
+		SubnetId:            loadbalancerutil.ToNullableStringValue(lbHealthCheck.SubnetId.Get()),
+		Protocol:            loadbalancerutil.ToNullableStringValue((*string)(lbHealthCheck.Protocol)),
+		HealthCheckPort:     ToNullableInt32Value(lbHealthCheck.HealthCheckPort.Get()),
 		HealthCheckInterval: types.Int32Value(*lbHealthCheck.HealthCheckInterval),
 		HealthCheckTimeout:  types.Int32Value(*lbHealthCheck.HealthCheckTimeout),
 		HealthCheckCount:    types.Int32Value(*lbHealthCheck.HealthCheckCount),
-		HealthCheckUrl:      virtualserverutil.ToNullableStringValue(lbHealthCheck.HealthCheckUrl.Get()),
-		HttpMethod:          virtualserverutil.ToNullableStringValue(lbHealthCheck.HttpMethod.Get()),
-		ResponseCode:        virtualserverutil.ToNullableStringValue(lbHealthCheck.ResponseCode.Get()),
-		RequestData:         virtualserverutil.ToNullableStringValue(lbHealthCheck.RequestData.Get()),
+		HealthCheckUrl:      loadbalancerutil.ToNullableStringValue(lbHealthCheck.HealthCheckUrl.Get()),
+		HttpMethod:          loadbalancerutil.ToNullableStringValue(lbHealthCheck.HttpMethod.Get()),
+		ResponseCode:        loadbalancerutil.ToNullableStringValue(lbHealthCheck.ResponseCode.Get()),
+		RequestData:         loadbalancerutil.ToNullableStringValue(lbHealthCheck.RequestData.Get()),
 		HealthCheckType:     types.StringValue(string(lbHealthCheck.HealthCheckType)),
 		State:               types.StringValue(lbHealthCheck.State),
-		AccountId:           virtualserverutil.ToNullableStringValue(lbHealthCheck.AccountId.Get()),
-		Description:         virtualserverutil.ToNullableStringValue(lbHealthCheck.Description.Get()),
+		AccountId:           loadbalancerutil.ToNullableStringValue(lbHealthCheck.AccountId.Get()),
+		Description:         loadbalancerutil.ToNullableStringValue(lbHealthCheck.Description.Get()),
 		ModifiedBy:          types.StringValue(lbHealthCheck.ModifiedBy),
 		ModifiedAt:          types.StringValue(lbHealthCheck.ModifiedAt.Format(time.RFC3339)),
 		CreatedBy:           types.StringValue(lbHealthCheck.CreatedBy),

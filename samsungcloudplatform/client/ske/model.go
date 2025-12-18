@@ -11,7 +11,7 @@ const ServiceType = "scp-ske"
 //------------ Cluster -------------------//
 
 type ClusterDataSourceIds struct {
-	Size              types.Int32     `tfsdk:"size"`
+	Size              *int32          `tfsdk:"size"`
 	Page              *int32          `tfsdk:"page"`
 	Sort              types.String    `tfsdk:"sort"`
 	Name              types.String    `tfsdk:"name"`
@@ -121,7 +121,6 @@ func (m Cluster) AttributeTypes() map[string]attr.Type {
 
 type ClusterResource struct {
 	Id                                    types.String                           `tfsdk:"id"`
-	LastUpdated                           types.String                           `tfsdk:"last_updated"`
 	Name                                  types.String                           `tfsdk:"name"`
 	CloudLoggingEnabled                   types.Bool                             `tfsdk:"cloud_logging_enabled"`
 	KubernetesVersion                     types.String                           `tfsdk:"kubernetes_version"`
@@ -132,9 +131,10 @@ type ClusterResource struct {
 	VolumeId                              types.String                           `tfsdk:"volume_id"`
 	VpcId                                 types.String                           `tfsdk:"vpc_id"`
 	ServiceWatchLoggingEnabled            types.Bool                             `tfsdk:"service_watch_logging_enabled"` //v1.1
-	Region                                types.String                           `tfsdk:"region"`                        // region field 를 추가한다.
 	Tags                                  types.Map                              `tfsdk:"tags"`                          // tags field 필드를 추가한다.
 	Cluster                               types.Object                           `tfsdk:"cluster"`
+	//LastUpdated                           types.String                           `tfsdk:"last_updated"`
+	//Region                                types.String                           `tfsdk:"region"` // region field 를 추가한다.
 }
 
 type ClusterKubeconfigDataSource struct {
@@ -203,8 +203,8 @@ type NodeInNodepool struct {
 }
 
 type NodepoolResource struct {
-	Id                types.String      `tfsdk:"id"`
-	LastUpdated       types.String      `tfsdk:"last_updated"`
+	Id types.String `tfsdk:"id"`
+	//LastUpdated       types.String      `tfsdk:"last_updated"`
 	Name              types.String      `tfsdk:"name"`
 	ClusterId         types.String      `tfsdk:"cluster_id"`
 	CustomImageId     types.String      `tfsdk:"custom_image_id"`

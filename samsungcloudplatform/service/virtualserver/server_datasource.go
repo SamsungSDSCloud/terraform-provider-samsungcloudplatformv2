@@ -252,6 +252,10 @@ func (d *virtualServerServerDataSource) Schema(_ context.Context, _ datasource.S
 						Description: "Vpc ID",
 						Computed:    true,
 					},
+					common.ToSnakeCase("PartitionNumber"): schema.Int32Attribute{
+						Description: "Partition Number",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -415,6 +419,7 @@ func (d *virtualServerServerDataSource) Read(ctx context.Context, req datasource
 			State:                 types.StringValue(server.State),
 			Volumes:               volumes,
 			VpcId:                 types.StringPointerValue(server.VpcId.Get()),
+			PartitionNumber:       types.Int32PointerValue(server.PartitionNumber.Get()),
 		}
 		serverObjectValue, _ := types.ObjectValueFrom(ctx, serverModel.AttributeTypes(), serverModel)
 		state.Server = serverObjectValue

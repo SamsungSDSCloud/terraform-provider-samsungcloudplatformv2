@@ -49,6 +49,13 @@ func ToNullableStringValue(v *string) types.String {
 	return types.StringValue(*v)
 }
 
+func ToNullableInt32Value(v *int32) types.Int32 {
+	if v == nil {
+		return types.Int32Null()
+	}
+	return types.Int32Value(*v)
+}
+
 func SetResourceIdentifier(stateIdentifier types.String, availableIdentifiers []types.String, diags *diag.Diagnostics) types.String {
 	// SetResourceIdentifier validates or auto-selects resource identifiers
 	//

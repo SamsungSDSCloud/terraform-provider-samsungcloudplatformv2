@@ -3,7 +3,7 @@ package filestorage
 import (
 	"context"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.0"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -80,7 +80,7 @@ func (client *Client) UpdateVolume(ctx context.Context, id string, request Volum
 		FileUnitRecoveryEnabled: request.FileUnitRecoveryEnabled.ValueBool(),
 	})
 
-	_, err := req.Execute()
+	_, _, err := req.Execute()
 	return err
 }
 
@@ -196,7 +196,7 @@ func (client *Client) UpdateVolumeReplication(ctx context.Context, id string, vo
 		BackupRetentionCount:  *scpfilestorage.NewNullableInt32(request.BackupRetentionCount.ValueInt32Pointer()),
 	})
 
-	_, err := req.Execute()
+	_, _, err := req.Execute()
 	return err
 }
 

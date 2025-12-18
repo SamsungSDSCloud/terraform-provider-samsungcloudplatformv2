@@ -131,7 +131,7 @@ func (client *Client) ApprovalVpcPeering(ctx context.Context, vpcPeeringId strin
 	finalType, err := scpvpc.NewVpcPeeringApprovalTypeFromValue(approvalType)
 	if err == nil {
 		req = req.VpcPeeringApprovalRequest(scpvpc.VpcPeeringApprovalRequest{
-			Type: *scpvpc.NewNullableVpcPeeringApprovalType(finalType),
+			Type: *finalType,
 		})
 	} else {
 		req = req.VpcPeeringApprovalRequest(scpvpc.VpcPeeringApprovalRequest{})

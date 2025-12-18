@@ -93,6 +93,10 @@ func (d *dnsPublicDomainNameDataSources) Schema(_ context.Context, _ datasource.
 							Description: "Name",
 							Optional:    true,
 						},
+						common.ToSnakeCase("RegisterEmail"): schema.StringAttribute{
+							Description: "Register email",
+							Optional:    true,
+						},
 						common.ToSnakeCase("StartDate"): schema.StringAttribute{
 							Description: "StartDate",
 							Optional:    true,
@@ -150,15 +154,16 @@ func (d *dnsPublicDomainNameDataSources) Read(ctx context.Context, req datasourc
 
 	for _, publicDomainName := range data.PublicDomainNames {
 		publicDomainNameState := dns.PublicDomainName{
-			CreatedAt:   types.StringValue(publicDomainName.CreatedAt),
-			CreatedBy:   types.StringValue(publicDomainName.CreatedBy),
-			ExpiredDate: types.StringValue(publicDomainName.ExpiredDate),
-			Id:          types.StringValue(publicDomainName.Id),
-			ModifiedAt:  types.StringValue(publicDomainName.ModifiedAt),
-			ModifiedBy:  types.StringValue(publicDomainName.ModifiedBy),
-			Name:        types.StringValue(publicDomainName.Name),
-			StartDate:   types.StringValue(publicDomainName.StartDate),
-			Status:      types.StringValue(publicDomainName.Status),
+			CreatedAt:     types.StringValue(publicDomainName.CreatedAt),
+			CreatedBy:     types.StringValue(publicDomainName.CreatedBy),
+			ExpiredDate:   types.StringValue(publicDomainName.ExpiredDate),
+			Id:            types.StringValue(publicDomainName.Id),
+			ModifiedAt:    types.StringValue(publicDomainName.ModifiedAt),
+			ModifiedBy:    types.StringValue(publicDomainName.ModifiedBy),
+			Name:          types.StringValue(publicDomainName.Name),
+			RegisterEmail: types.StringValue(publicDomainName.RegisterEmail),
+			StartDate:     types.StringValue(publicDomainName.StartDate),
+			Status:        types.StringValue(publicDomainName.Status),
 		}
 
 		state.PublicDomainNames = append(state.PublicDomainNames, publicDomainNameState)

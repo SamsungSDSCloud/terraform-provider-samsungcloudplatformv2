@@ -42,6 +42,14 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 	return resp, err
 }
 
+// engine version
+func (client *Client) GetEngineVersionList(ctx context.Context) (*searchengine.EngineListResponse, error) {
+	req := client.sdkClient.SearchengineV1SearchEngineMasterDataApiAPI.SearchengineListEngineVersions(ctx)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 // create (ctx, clusterResource) - (asyncResponse)
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*searchengine.AsyncResponse, error) {
 	req := client.sdkClient.SearchengineV1SearchEngineClustersApiAPI.SearchengineCreateCluster(ctx)

@@ -3,6 +3,8 @@ package gslb
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/gslb"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
@@ -11,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -42,21 +43,32 @@ func (d *gslbGslbResourceDataSources) Schema(_ context.Context, _ datasource.Sch
 	resp.Schema = schema.Schema{
 		Description: "Get List of Gslb Resource.",
 		Attributes: map[string]schema.Attribute{
+			// Input
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Optional:    true,
+				Description: "Size\n" +
+					"  - Example: 20",
+				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "Page\n" +
+					"  - Example: 0",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "Sort\n" +
+					"  - Example: created_at:desc",
+				Optional: true,
 			},
 			common.ToSnakeCase("GslbId"): schema.StringAttribute{
 				Description: "GslbId",
-				Optional:    true,
+				Required:    true,
+			},
+
+			// Output
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "Count\n" +
+					"  - Example: 20",
+				Computed: true,
 			},
 			common.ToSnakeCase("GslbResources"): schema.ListNestedAttribute{
 				Description: "A list of gslb resource.",
@@ -64,44 +76,59 @@ func (d *gslbGslbResourceDataSources) Schema(_ context.Context, _ datasource.Sch
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "created at",
-							Computed:    true,
+							Description: "Created at\n" +
+								"  - Example: 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "created by",
-							Computed:    true,
+							Description: "Created by\n" +
+								"  - Example: 90dfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Optional:    true,
+							Description: "Description\n" +
+								"  - Max length:50",
+							Computed: true,
 						},
 						common.ToSnakeCase("Destination"): schema.StringAttribute{
-							Description: "Destination",
-							Optional:    true,
+							Description: "The GSLB Resource Destination.",
+							Computed:    true,
 						},
-						common.ToSnakeCase("Disabled"): schema.BoolAttribute{
-							Description: "Disabled",
-							Optional:    true,
+						common.ToSnakeCase("HealthCheckStatus"): schema.StringAttribute{
+							Description: "The GSLB Resource Health Check Status." +
+								"  - Example: CONNECTED | DISCONNECTED",
+							Computed: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Optional:    true,
+							Description: "ID\n" +
+								"  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "modified at",
-							Computed:    true,
+							Description: "Modified at\n" +
+								"  - Example: 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "modified by",
-							Computed:    true,
+							Description: "Modified by\n" +
+								"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("Region"): schema.StringAttribute{
-							Description: "Region",
-							Optional:    true,
+							Description: "The GSLB Resource Region.",
+							Computed:    true,
+						},
+						common.ToSnakeCase("Status"): schema.StringAttribute{
+							Description: "The GSLB Resource Status.\n" +
+								"  - Example: ENABLE | DISABLE",
+							Computed: true,
 						},
 						common.ToSnakeCase("Weight"): schema.Int32Attribute{
-							Description: "Weight",
-							Optional:    true,
+							Description: "The GSLB Resource Weight.\n" +
+								"  - Min: 0\n" +
+								"  - Max: 100\n" +
+								"  - Default: 0",
+							Computed: true,
 						},
 					},
 				},
@@ -150,21 +177,29 @@ func (d *gslbGslbResourceDataSources) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	for _, gslbResouece := range data.GslbResources {
+	for _, gslbResource := range data.GslbResources {
 		gslbResourceState := gslb.GslbResourceDetail{
-			CreatedAt:   types.StringValue(gslbResouece.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:   types.StringValue(gslbResouece.CreatedBy),
-			Description: virtualserverutil.ToNullableStringValue(gslbResouece.Description.Get()),
-			Destination: types.StringValue(gslbResouece.Destination),
-			Disabled:    common.ToNullableBoolValue(gslbResouece.Disabled.Get()),
-			Id:          types.StringValue(gslbResouece.Id),
-			ModifiedAt:  types.StringValue(gslbResouece.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:  types.StringValue(gslbResouece.ModifiedBy),
-			Region:      types.StringValue(gslbResouece.Region),
-			Weight:      common.ToNullableInt32Value(gslbResouece.Weight.Get()),
+			CreatedAt:   types.StringValue(gslbResource.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:   types.StringValue(gslbResource.CreatedBy),
+			Description: virtualserverutil.ToNullableStringValue(gslbResource.Description.Get()),
+			Destination: types.StringValue(gslbResource.Destination),
+			Id:          types.StringValue(gslbResource.Id),
+			ModifiedAt:  types.StringValue(gslbResource.ModifiedAt.Format(time.RFC3339)),
+			ModifiedBy:  types.StringValue(gslbResource.ModifiedBy),
+			Region:      types.StringValue(gslbResource.Region),
+			Weight:      common.ToNullableInt32Value(gslbResource.Weight.Get()),
+		}
+
+		if gslbResource.HealthCheckStatus.IsValid() {
+			gslbResourceState.HealthCheckStatus = types.StringValue(string(gslbResource.HealthCheckStatus))
+		}
+
+		if gslbResource.Status.IsValid() {
+			gslbResourceState.Status = types.StringValue(string(gslbResource.Status))
 		}
 
 		state.GslbResources = append(state.GslbResources, gslbResourceState)
+		state.TotalCount = types.Int32Value(data.Count)
 
 		// Set state
 		diags = resp.State.Set(ctx, &state)

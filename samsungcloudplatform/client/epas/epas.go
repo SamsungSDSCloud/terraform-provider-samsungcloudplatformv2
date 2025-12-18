@@ -45,6 +45,15 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 	return resp, err
 }
 
+// engine version
+func (client *Client) GetEngineVersionList(ctx context.Context) (*epas.EngineListResponse, error) {
+	req := client.sdkClient.EpasV1EpasMasterDataApiAPI.EpasListEngineVersions(ctx)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+
 // create (ctx, clusterResource) - (asyncResponse)
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*epas.AsyncResponse, error) {
 	req := client.sdkClient.EpasV1EpasClustersApiAPI.EpasCreateCluster(ctx)

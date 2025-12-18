@@ -2,9 +2,9 @@ package config
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,12 +35,8 @@ const DefaultMicroversionCheckTimeout = 15
 
 func LoadServiceConfig(resp *provider.ConfigureResponse, path string, providerConfig *ProviderConfig) {
 	data, err := os.ReadFile(filepath.Clean(path))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to load service configuration file",
-			"Error details: "+err.Error(),
-		)
-		return
+	if err != nil || len(data) == 0 {
+		data = []byte("{}")
 	}
 
 	tempConfig := struct {
@@ -82,12 +78,8 @@ func LoadServiceConfig(resp *provider.ConfigureResponse, path string, providerCo
 
 func LoadCredentialsConfig(resp *provider.ConfigureResponse, path string, providerConfig *ProviderConfig) {
 	data, err := os.ReadFile(filepath.Clean(path))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to load credential configuration file",
-			"Error details: "+err.Error(),
-		)
-		return
+	if err != nil || len(data) == 0 {
+		data = []byte("{}")
 	}
 
 	tempConfig := struct {
@@ -254,14 +246,6 @@ func ConfigureServiceAndCredentials(resp *provider.ConfigureResponse, providerCo
 		)
 	}
 
-	//authToken, err := getAuthToken(authUrl, accessKey, secretKey)
-	//if err != nil {
-	//	resp.Diagnostics.AddError(
-	//		"Authentication Token Retrieval Failed",
-	//		"Error details: "+err.Error(),
-	//	)
-	//}
-
 	providerConfig.AuthUrl = types.StringValue(authUrl)
 	providerConfig.EndpointOverride = types.StringValue(endpointOverride)
 	providerConfig.AccountId = types.StringValue(AccountId)
@@ -294,12 +278,12 @@ func getAuthToken(authUrl string, accessKey string, secretKey string) (string, e
 
 	req.Header.Set("Content-Type", "application/json")
 
+	tlsConfig, _ := common.CreateTlsConfig()
+
 	httpClient := &http.Client{
 		Transport: &http.Transport{
-			// Disable SSL verification (insecure)
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
+			TLSClientConfig: tlsConfig,
+			Proxy:           http.ProxyFromEnvironment,
 		},
 	}
 

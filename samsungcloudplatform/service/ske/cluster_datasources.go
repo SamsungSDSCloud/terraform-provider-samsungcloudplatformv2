@@ -48,39 +48,39 @@ func (d *skeClusterDataSources) Schema(_ context.Context, _ datasource.SchemaReq
 			"region": region.DataSourceSchema(),
 			"tags":   tag.DataSourceSchema(),
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size (between 1 and 10000)",
+				Description: "Size (between 1 and 10000)\n  - example: 10000",
 				Optional:    true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
+				Description: "Page\n  - example: 0",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
+				Description: "Sort\n  - example: created_at:desc",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
+				Description: "Name\n  - example: sample-cluster",
 				Optional:    true,
 				Validators:  []validator.String{
 					// regex: r"^[a-z0-9\-]*$",
 				},
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "SubnetId (validation)",
+				Description: "SubnetId (validation)\n  - example: 023c57b14f11483689338d085e061492",
 				Optional:    true,
 				Validators:  []validator.String{},
 			},
 			common.ToSnakeCase("Status"): schema.ListAttribute{
-				Description: "Status List",
+				Description: "Status List\n  - example: [RUNNING]",
 				Optional:    true,
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("KubernetesVersion"): schema.ListAttribute{
-				Description: "KubernetesVersion List",
+				Description: "KubernetesVersion List\n  - example: [v1.29.8]",
 				Optional:    true,
 				ElementType: types.StringType,
 			},
@@ -189,7 +189,7 @@ func getClusters(ctx context.Context, clients *client.SCPClient, state ske.Clust
 
 	// Map response body to model
 	for _, content := range contents {
-		ids = append(ids, types.StringPointerValue(content.Id))
+		ids = append(ids, types.StringValue(content.Id))
 	}
 	return ids, nil
 }

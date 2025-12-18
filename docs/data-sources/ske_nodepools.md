@@ -37,6 +37,7 @@ variable "cluster_id" {
 ### Required
 
 - `cluster_id` (String) ClusterId
+  - example: 628a6c3f05454f2699da171a0c2f50b1
 
 ### Read-Only
 
@@ -48,16 +49,25 @@ variable "cluster_id" {
 Read-Only:
 
 - `account_id` (String) AccountId
+  - example: 27bb070b564349f8a31cc60734cc36a5
 - `auto_recovery_enabled` (Boolean) AutoRecoveryEnabled
+  - example: false
 - `auto_scale_enabled` (Boolean) AutoScaleEnabled
+  - example: false
 - `current_node_count` (Number) Name
+  - example: 1
 - `desired_node_count` (Number) AccountId
+  - example: 1
 - `id` (String) Id
+  - example: 0d9ef630-a557-48f3-b6fa-04d054834d11
 - `image` (Attributes) Image (see [below for nested schema](#nestedatt--nodepools--image))
 - `kubernetes_version` (String) KubernetesVersion
+  - example: v1.31.8
 - `name` (String) Name
+  - example: test-nodepool
 - `server_type` (Attributes) ServerType (see [below for nested schema](#nestedatt--nodepools--server_type))
 - `status` (String) Status
+  - example: Running
 - `volume_type` (Attributes) VolumeType (see [below for nested schema](#nestedatt--nodepools--volume_type))
 
 <a id="nestedatt--nodepools--image"></a>
@@ -66,8 +76,11 @@ Read-Only:
 Read-Only:
 
 - `custom_image_name` (String) CustomImageName
+  - example: null
 - `os` (String) Os
+  - example: ubuntu
 - `os_version` (String) OsVersion
+  - example: 22.04
 
 
 <a id="nestedatt--nodepools--server_type"></a>
@@ -76,7 +89,9 @@ Read-Only:
 Read-Only:
 
 - `description` (String) Description
+  - example: vCPU 1 | Memory 2G
 - `id` (String) Id
+  - example: s1v1m2
 
 
 <a id="nestedatt--nodepools--volume_type"></a>
@@ -85,4 +100,6 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Id
+  - example: a6d4a8a2-4db1-45bb-b85c-9f3a57b304c6
 - `name` (String) Name
+  - example: SSD

@@ -1,18 +1,15 @@
 package client
 
 import (
-	"crypto/tls"
-	"crypto/x509"
-	"io/ioutil"
-	"net/http"
-	"os"
-
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/backup"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetal"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetalblockstorage"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/billing"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/budget"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/cachestore"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/certificatemanager"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/cloudmonitoring"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/configinspection"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnect"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/epas"
@@ -38,8 +35,10 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/config"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"net/http"
 )
 
 // AuthStruct -
@@ -49,6 +48,9 @@ type AuthStruct struct {
 }
 
 type SCPClient struct {
+	// CertificateManager
+	CertificateManager *certificatemanager.Client
+
 	// VPC
 	Vpc *vpc.Client
 
@@ -97,6 +99,7 @@ type SCPClient struct {
 	Iam             *iam.Client
 	ResourceManager *resourcemanager.Client
 	Billing         *billing.Client
+	Budget          *budget.Client
 	LoggingAudit    *loggingaudit.Client
 	Quota           *quota.Client
 
@@ -116,14 +119,17 @@ type SCPClient struct {
 
 	// Config
 	config *config.ProviderConfig
+
+	// Security
+	ConfigInspection *configinspection.Client
 }
 
 var AllowSDKDefaultVersion = map[string][]string{
 	// VPC
-	//vpc.ServiceType: {"v1.0"},
+	vpc.ServiceType: {"v1.1"},
 
-	// VPC VPCV1
-	vpc.ServiceType: {"v1.0", "v1.1"},
+	// CertificateManager V1
+	certificatemanager.ServiceType: {"v1.1"},
 
 	// DirectConnect
 	directconnect.ServiceType: {"v1.0"},
@@ -145,12 +151,12 @@ var AllowSDKDefaultVersion = map[string][]string{
 
 	// Compute
 	virtualserver.ServiceType: {"v1.1"},
-	backup.ServiceType:        {"v1.0"},
-	baremetal.ServiceType:     {"v1.0", "v1.1"},
+	backup.ServiceType:        {"v1.1"},
+	baremetal.ServiceType:     {"v1.1"},
 
 	// Storage
-	baremetalblockstorage.ServiceType: {"v1.1"},
-	filestorage.ServiceType:           {"v1.0", "v1.1"},
+	baremetalblockstorage.ServiceType: {"v1.2"},
+	filestorage.ServiceType:           {"v1.1"},
 
 	// Database
 	mysql.ServiceType:        {"v1.0"},
@@ -164,55 +170,34 @@ var AllowSDKDefaultVersion = map[string][]string{
 	vertica.ServiceType:      {"v1.0"},
 
 	// Platform
-	iam.ServiceType:             {"v1.0", "v1.1"},
+	iam.ServiceType:             {"v1.2"},
 	resourcemanager.ServiceType: {"v1.0"},
 	billing.ServiceType:         {"v1.0"},
+	budget.ServiceType:          {"v1.0"},
 	loggingaudit.ServiceType:    {"v1.1"},
-	quota.ServiceType:           {"v1.1"},
+	quota.ServiceType:           {"v1.2"},
 
 	// LoadBalancer
-	loadbalancer.ServiceType: {"v1.1"},
+	loadbalancer.ServiceType: {"v1.2"},
 
 	// Monitoring
 	cloudmonitoring.ServiceType: {"v1.0"},
 
 	// Gslb
-	gslb.ServiceType: {"v1.0"},
+	gslb.ServiceType: {"v1.1"},
 
 	// Dns
-	dns.ServiceType: {"v1.0", "v1.1", "v1.2"},
+	dns.ServiceType: {"v1.3"},
+
+	// ConfigInspection
+	configinspection.ServiceType: {"v1.1"},
 
 	// Misc.
 
 }
 
-func createTlsConfig() (*tls.Config, error) {
-	certPath := os.Getenv("SSL_CERT_FILE")
-	var certPool *x509.CertPool
-	var err error
-
-	if certPath == "" {
-		certPool, err = x509.SystemCertPool()
-	} else {
-		crt, err := ioutil.ReadFile(certPath)
-		if err != nil {
-			return nil, err
-		}
-		certPool = x509.NewCertPool()
-		certPool.AppendCertsFromPEM(crt)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &tls.Config{
-		RootCAs: certPool,
-	}, nil
-}
-
 func NewDefaultConfig(config *config.ProviderConfig, serviceType string) *scpsdk.Configuration {
-	tlsConfig, _ := createTlsConfig()
+	tlsConfig, _ := common.CreateTlsConfig()
 
 	cfg := &scpsdk.Configuration{
 		AuthUrl:         config.AuthUrl.ValueString(),
@@ -243,6 +228,9 @@ func NewDefaultConfig(config *config.ProviderConfig, serviceType string) *scpsdk
 
 func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 	client := &SCPClient{
+		// CertificateManager
+		CertificateManager: certificatemanager.NewClient(NewDefaultConfig(providerConfig, certificatemanager.ServiceType)),
+
 		// VPC
 		Vpc: vpc.NewClient(NewDefaultConfig(providerConfig, vpc.ServiceType)),
 
@@ -289,6 +277,7 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 		Iam:             iam.NewClient(NewDefaultConfig(providerConfig, iam.ServiceType)),
 		ResourceManager: resourcemanager.NewClient(NewDefaultConfig(providerConfig, resourcemanager.ServiceType)),
 		Billing:         billing.NewClient((NewDefaultConfig(providerConfig, billing.ServiceType))),
+		Budget:          budget.NewClient((NewDefaultConfig(providerConfig, budget.ServiceType))),
 		Quota:           quota.NewClient(NewDefaultConfig(providerConfig, quota.ServiceType)),
 
 		// LoadBalancer
@@ -310,6 +299,9 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 
 		// Config
 		config: providerConfig,
+
+		// Security
+		ConfigInspection: configinspection.NewClient(NewDefaultConfig(providerConfig, configinspection.ServiceType)),
 	}
 
 	return client, nil

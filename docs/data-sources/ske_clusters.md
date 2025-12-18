@@ -98,13 +98,20 @@ variable "clusters_filter_use_regex" {
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
 - `kubernetes_version` (List of String) KubernetesVersion List
+  - example: [v1.29.8]
 - `name` (String) Name
+  - example: sample-cluster
 - `page` (Number) Page
+  - example: 0
 - `region` (String) Region
 - `size` (Number) Size (between 1 and 10000)
+  - example: 10000
 - `sort` (String) Sort
+  - example: created_at:desc
 - `status` (List of String) Status List
+  - example: [RUNNING]
 - `subnet_id` (String) SubnetId (validation)
+  - example: 023c57b14f11483689338d085e061492
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.

@@ -49,7 +49,7 @@ func (d *vpcPeeringApprovalReource) Schema(_ context.Context, _ resource.SchemaR
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
 				Description: "Approval Type\n" +
-					"  - enum:  CREATE_APPROVE, CREATE_CANCEL, CREATE_REJECT, CREATE_RE_REQUEST, DELETE_APPROVE, DELETE_CANCEL, DELETE_REJECT",
+					"  - Enum:  CREATE_APPROVE | CREATE_CANCEL | CREATE_REJECT | CREATE_RE_REQUEST | DELETE_APPROVE | DELETE_CANCEL | DELETE_REJECT",
 				Required: true,
 			},
 			common.ToSnakeCase("VpcPeering"): schema.SingleNestedAttribute{
@@ -57,69 +57,76 @@ func (d *vpcPeeringApprovalReource) Schema(_ context.Context, _ resource.SchemaR
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountType"): schema.StringAttribute{
-						Description: "AccountType",
-						Computed:    true,
+						Description: "Account Type\n" +
+							"  - Enum: SAME | DIFFERENT",
+						Computed: true,
 					},
 					common.ToSnakeCase("ApproverVpcAccountId"): schema.StringAttribute{
-						Description: "ApproverVpcAccountId",
+						Description: "Approver VPC Account ID",
 						Computed:    true,
 					},
 					common.ToSnakeCase("ApproverVpcId"): schema.StringAttribute{
-						Description: "ApproverVpcId",
+						Description: "Approver VPC ID",
 						Computed:    true,
 					},
 					common.ToSnakeCase("ApproverVpcName"): schema.StringAttribute{
-						Description: "ApproverVpcName",
+						Description: "Approver VPC Name",
 						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "Created At\n" +
+							"  - Example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "Created By\n" +
+							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "VPC Peering Description",
+						Computed:    true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Optional:    true,
+						Description: "VPC Peering ID",
+						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "Modified At\n" +
+							"  - Example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "Modified By\n" +
+							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Required:    true,
+						Description: "VPC Peering Name\n" +
+							"  - Minimum length: 3\n" +
+							"  - Maximum length: 20\n" +
+							"  - Pattern: ^[a-zA-Z0-9-]*$",
+						Computed: true,
 					},
 					common.ToSnakeCase("RequesterVpcAccountId"): schema.StringAttribute{
-						Description: "RequesterVpcAccountId",
+						Description: "Requester VPC Account ID",
 						Computed:    true,
 					},
 					common.ToSnakeCase("RequesterVpcId"): schema.StringAttribute{
-						Description: "RequesterVpcId",
+						Description: "Requester VPC ID",
 						Computed:    true,
 					},
 					common.ToSnakeCase("RequesterVpcName"): schema.StringAttribute{
-						Description: "RequesterVpcName",
+						Description: "Requester VPC Name",
 						Computed:    true,
 					},
 					common.ToSnakeCase("DeleteRequesterAccountId"): schema.StringAttribute{
-						Description: "DeleteRequesterAccountId",
-						Optional:    true,
+						Description: "Requester VPC Account ID",
 						Computed:    true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
 						Description: "State\n" +
-							"  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
+							"  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING",
 						Computed: true,
 					},
 				},
@@ -254,9 +261,9 @@ func (r *vpcPeeringApprovalReource) Update(ctx context.Context, req resource.Upd
 	diags = resp.State.Set(ctx, &state)
 
 	mappingApprovalTypeToStatus := map[string][]string{
-		"CREATE_APPROVE":    {"ACTIVE"},
+		"CREATE_APPROVE":    {"ACTIVE", "ERROR"},
 		"CREATE_CANCEL":     {"CANCELED"},
-		"CREATE_REJECT":     {"CREATE_REJECT"},
+		"CREATE_REJECT":     {"REJECTED"},
 		"CREATE_RE_REQUEST": {"CREATING_REQUESTING"},
 		"DELETE_APPROVE":    {"DELETED"},
 		"DELETE_CANCEL":     {"ACTIVE"},
@@ -377,9 +384,9 @@ func (r *vpcPeeringApprovalReource) Create(ctx context.Context, req resource.Cre
 	diags = resp.State.Set(ctx, &state)
 
 	mappingApprovalTypeToStatus := map[string][]string{
-		"CREATE_APPROVE":    {"ACTIVE"},
+		"CREATE_APPROVE":    {"ACTIVE", "ERROR"},
 		"CREATE_CANCEL":     {"CANCELED"},
-		"CREATE_REJECT":     {"CREATE_REJECT"},
+		"CREATE_REJECT":     {"REJECTED"},
 		"CREATE_RE_REQUEST": {"CREATING_REQUESTING"},
 		"DELETE_APPROVE":    {"DELETED"},
 		"DELETE_CANCEL":     {"ACTIVE"},
