@@ -2,12 +2,13 @@ package virtualserver
 
 import (
 	"context"
+	"math"
+	"net/http"
+
 	virtualservercommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"math"
-	"net/http"
 )
 
 type Client struct {
@@ -345,6 +346,12 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 		volumes = append(volumes, volumeState)
 	}
 
+	// Partition Number
+	var partitionNumber = *scpvirtualserver.NewNullableInt32(request.PartitionNumber.ValueInt32Pointer())
+	if request.PartitionNumber.IsUnknown() || request.PartitionNumber.IsNull() {
+		partitionNumber.Unset()
+	}
+
 	reqState := &scpvirtualserver.ServerCreateRequest{
 		ImageId:         request.ImageId.ValueString(),
 		KeypairName:     request.KeypairName.ValueString(),
@@ -361,7 +368,7 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 		Tags:            TagsObject,
 		UserData:        *scpvirtualserver.NewNullableString(request.UserData.ValueStringPointer()),
 		Volumes:         volumes,
-		PartitionNumber: *scpvirtualserver.NewNullableInt32(request.PartitionNumber.ValueInt32Pointer()),
+		PartitionNumber: partitionNumber,
 	}
 
 	virtualservercommon.UnsetNilFields(reqState)
