@@ -101,7 +101,7 @@ func VolumeDataSourceSchema() schema.Schema {
 				Description: "Volume Type Name \n" +
 					"  - example : 'HDD' \n",
 			},
-			"usage": schema.Int32Attribute{
+			"usage": schema.Int64Attribute{
 				Computed: true,
 				Description: "Volume Usage \n" +
 					"  - example : '100000' \n",
@@ -186,7 +186,7 @@ func (d *fileStorageVolumeDataSource) Read(ctx context.Context, request datasour
 		state.Path = types.StringValue(*volume.Path.Get())
 	}
 	if volume.Usage.Get() != nil {
-		state.Usage = types.Int32Value(*volume.Usage.Get())
+		state.Usage = types.Int64Value(*volume.Usage.Get())
 	}
 
 	diags = response.State.Set(ctx, &state)

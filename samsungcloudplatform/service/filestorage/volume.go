@@ -142,7 +142,7 @@ func VolumeResourceSchema() schema.Schema {
 					"  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$` \n",
 			},
 			// 별도로 Optional: true 추가
-			"usage": schema.Int32Attribute{
+			"usage": schema.Int64Attribute{
 				Computed: true,
 				Optional: true,
 			},
@@ -506,7 +506,7 @@ func (r *fileStorageVolumeResource) MapGetResponseToState(ctx context.Context, r
 		State:                   types.StringValue(resp.State),
 		TypeId:                  types.StringValue(resp.TypeId),
 		TypeName:                types.StringValue(resp.TypeName),
-		Usage:                   types.Int32Value(*resp.Usage.Get()),
+		Usage:                   types.Int64Value(*resp.Usage.Get()),
 		Tags:                    tagsMap,
 		AccessRules:             accessRules,
 	}, nil

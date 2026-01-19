@@ -30,7 +30,7 @@ type VolumeDataSource struct {
 	State                   types.String `tfsdk:"state"`
 	TypeId                  types.String `tfsdk:"type_id"`
 	TypeName                types.String `tfsdk:"type_name"`
-	Usage                   types.Int32  `tfsdk:"usage"`
+	Usage                   types.Int64  `tfsdk:"usage"`
 }
 
 type VolumeResource struct {
@@ -49,7 +49,7 @@ type VolumeResource struct {
 	State                   types.String         `tfsdk:"state"`
 	TypeId                  types.String         `tfsdk:"type_id"`
 	TypeName                types.String         `tfsdk:"type_name"`
-	Usage                   types.Int32          `tfsdk:"usage"`
+	Usage                   types.Int64          `tfsdk:"usage"`
 	Tags                    types.Map            `tfsdk:"tags"`
 	AccessRules             []AccessRuleResource `tfsdk:"access_rules"`
 }
