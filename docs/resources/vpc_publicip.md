@@ -50,7 +50,6 @@ variable "publicip_type" {
 - `description` (String) Description
   - example : Public IP description
   - maxLength : 50
-  - minLength : 1
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.

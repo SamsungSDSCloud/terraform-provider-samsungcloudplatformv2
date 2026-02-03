@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
@@ -61,9 +62,10 @@ func (r *vpcPublicipResource) Schema(_ context.Context, _ resource.SchemaRequest
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Description\n" +
 					"  - example : Public IP description\n" +
-					"  - maxLength : 50\n" +
-					"  - minLength : 1",
+					"  - maxLength : 50",
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("Publicip"): schema.SingleNestedAttribute{
 				Description: "Publicip",
@@ -153,7 +155,7 @@ func (r *vpcPublicipResource) Configure(_ context.Context, req resource.Configur
 func (r *vpcPublicipResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan vpc.PublicipResource
-	diags := req.Config.Get(ctx, &plan)
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

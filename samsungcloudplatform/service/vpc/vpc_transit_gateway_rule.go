@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -60,9 +61,10 @@ func (v *vpcTgwRuleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Description\n" +
 					"  - example : Routing Rule description\n" +
-					"  - maxLength : 50\n" +
-					"  - minLength : 1",
+					"  - maxLength : 50",
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
 				Description: "Destination CIDR \n" +

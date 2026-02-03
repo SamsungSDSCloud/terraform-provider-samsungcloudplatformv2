@@ -58,7 +58,6 @@ variable "igw_description" {
 - `description` (String) Description
   - example : Internet Gateway description
   - maxLength : 50
-  - minLength : 1
 - `firewall_enabled` (Boolean) Firewall Enabled 
   - example : true | false
 - `firewall_loggable` (Boolean) Firewall Loggable 

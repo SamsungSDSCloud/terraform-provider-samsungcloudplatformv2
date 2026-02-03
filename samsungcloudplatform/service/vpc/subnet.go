@@ -3,6 +3,9 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
@@ -11,10 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -137,9 +139,10 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Description\n" +
 					"  - example : Subnet description\n" +
-					"  - maxLength : 50\n" +
-					"  - minLength : 1",
+					"  - maxLength : 50",
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 				Description: "CreatedAt",
@@ -187,7 +190,7 @@ func (r *vpcSubnetResource) Configure(_ context.Context, req resource.ConfigureR
 func (r *vpcSubnetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan vpc.SubnetResource
-	diags := req.Config.Get(ctx, &plan)
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

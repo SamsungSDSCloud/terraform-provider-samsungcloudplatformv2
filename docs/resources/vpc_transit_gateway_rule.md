@@ -74,7 +74,6 @@ variable "routing_rule_tgw_connection_vpc_id" {
 - `description` (String) Description
   - example : Routing Rule description
   - maxLength : 50
-  - minLength : 1
 
 ### Read-Only
 

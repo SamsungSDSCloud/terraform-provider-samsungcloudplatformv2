@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
@@ -65,6 +66,8 @@ func (d *vpcPrivateNatIpResource) Schema(_ context.Context, _ resource.SchemaReq
 					"  - example : Private NAT IP description\n" +
 					"  - maxLength : 50",
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("PrivateNatIp"): schema.SingleNestedAttribute{
 				Description: "Private NAT IP",
@@ -210,6 +213,10 @@ func (r *vpcPrivateNatIpResource) Read(ctx context.Context, req resource.ReadReq
 }
 
 func (r *vpcPrivateNatIpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	resp.Diagnostics.AddWarning(
+		"Update not supported",
+		"Private NAT IP resources do not support update operations. The resource will not be updated.",
+	)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

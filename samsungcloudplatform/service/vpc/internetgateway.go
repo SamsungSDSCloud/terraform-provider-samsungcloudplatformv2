@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
@@ -62,9 +63,10 @@ func (r *vpcInternetGatewayResource) Schema(_ context.Context, _ resource.Schema
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Description\n" +
 					"  - example : Internet Gateway description\n" +
-					"  - maxLength : 50\n" +
-					"  - minLength : 1",
+					"  - maxLength : 50",
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("Loggable"): schema.BoolAttribute{
 				Description: "Loggable \n" +

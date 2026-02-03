@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
@@ -66,9 +67,10 @@ func (r *vpcNatGatewayResource) Schema(_ context.Context, _ resource.SchemaReque
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Description\n" +
 					"  - example : NAT Gateway description\n" +
-					"  - maxLength : 50\n" +
-					"  - minLength : 1",
+					"  - maxLength : 50",
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("NatGateway"): schema.SingleNestedAttribute{
 				Description: "NatGateway",

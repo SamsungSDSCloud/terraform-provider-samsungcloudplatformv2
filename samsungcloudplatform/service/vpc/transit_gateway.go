@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -58,8 +59,10 @@ func (r *vpcTgwResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Required:    true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description ",
+				Description: "Description",
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("Tgw"): schema.SingleNestedAttribute{
 				Description: "Tgw",
@@ -157,7 +160,7 @@ func (r *vpcTgwResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Retrieve values from plan
 	var plan vpc.TgwResource
-	diags := req.Config.Get(ctx, &plan)
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

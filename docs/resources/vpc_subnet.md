@@ -110,7 +110,6 @@ variable "subnet_host_routes" {
 - `description` (String) Description
   - example : Subnet description
   - maxLength : 50
-  - minLength : 1
 - `dns_nameservers` (List of String) IP lists of DNS Name Servers 
   - example : [ "1.1.1.1", "1.1.1.2", "1.1.1.3", "1.1.1.4" ]
 - `host_routes` (Attributes List) HostRoutes 

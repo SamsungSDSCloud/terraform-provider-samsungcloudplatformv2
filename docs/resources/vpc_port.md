@@ -73,7 +73,6 @@ variable "port_security_groups" {
 - `description` (String) Description
   - example : Port description
   - maxLength : 50
-  - minLength : 1
 - `fixed_ip_address` (String) Fixed IP Address 
   - example : 172.24.4.2
 - `security_groups` (List of String) ID lists of Security Groups 
