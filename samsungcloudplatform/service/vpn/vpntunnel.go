@@ -50,66 +50,66 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource." +
-					"  - example : 0e3dffc50eb247a1adf4f2e5c82c4f99 \n",
+				Description: "Identifier of the resource.\n" +
+					"  - example : 0e3dffc50eb247a1adf4f2e5c82c4f99",
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"description": schema.StringAttribute{
-				Description: "Description" +
-					"  - example : Description for VPN Tunnel \n",
+				Description: "Description\n" +
+					"  - example : Description for VPN Tunnel",
 				Optional: true,
 			},
 			"name": schema.StringAttribute{
-				Description: "Name" +
-					"  - example : ExampleVpnTunnel1 \n",
+				Description: "Name\n" +
+					"  - example : ExampleVpnTunnel1",
 				Required: true,
 			},
 			"vpn_gateway_id": schema.StringAttribute{
-				Description: "VpnGatewayId" +
-					"  - example : b156740b6335468d8354eb9ef8eddf5a \n",
+				Description: "VpnGatewayId\n" +
+					"  - example : b156740b6335468d8354eb9ef8eddf5a",
 				Required: true,
 			},
 			"phase1": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"dpd_retry_interval": schema.Int32Attribute{
-						Description: "DpdRetryInterval" +
-							"  - example : 60 \n",
+						Description: "DpdRetryInterval\n" +
+							"  - example : 60",
 						Required: true,
 					},
 					"ike_version": schema.Int32Attribute{
-						Description: "IkeVersion" +
-							"  - example : 2 \n",
+						Description: "IkeVersion\n" +
+							"  - example : 2",
 						Required: true,
 					},
 					"peer_gateway_ip": schema.StringAttribute{
-						Description: "PeerGatewayIp" +
-							"  - example : 123.0.0.2 \n",
+						Description: "PeerGatewayIp\n" +
+							"  - example : 123.0.0.2",
 						Required: true,
 					},
 					"phase1_diffie_hellman_groups": schema.ListAttribute{
-						Description: "Phase1DiffieHellmanGroups" +
-							"  - example : [30,31,32] \n",
+						Description: "Phase1DiffieHellmanGroups\n" +
+							"  - example : [30,31,32]",
 						Required:    true,
 						ElementType: types.Int32Type,
 					},
 					"phase1_encryptions": schema.ListAttribute{
-						Description: "Phase1Encryptions" +
-							"  - example : ['des-md5', 'chacha20poly1305-prfsha256'] \n",
+						Description: "Phase1Encryptions\n" +
+							"  - example : ['des-md5', 'chacha20poly1305-prfsha256']",
 						Required:    true,
 						ElementType: types.StringType,
 					},
 					"phase1_life_time": schema.Int32Attribute{
-						Description: "Phase1LifeTime" +
-							"  - example : 86400 \n",
+						Description: "Phase1LifeTime\n" +
+							"  - example : 86400",
 						Required: true,
 					},
 					"pre_shared_key": schema.StringAttribute{
-						Description: "PreSharedKey" +
-							"  - example : PreSharedKey1 \n",
+						Description: "PreSharedKey\n" +
+							"  - example : PreSharedKey1",
 						Required: true,
 					},
 				},
@@ -118,33 +118,33 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"perfect_forward_secrecy": schema.StringAttribute{
-						Description: "PerfectForwardSecrecy" +
-							"  - example : ENABLE \n",
+						Description: "PerfectForwardSecrecy\n" +
+							"  - example : ENABLE",
 						Required: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("ENABLE", "DISABLE"),
 						},
 					},
 					"phase2_diffie_hellman_groups": schema.ListAttribute{
-						Description: "Phase2DiffieHellmanGroups" +
-							"  - example : [30,31,32] \n",
+						Description: "Phase2DiffieHellmanGroups\n" +
+							"  - example : [30,31,32]",
 						Required:    true,
 						ElementType: types.Int32Type,
 					},
 					"phase2_encryptions": schema.ListAttribute{
-						Description: "Phase2Encryptions" +
-							"  - example : ['des-md5', 'chacha20poly1305-prfsha256'] \n",
+						Description: "Phase2Encryptions\n" +
+							"  - example : ['des-md5', 'chacha20poly1305-prfsha256']",
 						Required:    true,
 						ElementType: types.StringType,
 					},
 					"phase2_life_time": schema.Int32Attribute{
-						Description: "Phase2LifeTime" +
-							"  - example : 86400 \n",
+						Description: "Phase2LifeTime\n" +
+							"  - example : 86400",
 						Required: true,
 					},
 					"remote_subnets": schema.ListAttribute{
-						Description: "RemoteSubnets" +
-							"  - example : ['10.1.1.0/24', '10.1.2.0/24', '10.1.3.0/24'] \n",
+						Description: "RemoteSubnets\n" +
+							"  - example : ['10.1.1.0/24', '10.1.2.0/24', '10.1.3.0/24']",
 						ElementType: types.StringType,
 						Required:    true,
 					},

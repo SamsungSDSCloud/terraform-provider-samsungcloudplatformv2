@@ -713,14 +713,16 @@ func getGroupMembers(_members []scpsdkiam.GroupMember) []iam.Member {
 	var members []iam.Member
 
 	for _, member := range _members {
-		var creatorLastLoginAt string
-		var userLastLoginAt string
+		var creatorLastLoginAt *string
+		var userLastLoginAt *string
 
 		if member.CreatorLastLoginAt.Get() != nil {
-			creatorLastLoginAt = member.CreatorLastLoginAt.Get().Format(time.RFC3339)
+			t := member.CreatorLastLoginAt.Get().Format(time.RFC3339)
+			creatorLastLoginAt = &t
 		}
 		if member.UserLastLoginAt.Get() != nil {
-			userLastLoginAt = member.UserLastLoginAt.Get().Format(time.RFC3339)
+			t := member.UserLastLoginAt.Get().Format(time.RFC3339)
+			userLastLoginAt = &t
 		}
 
 		groupNames := make([]types.String, 0, len(member.GroupNames))
@@ -733,13 +735,13 @@ func getGroupMembers(_members []scpsdkiam.GroupMember) []iam.Member {
 			CreatedBy:          types.StringValue(member.CreatedBy),
 			CreatorCreatedAt:   types.StringValue(member.CreatorCreatedAt.Format(time.RFC3339)),
 			CreatorEmail:       types.StringPointerValue(member.CreatorEmail),
-			CreatorLastLoginAt: types.StringValue(creatorLastLoginAt),
+			CreatorLastLoginAt: types.StringPointerValue(creatorLastLoginAt),
 			CreatorName:        types.StringPointerValue(member.CreatorName),
 			GroupNames:         groupNames,
 			UserCreatedAt:      types.StringValue(member.UserCreatedAt.Format(time.RFC3339)),
 			UserEmail:          types.StringPointerValue(member.UserEmail),
 			UserId:             types.StringValue(member.UserId),
-			UserLastLoginAt:    types.StringValue(userLastLoginAt),
+			UserLastLoginAt:    types.StringPointerValue(userLastLoginAt),
 			UserName:           types.StringPointerValue(member.UserName),
 		}
 

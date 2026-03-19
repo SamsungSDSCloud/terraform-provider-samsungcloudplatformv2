@@ -5,11 +5,11 @@ import (
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	loadbalancersdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.2"
+	loadbalancersdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponse) loadbalancer.LbListenerDetail {
+func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponseV1Dot3) loadbalancer.LbListenerDetail {
 
 	var sslCertificate *loadbalancer.SslCertificate
 
@@ -22,11 +22,12 @@ func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponse) loadbalancer.
 		}
 	}
 
-	sniCertificateList := make([]loadbalancer.SniCertificate, len(resp.Listener.SniCertificate))
+	sniCertificateList := make([]loadbalancer.SniCertificateDataSource, len(resp.Listener.SniCertificate))
 	for i, sniCertificate := range resp.Listener.SniCertificate {
-		sniCertificateList[i] = loadbalancer.SniCertificate{
+		sniCertificateList[i] = loadbalancer.SniCertificateDataSource{
 			SniCertId:  types.StringValue(sniCertificate.GetSniCertId()),
 			DomainName: types.StringValue(sniCertificate.GetDomainName()),
+			NotAfterDt: ToNullableTimeString(sniCertificate.NotAfterDt),
 		}
 	}
 
@@ -65,7 +66,7 @@ func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponse) loadbalancer.
 		InsertClientIp:      types.BoolValue(resp.Listener.InsertClientIp.IsSet()),
 		Name:                types.StringValue(resp.Listener.Name),
 		Persistence:         virtualserverutil.ToNullableStringValue(resp.Listener.Persistence.Get()),
-		Protocol:            types.StringValue(resp.Listener.Protocol),
+		Protocol:            types.StringValue(string(resp.Listener.Protocol)),
 		ServerGroupId:       virtualserverutil.ToNullableStringValue(resp.Listener.ServerGroupId.Get()),
 		ServerGroupName:     virtualserverutil.ToNullableStringValue(resp.Listener.ServerGroupName.Get()),
 		ServicePort:         types.Int32Value(resp.Listener.ServicePort),
@@ -80,8 +81,10 @@ func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponse) loadbalancer.
 		XForwardedFor:       ToNullableBoolValue(resp.Listener.XForwardedFor.Get()),
 		XForwardedPort:      ToNullableBoolValue(resp.Listener.XForwardedPort.Get()),
 		XForwardedProto:     ToNullableBoolValue(resp.Listener.XForwardedProto.Get()),
-		RoutingAction:       virtualserverutil.ToNullableStringValue((*string)(resp.Listener.RoutingAction.Get())),
+		RoutingAction:       types.StringValue(string(resp.Listener.RoutingAction)),
 		ConditionType:       virtualserverutil.ToNullableStringValue((*string)(resp.Listener.ConditionType.Get())),
+		IdleTimeout:         ToNullableInt32Value(resp.Listener.IdleTimeout.Get()),
+		HstsMaxAge:          ToNullableInt32Value(resp.Listener.HstsMaxAge.Get()),
 	}
 	return rtn
 }

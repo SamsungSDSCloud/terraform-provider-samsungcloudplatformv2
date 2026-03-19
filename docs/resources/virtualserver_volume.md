@@ -61,15 +61,17 @@ variable "volume_server" {
 ### Required
 
 - `size` (Number) Size
-- `volume_type` (String) VolumeType
 
 ### Optional
 
+- `max_iops` (Number) The number of distinct read or write operations a volume can process in a single second.
+- `max_throughput` (Number) The actual amount of data (volume) transferred to or from the storage device per second.
 - `name` (String) Name
 - `servers` (Attributes List) Servers (see [below for nested schema](#nestedatt--servers))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
+- `volume_type` (String) VolumeType
 
 ### Read-Only
 

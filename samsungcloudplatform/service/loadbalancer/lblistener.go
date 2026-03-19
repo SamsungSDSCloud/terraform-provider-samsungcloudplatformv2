@@ -146,6 +146,10 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 									Description: "DomainName",
 									Optional:    true,
 								},
+								common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
+									Description: "NotAfterDt",
+									Optional:    true,
+								},
 							},
 						},
 					},
@@ -213,6 +217,14 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 					},
 					common.ToSnakeCase("ConditionType"): schema.StringAttribute{
 						Description: "ConditionType",
+						Optional:    true,
+					},
+					common.ToSnakeCase("IdleTimeout"): schema.Int32Attribute{
+						Description: "IdleTimeout",
+						Optional:    true,
+					},
+					common.ToSnakeCase("HstsMaxAge"): schema.Int32Attribute{
+						Description: "HstsMaxAge",
 						Optional:    true,
 					},
 				},
@@ -357,6 +369,14 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 					},
 					common.ToSnakeCase("ConditionType"): schema.StringAttribute{
 						Description: "ConditionType",
+						Optional:    true,
+					},
+					common.ToSnakeCase("IdleTimeout"): schema.Int32Attribute{
+						Description: "IdleTimeout",
+						Optional:    true,
+					},
+					common.ToSnakeCase("HstsMaxAge"): schema.Int32Attribute{
+						Description: "HstsMaxAge",
 						Optional:    true,
 					},
 				},

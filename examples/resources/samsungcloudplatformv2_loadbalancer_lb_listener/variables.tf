@@ -31,15 +31,19 @@ variable "lb_listener1" {
     x_forwarded_for   = bool
     routing_action    = string
     condition_type    = string
+    idle_timeout      = number
+    hsts_max_age      = number
   })
   default = {
     condition_type = ""
     description    = ""
+    hsts_max_age   = 0
     https_redirection = {
       port          = ""
       protocol      = ""
       response_code = ""
     }
+    idle_timeout          = 0
     insert_client_ip      = false
     loadbalancer_id       = ""
     name                  = ""
@@ -100,15 +104,19 @@ variable "lb_listener2" {
     x_forwarded_for   = bool
     routing_action    = string
     condition_type    = string
+    idle_timeout      = number
+    hsts_max_age      = number
   })
   default = {
     condition_type = ""
     description    = ""
+    hsts_max_age   = 0
     https_redirection = {
       port          = ""
       protocol      = ""
       response_code = ""
     }
+    idle_timeout          = 0
     insert_client_ip      = false
     loadbalancer_id       = ""
     name                  = ""
@@ -169,15 +177,19 @@ variable "lb_listener3" {
     x_forwarded_for   = bool
     routing_action    = string
     condition_type    = string
+    idle_timeout      = number
+    hsts_max_age      = number
   })
   default = {
     condition_type = ""
     description    = ""
+    hsts_max_age   = 0
     https_redirection = {
       port          = ""
       protocol      = ""
       response_code = ""
     }
+    idle_timeout          = 0
     insert_client_ip      = false
     loadbalancer_id       = ""
     name                  = ""
@@ -238,15 +250,19 @@ variable "lb_listener_https" {
     x_forwarded_for   = bool
     routing_action    = string
     condition_type    = string
+    idle_timeout      = number
+    hsts_max_age      = number
   })
   default = {
     condition_type = ""
     description    = ""
+    hsts_max_age   = 0
     https_redirection = {
       port          = ""
       protocol      = ""
       response_code = ""
     }
+    idle_timeout          = 0
     insert_client_ip      = false
     loadbalancer_id       = ""
     name                  = ""
@@ -307,15 +323,19 @@ variable "lb_listener_udp" {
     x_forwarded_for   = bool
     routing_action    = string
     condition_type    = string
+    idle_timeout      = number
+    hsts_max_age      = number
   })
   default = {
     condition_type = ""
     description    = ""
+    hsts_max_age   = 0
     https_redirection = {
       port          = ""
       protocol      = ""
       response_code = ""
     }
+    idle_timeout          = 0
     insert_client_ip      = false
     loadbalancer_id       = ""
     name                  = ""
@@ -376,15 +396,19 @@ variable "lb_listener_tcp" {
     x_forwarded_for   = bool
     routing_action    = string
     condition_type    = string
+    idle_timeout      = number
+    hsts_max_age      = number
   })
   default = {
     condition_type = ""
     description    = ""
+    hsts_max_age   = 0
     https_redirection = {
       port          = ""
       protocol      = ""
       response_code = ""
     }
+    idle_timeout          = 0
     insert_client_ip      = false
     loadbalancer_id       = ""
     name                  = ""
@@ -449,15 +473,19 @@ variable "lb_listener_tls" {
     x_forwarded_for   = bool
     routing_action    = string
     condition_type    = string
+    idle_timeout      = number
+    hsts_max_age      = number
   })
   default = {
     condition_type = ""
     description    = ""
+    hsts_max_age   = 0
     https_redirection = {
       port          = ""
       protocol      = ""
       response_code = ""
     }
+    idle_timeout          = 0
     insert_client_ip      = false
     loadbalancer_id       = ""
     name                  = ""
@@ -483,6 +511,27 @@ variable "lb_listener_tls" {
       url_pattern     = ""
     }]
     url_redirection   = ""
+    x_forwarded_for   = false
+    x_forwarded_port  = false
+    x_forwarded_proto = false
+  }
+}
+
+variable "update_sni_certificate" {
+  type = object({
+    sni_certificate = list(object({
+      sni_cert_id = string
+      domain_name = string
+    }))
+    x_forwarded_proto = bool
+    x_forwarded_port  = bool
+    x_forwarded_for   = bool
+  })
+  default = {
+    sni_certificate = [{
+      domain_name = ""
+      sni_cert_id = ""
+    }]
     x_forwarded_for   = false
     x_forwarded_port  = false
     x_forwarded_proto = false

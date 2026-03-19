@@ -1,0 +1,9 @@
+category:
+  servicewatch_alert: ServiceWatch
+  servicewatch_dashboard: ServiceWatch
+  servicewatch_dashboards: ServiceWatch
+  servicewatch_event_rule: ServiceWatch
+  servicewatch_event_rules: ServiceWatch
+  servicewatch_log_group: ServiceWatch
+  servicewatch_log_groups: ServiceWatch
+  servicewatch_log_stream: ServiceWatch

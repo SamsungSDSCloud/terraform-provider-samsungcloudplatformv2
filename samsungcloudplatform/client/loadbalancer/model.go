@@ -198,6 +198,49 @@ func (m LoadbalancerPublicNatIpDetail) AttributeTypes() map[string]attr.Type {
 	}
 }
 
+type LoadbalancerPrivateNatIpResource struct {
+	LoadbalancerId               types.String           `tfsdk:"loadbalancer_id"`
+	Id                           types.String           `tfsdk:"id"`
+	LoadbalancerPrivateNatIp     types.Object           `tfsdk:"loadbalancer_private_nat_ip"`
+	LoadbalancerPrivateNatCreate PrivateStaticNatCreate `tfsdk:"private_static_nat_create"`
+}
+
+type PrivateStaticNatCreate struct {
+	PrivateNatId   types.String `tfsdk:"private_nat_id"`
+	PrivateNatIpId types.String `tfsdk:"private_nat_ip_id"`
+}
+
+type LoadbalancerPrivateNatIpDetail struct {
+	CreatedAt         types.String `tfsdk:"created_at"`
+	CreatedBy         types.String `tfsdk:"created_by"`
+	ExternalIpAddress types.String `tfsdk:"external_ip_address"`
+	Id                types.String `tfsdk:"id"`
+	InternalIpAddress types.String `tfsdk:"internal_ip_address"`
+	ModifiedAt        types.String `tfsdk:"modified_at"`
+	ModifiedBy        types.String `tfsdk:"modified_by"`
+	PrivateNatIpId    types.String `tfsdk:"private_nat_ip_id"`
+	State             types.String `tfsdk:"state"`
+}
+
+func (m LoadbalancerPrivateNatIpDetail) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"created_at":          types.StringType,
+		"created_by":          types.StringType,
+		"external_ip_address": types.StringType,
+		"id":                  types.StringType,
+		"internal_ip_address": types.StringType,
+		"modified_at":         types.StringType,
+		"modified_by":         types.StringType,
+		"private_nat_ip_id":   types.StringType,
+		"state":               types.StringType,
+	}
+}
+
+type LoadbalancerPrivateNatDataSourceDetail struct {
+	LoadbalancerId           types.String `tfsdk:"loadbalancer_id"`
+	LoadbalancerPrivateNatIp types.Object `tfsdk:"loadbalancer_private_nat_ip"`
+}
+
 //------------ LB Server Group -------------------//
 
 // List LB ServerGroup Paramaters
@@ -456,32 +499,34 @@ type LbListenerDataSourceDetail struct {
 }
 
 type LbListenerDetail struct {
-	Id                  types.String      `tfsdk:"id"`
-	CreatedAt           types.String      `tfsdk:"created_at"`
-	CreatedBy           types.String      `tfsdk:"created_by"`
-	ModifiedAt          types.String      `tfsdk:"modified_at"`
-	ModifiedBy          types.String      `tfsdk:"modified_by"`
-	Description         types.String      `tfsdk:"description"`
-	InsertClientIp      types.Bool        `tfsdk:"insert_client_ip"`
-	Name                types.String      `tfsdk:"name"`
-	Persistence         types.String      `tfsdk:"persistence"`
-	Protocol            types.String      `tfsdk:"protocol"`
-	ServerGroupId       types.String      `tfsdk:"server_group_id"`
-	ServerGroupName     types.String      `tfsdk:"server_group_name"`
-	ServicePort         types.Int32       `tfsdk:"service_port"`
-	ResponseTimeout     types.Int32       `tfsdk:"response_timeout"`
-	SessionDurationTime types.Int32       `tfsdk:"session_duration_time"`
-	SslCertificate      *SslCertificate   `tfsdk:"ssl_certificate"`
-	SniCertificate      []SniCertificate  `tfsdk:"sni_certificate"`
-	State               types.String      `tfsdk:"state"`
-	UrlHandler          []UrlHandler      `tfsdk:"url_handler"`
-	HttpsRedirection    *HttpsRedirection `tfsdk:"https_redirection"`
-	UrlRedirection      types.String      `tfsdk:"url_redirection"`
-	XForwardedFor       types.Bool        `tfsdk:"x_forwarded_for"`
-	XForwardedPort      types.Bool        `tfsdk:"x_forwarded_port"`
-	XForwardedProto     types.Bool        `tfsdk:"x_forwarded_proto"`
-	RoutingAction       types.String      `tfsdk:"routing_action"`
-	ConditionType       types.String      `tfsdk:"condition_type"`
+	Id                  types.String               `tfsdk:"id"`
+	CreatedAt           types.String               `tfsdk:"created_at"`
+	CreatedBy           types.String               `tfsdk:"created_by"`
+	ModifiedAt          types.String               `tfsdk:"modified_at"`
+	ModifiedBy          types.String               `tfsdk:"modified_by"`
+	Description         types.String               `tfsdk:"description"`
+	InsertClientIp      types.Bool                 `tfsdk:"insert_client_ip"`
+	Name                types.String               `tfsdk:"name"`
+	Persistence         types.String               `tfsdk:"persistence"`
+	Protocol            types.String               `tfsdk:"protocol"`
+	ServerGroupId       types.String               `tfsdk:"server_group_id"`
+	ServerGroupName     types.String               `tfsdk:"server_group_name"`
+	ServicePort         types.Int32                `tfsdk:"service_port"`
+	ResponseTimeout     types.Int32                `tfsdk:"response_timeout"`
+	SessionDurationTime types.Int32                `tfsdk:"session_duration_time"`
+	SslCertificate      *SslCertificate            `tfsdk:"ssl_certificate"`
+	SniCertificate      []SniCertificateDataSource `tfsdk:"sni_certificate"`
+	State               types.String               `tfsdk:"state"`
+	UrlHandler          []UrlHandler               `tfsdk:"url_handler"`
+	HttpsRedirection    *HttpsRedirection          `tfsdk:"https_redirection"`
+	UrlRedirection      types.String               `tfsdk:"url_redirection"`
+	XForwardedFor       types.Bool                 `tfsdk:"x_forwarded_for"`
+	XForwardedPort      types.Bool                 `tfsdk:"x_forwarded_port"`
+	XForwardedProto     types.Bool                 `tfsdk:"x_forwarded_proto"`
+	RoutingAction       types.String               `tfsdk:"routing_action"`
+	ConditionType       types.String               `tfsdk:"condition_type"`
+	IdleTimeout         types.Int32                `tfsdk:"idle_timeout"`
+	HstsMaxAge          types.Int32                `tfsdk:"hsts_max_age"`
 }
 
 func (m LbListenerDetail) AttributeTypes() map[string]attr.Type {
@@ -511,8 +556,9 @@ func (m LbListenerDetail) AttributeTypes() map[string]attr.Type {
 		"sni_certificate": types.ListType{
 			ElemType: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
-					"sni_cert_id": types.StringType,
-					"domain_name": types.StringType,
+					"sni_cert_id":  types.StringType,
+					"domain_name":  types.StringType,
+					"not_after_dt": types.StringType,
 				},
 			},
 		},
@@ -539,6 +585,8 @@ func (m LbListenerDetail) AttributeTypes() map[string]attr.Type {
 		"x_forwarded_proto": types.BoolType,
 		"routing_action":    types.StringType,
 		"condition_type":    types.StringType,
+		"idle_timeout":      types.Int32Type,
+		"hsts_max_age":      types.Int32Type,
 	}
 }
 
@@ -558,6 +606,12 @@ type HttpsRedirection struct {
 	Protocol     types.String `tfsdk:"protocol"`
 	Port         types.String `tfsdk:"port"`
 	ResponseCode types.String `tfsdk:"response_code"`
+}
+
+type SniCertificateDataSource struct {
+	SniCertId  types.String `tfsdk:"sni_cert_id"`
+	DomainName types.String `tfsdk:"domain_name"`
+	NotAfterDt types.String `tfsdk:"not_after_dt"`
 }
 
 type SniCertificate struct {
@@ -694,6 +748,8 @@ type LbListenerCreate struct {
 	XForwardedProto     types.Bool        `tfsdk:"x_forwarded_proto"`
 	RoutingAction       types.String      `tfsdk:"routing_action"`
 	ConditionType       types.String      `tfsdk:"condition_type"`
+	IdleTimeout         types.Int32       `tfsdk:"idle_timeout"`
+	HstsMaxAge          types.Int32       `tfsdk:"hsts_max_age"`
 }
 
 // ------------ LB Certificate -------------------//

@@ -1,6 +1,8 @@
 package client
 
 import (
+	"net/http"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/backup"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetal"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetalblockstorage"
@@ -28,6 +30,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/resourcemanager"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/searchengine"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/sqlserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vertica"
@@ -35,10 +38,10 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/multinodegpucluster"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/config"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"net/http"
 )
 
 // AuthStruct -
@@ -122,6 +125,12 @@ type SCPClient struct {
 
 	// Security
 	ConfigInspection *configinspection.Client
+
+	// Multi-node GPU Cluster
+	Mngc *multinodegpucluster.Client
+	// ServiceWatch
+	ServiceWatch *servicewatch.Client
+
 }
 
 var AllowSDKDefaultVersion = map[string][]string{
@@ -150,12 +159,12 @@ var AllowSDKDefaultVersion = map[string][]string{
 	ske.ServiceType: {"v1.1"},
 
 	// Compute
-	virtualserver.ServiceType: {"v1.1"},
-	backup.ServiceType:        {"v1.1"},
+	virtualserver.ServiceType: {"v1.2"},
+	backup.ServiceType:        {"v1.2"},
 	baremetal.ServiceType:     {"v1.1"},
 
 	// Storage
-	baremetalblockstorage.ServiceType: {"v1.2"},
+	baremetalblockstorage.ServiceType: {"v1.3"},
 	filestorage.ServiceType:           {"v1.1"},
 
 	// Database
@@ -175,10 +184,10 @@ var AllowSDKDefaultVersion = map[string][]string{
 	billing.ServiceType:         {"v1.0"},
 	budget.ServiceType:          {"v1.0"},
 	loggingaudit.ServiceType:    {"v1.1"},
-	quota.ServiceType:           {"v1.2"},
+	quota.ServiceType:           {"v1.3"},
 
 	// LoadBalancer
-	loadbalancer.ServiceType: {"v1.2"},
+	loadbalancer.ServiceType: {"v1.3"},
 
 	// Monitoring
 	cloudmonitoring.ServiceType: {"v1.0"},
@@ -192,7 +201,13 @@ var AllowSDKDefaultVersion = map[string][]string{
 	// ConfigInspection
 	configinspection.ServiceType: {"v1.1"},
 
+	// Multi-node GPU Cluster
+	multinodegpucluster.ServiceType: {"v1.2"},
+	// ServiceWatch
+	servicewatch.ServiceType: {"v1.2"},
+
 	// Misc.
+
 
 }
 
@@ -302,6 +317,12 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 
 		// Security
 		ConfigInspection: configinspection.NewClient(NewDefaultConfig(providerConfig, configinspection.ServiceType)),
+
+		// Multi-node GPU Cluster
+		Mngc: multinodegpucluster.NewClient(NewDefaultConfig(providerConfig, multinodegpucluster.ServiceType)),
+		// ServiceWatch
+		ServiceWatch: servicewatch.NewClient(NewDefaultConfig(providerConfig, servicewatch.ServiceType)),
+
 	}
 
 	return client, nil

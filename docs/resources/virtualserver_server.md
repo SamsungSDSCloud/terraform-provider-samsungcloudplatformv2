@@ -190,6 +190,8 @@ Required:
 Optional:
 
 - `delete_on_termination` (Boolean) Delete on termination
+- `max_iops` (Number) The number of distinct read or write operations a volume can process in a single second.
+- `max_throughput` (Number) The actual amount of data (volume) transferred to or from the storage device per second.
 - `type` (String) Type
 
 Read-Only:
@@ -209,6 +211,7 @@ Optional:
 
 Read-Only:
 
+- `is_default` (Boolean) Indicates whether this is the default port.
 - `static_nat_id` (String) Static NAT ID
 
 
@@ -222,6 +225,8 @@ Required:
 Optional:
 
 - `delete_on_termination` (Boolean) Delete on termination
+- `max_iops` (Number) The number of distinct read or write operations a volume can process in a single second.
+- `max_throughput` (Number) The actual amount of data (volume) transferred to or from the storage device per second.
 - `type` (String) Type
 
 Read-Only:

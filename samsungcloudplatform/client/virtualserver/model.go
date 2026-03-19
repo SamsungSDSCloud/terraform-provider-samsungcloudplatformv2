@@ -2,6 +2,7 @@ package virtualserver
 
 import (
 	"context"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -29,29 +30,33 @@ type VolumeDataSource struct {
 }
 
 type VolumeResource struct {
-	Id          types.String   `tfsdk:"id"`
-	Name        types.String   `tfsdk:"name"`
-	Size        types.Int32    `tfsdk:"size"`
-	State       types.String   `tfsdk:"state"`
-	UserId      types.String   `tfsdk:"user_id"`
-	VolumeType  types.String   `tfsdk:"volume_type"`
-	Encrypted   types.Bool     `tfsdk:"encrypted"`
-	Bootable    types.Bool     `tfsdk:"bootable"`
-	Multiattach types.Bool     `tfsdk:"multiattach"`
-	Servers     []VolumeServer `tfsdk:"servers"`
-	Tags        types.Map      `tfsdk:"tags"`
+	Id            types.String   `tfsdk:"id"`
+	Name          types.String   `tfsdk:"name"`
+	Size          types.Int32    `tfsdk:"size"`
+	State         types.String   `tfsdk:"state"`
+	UserId        types.String   `tfsdk:"user_id"`
+	VolumeType    types.String   `tfsdk:"volume_type"`
+	Encrypted     types.Bool     `tfsdk:"encrypted"`
+	Bootable      types.Bool     `tfsdk:"bootable"`
+	Multiattach   types.Bool     `tfsdk:"multiattach"`
+	Servers       []VolumeServer `tfsdk:"servers"`
+	Tags          types.Map      `tfsdk:"tags"`
+	MaxIops       types.Int32    `tfsdk:"max_iops"`
+	MaxThroughput types.Int32    `tfsdk:"max_throughput"`
 }
 type Volume struct {
-	Id          types.String   `tfsdk:"id"`
-	Name        types.String   `tfsdk:"name"`
-	Size        types.Int32    `tfsdk:"size"`
-	State       types.String   `tfsdk:"state"`
-	UserId      types.String   `tfsdk:"user_id"`
-	VolumeType  types.String   `tfsdk:"volume_type"`
-	Encrypted   types.Bool     `tfsdk:"encrypted"`
-	Bootable    types.Bool     `tfsdk:"bootable"`
-	Multiattach types.Bool     `tfsdk:"multiattach"`
-	Servers     []VolumeServer `tfsdk:"servers"`
+	Id            types.String   `tfsdk:"id"`
+	Name          types.String   `tfsdk:"name"`
+	Size          types.Int32    `tfsdk:"size"`
+	State         types.String   `tfsdk:"state"`
+	UserId        types.String   `tfsdk:"user_id"`
+	VolumeType    types.String   `tfsdk:"volume_type"`
+	Encrypted     types.Bool     `tfsdk:"encrypted"`
+	Bootable      types.Bool     `tfsdk:"bootable"`
+	Multiattach   types.Bool     `tfsdk:"multiattach"`
+	Servers       []VolumeServer `tfsdk:"servers"`
+	MaxIops       types.Int32    `tfsdk:"max_iops"`
+	MaxThroughput types.Int32    `tfsdk:"max_throughput"`
 }
 
 type VolumeServer struct {
@@ -76,6 +81,8 @@ func (m Volume) AttributeTypes() map[string]attr.Type {
 				},
 			},
 		},
+		"max_iops":       types.Int32Type,
+		"max_throughput": types.Int32Type,
 	}
 }
 
@@ -242,6 +249,7 @@ type ServerResourceNetwork struct {
 	FixedIp     types.String `tfsdk:"fixed_ip"`
 	PublicIpId  types.String `tfsdk:"public_ip_id"`
 	StaticNatId types.String `tfsdk:"static_nat_id"`
+	IsDefault   types.Bool   `tfsdk:"is_default"`
 }
 
 type Tag struct {
@@ -254,6 +262,8 @@ type ServerResourceVolume struct {
 	DeleteOnTermination types.Bool   `tfsdk:"delete_on_termination"`
 	Size                types.Int32  `tfsdk:"size"`
 	Type                types.String `tfsdk:"type"`
+	MaxIops             types.Int32  `tfsdk:"max_iops"`
+	MaxThroughput       types.Int32  `tfsdk:"max_throughput"`
 }
 
 func (m Server) AttributeTypes() map[string]attr.Type {

@@ -34,6 +34,10 @@ func New(version string) func() provider.Provider {
 	}
 }
 
+func NewProvider(version string) provider.Provider {
+	return New(version)()
+}
+
 // samsungcloudplatformv2Provider is the provider implementation.
 type samsungcloudplatformv2Provider struct {
 	// version is set to the provider version on release, "dev" when the

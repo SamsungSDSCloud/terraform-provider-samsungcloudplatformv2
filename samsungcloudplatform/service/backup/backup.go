@@ -10,7 +10,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/backup/1.1"
+	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/backup/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -225,7 +225,7 @@ func (r *backupBackupResource) Create(ctx context.Context, req resource.CreateRe
 	}
 }
 
-func (r *backupBackupResource) MapGetResponseToState(ctx context.Context, getData *scpbackup.BackupDetailResponse1Dot1, plan backup.BackupResource, tagsMap types.Map) (backup.BackupResource, error) {
+func (r *backupBackupResource) MapGetResponseToState(ctx context.Context, getData *scpbackup.BackupDetailResponse1Dot2, plan backup.BackupResource, tagsMap types.Map) (backup.BackupResource, error) {
 	getSchedules, err := r.client.GetScheduleList(ctx, getData.Id)
 	if err != nil {
 		return backup.BackupResource{}, err

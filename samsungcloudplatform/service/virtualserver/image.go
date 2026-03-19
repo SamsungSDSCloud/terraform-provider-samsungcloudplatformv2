@@ -3,20 +3,21 @@ package virtualserver
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.1"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 var (
@@ -197,7 +198,7 @@ func (r *virtualServerImageResource) Configure(_ context.Context, req resource.C
 	r.clients = inst.Client
 }
 
-func (r *virtualServerImageResource) MapGetResponseToState(resp *scpvirtualserver.ImageShowResponse, tagsMap types.Map) virtualserver.ImageResource {
+func (r *virtualServerImageResource) MapGetResponseToState(resp *scpvirtualserver.ImageShowResponseV1Dot2, tagsMap types.Map) virtualserver.ImageResource {
 	return virtualserver.ImageResource{
 		Volumes:              types.StringPointerValue(resp.Volumes.Get()),
 		Checksum:             types.StringPointerValue(resp.Checksum.Get()),
@@ -257,7 +258,7 @@ func (r *virtualServerImageResource) handlerUpdateTag(ctx context.Context, req r
 	return nil
 }
 
-func (r *virtualServerImageResource) resolveImageServiceInfoFromResponse(response *scpvirtualserver.ImageShowResponse) (serviceName, resourceType string) {
+func (r *virtualServerImageResource) resolveImageServiceInfoFromResponse(response *scpvirtualserver.ImageShowResponseV1Dot2) (serviceName, resourceType string) {
 	if response.ScpImageType.Get() != nil && *response.ScpImageType.Get() == ScpImageTypeGpuCustom {
 		return ServiceNameGpuServer, ResourceTypeImage
 	}
@@ -309,7 +310,7 @@ func (r *virtualServerImageResource) Create(ctx context.Context, req resource.Cr
 		imageId = data.Id
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ImageShowResponse, error) {
+	getFunc := func(id string) (*scpvirtualserver.ImageShowResponseV1Dot2, error) {
 		return r.client.GetImage(ctx, id)
 	}
 

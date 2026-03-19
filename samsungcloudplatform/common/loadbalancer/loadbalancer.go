@@ -1,7 +1,7 @@
 package loadbalancer
 
 import (
-	util "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.2"
+	util "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
 )

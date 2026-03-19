@@ -119,7 +119,7 @@ variable "delete_timeouts" {
 ### Optional
 
 - `qos` (Attributes) Volume QoS. (It can only be set on an SSD.) 
-  - example : {iops=3000, throughput=125} (see [below for nested schema](#nestedatt--qos))
+  - example : {iops=5000, throughput=250} (see [below for nested schema](#nestedatt--qos))
 - `region` (String) Region
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -149,13 +149,13 @@ Required:
 Required:
 
 - `iops` (Number) IOPS. 
-  - example : 3000 
-  - maximum : 16000 
-  - minimum : 3000
+  - example : 5,000 
+  - maximum : 20,000 
+  - minimum : 5,000
 - `throughput` (Number) Throughput. 
-  - example : 125 
-  - maximum : 1000 
-  - minimum : 125
+  - example : 250 
+  - maximum : 1,000 
+  - minimum : 250
 
 
 <a id="nestedblock--timeouts"></a>

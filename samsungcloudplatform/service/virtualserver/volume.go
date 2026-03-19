@@ -3,18 +3,21 @@ package virtualserver
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.1"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -66,7 +69,8 @@ func (r *virtualServerVolumeResource) Schema(_ context.Context, _ resource.Schem
 			},
 			common.ToSnakeCase("VolumeType"): schema.StringAttribute{
 				Description: "VolumeType",
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 			},
 			common.ToSnakeCase("Encrypted"): schema.BoolAttribute{
 				Description: "Encrypted",
@@ -96,6 +100,14 @@ func (r *virtualServerVolumeResource) Schema(_ context.Context, _ resource.Schem
 					},
 				},
 			},
+			common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
+				Description: "The number of distinct read or write operations a volume can process in a single second.",
+				Optional:    true,
+			},
+			common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
+				Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
+				Optional:    true,
+			},
 			"tags": tag.ResourceSchema(),
 		},
 	}
@@ -121,19 +133,49 @@ func (r *virtualServerVolumeResource) Configure(_ context.Context, req resource.
 	r.clients = inst.Client
 }
 
-func (r *virtualServerVolumeResource) MapGetResponseToState(resp *scpvirtualserver.VolumeShowResponse, state virtualserver.VolumeResource, tagsMap types.Map) virtualserver.VolumeResource {
+func (r *virtualServerVolumeResource) AsyncPollingQosUpdate(ctx context.Context, volumeId string, desiredIops, desiredThroughput int32) error {
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+
+	for i := 0; i < 10; i++ {
+		vol, err := r.client.GetVolume(ctx, volumeId)
+		if err != nil {
+			return fmt.Errorf("failed to get volume during polling: %w", err)
+		}
+
+		iopsMatch := *vol.MaxIops.Get() == desiredIops
+		throughputMatch := *vol.MaxThroughput.Get() == desiredThroughput
+
+		if iopsMatch && throughputMatch {
+			return nil
+		}
+
+		select {
+		case <-ticker.C:
+			continue
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+
+	return fmt.Errorf("timeout waiting for volume update (ID: %s)", volumeId)
+}
+
+func (r *virtualServerVolumeResource) MapGetResponseToState(resp *scpvirtualserver.VolumeShowResponseV1Dot2, state virtualserver.VolumeResource, tagsMap types.Map) virtualserver.VolumeResource {
 	return virtualserver.VolumeResource{
-		Id:          types.StringValue(resp.Id),
-		Name:        types.StringPointerValue(resp.Name.Get()),
-		UserId:      types.StringValue(resp.UserId),
-		Bootable:    types.BoolValue(resp.Bootable),
-		Multiattach: types.BoolValue(resp.Multiattach),
-		Encrypted:   types.BoolValue(resp.Encrypted),
-		VolumeType:  types.StringValue(resp.VolumeType),
-		Size:        types.Int32Value(resp.Size),
-		State:       types.StringValue(resp.State),
-		Servers:     state.Servers,
-		Tags:        tagsMap,
+		Id:            types.StringValue(resp.Id),
+		Name:          types.StringPointerValue(resp.Name.Get()),
+		UserId:        types.StringValue(resp.UserId),
+		Bootable:      types.BoolValue(resp.Bootable),
+		Multiattach:   types.BoolValue(resp.Multiattach),
+		Encrypted:     types.BoolValue(resp.Encrypted),
+		VolumeType:    types.StringValue(resp.VolumeType),
+		Size:          types.Int32Value(resp.Size),
+		State:         types.StringValue(resp.State),
+		Servers:       state.Servers,
+		MaxThroughput: types.Int32PointerValue(resp.MaxThroughput.Get()),
+		MaxIops:       types.Int32PointerValue(resp.MaxIops.Get()),
+		Tags:          tagsMap,
 	}
 }
 
@@ -168,6 +210,21 @@ func (r *virtualServerVolumeResource) Create(ctx context.Context, req resource.C
 				return
 			}
 		}
+	}
+
+	getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
+		return r.client.GetVolume(ctx, id)
+	}
+
+	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, data.Id, 10, 3*time.Second,
+		"State", "available", "error", getVolumeFunc)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error creating volume",
+			"Could not create volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return
 	}
 
 	getData, err := r.client.GetVolume(ctx, data.Id)
@@ -260,6 +317,7 @@ func (r *virtualServerVolumeResource) Update(ctx context.Context, req resource.U
 			return
 		}
 	}
+
 	if !plan.Size.Equal(state.Size) {
 		// size attribute was changed
 		_, err := r.client.ExtendVolume(ctx, state.Id.ValueString(), plan)
@@ -295,6 +353,30 @@ func (r *virtualServerVolumeResource) Update(ctx context.Context, req resource.U
 				resp.Diagnostics.AddError(
 					"Error updating volume",
 					"Could not update volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+				)
+				return
+			}
+		}
+	}
+
+	if !plan.MaxThroughput.Equal(state.MaxThroughput) || !plan.MaxIops.Equal(state.MaxIops) {
+		err := r.client.UpdateVolumeQos(ctx, state.Id.ValueString(), plan)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error updating volume",
+				"Could not update volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			)
+			return
+		}
+
+		if !((plan.MaxThroughput.IsNull() || plan.MaxThroughput.IsUnknown()) && (plan.MaxIops.IsNull() || plan.MaxIops.IsUnknown())) {
+			err = r.AsyncPollingQosUpdate(ctx, state.Id.ValueString(), plan.MaxIops.ValueInt32(), plan.MaxThroughput.ValueInt32())
+			if err != nil {
+				detail := client.GetDetailFromError(err)
+				resp.Diagnostics.AddError(
+					"Error waiting for volume update",
+					"Timed out waiting for values to apply: "+err.Error()+"\nReason: "+detail,
 				)
 				return
 			}

@@ -4,6 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetalblockstorage"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
@@ -20,11 +26,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -123,27 +124,27 @@ func (r *baremetalBlockStorageVolume) Schema(ctx context.Context, request resour
 			},
 			common.ToSnakeCase("qos"): schema.SingleNestedAttribute{
 				Description: "Volume QoS. (It can only be set on an SSD.) \n" +
-					"  - example : {iops=3000, throughput=125}\n",
+					"  - example : {iops=5000, throughput=250}\n",
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"iops": schema.Int32Attribute{
 						Description: "IOPS. \n" +
-							"  - example : 3000 \n" +
-							"  - maximum : 16000 \n" +
-							"  - minimum : 3000 \n",
+							"  - example : 5,000 \n" +
+							"  - maximum : 20,000 \n" +
+							"  - minimum : 5,000 \n",
 						Required: true,
 						Validators: []validator.Int32{
-							int32validator.Between(3000, 16000),
+							int32validator.Between(5000, 20000),
 						},
 					},
 					"throughput": schema.Int32Attribute{
 						Description: "Throughput. \n" +
-							"  - example : 125 \n" +
-							"  - maximum : 1000 \n" +
-							"  - minimum : 125 \n",
+							"  - example : 250 \n" +
+							"  - maximum : 1,000 \n" +
+							"  - minimum : 250 \n",
 						Required: true,
 						Validators: []validator.Int32{
-							int32validator.Between(125, 1000),
+							int32validator.Between(250, 1000),
 						},
 					},
 				},

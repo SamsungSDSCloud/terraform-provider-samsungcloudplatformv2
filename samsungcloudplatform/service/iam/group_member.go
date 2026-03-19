@@ -8,8 +8,10 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -73,6 +75,9 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 				Computed:            true,
 				Description:         "Group member",
 				MarkdownDescription: "Group member",
+				PlanModifiers: []planmodifier.Object{
+					groupMemberModifier{},
+				},
 				Attributes: map[string]schema.Attribute{
 					"created_at": schema.StringAttribute{
 						Computed:            true,
@@ -85,6 +90,7 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 						MarkdownDescription: "생성자",
 					},
 					"creator_created_at": schema.StringAttribute{
+						Computed:            true,
 						Optional:            true,
 						Description:         "생성 일시",
 						MarkdownDescription: "생성 일시",
@@ -93,10 +99,9 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 						Computed:            true,
 						Description:         "생성자 Email",
 						MarkdownDescription: "생성자 Email",
-						Default:             stringdefault.StaticString("-"),
 					},
 					"creator_last_login_at": schema.StringAttribute{
-						Optional:            true,
+						Computed:            true,
 						Description:         "생성자 마지막 로그인 일시",
 						MarkdownDescription: "생성자 마지막 로그인 일시",
 					},
@@ -108,11 +113,12 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 					},
 					"group_names": schema.ListAttribute{
 						ElementType:         types.StringType,
-						Optional:            true,
+						Computed:            true,
 						Description:         "Group Names",
 						MarkdownDescription: "Group Names",
 					},
 					"user_created_at": schema.StringAttribute{
+						Computed:            true,
 						Optional:            true,
 						Description:         "생성 일시",
 						MarkdownDescription: "생성 일시",
@@ -121,7 +127,6 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 						Computed:            true,
 						Description:         "User Email",
 						MarkdownDescription: "User Email",
-						Default:             stringdefault.StaticString("-"),
 					},
 					"user_id": schema.StringAttribute{
 						Computed:            true,
@@ -129,7 +134,7 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 						MarkdownDescription: "User ID",
 					},
 					"user_last_login_at": schema.StringAttribute{
-						Optional:            true,
+						Computed:            true,
 						Description:         "User 마지막 로그인 일시",
 						MarkdownDescription: "User 마지막 로그인 일시",
 					},
@@ -145,6 +150,40 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 	}
 }
 
+type groupMemberModifier struct{}
+
+func (m groupMemberModifier) Description(ctx context.Context) string {
+	return "Keeps the existing group_member state if group_id and user_id remain unchanged."
+}
+
+func (m groupMemberModifier) MarkdownDescription(ctx context.Context) string {
+	return "Keeps the existing `group_member` state if `group_id` and `user_id` remain unchanged."
+}
+
+func (m groupMemberModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	// If there is no state (creating a new resource), do nothing
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var stateGroupId, planGroupId, stateUserId, planUserId string
+
+	// Retrieve group_id and user_id from both State and Plan
+	req.State.GetAttribute(ctx, path.Root("group_id"), &stateGroupId)
+	req.Plan.GetAttribute(ctx, path.Root("group_id"), &planGroupId)
+	req.State.GetAttribute(ctx, path.Root("user_id"), &stateUserId)
+	req.Plan.GetAttribute(ctx, path.Root("user_id"), &planUserId)
+
+	// Compare IDs
+	if stateGroupId == planGroupId && stateUserId == planUserId {
+		// IDs haven't changed: Preserve the existing state for group_member
+		resp.PlanValue = req.StateValue
+	} else {
+		// IDs changed: Mark group_member as Unknown to trigger an update/fetch
+		resp.PlanValue = types.ObjectUnknown(req.PlanValue.AttributeTypes(ctx))
+	}
+}
+
 func (r *iamGroupMemberResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan iam.GroupMemberResource
 	diags := req.Plan.Get(ctx, &plan)
@@ -153,7 +192,7 @@ func (r *iamGroupMemberResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	data, err := r.client.AddGroupMember(ctx, plan.GroupId.ValueString(), plan)
+	_, err := r.client.AddGroupMember(ctx, plan.GroupId.ValueString(), plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -163,20 +202,53 @@ func (r *iamGroupMemberResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	groupMemberState := iam.Member{
-		CreatedAt:          types.StringValue(data.GroupMember.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:          types.StringValue(data.GroupMember.CreatedBy),
-		CreatorCreatedAt:   types.StringValue(""),
-		CreatorEmail:       types.StringPointerValue(data.GroupMember.CreatorEmail),
-		CreatorLastLoginAt: types.StringValue(""),
-		CreatorName:        types.StringPointerValue(data.GroupMember.CreatorName),
-		GroupNames:         make([]types.String, 0),
-		UserCreatedAt:      types.StringValue(""),
-		UserEmail:          types.StringPointerValue(data.GroupMember.UserEmail),
-		UserId:             types.StringValue(data.GroupMember.UserId),
-		UserLastLoginAt:    types.StringValue(""),
-		UserName:           types.StringPointerValue(data.GroupMember.UserName),
+	data, err := r.client.GetGroupMembers(ctx, plan.GroupId.ValueString(), iam.GroupMembersDataResource{Size: basetypes.NewInt32Value(20)})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Read Group Members",
+			err.Error(),
+		)
+		return
 	}
+
+	var groupMemberState iam.Member
+	for _, group := range data.GetGroupMembers() {
+		if plan.UserId.ValueString() == group.UserId {
+			var creatorLastLoginAt *string
+			var userLastLoginAt *string
+
+			if group.CreatorLastLoginAt.Get() != nil {
+				t := group.CreatorLastLoginAt.Get().Format(time.RFC3339)
+				creatorLastLoginAt = &t
+			}
+			if group.UserLastLoginAt.Get() != nil {
+				t := group.UserLastLoginAt.Get().Format(time.RFC3339)
+				userLastLoginAt = &t
+			}
+
+			groupNames := make([]types.String, 0, len(group.GroupNames))
+
+			for _, groupName := range group.GroupNames {
+				groupNames = append(groupNames, types.StringValue(groupName))
+			}
+
+			groupMemberState = iam.Member{
+				CreatedAt:          types.StringValue(group.CreatedAt.Format(time.RFC3339)),
+				CreatedBy:          types.StringValue(group.CreatedBy),
+				CreatorCreatedAt:   types.StringValue(group.CreatorCreatedAt.Format(time.RFC3339)),
+				CreatorEmail:       types.StringPointerValue(group.CreatorEmail),
+				CreatorLastLoginAt: types.StringPointerValue(creatorLastLoginAt),
+				CreatorName:        types.StringPointerValue(group.CreatorName),
+				GroupNames:         groupNames,
+				UserCreatedAt:      types.StringValue(group.UserCreatedAt.Format(time.RFC3339)),
+				UserEmail:          types.StringPointerValue(group.UserEmail),
+				UserId:             types.StringValue(group.UserId),
+				UserLastLoginAt:    types.StringPointerValue(userLastLoginAt),
+				UserName:           types.StringPointerValue(group.UserName),
+			}
+		}
+	}
+
 	groupMemberObjectValue, diags := types.ObjectValueFrom(ctx, groupMemberState.AttributeTypes(), groupMemberState)
 	plan.GroupMember = groupMemberObjectValue
 	// Set state to fully populated data
@@ -220,7 +292,7 @@ func (r *iamGroupMemberResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// attach
-	data, err := r.client.AddGroupMember(ctx, plan.GroupId.ValueString(), plan)
+	_, err = r.client.AddGroupMember(ctx, plan.GroupId.ValueString(), plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -230,20 +302,53 @@ func (r *iamGroupMemberResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	groupMemberState := iam.Member{
-		CreatedAt:          types.StringValue(data.GroupMember.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:          types.StringValue(data.GroupMember.CreatedBy),
-		CreatorCreatedAt:   types.StringValue(""),
-		CreatorEmail:       types.StringPointerValue(data.GroupMember.CreatorEmail),
-		CreatorLastLoginAt: types.StringValue(""),
-		CreatorName:        types.StringPointerValue(data.GroupMember.CreatorName),
-		GroupNames:         make([]types.String, 0),
-		UserCreatedAt:      types.StringValue(""),
-		UserEmail:          types.StringPointerValue(data.GroupMember.UserEmail),
-		UserId:             types.StringValue(data.GroupMember.UserId),
-		UserLastLoginAt:    types.StringValue(""),
-		UserName:           types.StringPointerValue(data.GroupMember.UserName),
+	data, err := r.client.GetGroupMembers(ctx, plan.GroupId.ValueString(), iam.GroupMembersDataResource{Size: basetypes.NewInt32Value(20)})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Read Group Members",
+			err.Error(),
+		)
+		return
 	}
+
+	var groupMemberState iam.Member
+	for _, group := range data.GetGroupMembers() {
+		if plan.UserId.ValueString() == group.UserId {
+			var creatorLastLoginAt *string
+			var userLastLoginAt *string
+
+			if group.CreatorLastLoginAt.Get() != nil {
+				t := group.CreatorLastLoginAt.Get().Format(time.RFC3339)
+				creatorLastLoginAt = &t
+			}
+			if group.UserLastLoginAt.Get() != nil {
+				t := group.UserLastLoginAt.Get().Format(time.RFC3339)
+				userLastLoginAt = &t
+			}
+
+			groupNames := make([]types.String, 0, len(group.GroupNames))
+
+			for _, groupName := range group.GroupNames {
+				groupNames = append(groupNames, types.StringValue(groupName))
+			}
+
+			groupMemberState = iam.Member{
+				CreatedAt:          types.StringValue(group.CreatedAt.Format(time.RFC3339)),
+				CreatedBy:          types.StringValue(group.CreatedBy),
+				CreatorCreatedAt:   types.StringValue(group.CreatorCreatedAt.Format(time.RFC3339)),
+				CreatorEmail:       types.StringPointerValue(group.CreatorEmail),
+				CreatorLastLoginAt: types.StringPointerValue(creatorLastLoginAt),
+				CreatorName:        types.StringPointerValue(group.CreatorName),
+				GroupNames:         groupNames,
+				UserCreatedAt:      types.StringValue(group.UserCreatedAt.Format(time.RFC3339)),
+				UserEmail:          types.StringPointerValue(group.UserEmail),
+				UserId:             types.StringValue(group.UserId),
+				UserLastLoginAt:    types.StringPointerValue(userLastLoginAt),
+				UserName:           types.StringPointerValue(group.UserName),
+			}
+		}
+	}
+
 	groupMemberObjectValue, diags := types.ObjectValueFrom(ctx, groupMemberState.AttributeTypes(), groupMemberState)
 	plan.GroupMember = groupMemberObjectValue
 	// Set state to fully populated data
@@ -295,18 +400,36 @@ func (r *iamGroupMemberResource) Read(ctx context.Context, req resource.ReadRequ
 	var groupMemberState iam.Member
 	for _, group := range data.GetGroupMembers() {
 		if state.UserId.ValueString() == group.UserId {
+			var creatorLastLoginAt *string
+			var userLastLoginAt *string
+
+			if group.CreatorLastLoginAt.Get() != nil {
+				t := group.CreatorLastLoginAt.Get().Format(time.RFC3339)
+				creatorLastLoginAt = &t
+			}
+			if group.UserLastLoginAt.Get() != nil {
+				t := group.UserLastLoginAt.Get().Format(time.RFC3339)
+				userLastLoginAt = &t
+			}
+
+			groupNames := make([]types.String, 0, len(group.GroupNames))
+
+			for _, groupName := range group.GroupNames {
+				groupNames = append(groupNames, types.StringValue(groupName))
+			}
+
 			groupMemberState = iam.Member{
 				CreatedAt:          types.StringValue(group.CreatedAt.Format(time.RFC3339)),
 				CreatedBy:          types.StringValue(group.CreatedBy),
-				CreatorCreatedAt:   types.StringValue(""),
+				CreatorCreatedAt:   types.StringValue(group.CreatorCreatedAt.Format(time.RFC3339)),
 				CreatorEmail:       types.StringPointerValue(group.CreatorEmail),
-				CreatorLastLoginAt: types.StringValue(""),
+				CreatorLastLoginAt: types.StringPointerValue(creatorLastLoginAt),
 				CreatorName:        types.StringPointerValue(group.CreatorName),
-				GroupNames:         make([]types.String, 0),
-				UserCreatedAt:      types.StringValue(""),
+				GroupNames:         groupNames,
+				UserCreatedAt:      types.StringValue(group.UserCreatedAt.Format(time.RFC3339)),
 				UserEmail:          types.StringPointerValue(group.UserEmail),
 				UserId:             types.StringValue(group.UserId),
-				UserLastLoginAt:    types.StringValue(""),
+				UserLastLoginAt:    types.StringPointerValue(userLastLoginAt),
 				UserName:           types.StringPointerValue(group.UserName),
 			}
 		}

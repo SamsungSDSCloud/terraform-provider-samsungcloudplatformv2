@@ -18,5 +18,5 @@ provider "samsungcloudplatformv2" {
 
 
 resource "samsungcloudplatformv2_loadbalancer_lb_listener" "lblistener" {
-  lb_listener_create = var.lb_listener_tcp
+  lb_listener_create = var.lb_listener_https
 }

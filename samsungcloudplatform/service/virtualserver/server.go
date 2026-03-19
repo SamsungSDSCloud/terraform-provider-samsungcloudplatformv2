@@ -3,6 +3,9 @@ package virtualserver
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
@@ -10,15 +13,13 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.1"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 var (
@@ -79,6 +80,10 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 						},
 						common.ToSnakeCase("StaticNatId"): schema.StringAttribute{
 							Description: "Static NAT ID",
+							Computed:    true,
+						},
+						common.ToSnakeCase("IsDefault"): schema.BoolAttribute{
+							Description: "Indicates whether this is the default port.",
 							Computed:    true,
 						},
 					},
@@ -193,6 +198,19 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 						Description: "Type",
 						Optional:    true,
 						Computed:    true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
+						Description: "The number of distinct read or write operations a volume can process in a single second.",
+						Optional:    true,
+						Computed:    true,
+					},
+					common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
+						Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
+						Optional:    true,
+						Computed:    true,
 					},
 				},
 			},
@@ -217,6 +235,19 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
 							Description: "Type",
+							Optional:    true,
+							Computed:    true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
+							Description: "The number of distinct read or write operations a volume can process in a single second.",
+							Optional:    true,
+							Computed:    true,
+						},
+						common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
+							Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
 							Optional:    true,
 							Computed:    true,
 						},
@@ -343,6 +374,241 @@ func (r *virtualServerServerResource) AsyncPollingNetworkInterface(ctx context.C
 	return fmt.Errorf("max attempts reached (%d)", maxAttempts)
 }
 
+func (r *virtualServerServerResource) AsyncPollingQosUpdate(ctx context.Context, volumeId string, desiredIops, desiredThroughput int32) error {
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+
+	for i := 0; i < 10; i++ {
+		vol, err := r.client.GetVolume(ctx, volumeId)
+		if err != nil {
+			return fmt.Errorf("failed to get volume during polling: %w", err)
+		}
+
+		iopsMatch := *vol.MaxIops.Get() == desiredIops
+		throughputMatch := *vol.MaxThroughput.Get() == desiredThroughput
+
+		if iopsMatch && throughputMatch {
+			return nil
+		}
+
+		select {
+		case <-ticker.C:
+			continue
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+
+	return fmt.Errorf("timeout waiting for volume update (ID: %s)", volumeId)
+}
+
+func (r *virtualServerServerResource) AsyncPollingVolumeIops(ctx context.Context, serverId string,
+	bootExtraVolume virtualserver.ServerResourceVolume, stateExtraVolumes types.Map) error {
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+
+	for i := 0; i < 1000; i++ {
+		_, _, allMatched, err := r.ResolveServerVolumes(ctx, serverId, bootExtraVolume, stateExtraVolumes)
+		if err != nil {
+			return fmt.Errorf("failed to get volume during polling: %w", err)
+		}
+
+		if allMatched {
+			return nil
+		}
+
+		select {
+		case <-ticker.C:
+			continue
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+
+	return fmt.Errorf("timeout waiting for volume update")
+}
+
+func (r *virtualServerServerResource) MapUnmappedExtraVolumes(
+	unmappedExtraVolumes []virtualserver.ServerResourceVolume,
+	extraVolumesMap map[string]virtualserver.ServerResourceVolume,
+	mappedVolumeKeys map[string]bool,
+	defaultVolumeTypeName string,
+) bool {
+	allMatched := true
+
+	for _, unmappedVolume := range unmappedExtraVolumes {
+		bestKey := ""
+
+		for key, planVolume := range extraVolumesMap {
+			if mappedVolumeKeys[key] {
+				continue
+			}
+
+			if !(planVolume.Size.IsNull() || planVolume.Size.IsUnknown()) &&
+				unmappedVolume.Size.ValueInt32() != planVolume.Size.ValueInt32() {
+				continue
+			}
+
+			if !(planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
+				unmappedVolume.Type.ValueString() != planVolume.Type.ValueString() {
+				continue
+			} else if (planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
+				*unmappedVolume.Type.ValueStringPointer() != defaultVolumeTypeName {
+				continue
+			}
+
+			if !(planVolume.DeleteOnTermination.IsNull() || planVolume.DeleteOnTermination.IsUnknown()) &&
+				unmappedVolume.DeleteOnTermination.ValueBool() != planVolume.DeleteOnTermination.ValueBool() {
+				continue
+			} else if (planVolume.DeleteOnTermination.IsNull() || planVolume.DeleteOnTermination.IsUnknown()) &&
+				unmappedVolume.DeleteOnTermination.ValueBool() != false {
+				continue
+			}
+
+			if !(planVolume.MaxIops.IsNull() || planVolume.MaxIops.IsUnknown()) &&
+				unmappedVolume.MaxIops.ValueInt32() != planVolume.MaxIops.ValueInt32() {
+				continue
+			}
+
+			if !(planVolume.MaxThroughput.IsNull() || planVolume.MaxThroughput.IsUnknown()) &&
+				unmappedVolume.MaxThroughput.ValueInt32() != planVolume.MaxThroughput.ValueInt32() {
+				continue
+			}
+			bestKey = key
+			break
+		}
+
+		if bestKey != "" {
+			extraVolumesMap[bestKey] = unmappedVolume
+			mappedVolumeKeys[bestKey] = true
+		} else {
+			allMatched = false
+		}
+	}
+
+	return allMatched
+}
+
+func (r *virtualServerServerResource) ResolveServerVolumes(
+	ctx context.Context,
+	serverId string,
+	stateBootVolume virtualserver.ServerResourceVolume,
+	stateExtraVolumes types.Map) (virtualserver.ServerResourceVolume, types.Map, bool, error) {
+	getServerVolumes, err := r.client.GetServerVolumeList(ctx, serverId)
+	if err != nil {
+		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
+	}
+
+	volumeBootVolumeSet := make(map[string]bool)
+	volumeIdsSet := make(map[string]bool)
+	volumeDeleteOnTerminationSet := make(map[string]bool)
+	for _, volume := range getServerVolumes.Volumes {
+		volumeIdsSet[volume.VolumeId] = true
+		if volume.Device == "/dev/vda" {
+			volumeBootVolumeSet[volume.VolumeId] = true
+		} else {
+			volumeBootVolumeSet[volume.VolumeId] = false
+		}
+		volumeDeleteOnTerminationSet[volume.Id] = volume.DeleteOnTermination
+	}
+
+	getVolumes, err := r.client.GetVolumeList()
+	if err != nil {
+		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
+	}
+
+	var bootVolume virtualserver.ServerResourceVolume
+	var extraVolumes []virtualserver.ServerResourceVolume
+	for _, volume := range getVolumes.Volumes {
+		if volumeIdsSet[volume.Id] {
+			volumeObject := virtualserver.ServerResourceVolume{
+				Id:                  types.StringValue(volume.Id),
+				DeleteOnTermination: types.BoolValue(volumeDeleteOnTerminationSet[volume.Id]),
+				Size:                types.Int32Value(volume.Size),
+				Type:                types.StringValue(volume.VolumeType),
+				MaxIops:             types.Int32PointerValue(volume.MaxIops.Get()),
+				MaxThroughput:       types.Int32PointerValue(volume.MaxThroughput.Get()),
+			}
+			if volumeBootVolumeSet[volume.Id] {
+				bootVolume = volumeObject
+			} else {
+				extraVolumes = append(extraVolumes, volumeObject)
+			}
+		}
+	}
+
+	bootVolumeMatched := false
+	if !bootVolume.Id.IsNull() && !bootVolume.Id.IsUnknown() {
+		bootVolumeMatched = true
+
+		if !stateBootVolume.MaxIops.IsNull() && !stateBootVolume.MaxIops.IsUnknown() &&
+			bootVolume.MaxIops.ValueInt32() != stateBootVolume.MaxIops.ValueInt32() {
+			bootVolumeMatched = false
+		}
+		if !stateBootVolume.MaxThroughput.IsNull() && !stateBootVolume.MaxThroughput.IsUnknown() &&
+			bootVolume.MaxThroughput.ValueInt32() != stateBootVolume.MaxThroughput.ValueInt32() {
+			bootVolumeMatched = false
+		}
+	}
+
+	var extraVolumesMap map[string]virtualserver.ServerResourceVolume
+	stateExtraVolumes.ElementsAs(ctx, &extraVolumesMap, false)
+
+	extraVolumeIdKeyMap := make(map[string]string)
+	for key, volume := range extraVolumesMap {
+		if !(volume.Id.IsUnknown() || volume.Id.IsNull()) {
+			extraVolumeIdKeyMap[volume.Id.ValueString()] = key
+		}
+	}
+
+	var unmappedExtraVolumes []virtualserver.ServerResourceVolume
+	mappedVolumeKeys := make(map[string]bool)
+	for _, volume := range extraVolumes {
+		if key, exist := extraVolumeIdKeyMap[volume.Id.ValueString()]; exist {
+			extraVolumesMap[key] = volume
+			mappedVolumeKeys[key] = true
+		} else {
+			unmappedExtraVolumes = append(unmappedExtraVolumes, volume)
+		}
+	}
+
+	for _, key := range extraVolumeIdKeyMap {
+		mappedVolumeKeys[key] = true
+	}
+
+	defaultVolumeType, err := r.client.GetDefaultVolumeType(ctx)
+	if err != nil {
+		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
+	}
+	defaultVolumeTypeName := *defaultVolumeType.Name.Get()
+
+	r.MapUnmappedExtraVolumes(unmappedExtraVolumes, extraVolumesMap, mappedVolumeKeys, defaultVolumeTypeName)
+
+	extraVolumeMatched := true
+	for _, volume := range extraVolumesMap {
+		if volume.Id.IsNull() || volume.Id.IsUnknown() {
+			extraVolumeMatched = false
+			break
+		}
+	}
+
+	volumeElemType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"id":                    types.StringType,
+			"delete_on_termination": types.BoolType,
+			"size":                  types.Int32Type,
+			"type":                  types.StringType,
+			"max_iops":              types.Int32Type,
+			"max_throughput":        types.Int32Type,
+		},
+	}
+
+	extraVolumeObject, _ := types.MapValueFrom(ctx, volumeElemType, extraVolumesMap)
+	allMatched := bootVolumeMatched && extraVolumeMatched
+
+	return bootVolume, extraVolumeObject, allMatched, nil
+}
+
 func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 	resp *scpvirtualserver.ServerShowResponse, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
 	// Network
@@ -379,6 +645,7 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 			FixedIp:     types.StringValue(itf.FixedIps[0].IpAddress),
 			PublicIpId:  types.StringPointerValue(publicIpId),
 			StaticNatId: types.StringPointerValue(staticNatId),
+			IsDefault:   types.BoolValue(itf.IsDefault),
 		}
 
 		if _, exist := networkKeyPortMap[itf.PortId]; exist {
@@ -449,6 +716,7 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 			"fixed_ip":      types.StringType,
 			"public_ip_id":  types.StringType,
 			"static_nat_id": types.StringType,
+			"is_default":    types.BoolType,
 		},
 	}
 
@@ -491,125 +759,7 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 	}
 
 	// Volume
-	getServerVolumes, err := r.client.GetServerVolumeList(ctx, resp.Id)
-	if err != nil {
-		return virtualserver.ServerResource{}, err
-	}
-
-	volumeBootVolumeSet := make(map[string]bool)
-	volumeIdsSet := make(map[string]bool)
-	volumeDeleteOnTerminationSet := make(map[string]bool)
-	for _, volume := range getServerVolumes.Volumes {
-		volumeIdsSet[volume.VolumeId] = true
-		if volume.Device == "/dev/vda" {
-			volumeBootVolumeSet[volume.VolumeId] = true
-		} else {
-			volumeBootVolumeSet[volume.VolumeId] = false
-		}
-		volumeDeleteOnTerminationSet[volume.Id] = volume.DeleteOnTermination
-	}
-
-	getVolumes, err := r.client.GetVolumeList()
-	if err != nil {
-		return virtualserver.ServerResource{}, err
-	}
-
-	var bootVolume virtualserver.ServerResourceVolume
-	var extraVolumes []virtualserver.ServerResourceVolume
-	for _, volume := range getVolumes.Volumes {
-		if volumeIdsSet[volume.Id] {
-			volumeObject := virtualserver.ServerResourceVolume{
-				Id:                  types.StringValue(volume.Id),
-				DeleteOnTermination: types.BoolValue(volumeDeleteOnTerminationSet[volume.Id]),
-				Size:                types.Int32Value(volume.Size),
-				Type:                types.StringValue(volume.VolumeType),
-			}
-			if volumeBootVolumeSet[volume.Id] {
-				bootVolume = volumeObject
-			} else {
-				extraVolumes = append(extraVolumes, volumeObject)
-			}
-		}
-	}
-
-	var extraVolumesMap map[string]virtualserver.ServerResourceVolume
-	state.ExtraVolumes.ElementsAs(ctx, &extraVolumesMap, false)
-
-	extraVolumeIdKeyMap := make(map[string]string)
-	for key, volume := range extraVolumesMap {
-		if !(volume.Id.IsUnknown() || volume.Id.IsNull()) {
-			extraVolumeIdKeyMap[volume.Id.ValueString()] = key
-		}
-	}
-
-	var unmappedExtraVolumes []virtualserver.ServerResourceVolume
-	mappedVolumeKeys := make(map[string]bool)
-	for _, volume := range extraVolumes {
-		if key, exist := extraVolumeIdKeyMap[volume.Id.ValueString()]; exist {
-			extraVolumesMap[key] = volume
-			mappedVolumeKeys[key] = true
-		} else {
-			unmappedExtraVolumes = append(unmappedExtraVolumes, volume)
-		}
-	}
-
-	for _, key := range extraVolumeIdKeyMap {
-		mappedVolumeKeys[key] = true
-	}
-
-	defaultVolumeType, err := r.client.GetDefaultVolumeType(ctx)
-	if err != nil {
-		return virtualserver.ServerResource{}, err
-	}
-
-	for _, unmappedVolume := range unmappedExtraVolumes {
-		bestKey := ""
-
-		for key, planVolume := range extraVolumesMap {
-			if mappedVolumeKeys[key] {
-				continue
-			}
-
-			if !(planVolume.Size.IsNull() || planVolume.Size.IsUnknown()) &&
-				unmappedVolume.Size.ValueInt32() != planVolume.Size.ValueInt32() {
-				continue
-			}
-
-			if !(planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
-				unmappedVolume.Type.ValueString() != planVolume.Type.ValueString() {
-				continue
-			} else if (planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
-				*unmappedVolume.Type.ValueStringPointer() != *defaultVolumeType.Name.Get() {
-				continue
-			}
-
-			if !(planVolume.DeleteOnTermination.IsNull() || planVolume.DeleteOnTermination.IsUnknown()) &&
-				unmappedVolume.DeleteOnTermination.ValueBool() != planVolume.DeleteOnTermination.ValueBool() {
-				continue
-			} else if (planVolume.DeleteOnTermination.IsNull() || planVolume.DeleteOnTermination.IsUnknown()) &&
-				unmappedVolume.DeleteOnTermination.ValueBool() != false {
-				continue
-			}
-			bestKey = key
-			break
-		}
-
-		if bestKey != "" {
-			extraVolumesMap[bestKey] = unmappedVolume
-			mappedVolumeKeys[bestKey] = true
-		}
-	}
-
-	volumeElemType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"id":                    types.StringType,
-			"delete_on_termination": types.BoolType,
-			"size":                  types.Int32Type,
-			"type":                  types.StringType,
-		},
-	}
-
-	extraVolumeObject, _ := types.MapValueFrom(ctx, volumeElemType, extraVolumesMap)
+	bootVolume, extraVolumeObject, _, err := r.ResolveServerVolumes(ctx, resp.Id, state.BootVolume, state.ExtraVolumes)
 
 	return virtualserver.ServerResource{
 		Id:                    types.StringValue(resp.Id),
@@ -738,13 +888,13 @@ func (r *virtualServerServerResource) handlerUpdateServerType(ctx context.Contex
 		return r.client.GetServer(ctx, id)
 	}
 
-	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 100, 3*time.Second,
+	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 1000, 3*time.Second,
 		"ServerType.Name", plan.ServerTypeId.ValueString(), "", getFunc)
 	if err != nil {
 		return err
 	}
 
-	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 100, 3*time.Second,
+	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 1000, 3*time.Second,
 		"State", state.State.ValueString(), "ERROR", getFunc)
 	if err != nil {
 		return err
@@ -778,9 +928,12 @@ func (r *virtualServerServerResource) handlerUpdateServerNetwork(ctx context.Con
 			if planNetwork.PortId.IsUnknown() {
 				planNetwork.PortId = stateNetwork.PortId
 			}
+			if planNetwork.IsDefault.IsUnknown() {
+				planNetwork.IsDefault = stateNetwork.IsDefault
+			}
 
-			networksFields := []string{"PortId", "SubnetId", "FixedIp", "PublicIpId"}
-			immutableNetworksFiled := []string{"PortId", "SubnetId", "FixedIp"}
+			networksFields := []string{"PortId", "SubnetId", "FixedIp", "PublicIpId", "IsDefault"}
+			immutableNetworksFiled := []string{"PortId", "SubnetId", "FixedIp", "IsDefault"}
 
 			changesFields, err := virtualserverutil.GetChangedFields(planNetwork, stateNetwork, networksFields)
 			if err != nil {
@@ -790,7 +943,7 @@ func (r *virtualServerServerResource) handlerUpdateServerNetwork(ctx context.Con
 			if len(changesFields) > 0 {
 				if virtualserverutil.IsOverlapFields(changesFields, immutableNetworksFiled) {
 					detailed := fmt.Sprintf("Plan: %v,\nState: %v", planNetwork, stateNetwork)
-					return fmt.Errorf("Immutable Networks Field changes: " + strings.Join(immutableNetworksFiled, ", ") + "\n" + detailed)
+					return fmt.Errorf("Immutable Networks Field changes: %s\n%s", strings.Join(immutableNetworksFiled, ", "), detailed)
 				}
 
 				// Public IP ID
@@ -801,7 +954,7 @@ func (r *virtualServerServerResource) handlerUpdateServerNetwork(ctx context.Con
 						if err != nil {
 							return err
 						}
-						err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), planNetwork.PortId.ValueString(), "NatDelete", 100, 3*time.Second)
+						err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), planNetwork.PortId.ValueString(), "NatDelete", 1000, 3*time.Second)
 						if err != nil {
 							return err
 						}
@@ -812,7 +965,7 @@ func (r *virtualServerServerResource) handlerUpdateServerNetwork(ctx context.Con
 						if err != nil {
 							return err
 						}
-						err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), planNetwork.PortId.ValueString(), "NatCreate", 100, 3*time.Second)
+						err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), planNetwork.PortId.ValueString(), "NatCreate", 1000, 3*time.Second)
 						if err != nil {
 							return err
 						}
@@ -829,7 +982,7 @@ func (r *virtualServerServerResource) handlerUpdateServerNetwork(ctx context.Con
 			if err != nil {
 				return err
 			}
-			err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), resp.PortId, "InterfaceCreate", 100, 3*time.Second)
+			err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), resp.PortId, "InterfaceCreate", 1000, 3*time.Second)
 			if err != nil {
 				return err
 			}
@@ -843,7 +996,7 @@ func (r *virtualServerServerResource) handlerUpdateServerNetwork(ctx context.Con
 			if err != nil {
 				return err
 			}
-			err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), stateNetwork.PortId.ValueString(), "InterfaceDelete", 100, 3*time.Second)
+			err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), stateNetwork.PortId.ValueString(), "InterfaceDelete", 1000, 3*time.Second)
 			if err != nil {
 				return err
 			}
@@ -859,7 +1012,7 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 	req.State.Get(ctx, &state)
 
 	updateVolumeFunc := func(planVolume virtualserver.ServerResourceVolume, stateVolume virtualserver.ServerResourceVolume) error {
-		if !plan.BootVolume.Type.Equal(stateVolume.Type) {
+		if !planVolume.Type.Equal(stateVolume.Type) {
 			return fmt.Errorf("immutable Volume Field changes: Type")
 		}
 
@@ -886,6 +1039,24 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 				return err
 			}
 		}
+
+		if !planVolume.MaxThroughput.Equal(stateVolume.MaxThroughput) || !planVolume.MaxIops.Equal(stateVolume.MaxIops) {
+			volumeResource := virtualserver.VolumeResource{
+				MaxIops:       planVolume.MaxIops,
+				MaxThroughput: planVolume.MaxThroughput,
+			}
+			err := r.client.UpdateVolumeQos(ctx, stateVolume.Id.ValueString(), volumeResource)
+			if err != nil {
+				return err
+			}
+			if !((planVolume.MaxThroughput.IsNull() || planVolume.MaxThroughput.IsUnknown()) && (planVolume.MaxIops.IsNull() || planVolume.MaxIops.IsUnknown())) {
+				err = r.AsyncPollingQosUpdate(ctx, stateVolume.Id.ValueString(), planVolume.MaxIops.ValueInt32(), planVolume.MaxThroughput.ValueInt32())
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		return nil
 	}
 
@@ -913,7 +1084,7 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 			}
 		}
 
-		getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponse, error) {
+		getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
 			return r.client.GetVolume(ctx, id)
 		}
 
@@ -921,17 +1092,19 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 		for key, planExtraVolume := range planExtraVolumes {
 			if _, exists := stateExtraVolumes[key]; !exists {
 				volumeResource := virtualserver.VolumeResource{
-					Name:       types.StringValue(plan.Id.ValueString() + "-blank-vol"),
-					Size:       planExtraVolume.Size,
-					VolumeType: planExtraVolume.Type,
-					Tags:       plan.Tags,
+					Name:          types.StringValue(plan.Id.ValueString() + "-blank-vol"),
+					Size:          planExtraVolume.Size,
+					VolumeType:    planExtraVolume.Type,
+					Tags:          plan.Tags,
+					MaxIops:       planExtraVolume.MaxIops,
+					MaxThroughput: planExtraVolume.MaxThroughput,
 				}
 				resp, err := r.client.CreateVolume(ctx, volumeResource)
 				if err != nil {
 					return err
 				}
 
-				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, resp.Id, 10, 3*time.Second,
+				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, resp.Id, 100, 3*time.Second,
 					"State", "available", "error", getVolumeFunc)
 				if err != nil {
 					return err
@@ -942,7 +1115,7 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 					return err
 				}
 
-				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, resp.Id, 10, 3*time.Second,
+				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, resp.Id, 100, 3*time.Second,
 					"State", "in-use", "error", getVolumeFunc)
 				if err != nil {
 					return err
@@ -965,7 +1138,7 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 					return err
 				}
 
-				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, stateVolume.Id.ValueString(), 10, 3*time.Second,
+				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, stateVolume.Id.ValueString(), 100, 3*time.Second,
 					"State", "available", "error", getVolumeFunc)
 				if err != nil {
 					return err
@@ -1060,7 +1233,7 @@ func (r *virtualServerServerResource) handlerUpdateServerState(ctx context.Conte
 		return r.client.GetServer(ctx, id)
 	}
 
-	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 100, 3*time.Second,
+	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 1000, 3*time.Second,
 		"State", desiredState, "ERROR", getFunc)
 	if err != nil {
 		return err
@@ -1145,7 +1318,7 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		return r.client.GetServer(ctx, id)
 	}
 
-	getData, err := virtualserverutil.AsyncRequestPollingWithState(ctx, data.Servers[0].Id, 100, 3*time.Second,
+	getData, err := virtualserverutil.AsyncRequestPollingWithState(ctx, data.Servers[0].Id, 600, 3*time.Second,
 		"State", "ACTIVE", "ERROR", getFunc)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -1153,21 +1326,6 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 			"Could not read server, unexpected error: "+err.Error(),
 		)
 		return
-	}
-
-	if !plan.Lock.IsNull() {
-		if plan.Lock.ValueBool() {
-			getLockedData, err := virtualserverutil.AsyncRequestPollingWithState(ctx, data.Servers[0].Id, 100, 3*time.Second,
-				"Locked", "true", "", getFunc)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error reading server",
-					"Could not read server, unexpected error: "+err.Error(),
-				)
-				return
-			}
-			getData = getLockedData
-		}
 	}
 
 	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(getData)
@@ -1180,19 +1338,16 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	if len(plan.Tags.Elements()) > 0 {
-		getTags, err := r.AsyncPollingTags(ctx, getData.Id, serviceName, resourceType,
-			100, 3*time.Second)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Tag",
-				err.Error(),
-			)
-			return
-		}
-		tagsMap = getTags
-	}
 	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
+
+	err = r.AsyncPollingVolumeIops(ctx, data.Servers[0].Id, plan.BootVolume, plan.ExtraVolumes)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Volume",
+			err.Error(),
+		)
+		return
+	}
 
 	state, err := r.MapGetResponseToState(ctx, getData, plan, tagsMap)
 	if err != nil {
@@ -1403,7 +1558,7 @@ func (r *virtualServerServerResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	err = r.AsyncPollingServerDeleted(ctx, state.Id.ValueString(), 100, 3*time.Second)
+	err = r.AsyncPollingServerDeleted(ctx, state.Id.ValueString(), 1000, 3*time.Second)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Server",

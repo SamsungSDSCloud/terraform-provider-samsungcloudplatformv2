@@ -50,7 +50,9 @@ Optional:
 - `created_at` (String) created at
 - `created_by` (String) created by
 - `description` (String) Description
+- `hsts_max_age` (Number) HstsMaxAge
 - `https_redirection` (Attributes) HttpsRedirection (see [below for nested schema](#nestedatt--lb_listener--https_redirection))
+- `idle_timeout` (Number) IdleTimeout
 - `insert_client_ip` (Boolean) InsertClientIp
 - `modified_at` (String) modified at
 - `modified_by` (String) modified by
@@ -92,6 +94,7 @@ Optional:
 Optional:
 
 - `domain_name` (String) DomainName
+- `not_after_dt` (String) NotAfterDt
 - `sni_cert_id` (String) SniCertId
 
 

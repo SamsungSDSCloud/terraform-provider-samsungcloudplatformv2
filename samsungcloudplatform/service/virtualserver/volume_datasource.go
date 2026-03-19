@@ -3,6 +3,7 @@ package virtualserver
 import (
 	"context"
 	"fmt"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
@@ -110,6 +111,14 @@ func (d *virtualServerVolumeDataSource) Schema(_ context.Context, _ datasource.S
 							},
 						},
 					},
+					common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
+						Description: "The number of distinct read or write operations a volume can process in a single second.",
+						Computed:    true,
+					},
+					common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
+						Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -183,16 +192,18 @@ func (d *virtualServerVolumeDataSource) Read(ctx context.Context, req datasource
 			servers = append(servers, serverState)
 		}
 		volumeModel := virtualserver.Volume{
-			Id:          types.StringValue(volume.Id),
-			Name:        types.StringPointerValue(volume.Name.Get()),
-			Size:        types.Int32Value(volume.Size),
-			State:       types.StringValue(string(volume.State)),
-			UserId:      types.StringValue(volume.UserId),
-			VolumeType:  types.StringValue(volume.VolumeType),
-			Encrypted:   types.BoolValue(volume.Encrypted),
-			Bootable:    types.BoolValue(volume.Bootable),
-			Multiattach: types.BoolValue(volume.Multiattach),
-			Servers:     servers,
+			Id:            types.StringValue(volume.Id),
+			Name:          types.StringPointerValue(volume.Name.Get()),
+			Size:          types.Int32Value(volume.Size),
+			State:         types.StringValue(string(volume.State)),
+			UserId:        types.StringValue(volume.UserId),
+			VolumeType:    types.StringValue(volume.VolumeType),
+			Encrypted:     types.BoolValue(volume.Encrypted),
+			Bootable:      types.BoolValue(volume.Bootable),
+			Multiattach:   types.BoolValue(volume.Multiattach),
+			Servers:       servers,
+			MaxIops:       types.Int32PointerValue(volume.MaxIops.Get()),
+			MaxThroughput: types.Int32PointerValue(volume.MaxThroughput.Get()),
 		}
 		volumeObjectValue, _ := types.ObjectValueFrom(ctx, volumeModel.AttributeTypes(), volumeModel)
 		state.Volume = volumeObjectValue

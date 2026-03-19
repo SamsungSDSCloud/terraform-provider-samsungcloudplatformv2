@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.2"
+	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -138,6 +138,37 @@ func (client *Client) DeleteLoadbalancerPublicNatIp(ctx context.Context, loadbal
 
 	_, err := req.Execute()
 	return err
+}
+
+func (client *Client) CreateLoadbalancerPrivateNatIp(ctx context.Context, request LoadbalancerPrivateNatIpResource) (*loadbalancer.PrivateStaticNatCreateResponse, error) {
+	req := client.sdkClient.LoadbalancerV1LoadbalancersApiAPI.CreateLoadbalancerPrivateNatIp(ctx, request.LoadbalancerId.ValueString())
+
+	loadbalancerNatCreateRequest := request.LoadbalancerPrivateNatCreate
+
+	loadbalancerNat := loadbalancer.PrivateStaticNatCreateRequest{
+		StaticNat: loadbalancer.PrivateStaticNatCreateRequestDetail{
+			PrivateNatId:   loadbalancerNatCreateRequest.PrivateNatId.ValueString(),
+			PrivateNatIpId: loadbalancerNatCreateRequest.PrivateNatIpId.ValueString(),
+		},
+	}
+
+	req = req.PrivateStaticNatCreateRequest(loadbalancerNat)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) DeleteLoadbalancerPrivateNatIp(ctx context.Context, loadbalancerId string) error {
+	req := client.sdkClient.LoadbalancerV1LoadbalancersApiAPI.DeleteLoadbalancerPrivateNatIp(ctx, loadbalancerId)
+
+	_, err := req.Execute()
+	return err
+}
+
+func (client *Client) GetLoadbalancerPrivateNatIp(ctx context.Context, loadbalancerId string) (*loadbalancer.PrivateStaticNatShowResponse, error) {
+	req := client.sdkClient.LoadbalancerV1LoadbalancersApiAPI.ShowLoadbalancerPrivateNatIp(ctx, loadbalancerId)
+	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
+	return resp, err
 }
 
 //------------ LB Server Group -------------------//
@@ -340,13 +371,13 @@ func (client *Client) GetLbListenerList(ctx context.Context, request LbListenerD
 	return resp, err
 }
 
-func (client *Client) GetLbListener(ctx context.Context, listenerId string) (*loadbalancer.LbListenerShowResponse, error) {
+func (client *Client) GetLbListener(ctx context.Context, listenerId string) (*loadbalancer.LbListenerShowResponseV1Dot3, error) {
 	req := client.sdkClient.LoadbalancerV1LbListenersApiAPI.ShowLbListener(ctx, listenerId)
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err
 }
 
-func (client *Client) CreateLbListener(ctx context.Context, request LbListenerResource) (*loadbalancer.LbListenerShowResponse, error) {
+func (client *Client) CreateLbListener(ctx context.Context, request LbListenerResource) (*loadbalancer.LbListenerShowResponseV1Dot3, error) {
 	req := client.sdkClient.LoadbalancerV1LbListenersApiAPI.CreateLbListener(ctx)
 
 	lbListener := request.LbListenerCreate
@@ -386,14 +417,14 @@ func (client *Client) CreateLbListener(ctx context.Context, request LbListenerRe
 	} else {
 		urlHandlerInterfaces = nil
 	}
-	lbListenerElement := loadbalancer.LbListenerCreateRequestV1Dot2{
-		Listener: loadbalancer.ListenerForCreate{
+	lbListenerElement := loadbalancer.LbListenerCreateRequestV1Dot3{
+		Listener: loadbalancer.ListenerForCreateV1Dot3{
 			Description:         *loadbalancer.NewNullableString(lbListener.Description.ValueStringPointer()),
 			InsertClientIp:      *loadbalancer.NewNullableBool(lbListener.InsertClientIp.ValueBoolPointer()),
 			LoadbalancerId:      lbListener.LoadbalancerId.ValueString(),
 			Name:                lbListener.Name.ValueString(),
 			Persistence:         *loadbalancer.NewNullableString(lbListener.Persistence.ValueStringPointer()),
-			Protocol:            lbListener.Protocol.ValueString(),
+			Protocol:            loadbalancer.LbListenerProtocol(lbListener.Protocol.ValueString()),
 			ResponseTimeout:     *loadbalancer.NewNullableInt32(lbListener.ResponseTimeout.ValueInt32Pointer()),
 			ServerGroupId:       *loadbalancer.NewNullableString(lbListener.ServerGroupId.ValueStringPointer()),
 			ServicePort:         lbListener.ServicePort.ValueInt32(),
@@ -407,15 +438,17 @@ func (client *Client) CreateLbListener(ctx context.Context, request LbListenerRe
 			XForwardedProto:     *loadbalancer.NewNullableBool(lbListener.XForwardedProto.ValueBoolPointer()),
 			RoutingAction:       loadbalancer.RoutingAction(lbListener.RoutingAction.ValueString()),
 			ConditionType:       *loadbalancer.NewNullableConditionType((*loadbalancer.ConditionType)(lbListener.ConditionType.ValueStringPointer())),
+			IdleTimeout:         *loadbalancer.NewNullableInt32(lbListener.IdleTimeout.ValueInt32Pointer()),
+			HstsMaxAge:          *loadbalancer.NewNullableInt32(lbListener.HstsMaxAge.ValueInt32Pointer()),
 		},
 	}
 
-	req = req.LbListenerCreateRequestV1Dot2(lbListenerElement)
+	req = req.LbListenerCreateRequestV1Dot3(lbListenerElement)
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string, request LbListenerResource) (*loadbalancer.LbListenerShowResponse, error) {
+func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string, request LbListenerResource) (*loadbalancer.LbListenerShowResponseV1Dot3, error) {
 	req := client.sdkClient.LoadbalancerV1LbListenersApiAPI.SetLbListener(ctx, lbListenerId)
 
 	lbListener := request.LbListenerCreate
@@ -460,15 +493,15 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 		}
 	}
 
-	lbListenerElement := loadbalancer.LbListenerSetRequestV1Dot2{
-		Listener: loadbalancer.ListenerForSet{
+	lbListenerElement := loadbalancer.LbListenerSetRequestV1Dot3{
+		Listener: loadbalancer.ListenerForSetV1Dot3{
 			Description:         *loadbalancer.NewNullableString(lbListener.Description.ValueStringPointer()),
 			InsertClientIp:      *loadbalancer.NewNullableBool(lbListener.InsertClientIp.ValueBoolPointer()),
 			Persistence:         *loadbalancer.NewNullableString(lbListener.Persistence.ValueStringPointer()),
 			ResponseTimeout:     *loadbalancer.NewNullableInt32(lbListener.ResponseTimeout.ValueInt32Pointer()),
 			ServerGroupId:       *loadbalancer.NewNullableString(lbListener.ServerGroupId.ValueStringPointer()),
 			SessionDurationTime: *loadbalancer.NewNullableInt32(lbListener.SessionDurationTime.ValueInt32Pointer()),
-			SslCertificate:      *loadbalancer.NewNullableSslCertificate(sslCertificate),
+			SslCertificate:      *loadbalancer.NewNullableLbListenerSslCertificate((*loadbalancer.LbListenerSslCertificate)(sslCertificate)),
 			SniCertificate:      sniCertificateList,
 			UrlHandler:          urlHandlerInterfaces,
 			HttpsRedirection:    *loadbalancer.NewNullableHttpsRedirection(httpsRedirection),
@@ -477,6 +510,8 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 			XForwardedPort:      *loadbalancer.NewNullableBool(lbListener.XForwardedPort.ValueBoolPointer()),
 			XForwardedProto:     *loadbalancer.NewNullableBool(lbListener.XForwardedProto.ValueBoolPointer()),
 			ConditionType:       *loadbalancer.NewNullableConditionType((*loadbalancer.ConditionType)(lbListener.ConditionType.ValueStringPointer())),
+			IdleTimeout:         *loadbalancer.NewNullableInt32(lbListener.IdleTimeout.ValueInt32Pointer()),
+			HstsMaxAge:          *loadbalancer.NewNullableInt32(lbListener.HstsMaxAge.ValueInt32Pointer()),
 		},
 	}
 
@@ -538,10 +573,18 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 		lbListenerElement.Listener.XForwardedProto.Unset()
 	}
 
+	if lbListenerElement.Listener.HstsMaxAge.Get() == nil {
+		lbListenerElement.Listener.HstsMaxAge.Unset()
+	}
+
+	if lbListenerElement.Listener.IdleTimeout.Get() == nil {
+		lbListenerElement.Listener.IdleTimeout.Unset()
+	}
+
 	test, err := json.Marshal(lbListenerElement)
 	print(test)
 
-	req = req.LbListenerSetRequestV1Dot2(lbListenerElement)
+	req = req.LbListenerSetRequestV1Dot3(lbListenerElement)
 
 	resp, _, err := req.Execute()
 	return resp, err

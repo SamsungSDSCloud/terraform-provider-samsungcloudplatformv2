@@ -28,12 +28,14 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/resourcemanager"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/searchengine"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/servicewatch"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/ske"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/sqlserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/vertica"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/virtualserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/vpc"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/multinodegpucluster"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -110,6 +112,7 @@ var ResourceConstructors = []func() resource.Resource{
 	vertica.NewVerticaClusterResource,
 
 	// LoadBalancer
+	loadbalancer.NewLoadbalancerLoadbalancerPrivateNatIpResource,
 	loadbalancer.NewLoadbalancerLoadbalancerPublicNatIpResource,
 	loadbalancer.NewLoadBalancerLoadBalancerResource,
 	loadbalancer.NewLoadBalancerLbServerGroupResource,
@@ -143,6 +146,15 @@ var ResourceConstructors = []func() resource.Resource{
 	//certificatemanager
 	certificatemanager.NewCertificateManagerResource,
 	certificatemanager.NewCertificateManagerSelfSignResource,
+
+	// Multi-node GPU Cluster
+	multinodegpucluster.NewGpunodeResource,
+	//servicewatch
+	servicewatch.NewServiceWatchDashboardResource,
+	servicewatch.NewServiceWatchLogGroupResource,
+	servicewatch.NewServiceWatchLogStreamResource,
+	servicewatch.NewServiceWatchAlertResource,
+	servicewatch.NewServiceWatchEventRuleResource,
 }
 
 var DataSourceConstructors = []func() datasource.DataSource{
@@ -276,6 +288,7 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	loadbalancer.NewLoadbalancerLbHealthCheckDataSources,
 	loadbalancer.NewLoadbalancerLbListenerDataSources,
 	loadbalancer.NewLoadbalancerLbListenerDataSource,
+	loadbalancer.NewLoadbalancerLoadbalancerPrivateNatIpDataSource,
 
 	// Monitoring
 	cloudmonitoring.NewCloudMonitoringEventDataSource,
@@ -334,6 +347,19 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	// budget
 	budget.NewBudgetBudgetDataSource,
 	budget.NewBudgetBudgetDataSources,
+
+	// Multi-node GPU Cluster
+	multinodegpucluster.NewGpunodeDataSource,
+	multinodegpucluster.NewGpunodeDataSources,
+
+	// servicewatch
+	servicewatch.NewServiceWatchDashboardDataSources,
+	servicewatch.NewServiceWatchDashboardDataSource,
+	servicewatch.NewServiceWatchLogGroupDataSources,
+	servicewatch.NewServiceWatchLogGroupDataSource,
+	servicewatch.NewServiceWatchLogStreamDataSource,
+	servicewatch.NewServiceWatchAlertDataSource,
+	servicewatch.NewServiceWatchEventRuleDataSource,
 }
 
 var EphemeralResourceConstructors = []func() ephemeral.EphemeralResource{}

@@ -47,34 +47,41 @@ func (r *vpnVpnGatewayResource) Schema(_ context.Context, _ resource.SchemaReque
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
+				Description: "Identifier of the resource.\n" +
+					"  - example : b156740b6335468d8354eb9ef8eddf5a",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description",
+				Description: "Description\n" +
+					"  - example : Description for VPN Gateway",
 				Optional:    true,
 			},
 			common.ToSnakeCase("IpAddress"): schema.StringAttribute{
-				Description: "IpAddress",
+				Description: "Ip Address\n" +
+					"  - example : 123.0.0.1",
 				Required:    true,
 			},
 			common.ToSnakeCase("IpId"): schema.StringAttribute{
-				Description: "IpId",
+				Description: "Identifier of the IP\n" +
+					"  - example : fcde872f75c145a0893d656cc698f13e",
 				Required:    true,
 			},
 			common.ToSnakeCase("IpType"): schema.StringAttribute{
-				Description: "IpType",
+				Description: "Type of IP\n" +
+					"  - example : PUBLIC",
 				Required:    true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
+				Description: "Name\n" +
+					"  - example : ExampleVpnGW1",
 				Required:    true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VpcId",
+				Description: "Identifier of the VPC\n" +
+					"  - example : ceb44ea5ecb34a49b16495f9a63b0718",
 				Required:    true,
 			},
 			common.ToSnakeCase("VpnGateway"): schema.SingleNestedAttribute{

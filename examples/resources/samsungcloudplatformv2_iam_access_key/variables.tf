@@ -8,4 +8,9 @@ variable "access_key_description" {
   default = ""
 }
 
+variable "access_key_is_enabled" {
+  type    = bool
+  default = false
+}
+
 

@@ -16,21 +16,25 @@ Vpn tunnel
 
 ### Required
 
-- `name` (String) Name  - example : ExampleVpnTunnel1
+- `name` (String) Name
+  - example : ExampleVpnTunnel1
 - `phase1` (Attributes) (see [below for nested schema](#nestedatt--phase1))
 - `phase2` (Attributes) (see [below for nested schema](#nestedatt--phase2))
-- `vpn_gateway_id` (String) VpnGatewayId  - example : b156740b6335468d8354eb9ef8eddf5a
+- `vpn_gateway_id` (String) VpnGatewayId
+  - example : b156740b6335468d8354eb9ef8eddf5a
 
 ### Optional
 
-- `description` (String) Description  - example : Description for VPN Tunnel
+- `description` (String) Description
+  - example : Description for VPN Tunnel
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.  - example : 0e3dffc50eb247a1adf4f2e5c82c4f99
+- `id` (String) Identifier of the resource.
+  - example : 0e3dffc50eb247a1adf4f2e5c82c4f99
 - `vpn_tunnel` (Attributes) Vpn tunnel (see [below for nested schema](#nestedatt--vpn_tunnel))
 
 <a id="nestedatt--phase1"></a>
@@ -38,13 +42,20 @@ Vpn tunnel
 
 Required:
 
-- `dpd_retry_interval` (Number) DpdRetryInterval  - example : 60
-- `ike_version` (Number) IkeVersion  - example : 2
-- `peer_gateway_ip` (String) PeerGatewayIp  - example : 123.0.0.2
-- `phase1_diffie_hellman_groups` (List of Number) Phase1DiffieHellmanGroups  - example : [30,31,32]
-- `phase1_encryptions` (List of String) Phase1Encryptions  - example : ['des-md5', 'chacha20poly1305-prfsha256']
-- `phase1_life_time` (Number) Phase1LifeTime  - example : 86400
-- `pre_shared_key` (String) PreSharedKey  - example : PreSharedKey1
+- `dpd_retry_interval` (Number) DpdRetryInterval
+  - example : 60
+- `ike_version` (Number) IkeVersion
+  - example : 2
+- `peer_gateway_ip` (String) PeerGatewayIp
+  - example : 123.0.0.2
+- `phase1_diffie_hellman_groups` (List of Number) Phase1DiffieHellmanGroups
+  - example : [30,31,32]
+- `phase1_encryptions` (List of String) Phase1Encryptions
+  - example : ['des-md5', 'chacha20poly1305-prfsha256']
+- `phase1_life_time` (Number) Phase1LifeTime
+  - example : 86400
+- `pre_shared_key` (String) PreSharedKey
+  - example : PreSharedKey1
 
 
 <a id="nestedatt--phase2"></a>
@@ -52,11 +63,16 @@ Required:
 
 Required:
 
-- `perfect_forward_secrecy` (String) PerfectForwardSecrecy  - example : ENABLE
-- `phase2_diffie_hellman_groups` (List of Number) Phase2DiffieHellmanGroups  - example : [30,31,32]
-- `phase2_encryptions` (List of String) Phase2Encryptions  - example : ['des-md5', 'chacha20poly1305-prfsha256']
-- `phase2_life_time` (Number) Phase2LifeTime  - example : 86400
-- `remote_subnets` (List of String) RemoteSubnets  - example : ['10.1.1.0/24', '10.1.2.0/24', '10.1.3.0/24']
+- `perfect_forward_secrecy` (String) PerfectForwardSecrecy
+  - example : ENABLE
+- `phase2_diffie_hellman_groups` (List of Number) Phase2DiffieHellmanGroups
+  - example : [30,31,32]
+- `phase2_encryptions` (List of String) Phase2Encryptions
+  - example : ['des-md5', 'chacha20poly1305-prfsha256']
+- `phase2_life_time` (Number) Phase2LifeTime
+  - example : 86400
+- `remote_subnets` (List of String) RemoteSubnets
+  - example : ['10.1.1.0/24', '10.1.2.0/24', '10.1.3.0/24']
 
 
 <a id="nestedatt--vpn_tunnel"></a>

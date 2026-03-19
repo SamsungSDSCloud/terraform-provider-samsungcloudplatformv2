@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"strings"
 	"time"
 )
@@ -16,8 +16,8 @@ type Instance struct {
 	Client *SCPClient
 }
 
-func WaitForStatus(ctx context.Context, client *SCPClient, pendingStates []string, targetStates []string, refreshFunc resource.StateRefreshFunc) error {
-	stateConf := &resource.StateChangeConf{
+func WaitForStatus(ctx context.Context, client *SCPClient, pendingStates []string, targetStates []string, refreshFunc retry.StateRefreshFunc) error {
+	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     targetStates,
 		Refresh:    refreshFunc,

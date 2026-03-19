@@ -86,6 +86,8 @@ Read-Only:
 - `bootable` (Boolean) bootable
 - `encrypted` (Boolean) encrypted
 - `id` (String) id
+- `max_iops` (Number) The number of distinct read or write operations a volume can process in a single second.
+- `max_throughput` (Number) The actual amount of data (volume) transferred to or from the storage device per second.
 - `multiattach` (Boolean) multiattach
 - `name` (String) name
 - `servers` (Attributes List) Servers (see [below for nested schema](#nestedatt--volume--servers))

@@ -55,17 +55,17 @@ variable "user_id" {
 Optional:
 
 - `creator_created_at` (String) 생성 일시
-- `creator_last_login_at` (String) 생성자 마지막 로그인 일시
-- `group_names` (List of String) Group Names
 - `user_created_at` (String) 생성 일시
-- `user_last_login_at` (String) User 마지막 로그인 일시
 
 Read-Only:
 
 - `created_at` (String) 생성 일시
 - `created_by` (String) 생성자
 - `creator_email` (String) 생성자 Email
+- `creator_last_login_at` (String) 생성자 마지막 로그인 일시
 - `creator_name` (String) 생성자 성, 이름
+- `group_names` (List of String) Group Names
 - `user_email` (String) User Email
 - `user_id` (String) User ID
+- `user_last_login_at` (String) User 마지막 로그인 일시
 - `user_name` (String) User 성, 이름

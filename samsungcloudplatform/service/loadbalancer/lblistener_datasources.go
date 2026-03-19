@@ -162,7 +162,7 @@ func (d *loadbalancerLbListenerDataSources) Read(ctx context.Context, req dataso
 		lblistenerState := loadbalancer.LbListener{
 			Id:          types.StringValue(lblistener.Id),
 			Name:        types.StringValue(lblistener.Name),
-			Protocol:    types.StringValue(lblistener.Protocol),
+			Protocol:    types.StringValue(string(lblistener.Protocol)),
 			State:       types.StringValue(*lblistener.State.Get()),
 			ServicePort: types.Int32Value(lblistener.ServicePort),
 			CreatedAt:   types.StringValue(lblistener.CreatedAt.Format(time.RFC3339)),
