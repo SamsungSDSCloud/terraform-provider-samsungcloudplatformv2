@@ -53,5 +53,10 @@ variable "state" {
   default = ""
 }
 
+variable "rule_type" {
+  type    = string
+  default = ""
+}
+
 
 

@@ -119,3 +119,31 @@ variable "advanced_settings" {
 }
 
 
+variable "linked_resources" {
+  type = list(object({
+    id   = string
+    name = string
+    type = string
+  }))
+  default = [{
+    id   = ""
+    name = ""
+    type = ""
+  }]
+}
+
+variable "volume_max_iops" {
+  type    = number
+  default = 0
+}
+
+variable "volume_max_throughput" {
+  type    = number
+  default = 0
+}
+
+variable "scp_gpu_driver" {
+  type    = string
+  default = ""
+}
+

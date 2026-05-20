@@ -254,16 +254,24 @@ func removeItems(slice interface{}, indicesToRemove []int) []interface{} {
 	return result
 }
 
-func GetFilterIndices(input interface{}, filters []Filter) []int {
-	wrapStructs, _ := WrapStructs(input)
-	contents := common.ConvertStructToMaps(wrapStructs)
+func GetFilterIndices(input interface{}, filters []Filter) ([]int, error) {
+	wrapStructs, err := WrapStructs(input)
+	if err != nil {
+		return nil, fmt.Errorf("GetFilterIndices: WrapStructs failed: %w", err)
+	}
+
+	contents, err := common.ConvertStructToMaps(wrapStructs)
+	if err != nil {
+		return nil, fmt.Errorf("GetFilterIndices: ConvertStructToMaps failed: %w", err)
+	}
+
 	contents = ApplyFilter(contents, filters)
 
 	var indices []int
 	for _, item := range contents {
-		index, _ := common.ToInt(item["index"])
+		index, _ := common.ToInt(item["index"]) // index는致命적이지 않음
 		indices = append(indices, index)
 	}
 
-	return indices
+	return indices, nil
 }

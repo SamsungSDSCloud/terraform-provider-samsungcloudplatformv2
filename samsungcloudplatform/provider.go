@@ -76,14 +76,17 @@ func (p *samsungcloudplatformv2Provider) Schema(_ context.Context, _ provider.Sc
 			"access_key": schema.StringAttribute{
 				Description: "Access key for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_ACCESS_KEY environment variable.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"secret_key": schema.StringAttribute{
 				Description: "Secret key for calling samsungcloudplatformv2 API. May also be provided via SCP_TF_SECRET_KEY environment variable.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"auth_token": schema.StringAttribute{
 				Description: "Auth token for calling samsungcloudplatformv2 API",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"max_remain_days": schema.Int64Attribute{
 				Description: "Set the remaining period of SDK microversion verification",
@@ -119,17 +122,10 @@ func (p *samsungcloudplatformv2Provider) Configure(ctx context.Context, req prov
 		return
 	}
 
-	config.LoadServiceConfig(resp, filepath.Join(user.HomeDir, ".scpconf", config.ServiceConfigFile), &providerConfig)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	configFilePath := filepath.Join(user.HomeDir, ".scpconf", config.ServiceConfigFile)
+	credentialsFilePath := filepath.Join(user.HomeDir, ".scpconf", config.CredentialConfigFile)
 
-	config.LoadCredentialsConfig(resp, filepath.Join(user.HomeDir, ".scpconf", config.CredentialConfigFile), &providerConfig)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	config.ConfigureServiceAndCredentials(resp, &providerConfig)
+	config.ConfigureServiceAndCredentials(resp, &providerConfig, configFilePath, credentialsFilePath)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.2"
+	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -210,227 +210,15 @@ func (d *iamUserDataSources) Schema(_ context.Context, _ datasource.SchemaReques
 							MarkdownDescription: "Policies",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"account_id": schema.StringAttribute{
-										Optional:            true,
-										Description:         "Account ID",
-										MarkdownDescription: "Account ID",
-									},
-									"created_at": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Created At",
-										MarkdownDescription: "Created At",
-									},
-									"created_by": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Created By",
-										MarkdownDescription: "Created By",
-									},
-									"creator_email": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Creator Email",
-										MarkdownDescription: "Creator Email",
-									},
-									"creator_name": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Creator Name",
-										MarkdownDescription: "Creator Name",
-									},
-									"default_version_id": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Default Version ID",
-										MarkdownDescription: "Default Version ID",
-									},
-									"description": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Description",
-										MarkdownDescription: "Description",
-									},
-									"domain_name": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Domain Name",
-										MarkdownDescription: "Domain Name",
-									},
 									"id": schema.StringAttribute{
 										Computed:            true,
 										Description:         "ID",
 										MarkdownDescription: "ID",
 									},
-									"modified_at": schema.StringAttribute{
+									"name": schema.StringAttribute{
 										Computed:            true,
-										Description:         "Modified At",
-										MarkdownDescription: "Modified At",
-									},
-									"modified_by": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Modified By",
-										MarkdownDescription: "Modified By",
-									},
-									"modifier_email": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Modifier Email",
-										MarkdownDescription: "Modifier Email",
-									},
-									"modifier_name": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Modifier Name",
-										MarkdownDescription: "Modifier Name",
-									},
-									"policy_category": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Policy Category",
-										MarkdownDescription: "Policy Category",
-									},
-									"policy_name": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Policy Name",
-										MarkdownDescription: "Policy Name",
-									},
-									"policy_type": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Policy Type",
-										MarkdownDescription: "Policy Type",
-									},
-									"policy_versions": schema.ListNestedAttribute{
-										Optional:            true,
-										Description:         "Policy Versions",
-										MarkdownDescription: "Policy Versions",
-										NestedObject: schema.NestedAttributeObject{
-											Attributes: map[string]schema.Attribute{
-												"created_at": schema.StringAttribute{
-													Computed:            true,
-													Description:         "Created At",
-													MarkdownDescription: "Created At",
-												},
-												"created_by": schema.StringAttribute{
-													Computed:            true,
-													Description:         "Created By",
-													MarkdownDescription: "Created By",
-												},
-												"id": schema.StringAttribute{
-													Computed:            true,
-													Description:         "ID",
-													MarkdownDescription: "ID",
-												},
-												"modified_at": schema.StringAttribute{
-													Computed:            true,
-													Description:         "Modified At",
-													MarkdownDescription: "Modified At",
-												},
-												"modified_by": schema.StringAttribute{
-													Computed:            true,
-													Description:         "Modified By",
-													MarkdownDescription: "Modified By",
-												},
-												"policy_document": schema.SingleNestedAttribute{
-													Computed:            true,
-													Description:         "Policy Document",
-													MarkdownDescription: "Policy Document",
-													Attributes: map[string]schema.Attribute{
-														"statement": schema.ListNestedAttribute{
-															Computed:            true,
-															Description:         "Statement",
-															MarkdownDescription: "Statement",
-															NestedObject: schema.NestedAttributeObject{
-																Attributes: map[string]schema.Attribute{
-																	"action": schema.ListAttribute{
-																		Optional:            true,
-																		Description:         "Action",
-																		MarkdownDescription: "Action",
-																		ElementType:         types.StringType,
-																	},
-																	"not_action": schema.ListAttribute{
-																		Optional:            true,
-																		Description:         "Not Action",
-																		MarkdownDescription: "Not Action",
-																		ElementType:         types.StringType,
-																	},
-																	"effect": schema.StringAttribute{
-																		Computed:            true,
-																		Description:         "Effect",
-																		MarkdownDescription: "Effect",
-																	},
-																	"resource": schema.ListAttribute{
-																		Optional:            true,
-																		Description:         "Resource",
-																		MarkdownDescription: "Resource",
-																		ElementType:         types.StringType,
-																	},
-																	"sid": schema.StringAttribute{
-																		Computed:            true,
-																		Description:         "SID",
-																		MarkdownDescription: "SID",
-																	},
-																	"condition": schema.MapAttribute{
-																		ElementType: types.MapType{
-																			ElemType: types.ListType{
-																				ElemType: types.StringType,
-																			},
-																		},
-																		Optional: true,
-																	},
-																	"principal": schema.SingleNestedAttribute{
-																		Optional:            true,
-																		Description:         "Principal",
-																		MarkdownDescription: "Principal",
-																		Attributes: map[string]schema.Attribute{
-																			"principal_string": schema.StringAttribute{
-																				Optional: true,
-																			},
-																			"principal_map": schema.MapAttribute{
-																				Optional: true,
-																				ElementType: types.ListType{
-																					ElemType: types.StringType,
-																				},
-																			},
-																		},
-																	},
-																},
-															},
-														},
-														"version": schema.StringAttribute{
-															Computed:            true,
-															Description:         "Policy Version",
-															MarkdownDescription: "Policy Version",
-														},
-													},
-												},
-												"policy_id": schema.StringAttribute{
-													Computed:            true,
-													Description:         "Policy ID",
-													MarkdownDescription: "Policy ID",
-												},
-												"policy_version_name": schema.StringAttribute{
-													Computed:            true,
-													Description:         "Policy Version Name",
-													MarkdownDescription: "Policy Version Name",
-												},
-											},
-										},
-									},
-									"resource_type": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Resource Type",
-										MarkdownDescription: "Resource Type",
-									},
-									"service_name": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Service Name",
-										MarkdownDescription: "Service Name",
-									},
-									"service_type": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Service Type",
-										MarkdownDescription: "Service Type",
-									},
-									"srn": schema.StringAttribute{
-										Computed:            true,
-										Description:         "SRN",
-										MarkdownDescription: "SRN",
-									},
-									"state": schema.StringAttribute{
-										Computed:            true,
-										Description:         "State",
-										MarkdownDescription: "State",
+										Description:         "Name",
+										MarkdownDescription: "Name",
 									},
 								},
 							},
@@ -459,6 +247,59 @@ func (d *iamUserDataSources) Schema(_ context.Context, _ datasource.SchemaReques
 							Computed:            true,
 							Description:         "UTC Offset",
 							MarkdownDescription: "UTC Offset",
+						},
+						"access_keys": schema.ListNestedAttribute{
+							Computed:            true,
+							Description:         "Access Keys",
+							MarkdownDescription: "Access Keys",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"access_key": schema.StringAttribute{
+										Description:         "Access Key",
+										MarkdownDescription: "Access Key",
+										Computed:            true,
+									},
+									"created_at": schema.StringAttribute{
+										Description:         "Created At",
+										MarkdownDescription: "Created At",
+										Computed:            true,
+									},
+									"expiration_timestamp": schema.StringAttribute{
+										Description:         "Expiration Timestmap",
+										MarkdownDescription: "Expiration Timestmap",
+										Computed:            true,
+									},
+									"id": schema.StringAttribute{
+										Description:         "ID",
+										MarkdownDescription: "ID",
+										Computed:            true,
+									},
+									"is_enabled": schema.BoolAttribute{
+										Description:         "Is Enabled",
+										MarkdownDescription: "Is Enabled",
+										Computed:            true,
+									},
+								},
+							},
+						},
+						"groups": schema.ListNestedAttribute{
+							Computed:            true,
+							Description:         "Groups",
+							MarkdownDescription: "Groups",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"id": schema.StringAttribute{
+										Computed:            true,
+										Description:         "Group ID",
+										MarkdownDescription: "Group ID",
+									},
+									"name": schema.StringAttribute{
+										Computed:            true,
+										Description:         "Group Name",
+										MarkdownDescription: "Group Name",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -500,12 +341,18 @@ func (d *iamUserDataSources) Read(ctx context.Context, req datasource.ReadReques
 	}
 }
 
-func getUsers(ctx context.Context, _users []scpsdkiam.IAMUserResponse) ([]iam.User, bool) {
-	var users []iam.User
+func getUsers(ctx context.Context, _users []scpsdkiam.IAMUserWithoutPolicyResponseV1Dot4) ([]iam.UserWithoutPolicyDetail, bool) {
+	var users []iam.UserWithoutPolicyDetail
 	for _, user := range _users {
 
-		// policies
-		policies, _ := getPolicies(ctx, user.Policies)
+		// policies(basic)
+		var policies []iam.PolicyBasic
+		for _, policy := range user.Policies {
+			policies = append(policies, iam.PolicyBasic{
+				Id:   types.StringValue(policy.Id),
+				Name: types.StringValue(policy.GetName()),
+			})
+		}
 
 		// user nil check
 		userCompanyName := user.CompanyName.Get()
@@ -537,7 +384,28 @@ func getUsers(ctx context.Context, _users []scpsdkiam.IAMUserResponse) ([]iam.Us
 			userLastPasswordUpdateAt = &emptyTime
 		}
 
-		userState := iam.User{
+		// mapped access key info
+		var accessKeyInfos []iam.AccessKeyV1Dot4
+		for _, accessKeyInfo := range user.AccessKeys {
+			accessKeyInfos = append(accessKeyInfos, iam.AccessKeyV1Dot4{
+				AccessKey:           types.StringValue(accessKeyInfo.AccessKey),
+				CreatedAt:           types.StringValue(accessKeyInfo.CreatedAt.Format(time.RFC3339)),
+				ExpirationTimestamp: types.StringValue(accessKeyInfo.ExpirationTimestamp.Format(time.RFC3339)),
+				Id:                  types.StringValue(accessKeyInfo.Id),
+				IsEnabled:           types.BoolValue(accessKeyInfo.IsEnabled),
+			})
+		}
+
+		// mapped group info
+		var groupInfos []iam.GroupInfo
+		for _, groupInfo := range user.Groups {
+			groupInfos = append(groupInfos, iam.GroupInfo{
+				Id:   types.StringValue(groupInfo.Id),
+				Name: types.StringValue(groupInfo.Name),
+			})
+		}
+
+		userState := iam.UserWithoutPolicyDetail{
 			AccountId:            types.StringValue(*user.AccountId.Get()),
 			CompanyName:          types.StringValue(*userCompanyName),
 			CreatedAt:            types.StringValue(user.CreatedAt.Format(time.RFC3339)),
@@ -562,6 +430,8 @@ func getUsers(ctx context.Context, _users []scpsdkiam.IAMUserResponse) ([]iam.Us
 			TzId:                 types.StringValue(*user.TzId.Get()),
 			UserName:             types.StringValue(*user.UserName.Get()),
 			UtcOffset:            types.StringValue(*user.UtcOffset.Get()),
+			AccessKeys:           accessKeyInfos,
+			Groups:               groupInfos,
 		}
 
 		users = append(users, userState)

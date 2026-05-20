@@ -3,17 +3,15 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -30,7 +28,7 @@ func NewVpcNatGatewayDataSource() datasource.DataSource {
 // vpcNatGatewayDataSource is the data source implementation.
 type vpcNatGatewayDataSource struct {
 	config  *scpsdk.Configuration
-	client  *vpc.Client
+	client  *vpcv1d2.Client
 	clients *client.SCPClient
 }
 
@@ -42,27 +40,19 @@ func (d *vpcNatGatewayDataSource) Metadata(_ context.Context, req datasource.Met
 // Schema defines the schema for the data source.
 func (d *vpcNatGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of natgateway.",
+		Description: "List of NAT Gateways.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
-					"  - example : 10 \n" +
-					"  - maximum : 10000 \n" +
-					"  - minimum : 1",
+			common.ToSnakeCase("Size"): schema.Int32Attribute{
+				Description: "Size \n" +
+					"  - example : 20",
 				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
-				},
+				Computed: true,
 			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
-					"  - maxLength : 64 \n" +
-					"  - minLength : 1",
+			common.ToSnakeCase("Page"): schema.Int32Attribute{
+				Description: "Page \n" +
+					"  - example : 0",
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
-				},
+				Computed: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
 				Description: "Sort \n" +
@@ -71,12 +61,12 @@ func (d *vpcNatGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaR
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "NAT Gateway Name \n" +
-					"  - example : natGatewayName",
+					"  - example : NatGatewayName",
 				Optional: true,
 			},
 			common.ToSnakeCase("NatGatewayIpAddress"): schema.StringAttribute{
 				Description: "NAT Gateway IP Address \n" +
-					"  - example : 172.24.4.2",
+					"  - example : 192.167.0.5",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
@@ -91,7 +81,7 @@ func (d *vpcNatGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaR
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
 				Description: "Subnet ID \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693",
+					"  - example : 023c57b14f11483689338d085e061492",
 				Optional: true,
 			},
 			common.ToSnakeCase("SubnetName"): schema.StringAttribute{
@@ -100,77 +90,91 @@ func (d *vpcNatGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaR
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State \n" +
-					"  - example : CREATING | ACTIVE | DELETING | ERROR",
+				Description: "NAT Gateway State \n" +
+					"  - example : CREATING | ACTIVE | DELETING | DELETED | ERROR",
 				Optional: true,
 			},
 			common.ToSnakeCase("NatGateways"): schema.ListNestedAttribute{
-				Description: "A list of natgateway.",
+				Description: "A list of NAT Gateways.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
+							Description: "NAT Gateway ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
+							Description: "NAT Gateway Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("NatGatewayIpAddress"): schema.StringAttribute{
-							Description: "NatGatewayIpAddress",
+							Description: "NAT Gateway IP Address",
 							Computed:    true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "VpcId",
+							Description: "VPC ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("VpcName"): schema.StringAttribute{
-							Description: "VpcName",
+							Description: "VPC Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-							Description: "SubnetId",
+							Description: "Subnet ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("SubnetName"): schema.StringAttribute{
-							Description: "SubnetName",
+							Description: "Subnet Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("SubnetCidr"): schema.StringAttribute{
-							Description: "SubnetCidr",
+							Description: "Subnet CIDR",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
+							Description: "Account ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
+							Description: "NAT Gateway State",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
+							Description: "NAT Gateway Description",
+							Computed:    true,
+						},
+						common.ToSnakeCase("PublicipId"): schema.StringAttribute{
+							Description: "PublicIP ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
+							Description: "Created At",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
+							Description: "Created By",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
+							Description: "Modified At",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
+							Description: "Modified By",
 							Computed:    true,
 						},
 					},
 				},
+			},
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "Count",
+				Computed:    true,
+			},
+			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
+				Description: "List of sort condition \n" +
+					"  - example : [\"created_at:desc\"]",
+				ElementType: types.StringType,
+				Computed:    true,
 			},
 		},
 	}
@@ -194,13 +198,13 @@ func (d *vpcNatGatewayDataSource) Configure(_ context.Context, req datasource.Co
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *vpcNatGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpc.NatGatewayDataSource
+	var state vpcv1d2.NatGatewayDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -208,7 +212,7 @@ func (d *vpcNatGatewayDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	data, err := d.client.GetNatGatewayList(ctx, state)
+	data, err := d.client.ListNatGateways(ctx, state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -220,7 +224,7 @@ func (d *vpcNatGatewayDataSource) Read(ctx context.Context, req datasource.ReadR
 
 	// Map response body to model
 	for _, natgateway := range data.NatGateways {
-		natgatewayState := vpc.NatGateway{
+		natgatewayState := vpcv1d2.NatGateway{
 			Id:                  types.StringValue(natgateway.Id),
 			Name:                types.StringValue(natgateway.Name),
 			NatGatewayIpAddress: types.StringValue(natgateway.NatGatewayIpAddress),
@@ -230,14 +234,22 @@ func (d *vpcNatGatewayDataSource) Read(ctx context.Context, req datasource.ReadR
 			SubnetName:          types.StringValue(natgateway.SubnetName),
 			SubnetCidr:          types.StringValue(natgateway.SubnetCidr),
 			AccountId:           types.StringValue(natgateway.AccountId),
-			State:               types.StringValue(natgateway.State),
+			State:               types.StringValue(string(natgateway.State)),
 			Description:         types.StringPointerValue(natgateway.Description.Get()),
+			PublicipId:          types.StringPointerValue(natgateway.PublicipId.Get()),
 			CreatedAt:           types.StringValue(natgateway.CreatedAt.Format(time.RFC3339)),
 			CreatedBy:           types.StringValue(natgateway.CreatedBy),
 			ModifiedAt:          types.StringValue(natgateway.ModifiedAt.Format(time.RFC3339)),
 			ModifiedBy:          types.StringValue(natgateway.ModifiedBy),
 		}
 		state.NatGateways = append(state.NatGateways, natgatewayState)
+	}
+
+	state.TotalCount = types.Int32Value(data.Count)
+	state.Page = types.Int32Value(data.Page)
+	state.Size = types.Int32Value(data.Size)
+	for _, sortVal := range data.Sort {
+		state.SortFinal = append(state.SortFinal, types.StringValue(sortVal))
 	}
 
 	// Set state

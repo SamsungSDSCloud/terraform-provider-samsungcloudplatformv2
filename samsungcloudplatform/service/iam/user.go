@@ -455,6 +455,59 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						Description:         "UTC Offset",
 						MarkdownDescription: "UTC Offset",
 					},
+					"access_keys": schema.ListNestedAttribute{
+						Computed:            true,
+						Description:         "Access Keys",
+						MarkdownDescription: "Access Keys",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"access_key": schema.StringAttribute{
+									Description:         "Access Key",
+									MarkdownDescription: "Access Key",
+									Computed:            true,
+								},
+								"created_at": schema.StringAttribute{
+									Description:         "Created At",
+									MarkdownDescription: "Created At",
+									Computed:            true,
+								},
+								"expiration_timestamp": schema.StringAttribute{
+									Description:         "Expiration Timestmap",
+									MarkdownDescription: "Expiration Timestmap",
+									Computed:            true,
+								},
+								"id": schema.StringAttribute{
+									Description:         "ID",
+									MarkdownDescription: "ID",
+									Computed:            true,
+								},
+								"is_enabled": schema.BoolAttribute{
+									Description:         "Is Enabled",
+									MarkdownDescription: "Is Enabled",
+									Computed:            true,
+								},
+							},
+						},
+					},
+					"groups": schema.ListNestedAttribute{
+						Computed:            true,
+						Description:         "Groups",
+						MarkdownDescription: "Groups",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Group ID",
+									MarkdownDescription: "Group ID",
+								},
+								"name": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Group Name",
+									MarkdownDescription: "Group Name",
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -539,6 +592,10 @@ func (r *iamUserResource) Create(ctx context.Context, req resource.CreateRequest
 
 	plan.UserId = types.StringValue(data.Id)
 
+	// empty list
+	accessKeyInfos := make([]iam.AccessKeyV1Dot4, 0)
+	groupInfos := make([]iam.GroupInfo, 0)
+
 	userState := iam.User{
 		AccountId:            types.StringValue(*data.AccountId.Get()),
 		CompanyName:          types.StringValue(*userCompanyName),
@@ -566,6 +623,8 @@ func (r *iamUserResource) Create(ctx context.Context, req resource.CreateRequest
 		TzId:                 types.StringValue(*data.TzId.Get()),
 		UserName:             types.StringValue(*data.UserName.Get()),
 		UtcOffset:            types.StringValue(*data.UtcOffset.Get()),
+		AccessKeys:           accessKeyInfos,
+		Groups:               groupInfos,
 	}
 
 	userObjectValue, diags := types.ObjectValueFrom(ctx, userState.AttributeTypes(), userState)
@@ -633,6 +692,10 @@ func (r *iamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 		userLastPasswordUpdateAt = &emptyTime
 	}
 
+	// empty list
+	accessKeyInfos := make([]iam.AccessKeyV1Dot4, 0)
+	groupInfos := make([]iam.GroupInfo, 0)
+
 	userState := iam.User{
 		AccountId:            types.StringValue(*data.AccountId.Get()),
 		CompanyName:          types.StringValue(*userCompanyName),
@@ -658,6 +721,8 @@ func (r *iamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 		TzId:                 types.StringValue(*data.TzId.Get()),
 		UserName:             types.StringValue(*data.UserName.Get()),
 		UtcOffset:            types.StringValue(*data.UtcOffset.Get()),
+		AccessKeys:           accessKeyInfos,
+		Groups:               groupInfos,
 	}
 
 	userObjectValue, diags := types.ObjectValueFrom(ctx, userState.AttributeTypes(), userState)
@@ -737,6 +802,10 @@ func (r *iamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 		userLastPasswordUpdateAt = &emptyTime
 	}
 
+	// empty list
+	accessKeyInfos := make([]iam.AccessKeyV1Dot4, 0)
+	groupInfos := make([]iam.GroupInfo, 0)
+
 	userState := iam.User{
 		AccountId:            types.StringValue(*data.AccountId.Get()),
 		CompanyName:          types.StringValue(*userCompanyName),
@@ -762,6 +831,8 @@ func (r *iamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 		TzId:                 types.StringValue(*data.TzId.Get()),
 		UserName:             types.StringValue(*data.UserName.Get()),
 		UtcOffset:            types.StringValue(*data.UtcOffset.Get()),
+		AccessKeys:           accessKeyInfos,
+		Groups:               groupInfos,
 	}
 
 	userObjectValue, diags := types.ObjectValueFrom(ctx, userState.AttributeTypes(), userState)

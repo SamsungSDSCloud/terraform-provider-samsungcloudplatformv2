@@ -3,15 +3,15 @@ package ske
 import (
 	"context"
 	"fmt"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/ske/converter"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.1"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -55,32 +55,32 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 								Description:         "Node Pool Allowed unsafe sysctls\n  - example: kernel.msg*,net.ipv4.route.min_pmtu",
 								MarkdownDescription: "Node Pool Allowed unsafe sysctls\n  - example: kernel.msg*,net.ipv4.route.min_pmtu",
 							},
-							"container_log_max_files": schema.Int64Attribute{
+							"container_log_max_files": schema.Int32Attribute{
 								Computed:            true,
 								Description:         "Node Pool container log max files\n  - maximum: 10\n  - minimum: 2\n  - example: 5",
 								MarkdownDescription: "Node Pool container log max files\n  - maximum: 10\n  - minimum: 2\n  - example: 5",
 							},
-							"container_log_max_size": schema.Int64Attribute{
+							"container_log_max_size": schema.Int32Attribute{
 								Computed:            true,
 								Description:         "Node Pool container log max size\n  - maximum: 100\n  - minimum: 10\n  - example: 10",
 								MarkdownDescription: "Node Pool container log max size\n  - maximum: 100\n  - minimum: 10\n  - example: 10",
 							},
-							"image_gc_high_threshold": schema.Int64Attribute{
+							"image_gc_high_threshold": schema.Int32Attribute{
 								Computed:            true,
 								Description:         "Node Pool image GC high threshold percent\n  - maximum: 85\n  - minimum: 10\n  - example: 85",
 								MarkdownDescription: "Node Pool image GC high threshold percent\n  - maximum: 85\n  - minimum: 10\n  - example: 85",
 							},
-							"image_gc_low_threshold": schema.Int64Attribute{
+							"image_gc_low_threshold": schema.Int32Attribute{
 								Computed:            true,
 								Description:         "Node Pool image GC low threshold percent\n  - maximum: 85\n  - minimum: 10\n  - example: 80",
 								MarkdownDescription: "Node Pool image GC low threshold percent\n  - maximum: 85\n  - minimum: 10\n  - example: 80",
 							},
-							"max_pods": schema.Int64Attribute{
+							"max_pods": schema.Int32Attribute{
 								Computed:            true,
 								Description:         "Node Pool max pod number\n  - maximum: 250\n  - minimum: 10\n  - example: 110",
 								MarkdownDescription: "Node Pool max pod number\n  - maximum: 250\n  - minimum: 10\n  - example: 110",
 							},
-							"pod_max_pids": schema.Int64Attribute{
+							"pod_max_pids": schema.Int32Attribute{
 								Computed:            true,
 								Description:         "Node Pool Pod Max pids constraint\n  - maximum: 4.194304e+06\n  - minimum: 1024\n  - example: 4096",
 								MarkdownDescription: "Node Pool Pod Max pids constraint\n  - maximum: 4.194304e+06\n  - minimum: 1024\n  - example: 4096",
@@ -122,12 +122,12 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						Description:         "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						MarkdownDescription: "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
 					},
-					"current_node_count": schema.Int64Attribute{
+					"current_node_count": schema.Int32Attribute{
 						Computed:            true,
 						Description:         "Current Node Count\n  - example: 1",
 						MarkdownDescription: "Current Node Count\n  - example: 1",
 					},
-					"desired_node_count": schema.Int64Attribute{
+					"desired_node_count": schema.Int32Attribute{
 						Computed:            true,
 						Description:         "Desired Node Count\n  - example: 2",
 						MarkdownDescription: "Desired Node Count\n  - example: 2",
@@ -153,6 +153,11 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 								Computed:            true,
 								Description:         "Image OS Version\n  - example: 22.04",
 								MarkdownDescription: "Image OS Version\n  - example: 22.04",
+							},
+							"scp_gpu_driver": schema.StringAttribute{
+								Computed:            true,
+								Description:         "GPU Driver Version\n  - example: ND_535.183.06",
+								MarkdownDescription: "GPU Driver Version\n  - example: ND_535.183.06",
 							},
 						},
 						Computed:            true,
@@ -195,12 +200,34 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						Description:         "Node Pool Labels",
 						MarkdownDescription: "Node Pool Labels",
 					},
-					"max_node_count": schema.Int64Attribute{
+					"linked_resources": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource ID\n  - example: res-12345678",
+									MarkdownDescription: "Linked Resource ID\n  - example: res-12345678",
+								},
+								"name": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource Name\n  - example: my-resource",
+									MarkdownDescription: "Linked Resource Name\n  - example: my-resource",
+								},
+								"type": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource Type (fs/obs)\n  - example: fs",
+									MarkdownDescription: "Linked Resource Type (fs/obs)\n  - example: fs",
+								},
+							},
+						},
+						Computed: true,
+					},
+					"max_node_count": schema.Int32Attribute{
 						Computed:            true,
 						Description:         "Max Node Count\n  - example: 5",
 						MarkdownDescription: "Max Node Count\n  - example: 5",
 					},
-					"min_node_count": schema.Int64Attribute{
+					"min_node_count": schema.Int32Attribute{
 						Computed:            true,
 						Description:         "Min Node Count\n  - example: 1",
 						MarkdownDescription: "Min Node Count\n  - example: 1",
@@ -271,7 +298,15 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						Description:         "Node Pool Taints",
 						MarkdownDescription: "Node Pool Taints",
 					},
-					"volume_size": schema.Int64Attribute{
+					"volume_max_iops": schema.Int32Attribute{
+						Computed: true,
+						Optional: true,
+					},
+					"volume_max_throughput": schema.Int32Attribute{
+						Computed: true,
+						Optional: true,
+					},
+					"volume_size": schema.Int32Attribute{
 						Computed:            true,
 						Description:         "Volume Size\n  - example: 104",
 						MarkdownDescription: "Volume Size\n  - example: 104",
@@ -331,48 +366,7 @@ func (d *skeNodepoolDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	nodepoolModel := ske.Nodepool{
-		Id:                  types.StringValue(data.Nodepool.Id),
-		Name:                types.StringValue(data.Nodepool.Name),
-		AccountId:           types.StringValue(data.Nodepool.AccountId),
-		AutoRecoveryEnabled: types.BoolValue(data.Nodepool.AutoRecoveryEnabled),
-		AutoScaleEnabled:    types.BoolValue(data.Nodepool.AutoScaleEnabled),
-		Cluster: ske.IdMapType{
-			Id: types.StringValue(data.Nodepool.Cluster.Id),
-		},
-		CurrentNodeCount: types.Int32Value(data.Nodepool.CurrentNodeCount),
-		DesiredNodeCount: types.Int32Value(data.Nodepool.DesiredNodeCount),
-		Image: ske.Image{
-			CustomImageName: types.StringPointerValue(data.Nodepool.Image.CustomImageName.Get()),
-			Os:              types.StringValue(data.Nodepool.Image.Os),
-			OsVersion:       types.StringValue(data.Nodepool.Image.OsVersion),
-		},
-		Keypair: ske.NameMapType{
-			Name: types.StringValue(data.Nodepool.Keypair.Name),
-		},
-		KubernetesVersion: types.StringValue(data.Nodepool.KubernetesVersion),
-		Labels:            converter.MakeNodepoolLabelsModel(data.Nodepool.Labels),
-		Taints:            converter.MakeNodepoolTaintsModel(data.Nodepool.Taints),
-		MaxNodeCount:      types.Int32Value(data.Nodepool.MaxNodeCount),
-		MinNodeCount:      types.Int32Value(data.Nodepool.MinNodeCount),
-		ServerType: ske.ServerType{
-			Description: types.StringValue(data.Nodepool.ServerType.Description),
-			Id:          types.StringValue(data.Nodepool.ServerType.Id),
-		},
-		Status: types.StringValue(data.Nodepool.Status),
-		VolumeType: ske.VolumeType{
-			Encrypt: types.BoolValue(data.Nodepool.VolumeType.Encrypt),
-			Id:      types.StringValue(data.Nodepool.VolumeType.Id),
-			Name:    types.StringValue(data.Nodepool.VolumeType.Name),
-		},
-		VolumeSize:       types.Int32Value(data.Nodepool.VolumeSize),
-		CreatedAt:        types.StringValue(data.Nodepool.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:        types.StringValue(data.Nodepool.CreatedBy),
-		ModifiedAt:       types.StringValue(data.Nodepool.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:       types.StringValue(data.Nodepool.ModifiedBy),
-		ServerGroupId:    types.StringPointerValue(data.Nodepool.ServerGroupId.Get()),
-		AdvancedSettings: converter.MakeNodepoolAdvancedSettingsModel(data.Nodepool.AdvancedSettings),
-	}
+	nodepoolModel := converter.NodepoolResponseToNodepoolModel(data)
 	nodepoolObjectValue, diags := types.ObjectValueFrom(ctx, nodepoolModel.AttributeTypes(), nodepoolModel)
 	state.Nodepool = nodepoolObjectValue
 

@@ -3,17 +3,15 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -30,7 +28,7 @@ func NewVpcInternetGatewayDataSource() datasource.DataSource {
 // vpcInternetGatewayDataSource is the data source implementation.
 type vpcInternetGatewayDataSource struct {
 	config  *scpsdk.Configuration
-	client  *vpc.Client
+	client  *vpcv1d2.Client
 	clients *client.SCPClient
 }
 
@@ -42,27 +40,21 @@ func (d *vpcInternetGatewayDataSource) Metadata(_ context.Context, req datasourc
 // Schema defines the schema for the data source.
 func (d *vpcInternetGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of internet gateway.",
+		Description: "List of internet gateways.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
-					"  - example : 10 \n" +
-					"  - maximum : 10000 \n" +
-					"  - minimum : 1",
+			common.ToSnakeCase("Size"): schema.Int32Attribute{
+				Description: "Size \n" +
+					"  - example : 20 \n" +
+					"  - minimum : 0",
 				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
-				},
+				Computed: true,
 			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
-					"  - maxLength : 64 \n" +
-					"  - minLength : 1",
+			common.ToSnakeCase("Page"): schema.Int32Attribute{
+				Description: "Page \n" +
+					"  - example : 0 \n" +
+					"  - minimum : 0",
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
-				},
+				Computed: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
 				Description: "Sort \n" +
@@ -71,16 +63,16 @@ func (d *vpcInternetGatewayDataSource) Schema(_ context.Context, _ datasource.Sc
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "Internet Gateway ID \n" +
-					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+					"  - example : 023c57b14f11483689338d085e061492",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "Internet Gateway Name \n" +
-					"  - example : internetGatewayName",
+					"  - example : IGW_VPCname",
 				Optional: true,
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Type \n" +
+				Description: "Internet Gateway Type \n" +
 					"  - example : IGW | GGW | SIGW",
 				Optional: true,
 			},
@@ -100,68 +92,78 @@ func (d *vpcInternetGatewayDataSource) Schema(_ context.Context, _ datasource.Sc
 				Optional: true,
 			},
 			common.ToSnakeCase("InternetGateways"): schema.ListNestedAttribute{
-				Description: "A list of internet gateway.",
+				Description: "A list of internet gateways.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "id",
+							Description: "Internet Gateway ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "name",
+							Description: "Internet Gateway Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "account id",
+							Description: "Account ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "type",
+							Description: "Internet Gateway Type",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "description",
+							Description: "Description",
 							Computed:    true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "vpc id",
+							Description: "VPC ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("VpcName"): schema.StringAttribute{
-							Description: "vpc name",
+							Description: "VPC Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Loggable"): schema.BoolAttribute{
-							Description: "loggable",
+							Description: "NAT Loggable",
 							Computed:    true,
 						},
 						common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-							Description: "firewall id",
+							Description: "Firewall ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "created at",
+							Description: "Created At",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "created by",
+							Description: "Created By",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "modified at",
+							Description: "Modified At",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "modified by",
+							Description: "Modified By",
 							Computed:    true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "state",
+							Description: "State",
 							Computed:    true,
 						},
 					},
 				},
+			},
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "Total count",
+				Computed:    true,
+			},
+			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
+				Description: "List of sort condition \n" +
+					"  - example : [\"created_at:desc\"]",
+				ElementType: types.StringType,
+				Computed:    true,
 			},
 		},
 	}
@@ -185,13 +187,13 @@ func (d *vpcInternetGatewayDataSource) Configure(_ context.Context, req datasour
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *vpcInternetGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpc.InternetGatewayDataSource
+	var state vpcv1d2.InternetGatewayDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -199,7 +201,7 @@ func (d *vpcInternetGatewayDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	data, err := d.client.GetInternetGatewayList(ctx, state)
+	data, err := d.client.ListInternetGateways(ctx, state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -211,7 +213,7 @@ func (d *vpcInternetGatewayDataSource) Read(ctx context.Context, req datasource.
 
 	// Map response body to model
 	for _, igw := range data.InternetGateways {
-		igwState := vpc.InternetGateway{
+		igwState := vpcv1d2.InternetGateway{
 			Id:          types.StringValue(igw.Id),
 			Name:        types.StringValue(igw.Name),
 			AccountId:   types.StringValue(igw.AccountId),
@@ -220,7 +222,7 @@ func (d *vpcInternetGatewayDataSource) Read(ctx context.Context, req datasource.
 			VpcId:       types.StringValue(igw.VpcId),
 			VpcName:     types.StringValue(igw.VpcName),
 			Loggable:    types.BoolValue(igw.GetLoggable()),
-			FirewallId:  types.StringPointerValue(igw.FirewallId.Get()),
+			FirewallId:  types.StringValue(igw.GetFirewallId()),
 			CreatedAt:   types.StringValue(igw.CreatedAt.Format(time.RFC3339)),
 			CreatedBy:   types.StringValue(igw.CreatedBy),
 			ModifiedAt:  types.StringValue(igw.ModifiedAt.Format(time.RFC3339)),
@@ -229,6 +231,13 @@ func (d *vpcInternetGatewayDataSource) Read(ctx context.Context, req datasource.
 		}
 
 		state.InternetGateways = append(state.InternetGateways, igwState)
+	}
+
+	state.TotalCount = types.Int32Value(int32(data.Count))
+	state.Page = types.Int32Value(data.Page)
+	state.Size = types.Int32Value(data.Size)
+	for _, sortVal := range data.Sort {
+		state.SortFinal = append(state.SortFinal, types.StringValue(sortVal))
 	}
 
 	// Set state

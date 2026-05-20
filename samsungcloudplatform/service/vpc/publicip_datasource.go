@@ -3,17 +3,17 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpcV1Dot2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -30,7 +30,7 @@ func NewVpcPublicipDataSource() datasource.DataSource {
 // vpcPublicipDataSource is the data source implementation.
 type vpcPublicipDataSource struct {
 	config  *scpsdk.Configuration
-	client  *vpc.Client
+	client  *vpcV1Dot2.Client
 	clients *client.SCPClient
 }
 
@@ -42,26 +42,27 @@ func (d *vpcPublicipDataSource) Metadata(_ context.Context, req datasource.Metad
 // Schema defines the schema for the data source.
 func (d *vpcPublicipDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of publicip.",
+		Description: "List of PublicIPs.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
-					"  - example : 10 \n" +
-					"  - maximum : 10000 \n" +
-					"  - minimum : 1",
+			// Input
+			common.ToSnakeCase("Size"): schema.Int32Attribute{
+				Description: "Size \n" +
+					"  - example : 20 \n" +
+					"  - minimum : 0",
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
+					int32validator.AtLeast(0),
 				},
 			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
-					"  - maxLength : 64 \n" +
-					"  - minLength : 1",
+			common.ToSnakeCase("Page"): schema.Int32Attribute{
+				Description: "Page \n" +
+					"  - example : 0 \n" +
+					"  - minimum : 0",
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
+				Computed: true,
+				Validators: []validator.Int32{
+					int32validator.AtLeast(0),
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
@@ -71,31 +72,31 @@ func (d *vpcPublicipDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 			},
 			common.ToSnakeCase("IpAddress"): schema.StringAttribute{
 				Description: "IP Address \n" +
-					"  - example : 172.24.4.2",
+					"  - example : 192.167.0.5",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State \n" +
-					"  - example : RESERVED | ATTACHED",
+				Description: "PublicIP State \n" +
+					"  - example : RESERVED | ATTACHED | DELETED",
 				Optional: true,
 			},
 			common.ToSnakeCase("AttachedResourceType"): schema.StringAttribute{
-				Description: "Attached Resource Type \n" +
-					"  - example : VM | LB | BM | NAT_GW",
+				Description: "PublicIP Attached Resource Type \n" +
+					"  - example : VM | ALB | LB | BM | DB | NAT_GW | GPU_NODE | VPN | GPU_SERVER | EPAS | POSTGRESQL | MARIADB | SQLSERVER | CACHESTORE | SCALABLEDB | EVENTSTREAMS | SEARCHENGINE | VERTICA | SUBNET | MYSQL",
 				Optional: true,
 			},
 			common.ToSnakeCase("AttachedResourceName"): schema.StringAttribute{
-				Description: "Attached Resource Name \n" +
-					"  - example : VirtualServerName",
+				Description: "PublicIP Attached Resource Name \n" +
+					"  - example : Attached NAT Gateway Name",
 				Optional: true,
 			},
 			common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
-				Description: "Attached Resource ID \n" +
-					"  - example : 4fa0e75475df40fbb1ab4e74bd60ff37",
+				Description: "PublicIP Attached Resource ID \n" +
+					"  - example : 37e6db41f5124184a43251a63124cdc9",
 				Optional: true,
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Type \n" +
+				Description: "PublicIP Type \n" +
 					"  - example : IGW | GGW | SIGW",
 				Optional: true,
 			},
@@ -104,61 +105,68 @@ func (d *vpcPublicipDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
+
+			// Output
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "Count \n" +
+					"  - example : 20",
+				Computed: true,
+			},
 			common.ToSnakeCase("Publicips"): schema.ListNestedAttribute{
-				Description: "A list of publicip.",
+				Description: "A list of public IPs.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
-						},
-						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Type",
-							Computed:    true,
-						},
-						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
+							Description: "PublicIP ID",
 							Computed:    true,
 						},
 						common.ToSnakeCase("IpAddress"): schema.StringAttribute{
-							Description: "IpAddress",
+							Description: "IP Address",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
+							Description: "Account ID",
 							Computed:    true,
 						},
-						common.ToSnakeCase("AttachedResourceType"): schema.StringAttribute{
-							Description: "AttachedResourceType",
-							Computed:    true,
-						},
-						common.ToSnakeCase("AttachedResourceName"): schema.StringAttribute{
-							Description: "AttachedResourceName",
-							Computed:    true,
-						},
-						common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
-							Description: "AttachedResourceId",
+						common.ToSnakeCase("Type"): schema.StringAttribute{
+							Description: "PublicIP Type",
 							Computed:    true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
+							Description: "PublicIP State",
+							Computed:    true,
+						},
+						common.ToSnakeCase("Description"): schema.StringAttribute{
+							Description: "PublicIP Description",
+							Computed:    true,
+						},
+						common.ToSnakeCase("AttachedResourceType"): schema.StringAttribute{
+							Description: "PublicIP Attached Resource Type",
+							Computed:    true,
+						},
+						common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
+							Description: "PublicIP Attached Resource ID",
+							Computed:    true,
+						},
+						common.ToSnakeCase("AttachedResourceName"): schema.StringAttribute{
+							Description: "PublicIP Attached Resource Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
+							Description: "Created At",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
+							Description: "Created By",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
+							Description: "Modified At",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
+							Description: "Modified By",
 							Computed:    true,
 						},
 					},
@@ -186,13 +194,13 @@ func (d *vpcPublicipDataSource) Configure(_ context.Context, req datasource.Conf
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *vpcPublicipDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpc.PublicipDataSource
+	var state vpcV1Dot2.PublicipDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -200,39 +208,54 @@ func (d *vpcPublicipDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	data, err := d.client.GetPublicipList(ctx, state)
+	data, err := d.client.ListPublicips(ctx, state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error reading public IP",
-			"Could not read public IP, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error reading public IP list",
+			"Could not read public IP list, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
 
+	state.TotalCount = types.Int32Value(data.Count)
+	state.Page = types.Int32Value(data.Page)
+	state.Size = types.Int32Value(data.Size)
+	if len(data.Sort) > 0 {
+		state.Sort = types.StringValue(data.Sort[0])
+	}
+
 	// Map response body to model
 	for _, publicip := range data.Publicips {
-		publicipState := vpc.Publicip{
-			IpAddress:            types.StringValue(publicip.IpAddress),
-			CreatedAt:            types.StringValue(publicip.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:            types.StringValue(publicip.CreatedBy),
-			Description:          types.StringPointerValue(publicip.Description.Get()),
-			AttachedResourceName: types.StringPointerValue(publicip.AttachedResourceName.Get()),
-			AttachedResourceId:   types.StringPointerValue(publicip.AttachedResourceId.Get()),
-			Id:                   types.StringValue(publicip.Id),
-			ModifiedAt:           types.StringValue(publicip.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:           types.StringValue(publicip.ModifiedBy),
-			Type:                 types.StringValue(string(publicip.Type)),
-			AccountId:            types.StringValue(publicip.AccountId),
-			State:                types.StringValue(string(publicip.State)),
+		publicipState := vpcV1Dot2.PublicIp{
+			IpAddress:   types.StringValue(publicip.IpAddress),
+			CreatedAt:   types.StringValue(publicip.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:   types.StringValue(publicip.CreatedBy),
+			Description: types.StringPointerValue(publicip.Description.Get()),
+			Id:          types.StringValue(publicip.Id),
+			ModifiedAt:  types.StringValue(publicip.ModifiedAt.Format(time.RFC3339)),
+			ModifiedBy:  types.StringValue(publicip.ModifiedBy),
+			Type:        types.StringValue(string(publicip.Type)),
+			AccountId:   types.StringValue(publicip.AccountId),
+			State:       types.StringValue(string(publicip.State)),
 		}
-		attachedResourceType := publicip.AttachedResourceType.Get()
-		if attachedResourceType != nil {
-			attachedResourceTypeStr := string(*attachedResourceType)
-			publicipState.AttachedResourceType = types.StringPointerValue(&attachedResourceTypeStr)
-		} else {
-			publicipState.AttachedResourceType = types.StringPointerValue(nil)
+
+		// Handle nullable AttachedResourceType
+		if publicip.AttachedResourceType.Get() != nil {
+			attachedResourceType := string(*publicip.AttachedResourceType.Get())
+			publicipState.AttachedResourceType = types.StringValue(attachedResourceType)
 		}
+
+		// Handle nullable AttachedResourceId
+		if publicip.AttachedResourceId.Get() != nil {
+			publicipState.AttachedResourceId = types.StringValue(*publicip.AttachedResourceId.Get())
+		}
+
+		// Handle nullable AttachedResourceName
+		if publicip.AttachedResourceName.Get() != nil {
+			publicipState.AttachedResourceName = types.StringValue(*publicip.AttachedResourceName.Get())
+		}
+
 		state.Publicips = append(state.Publicips, publicipState)
 	}
 

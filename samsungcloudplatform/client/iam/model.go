@@ -62,6 +62,24 @@ func (m AccessKey) AttributeTypes() map[string]attr.Type {
 	}
 }
 
+type AccessKeyV1Dot4 struct {
+	AccessKey           types.String `tfsdk:"access_key"`
+	CreatedAt           types.String `tfsdk:"created_at"`
+	ExpirationTimestamp types.String `tfsdk:"expiration_timestamp"`
+	Id                  types.String `tfsdk:"id"`
+	IsEnabled           types.Bool   `tfsdk:"is_enabled"`
+}
+
+func (m AccessKeyV1Dot4) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"access_key":           types.StringType,
+		"created_at":           types.StringType,
+		"expiration_timestamp": types.StringType,
+		"id":                   types.StringType,
+		"is_enabled":           types.BoolType,
+	}
+}
+
 type GroupDataSource struct {
 	Size   types.Int32  `tfsdk:"size"`
 	Page   types.Int32  `tfsdk:"page"`
@@ -86,15 +104,15 @@ type GroupResource struct {
 }
 
 type GroupMembersDataResource struct {
-	GroupId      types.String `tfsdk:"group_id"`
-	Size         types.Int32  `tfsdk:"size"`
-	Page         types.Int32  `tfsdk:"page"`
-	Sort         types.String `tfsdk:"sort"`
-	UserName     types.String `tfsdk:"user_name"`
-	UserEmail    types.String `tfsdk:"user_email"`
-	CreatorName  types.String `tfsdk:"creator_name"`
-	CreatorEmail types.String `tfsdk:"creator_email"`
-	GroupMembers []Member     `tfsdk:"group_members"`
+	GroupId      types.String   `tfsdk:"group_id"`
+	Size         types.Int32    `tfsdk:"size"`
+	Page         types.Int32    `tfsdk:"page"`
+	Sort         types.String   `tfsdk:"sort"`
+	UserName     types.String   `tfsdk:"user_name"`
+	UserEmail    types.String   `tfsdk:"user_email"`
+	CreatorName  types.String   `tfsdk:"creator_name"`
+	CreatorEmail types.String   `tfsdk:"creator_email"`
+	GroupMembers []MemberV1Dot4 `tfsdk:"group_members"`
 }
 
 type GroupMemberResource struct {
@@ -302,6 +320,57 @@ func (v Member) AttributeTypes() map[string]attr.Type {
 	}
 }
 
+type MemberV1Dot4 struct {
+	CreatedAt          types.String `tfsdk:"created_at"`
+	CreatedBy          types.String `tfsdk:"created_by"`
+	CreatorCreatedAt   types.String `tfsdk:"creator_created_at"`
+	CreatorEmail       types.String `tfsdk:"creator_email"`
+	CreatorLastLoginAt types.String `tfsdk:"creator_last_login_at"`
+	CreatorName        types.String `tfsdk:"creator_name"`
+	Groups             []GroupInfo  `tfsdk:"groups"`
+	UserCreatedAt      types.String `tfsdk:"user_created_at"`
+	UserEmail          types.String `tfsdk:"user_email"`
+	UserId             types.String `tfsdk:"user_id"`
+	UserLastLoginAt    types.String `tfsdk:"user_last_login_at"`
+	UserName           types.String `tfsdk:"user_name"`
+}
+
+func (v MemberV1Dot4) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"created_at":            types.StringType,
+		"created_by":            types.StringType,
+		"creator_created_at":    types.StringType,
+		"creator_email":         types.StringType,
+		"creator_last_login_at": types.StringType,
+		"creator_name":          types.StringType,
+		"groups": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"id":   types.StringType,
+					"name": types.StringType,
+				},
+			},
+		},
+		"user_created_at":    types.StringType,
+		"user_email":         types.StringType,
+		"user_id":            types.StringType,
+		"user_last_login_at": types.StringType,
+		"user_name":          types.StringType,
+	}
+}
+
+type GroupInfo struct {
+	Id   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+}
+
+func (v GroupInfo) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":   types.StringType,
+		"name": types.StringType,
+	}
+}
+
 type PolicyDatasource struct {
 	Size       types.Int32  `tfsdk:"size"`
 	Page       types.Int32  `tfsdk:"page"`
@@ -402,6 +471,18 @@ type Statement struct {
 type Principal struct {
 	PrincipalString types.String `tfsdk:"principal_string"`
 	PrincipalMap    types.Map    `tfsdk:"principal_map"`
+}
+
+type PolicyBasic struct {
+	Id   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+}
+
+func (v PolicyBasic) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":   types.StringType,
+		"name": types.StringType,
+	}
 }
 
 type RoleDataSource struct {
@@ -537,14 +618,14 @@ type RolePolicyBindingsResource struct {
 }
 
 type UserDataSource struct {
-	Size      types.Int32  `tfsdk:"size"`
-	Page      types.Int32  `tfsdk:"page"`
-	Sort      types.String `tfsdk:"sort"`
-	Email     types.String `tfsdk:"email"`
-	UserName  types.String `tfsdk:"user_name"`
-	Type      types.String `tfsdk:"type"`
-	AccountId types.String `tfsdk:"account_id"`
-	Users     []User       `tfsdk:"users"`
+	Size      types.Int32               `tfsdk:"size"`
+	Page      types.Int32               `tfsdk:"page"`
+	Sort      types.String              `tfsdk:"sort"`
+	Email     types.String              `tfsdk:"email"`
+	UserName  types.String              `tfsdk:"user_name"`
+	Type      types.String              `tfsdk:"type"`
+	AccountId types.String              `tfsdk:"account_id"`
+	Users     []UserWithoutPolicyDetail `tfsdk:"users"`
 }
 
 type UserDataSourceDetail struct {
@@ -568,32 +649,34 @@ type UserResource struct {
 }
 
 type User struct {
-	AccountId            types.String `tfsdk:"account_id"`
-	CompanyName          types.String `tfsdk:"company_name"`
-	ConsoleUrl           types.String `tfsdk:"console_url"`
-	CreatedAt            types.String `tfsdk:"created_at"`
-	CreatedBy            types.String `tfsdk:"created_by"`
-	Description          types.String `tfsdk:"description"`
-	DstOffset            types.String `tfsdk:"dst_offset"`
-	Email                types.String `tfsdk:"email"`
-	EmailAuthenticated   types.Bool   `tfsdk:"email_authenticated"`
-	FirstName            types.String `tfsdk:"first_name"`
-	Id                   types.String `tfsdk:"id"`
-	LastLoginAt          types.String `tfsdk:"last_login_at"`
-	LastName             types.String `tfsdk:"last_name"`
-	LastPasswordUpdateAt types.String `tfsdk:"last_password_update_at"`
-	ModifiedAt           types.String `tfsdk:"modified_at"`
-	ModifiedBy           types.String `tfsdk:"modified_by"`
-	Name                 types.String `tfsdk:"name"`
-	Password             types.String `tfsdk:"password"`
-	PasswordReuseCount   types.Int32  `tfsdk:"password_reuse_count"`
-	PhoneAuthenticated   types.Bool   `tfsdk:"phone_authenticated"`
-	Policies             []Policy     `tfsdk:"policies"`
-	Timezone             types.String `tfsdk:"timezone"`
-	Type                 types.String `tfsdk:"type"`
-	TzId                 types.String `tfsdk:"tz_id"`
-	UserName             types.String `tfsdk:"user_name"`
-	UtcOffset            types.String `tfsdk:"utc_offset"`
+	AccountId            types.String      `tfsdk:"account_id"`
+	CompanyName          types.String      `tfsdk:"company_name"`
+	ConsoleUrl           types.String      `tfsdk:"console_url"`
+	CreatedAt            types.String      `tfsdk:"created_at"`
+	CreatedBy            types.String      `tfsdk:"created_by"`
+	Description          types.String      `tfsdk:"description"`
+	DstOffset            types.String      `tfsdk:"dst_offset"`
+	Email                types.String      `tfsdk:"email"`
+	EmailAuthenticated   types.Bool        `tfsdk:"email_authenticated"`
+	FirstName            types.String      `tfsdk:"first_name"`
+	Id                   types.String      `tfsdk:"id"`
+	LastLoginAt          types.String      `tfsdk:"last_login_at"`
+	LastName             types.String      `tfsdk:"last_name"`
+	LastPasswordUpdateAt types.String      `tfsdk:"last_password_update_at"`
+	ModifiedAt           types.String      `tfsdk:"modified_at"`
+	ModifiedBy           types.String      `tfsdk:"modified_by"`
+	Name                 types.String      `tfsdk:"name"`
+	Password             types.String      `tfsdk:"password"`
+	PasswordReuseCount   types.Int32       `tfsdk:"password_reuse_count"`
+	PhoneAuthenticated   types.Bool        `tfsdk:"phone_authenticated"`
+	Policies             []Policy          `tfsdk:"policies"`
+	Timezone             types.String      `tfsdk:"timezone"`
+	Type                 types.String      `tfsdk:"type"`
+	TzId                 types.String      `tfsdk:"tz_id"`
+	UserName             types.String      `tfsdk:"user_name"`
+	UtcOffset            types.String      `tfsdk:"utc_offset"`
+	AccessKeys           []AccessKeyV1Dot4 `tfsdk:"access_keys"`
+	Groups               []GroupInfo       `tfsdk:"groups"`
 }
 
 func (v User) AttributeTypes() map[string]attr.Type {
@@ -628,6 +711,113 @@ func (v User) AttributeTypes() map[string]attr.Type {
 		"tz_id":      types.StringType,
 		"user_name":  types.StringType,
 		"utc_offset": types.StringType,
+		"access_keys": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"access_key":           types.StringType,
+					"created_at":           types.StringType,
+					"expiration_timestamp": types.StringType,
+					"id":                   types.StringType,
+					"is_enabled":           types.BoolType,
+				},
+			},
+		},
+		"groups": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"id":   types.StringType,
+					"name": types.StringType,
+				},
+			},
+		},
+	}
+}
+
+type UserWithoutPolicyDetail struct {
+	AccountId            types.String      `tfsdk:"account_id"`
+	CompanyName          types.String      `tfsdk:"company_name"`
+	ConsoleUrl           types.String      `tfsdk:"console_url"`
+	CreatedAt            types.String      `tfsdk:"created_at"`
+	CreatedBy            types.String      `tfsdk:"created_by"`
+	Description          types.String      `tfsdk:"description"`
+	DstOffset            types.String      `tfsdk:"dst_offset"`
+	Email                types.String      `tfsdk:"email"`
+	EmailAuthenticated   types.Bool        `tfsdk:"email_authenticated"`
+	FirstName            types.String      `tfsdk:"first_name"`
+	Id                   types.String      `tfsdk:"id"`
+	LastLoginAt          types.String      `tfsdk:"last_login_at"`
+	LastName             types.String      `tfsdk:"last_name"`
+	LastPasswordUpdateAt types.String      `tfsdk:"last_password_update_at"`
+	ModifiedAt           types.String      `tfsdk:"modified_at"`
+	ModifiedBy           types.String      `tfsdk:"modified_by"`
+	Name                 types.String      `tfsdk:"name"`
+	Password             types.String      `tfsdk:"password"`
+	PasswordReuseCount   types.Int32       `tfsdk:"password_reuse_count"`
+	PhoneAuthenticated   types.Bool        `tfsdk:"phone_authenticated"`
+	Policies             []PolicyBasic     `tfsdk:"policies"`
+	Timezone             types.String      `tfsdk:"timezone"`
+	Type                 types.String      `tfsdk:"type"`
+	TzId                 types.String      `tfsdk:"tz_id"`
+	UserName             types.String      `tfsdk:"user_name"`
+	UtcOffset            types.String      `tfsdk:"utc_offset"`
+	AccessKeys           []AccessKeyV1Dot4 `tfsdk:"access_keys"`
+	Groups               []GroupInfo       `tfsdk:"groups"`
+}
+
+func (v UserWithoutPolicyDetail) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"account_id":              types.StringType,
+		"company_name":            types.StringType,
+		"console_url":             types.StringType,
+		"created_at":              types.StringType,
+		"created_by":              types.StringType,
+		"description":             types.StringType,
+		"dst_offset":              types.StringType,
+		"email":                   types.StringType,
+		"email_authenticated":     types.BoolType,
+		"first_name":              types.StringType,
+		"id":                      types.StringType,
+		"last_login_at":           types.StringType,
+		"last_name":               types.StringType,
+		"last_password_update_at": types.StringType,
+		"modified_at":             types.StringType,
+		"modified_by":             types.StringType,
+		"name":                    types.StringType,
+		"password":                types.StringType,
+		"password_reuse_count":    types.Int32Type,
+		"phone_authenticated":     types.BoolType,
+		"policies": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"id":   types.StringType,
+					"name": types.StringType,
+				},
+			},
+		},
+		"timezone":   types.StringType,
+		"type":       types.StringType,
+		"tz_id":      types.StringType,
+		"user_name":  types.StringType,
+		"utc_offset": types.StringType,
+		"access_keys": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"access_key":           types.StringType,
+					"created_at":           types.StringType,
+					"expiration_timestamp": types.StringType,
+					"id":                   types.StringType,
+					"is_enabled":           types.BoolType,
+				},
+			},
+		},
+		"groups": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"id":   types.StringType,
+					"name": types.StringType,
+				},
+			},
+		},
 	}
 }
 

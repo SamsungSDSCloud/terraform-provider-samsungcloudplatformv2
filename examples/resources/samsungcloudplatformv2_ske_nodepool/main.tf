@@ -20,4 +20,8 @@ resource "samsungcloudplatformv2_ske_nodepool" "nodepool" {
   taints = var.taints
   server_group_id = var.server_group_id
   advanced_settings = var.advanced_settings
+  linked_resources = var.linked_resources
+  volume_max_iops = var.volume_max_iops
+  volume_max_throughput = var.volume_max_throughput
+  scp_gpu_driver = var.scp_gpu_driver
 }

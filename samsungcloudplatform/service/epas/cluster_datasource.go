@@ -205,6 +205,10 @@ func (d *epasClusterDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 							},
 						},
 					},
+					common.ToSnakeCase("IsKernelPatchable"): schema.BoolAttribute{
+						Description: "IsKernelPatchable",
+						Computed:    true,
+					},
 					common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 						Description: "MaintenanceOption",
 						Computed:    true,
@@ -346,10 +350,19 @@ func (d *epasClusterDataSource) Read(ctx context.Context, req datasource.ReadReq
 		allowableIpAddresses[i] = types.StringValue(allowableIpAddress)
 	}
 
-	backupOption := epas.BackupOption{
-		ArchiveFrequencyMinute: types.StringPointerValue(data.InitConfigOption.BackupOption.Get().ArchiveFrequencyMinute.Get()),
-		RetentionPeriodDay:     types.StringPointerValue(data.InitConfigOption.BackupOption.Get().RetentionPeriodDay.Get()),
-		StartingTimeHour:       types.StringPointerValue(data.InitConfigOption.BackupOption.Get().StartingTimeHour.Get()),
+	var backupOption epas.BackupOption
+	if data.InitConfigOption.BackupOption.Get() == nil {
+		backupOption = epas.BackupOption{
+			ArchiveFrequencyMinute: types.StringNull(),
+			RetentionPeriodDay:     types.StringNull(),
+			StartingTimeHour:       types.StringNull(),
+		}
+	} else {
+		backupOption = epas.BackupOption{
+			ArchiveFrequencyMinute: types.StringPointerValue(data.InitConfigOption.BackupOption.Get().ArchiveFrequencyMinute.Get()),
+			RetentionPeriodDay:     types.StringPointerValue(data.InitConfigOption.BackupOption.Get().RetentionPeriodDay.Get()),
+			StartingTimeHour:       types.StringPointerValue(data.InitConfigOption.BackupOption.Get().StartingTimeHour.Get()),
+		}
 	}
 
 	var initConfigOption = epas.InitConfigOption{
@@ -414,6 +427,7 @@ func (d *epasClusterDataSource) Read(ctx context.Context, req datasource.ReadReq
 		InitConfigOption:     initConfigOption,
 		InstanceCount:        types.Int32PointerValue(data.InstanceCount),
 		InstanceGroups:       InstanceGroups,
+		IsKernelPatchable:    types.BoolValue(data.IsKernelPatchable),
 		MaintenanceOption:    MaintenanceOption,
 		Name:                 types.StringValue(data.Name),
 		OriginClusterId:      types.StringPointerValue(data.OriginClusterId.Get()),
@@ -426,12 +440,13 @@ func (d *epasClusterDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Timezone:             types.StringValue(data.Timezone),
 		VipPublicIpId:        types.StringPointerValue(data.VipPublicIpId.Get()),
 		//VipPublicIpAddress:   types.StringPointerValue(data.VipPublicIpAddress.Get()),
-		VirtualIpAddress:     types.StringPointerValue(data.VirtualIpAddress.Get()),
-		CreatedAt:            types.StringValue(data.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:            types.StringValue(data.CreatedBy),
-		ModifiedAt:           types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:           types.StringValue(data.ModifiedBy),
+		VirtualIpAddress: types.StringPointerValue(data.VirtualIpAddress.Get()),
+		CreatedAt:        types.StringValue(data.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:        types.StringValue(data.CreatedBy),
+		ModifiedAt:       types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:       types.StringValue(data.ModifiedBy),
 	}
+
 	epasObjectValue, _ := types.ObjectValueFrom(ctx, epasState.AttributeTypes(), epasState)
 	state.ClusterDetail = epasObjectValue
 

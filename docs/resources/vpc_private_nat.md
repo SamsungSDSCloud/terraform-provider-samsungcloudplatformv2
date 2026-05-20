@@ -16,30 +16,38 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_vpc_private_nat" "privatenat" {
-  name = var.private_nat_name
-  direct_connect_id = var.private_nat_direct_connect_id
   cidr = var.private_nat_cidr
   description = var.private_nat_description
+  name = var.private_nat_name
+  service_resource_id = var.private_nat_service_resource_id
+  service_type = var.private_nat_service_type
   tags = var.private_nat_tags
 }
 
 
 output "private_nat_output" {
-  value = samsungcloudplatformv2_vpc_private_nat.privatenat
+  value = {
+    private_nat: samsungcloudplatformv2_vpc_private_nat.privatenat.private_nat,
+  }
 }
 
+
+variable "private_nat_cidr" {
+  type    = string
+  default = ""
+}
 
 variable "private_nat_name" {
   type    = string
   default = ""
 }
 
-variable "private_nat_direct_connect_id" {
+variable "private_nat_service_resource_id" {
   type    = string
   default = ""
 }
 
-variable "private_nat_cidr" {
+variable "private_nat_service_type" {
   type    = string
   default = ""
 }
@@ -60,45 +68,57 @@ variable "private_nat_tags" {
 
 ### Required
 
-- `cidr` (String) CIDR 
-  - example : 192.168.10.0/24
-- `direct_connect_id` (String) Direct Connect ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+- `cidr` (String) Private NAT IP range 
+  - example : 192.167.0.0/24
 - `name` (String) Private NAT Name 
-  - example : privateNatName
-  - minLength : 3
-  - maxLength : 20
-  - pattern : ^[a-zA-Z0-9]+$
+  - example : PrivateNatName
+- `service_resource_id` (String) Private NAT connected Service Resource ID 
+  - example : 3f342bf9a557405b997c2cf48c89cbc2
+- `service_type` (String) Private NAT connected Service Type 
+  - example : DIRECT_CONNECT
 
 ### Optional
 
-- `description` (String) Description
-  - example : Private NAT description
-  - maxLength : 50
+- `description` (String) Description 
+  - example : PrivateNat Description
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
-- `private_nat` (Attributes) Private NAT (see [below for nested schema](#nestedatt--private_nat))
+- `id` (String) Private NAT ID 
+  - example : 12f56e27070248a6a240a497e43fbe18
+- `private_nat` (Attributes) Private NAT details (see [below for nested schema](#nestedatt--private_nat))
 
 <a id="nestedatt--private_nat"></a>
 ### Nested Schema for `private_nat`
 
 Read-Only:
 
-- `cidr` (String) Cidr
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `direct_connect_id` (String) DirectConnectId
-- `direct_connect_name` (String) DirectConnectName
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `state` (String) State
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) Account ID 
+  - example : f1e6c81a2b054582878cb9724dc2ce9f
+- `cidr` (String) Private NAT IP range 
+  - example : 192.167.0.0/24
+- `created_at` (String) Created At 
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) Created By 
+  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+- `description` (String) Description 
+  - example : PrivateNat Description
+- `id` (String) Private NAT ID 
+  - example : 12f56e27070248a6a240a497e43fbe18
+- `modified_at` (String) Modified At 
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By 
+  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) Private NAT Name 
+  - example : PrivateNatName
+- `service_resource_id` (String) Private NAT connected Service Resource ID 
+  - example : 3f342bf9a557405b997c2cf48c89cbc2
+- `service_resource_name` (String) Private NAT connected Service Resource Name 
+  - example : PrivateNatName
+- `service_type` (String) Private NAT connected Service Type 
+  - example : DIRECT_CONNECT
+- `state` (String) Private NAT State 
+  - example : ACTIVE

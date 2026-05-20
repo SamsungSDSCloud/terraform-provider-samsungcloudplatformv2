@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_private_nats Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  list of private nats.
+  List of private nats.
 ---
 
 # samsungcloudplatformv2_vpc_private_nats (Data Source)
 
-list of private nats.
+List of private nats.
 
 ## Example Usage
 
@@ -16,18 +16,87 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_private_nats" "privatenats" {
-  size = var.private_nats_size
+  size                  = var.size
+  page                  = var.page
+  sort                  = var.sort
+  name                  = var.name
+  cidr                  = var.cidr
+  vpc_id                = var.vpc_id
+  service_resource_id   = var.service_resource_id
+  service_type          = var.service_type
+  service_resource_name = var.service_resource_name
+  state                 = var.state
 }
 
 
 output "privatenats" {
-  value = data.samsungcloudplatformv2_vpc_private_nats.privatenats
+  value = {
+    count : data.samsungcloudplatformv2_vpc_private_nats.privatenats.total_count
+    page : data.samsungcloudplatformv2_vpc_private_nats.privatenats.page
+    private_nats : data.samsungcloudplatformv2_vpc_private_nats.privatenats.private_nats
+    size : data.samsungcloudplatformv2_vpc_private_nats.privatenats.size
+    sort : data.samsungcloudplatformv2_vpc_private_nats.privatenats.sort
+  }
 }
 
+variable "size" {
+  type        = number
+  description = "size"
+  default     = 0
+}
 
-variable "private_nats_size" {
-  type    = number
-  default = 0
+variable "page" {
+  type        = number
+  description = "page"
+  default     = 0
+}
+
+variable "sort" {
+  type        = string
+  description = "sort"
+  default     = ""
+}
+
+variable "name" {
+  type        = string
+  description = "Private NAT Name"
+  default     = ""
+}
+
+variable "cidr" {
+  type        = string
+  description = "Private NAT IP range"
+  default     = ""
+}
+
+variable "vpc_id" {
+  type        = string
+  description = "VPC Id"
+  default     = ""
+}
+
+variable "service_resource_id" {
+  type        = string
+  description = "Private NAT connected Service Resource ID"
+  default     = ""
+}
+
+variable "service_type" {
+  type        = string
+  description = "Private NAT connected Service Type"
+  default     = ""
+}
+
+variable "service_resource_name" {
+  type        = string
+  description = "Private NAT connected Service Resource Name"
+  default     = ""
+}
+
+variable "state" {
+  type        = string
+  description = "Private NAT State"
+  default     = ""
 }
 ```
 
@@ -37,49 +106,61 @@ variable "private_nats_size" {
 ### Optional
 
 - `cidr` (String) Private NAT IP range 
-  - example: 192.168.10.0/24
-- `direct_connect_id` (String) Direct Connect Id 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
-- `direct_connect_name` (String) Direct Connect Name 
-  - example : directConnectName
-- `id` (String) Private NAT Id 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: 192.167.0.0/24
 - `name` (String) Private NAT Name 
-  - example : privateNatName
+  - example : PrivateNatName
 - `page` (Number) Page 
   - example : 0 
   - minimum : 0
+- `service_resource_id` (String) Private NAT connected Service Resource ID 
+  - example : 3f342bf9a557405b997c2cf48c89cbc2
+- `service_resource_name` (String) Private NAT connected Service Resource Name 
+  - example : Service Resource Name
+- `service_type` (String) Private NAT connected Service Type 
+  - example : DIRECT_CONNECT | TRANSIT_GATEWAY
 - `size` (Number) Size 
   - example : 20 
   - minimum : 0
 - `sort` (String) Sort 
   - example : created_at:desc
-- `state` (String) State 
-  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
+- `state` (String) Private NAT State 
+  - example : CREATING | ACTIVE | DELETING | DELETED | ERROR
 - `vpc_id` (String) VPC Id 
   - example : 7df8abb4912e4709b1cb237daccca7a8
-- `vpc_name` (String) VPC Name 
-  - example : vpcName
 
 ### Read-Only
 
 - `private_nats` (Attributes List) A list of private nat. (see [below for nested schema](#nestedatt--private_nats))
+- `total_count` (Number) count
 
 <a id="nestedatt--private_nats"></a>
 ### Nested Schema for `private_nats`
 
 Read-Only:
 
-- `cidr` (String) Cidr
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `direct_connect_id` (String) DirectConnectId
-- `direct_connect_name` (String) DirectConnectName
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `state` (String) State
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) Account ID 
+  - example : f1e6c81a2b054582878cb9724dc2ce9f
+- `cidr` (String) Private NAT IP range 
+  - example : 192.167.0.0/24
+- `created_at` (String) Created At 
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) Created By 
+  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+- `description` (String) Description 
+  - example : PrivateNat Description
+- `id` (String) Private NAT ID 
+  - example : 12f56e27070248a6a240a497e43fbe18
+- `modified_at` (String) Modified At 
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By 
+  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) Private NAT Name 
+  - example : PrivateNatName
+- `service_resource_id` (String) Private NAT connected Service Resource ID 
+  - example : 3f342bf9a557405b997c2cf48c89cbc2
+- `service_resource_name` (String) Private NAT connected Service Resource Name 
+  - example : PrivateNatName
+- `service_type` (String) Private NAT connected Service Type 
+  - example : DIRECT_CONNECT
+- `state` (String) Private NAT State 
+  - example : ACTIVE

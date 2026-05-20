@@ -3,13 +3,17 @@ package postgresql
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/postgresql"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/database"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpPostgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/postgresql/1.0"
+	scpPostgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/postgresql/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,9 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
-	"strings"
-	"time"
 )
 
 var (
@@ -56,7 +57,7 @@ func (r *postgresqlClusterResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
 				Description: "Allowed IP addresses list  \n" +
 					"  - example: ['192.168.10.1/32']",
-				Required: true,
+				Required:    true,
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("DbaasEngineVersionId"): schema.StringAttribute{
@@ -161,16 +162,10 @@ func (r *postgresqlClusterResource) Schema(_ context.Context, _ resource.SchemaR
 									common.ToSnakeCase("Id"): schema.StringAttribute{
 										Description: "Id",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
 										Description: "Name",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
 										Description: "Role type \n" +
@@ -394,7 +389,7 @@ func (r *postgresqlClusterResource) Create(ctx context.Context, req resource.Cre
 	clusterId := data.Resource.Id
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -482,7 +477,7 @@ func (r *postgresqlClusterResource) AsyncPollingTags(ctx context.Context, cluste
 }
 
 func (r *postgresqlClusterResource) MapGetResponseToState(ctx context.Context,
-	resp *scpPostgresql.PostgresqlClusterDetailResponse, plan postgresql.ClusterResource, tagsMap types.Map) (postgresql.ClusterResource, error) {
+	resp *scpPostgresql.PostgresqlClusterDetailResponseV1Dot1, plan postgresql.ClusterResource, tagsMap types.Map) (postgresql.ClusterResource, error) {
 
 	var allowableIpAddresses types.List
 	if len(resp.AllowableIpAddresses) == 0 {
@@ -576,7 +571,7 @@ func (r *postgresqlClusterResource) MapGetResponseToState(ctx context.Context,
 		Timezone:             types.StringValue(resp.Timezone),
 		VipPublicIpId:        types.StringValue(resp.GetVipPublicIpId()),
 		//VipPublicIpAddress:   types.StringValue(resp.GetVipPublicIpAddress()),
-		VirtualIpAddress:     types.StringValue(resp.GetVirtualIpAddress()),
+		VirtualIpAddress: types.StringValue(resp.GetVirtualIpAddress()),
 	}, nil
 }
 
@@ -761,7 +756,7 @@ func (r *postgresqlClusterResource) handlerUpdateClusterState(ctx context.Contex
 		return err
 	}
 
-	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -817,7 +812,7 @@ func (r *postgresqlClusterResource) handlerUpdateClusterInitConfig(ctx context.C
 		}
 	}
 
-	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -852,7 +847,7 @@ func (r *postgresqlClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx
 		return err
 	}
 
-	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -953,7 +948,7 @@ func (r *postgresqlClusterResource) handlerUpdateInstanceGroups(ctx context.Cont
 							return err
 						}
 
-						immutableBsFields := []string{"Id", "Name", "RoleType", "VolumeType"}
+						immutableBsFields := []string{"RoleType", "VolumeType"}
 
 						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
 							resp.Diagnostics.AddError(
@@ -983,7 +978,7 @@ func (r *postgresqlClusterResource) handlerUpdateInstanceGroups(ctx context.Cont
 			}
 
 			// wait for 구현
-			getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponse, error) {
+			getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponseV1Dot1, error) {
 				return r.client.GetCluster(ctx, id)
 			}
 
@@ -1037,7 +1032,7 @@ func (r *postgresqlClusterResource) Delete(ctx context.Context, req resource.Del
 	}
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpPostgresql.PostgresqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 

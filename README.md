@@ -9,8 +9,7 @@
 
 ## Build Requirements
 Reference development environment 
-  - Terraform 1.1.11 
-  - Go v1.22.5
+  - Terraform 1.1.11
 
 Prepare third-party libraries : go mod tidy
 

@@ -16,15 +16,36 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_transit_gateways" "vpctransitgateway" {
-  size = var.size
-  sort = var.sort
-  page = var.page
-  state = var.state
+  firewall_connection_state = var.firewall_connection_state
+  name                      = var.name
+  id                        = var.id
+  size                      = var.size
+  sort                      = var.sort
+  page                      = var.page
+  state                     = var.state
 }
 
 
 output "vpctransitgateway" {
   value = data.samsungcloudplatformv2_vpc_transit_gateways.vpctransitgateway
+}
+
+
+variable "firewall_connection_state" {
+  type    = string
+  default = ""
+}
+
+
+variable "name" {
+  type    = string
+  default = ""
+}
+
+
+variable "id" {
+  type    = string
+  default = ""
 }
 
 
@@ -55,16 +76,21 @@ variable "state" {
 
 ### Optional
 
+- `firewall_connection_state` (String) - enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]
 - `id` (String) id
-- `name` (String) Name
-- `page` (Number) Page
+- `name` (String) Transit Gateway Name 
+  - example : TransitGatewayName
+- `page` (Number) page
 - `size` (Number) Size (between 1 and 10000)
-- `sort` (String) Sort
-- `state` (String) State
+- `sort` (String) Sort 
+  - example : created_at:desc
+- `state` (String) - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR", "EDITTING"]
 
 ### Read-Only
 
 - `tgws` (Attributes List) A list of tgw. (see [below for nested schema](#nestedatt--tgws))
+- `total_count` (Number) Total count
+  - Example : 20
 
 <a id="nestedatt--tgws"></a>
 ### Nested Schema for `tgws`
@@ -77,6 +103,7 @@ Read-Only:
 - `created_by` (String) CreatedBy
 - `description` (String) Description
   - example : Tgw description
+- `firewall_connection_state` (String) firewall connection state
 - `firewall_ids` (String) FirewallIds
 - `id` (String) Id
 - `modified_at` (String) ModifiedAt

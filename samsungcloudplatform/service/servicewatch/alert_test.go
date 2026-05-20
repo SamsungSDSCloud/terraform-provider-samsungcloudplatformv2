@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -12,6 +13,8 @@ import (
 )
 
 func TestAccAlertResourceTest(t *testing.T) {
+	alertName := fmt.Sprintf("test-acc-alert-%s", time.Now().Format("20060102_150405"))
+
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"samsungcloudplatformv2": providerserver.NewProtocol6WithError(samsungcloudplatform.NewProvider("test")),
@@ -19,19 +22,19 @@ func TestAccAlertResourceTest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// step1. Alert Create
-				Config: testAccAlertCreate("test-acc-alert", "test-acc alert",
+				Config: testAccAlertCreate(alertName, "test-acc alert",
 					map[string]string{
 						"test-acc-key": "test-acc-value"}),
 			},
 			{
 				// step2. Alert Update (Description, Evaluation Method)
-				Config: testAccAlertUpdate("test-acc-alert", "test-acc alert modified", "Y",
+				Config: testAccAlertUpdate(alertName, "test-acc alert modified", "Y",
 					map[string]string{
 						"test-acc-key": "test-acc-value"}),
 			},
 			{
 				// step3. Alert Update (Activate)
-				Config: testAccAlertUpdate("test-acc-alert", "test-acc alert modified", "N",
+				Config: testAccAlertUpdate(alertName, "test-acc alert modified", "N",
 					map[string]string{
 						"test-acc-key": "test-acc-value"}),
 			},
@@ -57,9 +60,11 @@ func testAccAlertCreate(name string,
 				  dimensions = [{key="resource_id", value="d5b49100-e3e3-4d10-b2e9-9da68aed7747"}]
 				  period = 60
 				  statistic = "AVG"
+				  evaluation_count = 3
+				  violation_count = 3
 				  operator = "GTE"
 				  threshold = 10
-				  missing_data_option = "MISSING" 
+				  missing_data_option = "IGNORE"
 				  tags = %s
 			}
 	`, name, description, tagsJson)
@@ -83,10 +88,12 @@ func testAccAlertUpdate(name string,
 				  dimensions = [{key="resource_id", value="d5b49100-e3e3-4d10-b2e9-9da68aed7747"}]
 				  period = 60
 				  statistic = "AVG"
+				  evaluation_count = 3
+				  violation_count = 3
 				  operator = "RANGE"
 				  upper_bound = 20
 				  lower_bound = 10
-				  missing_data_option = "MISSING" 
+				  missing_data_option = "IGNORE"
 				  tags = %s
 			}
 	`, name, description, activatedYn, tagsJson)

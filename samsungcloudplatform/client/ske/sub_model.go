@@ -6,6 +6,7 @@ type Image struct {
 	CustomImageName types.String `tfsdk:"custom_image_name"`
 	Os              types.String `tfsdk:"os"`
 	OsVersion       types.String `tfsdk:"os_version"`
+	ScpGpuDriver    types.String `tfsdk:"scp_gpu_driver"` // v1.4
 }
 
 type ServerType struct {
@@ -62,4 +63,10 @@ type AdvancedSettings struct {
 	ImageGcLowThreshold  types.Int32  `tfsdk:"image_gc_low_threshold"`
 	MaxPods              types.Int32  `tfsdk:"max_pods"`
 	PodMaxPids           types.Int32  `tfsdk:"pod_max_pids"`
+}
+
+type LinkedResource struct {
+	Id   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+	Type types.String `tfsdk:"type"`
 }

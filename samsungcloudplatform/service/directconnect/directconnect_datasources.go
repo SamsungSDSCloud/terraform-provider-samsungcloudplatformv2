@@ -3,17 +3,15 @@ package directconnect
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnect"
+	directconnectv1d1 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnectv1d1"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -30,7 +28,7 @@ func NewDirectConnectDirectConnectDataSource() datasource.DataSource {
 // directConnectDirectConnectDataSource1 is the data source implementation.
 type directConnectDirectConnectDataSource struct {
 	config  *scpsdk.Configuration
-	client  *directconnect.Client
+	client  *directconnectv1d1.Client
 	clients *client.SCPClient
 }
 
@@ -44,25 +42,18 @@ func (d *directConnectDirectConnectDataSource) Schema(_ context.Context, _ datas
 	resp.Schema = schema.Schema{
 		Description: "list of direct connect.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
-					"  - example : 10 \n" +
-					"  - maximum : 10000 \n" +
-					"  - minimum : 1",
+			// Input
+			common.ToSnakeCase("Size"): schema.Int32Attribute{
+				Description: "size \n" +
+					"  - example : 20 \n" +
+					"  - minimum : 0",
 				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
-				},
 			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
-					"  - maxLength : 64 \n" +
-					"  - minLength : 1",
+			common.ToSnakeCase("Page"): schema.Int32Attribute{
+				Description: "page \n" +
+					"  - example : 0 \n" +
+					"  - minimum : 0",
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
-				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
 				Description: "Sort \n" +
@@ -71,7 +62,7 @@ func (d *directConnectDirectConnectDataSource) Schema(_ context.Context, _ datas
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "Direct Connect ID \n" +
-					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+					"  - example : fe860e0af0c04dcd8182b84f907f31f4",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
@@ -94,17 +85,30 @@ func (d *directConnectDirectConnectDataSource) Schema(_ context.Context, _ datas
 					"  - example : vpcName",
 				Optional: true,
 			},
+
+			// Output
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "total count",
+				Computed:    true,
+			},
+			// Output
+			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
+				Description: "List of sort condition \n" +
+					"  - example : [\"created_at:desc\"]",
+				ElementType: types.StringType,
+				Computed:    true,
+			},
 			common.ToSnakeCase("DirectConnects"): schema.ListNestedAttribute{
 				Description: "A list of direct connect.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "id",
+							Description: "Direct Connect Id",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "name",
+							Description: "Direct Connect Name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
@@ -176,13 +180,13 @@ func (d *directConnectDirectConnectDataSource) Configure(_ context.Context, req 
 		return
 	}
 
-	d.client = inst.Client.DirectConnect
+	d.client = inst.Client.DirectConnectV1d1
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *directConnectDirectConnectDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state directconnect.DirectConnectDataSource
+	var state directconnectv1d1.DirectConnectDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -201,21 +205,37 @@ func (d *directConnectDirectConnectDataSource) Read(ctx context.Context, req dat
 	}
 
 	// Map response body to model
+	state.TotalCount = types.Int32Value(data.Count)
+	state.Page = types.Int32Value(data.Page)
+	state.Size = types.Int32Value(data.Size)
+	for _, sortVal := range data.Sort {
+		state.SortFinal = append(state.SortFinal, types.StringValue(sortVal))
+	}
+
 	for _, dcon := range data.DirectConnects {
-		dconState := directconnect.DirectConnect{
-			Id:          types.StringValue(dcon.Id),
-			Name:        types.StringValue(dcon.Name),
-			AccountId:   types.StringValue(dcon.AccountId),
-			Description: types.StringPointerValue(dcon.Description.Get()),
-			VpcId:       types.StringValue(dcon.VpcId),
-			VpcName:     types.StringValue(dcon.VpcName),
-			Bandwidth:   types.Int32Value(dcon.Bandwidth),
-			FirewallId:  types.StringPointerValue(dcon.FirewallId.Get()),
-			CreatedAt:   types.StringValue(dcon.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:   types.StringValue(dcon.CreatedBy),
-			ModifiedAt:  types.StringValue(dcon.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:  types.StringValue(dcon.ModifiedBy),
-			State:       types.StringValue(string(dcon.State)),
+		dconState := directconnectv1d1.DirectConnect{
+			Id:         types.StringValue(dcon.Id),
+			Name:       types.StringValue(dcon.Name),
+			AccountId:  types.StringValue(dcon.AccountId),
+			VpcId:      types.StringValue(dcon.VpcId),
+			VpcName:    types.StringValue(dcon.VpcName),
+			Bandwidth:  types.Int32Value(dcon.Bandwidth),
+			CreatedAt:  types.StringValue(dcon.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:  types.StringValue(dcon.CreatedBy),
+			ModifiedAt: types.StringValue(dcon.ModifiedAt.Format(time.RFC3339)),
+			ModifiedBy: types.StringValue(dcon.ModifiedBy),
+			State:      types.StringValue(string(dcon.State)),
+		}
+		if dcon.Description.IsSet() {
+			if val := dcon.Description.Get(); val != nil {
+				dconState.Description = types.StringValue(*val)
+			}
+		}
+
+		if dcon.FirewallId.IsSet() {
+			if val := dcon.FirewallId.Get(); val != nil {
+				dconState.FirewallId = types.StringValue(*val)
+			}
 		}
 
 		state.DirectConnects = append(state.DirectConnects, dconState)

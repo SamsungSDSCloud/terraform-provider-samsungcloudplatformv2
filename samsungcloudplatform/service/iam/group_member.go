@@ -8,6 +8,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -111,11 +112,24 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 						MarkdownDescription: "생성자 성, 이름",
 						Default:             stringdefault.StaticString("-"),
 					},
-					"group_names": schema.ListAttribute{
-						ElementType:         types.StringType,
+					"groups": schema.ListNestedAttribute{
 						Computed:            true,
-						Description:         "Group Names",
-						MarkdownDescription: "Group Names",
+						Description:         "Groups",
+						MarkdownDescription: "Groups",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Group ID",
+									MarkdownDescription: "Group ID",
+								},
+								"name": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Group Name",
+									MarkdownDescription: "Group Name",
+								},
+							},
+						},
 					},
 					"user_created_at": schema.StringAttribute{
 						Computed:            true,
@@ -211,7 +225,7 @@ func (r *iamGroupMemberResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	var groupMemberState iam.Member
+	var groupMemberState iam.MemberV1Dot4
 	for _, group := range data.GetGroupMembers() {
 		if plan.UserId.ValueString() == group.UserId {
 			var creatorLastLoginAt *string
@@ -226,20 +240,22 @@ func (r *iamGroupMemberResource) Create(ctx context.Context, req resource.Create
 				userLastLoginAt = &t
 			}
 
-			groupNames := make([]types.String, 0, len(group.GroupNames))
-
-			for _, groupName := range group.GroupNames {
-				groupNames = append(groupNames, types.StringValue(groupName))
+			var groupInfos []iam.GroupInfo
+			for _, groupInfo := range group.Groups {
+				groupInfos = append(groupInfos, iam.GroupInfo{
+					Id:   types.StringValue(groupInfo.Id),
+					Name: types.StringValue(groupInfo.Name),
+				})
 			}
 
-			groupMemberState = iam.Member{
+			groupMemberState = iam.MemberV1Dot4{
 				CreatedAt:          types.StringValue(group.CreatedAt.Format(time.RFC3339)),
 				CreatedBy:          types.StringValue(group.CreatedBy),
 				CreatorCreatedAt:   types.StringValue(group.CreatorCreatedAt.Format(time.RFC3339)),
 				CreatorEmail:       types.StringPointerValue(group.CreatorEmail),
 				CreatorLastLoginAt: types.StringPointerValue(creatorLastLoginAt),
 				CreatorName:        types.StringPointerValue(group.CreatorName),
-				GroupNames:         groupNames,
+				Groups:             groupInfos,
 				UserCreatedAt:      types.StringValue(group.UserCreatedAt.Format(time.RFC3339)),
 				UserEmail:          types.StringPointerValue(group.UserEmail),
 				UserId:             types.StringValue(group.UserId),
@@ -311,7 +327,7 @@ func (r *iamGroupMemberResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	var groupMemberState iam.Member
+	var groupMemberState iam.MemberV1Dot4
 	for _, group := range data.GetGroupMembers() {
 		if plan.UserId.ValueString() == group.UserId {
 			var creatorLastLoginAt *string
@@ -326,20 +342,22 @@ func (r *iamGroupMemberResource) Update(ctx context.Context, req resource.Update
 				userLastLoginAt = &t
 			}
 
-			groupNames := make([]types.String, 0, len(group.GroupNames))
-
-			for _, groupName := range group.GroupNames {
-				groupNames = append(groupNames, types.StringValue(groupName))
+			var groupInfos []iam.GroupInfo
+			for _, groupInfo := range group.Groups {
+				groupInfos = append(groupInfos, iam.GroupInfo{
+					Id:   types.StringValue(groupInfo.Id),
+					Name: types.StringValue(groupInfo.Name),
+				})
 			}
 
-			groupMemberState = iam.Member{
+			groupMemberState = iam.MemberV1Dot4{
 				CreatedAt:          types.StringValue(group.CreatedAt.Format(time.RFC3339)),
 				CreatedBy:          types.StringValue(group.CreatedBy),
 				CreatorCreatedAt:   types.StringValue(group.CreatorCreatedAt.Format(time.RFC3339)),
 				CreatorEmail:       types.StringPointerValue(group.CreatorEmail),
 				CreatorLastLoginAt: types.StringPointerValue(creatorLastLoginAt),
 				CreatorName:        types.StringPointerValue(group.CreatorName),
-				GroupNames:         groupNames,
+				Groups:             groupInfos,
 				UserCreatedAt:      types.StringValue(group.UserCreatedAt.Format(time.RFC3339)),
 				UserEmail:          types.StringPointerValue(group.UserEmail),
 				UserId:             types.StringValue(group.UserId),
@@ -397,7 +415,7 @@ func (r *iamGroupMemberResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	var groupMemberState iam.Member
+	var groupMemberState iam.MemberV1Dot4
 	for _, group := range data.GetGroupMembers() {
 		if state.UserId.ValueString() == group.UserId {
 			var creatorLastLoginAt *string
@@ -412,20 +430,22 @@ func (r *iamGroupMemberResource) Read(ctx context.Context, req resource.ReadRequ
 				userLastLoginAt = &t
 			}
 
-			groupNames := make([]types.String, 0, len(group.GroupNames))
-
-			for _, groupName := range group.GroupNames {
-				groupNames = append(groupNames, types.StringValue(groupName))
+			var groupInfos []iam.GroupInfo
+			for _, groupInfo := range group.Groups {
+				groupInfos = append(groupInfos, iam.GroupInfo{
+					Id:   types.StringValue(groupInfo.Id),
+					Name: types.StringValue(groupInfo.Name),
+				})
 			}
 
-			groupMemberState = iam.Member{
+			groupMemberState = iam.MemberV1Dot4{
 				CreatedAt:          types.StringValue(group.CreatedAt.Format(time.RFC3339)),
 				CreatedBy:          types.StringValue(group.CreatedBy),
 				CreatorCreatedAt:   types.StringValue(group.CreatorCreatedAt.Format(time.RFC3339)),
 				CreatorEmail:       types.StringPointerValue(group.CreatorEmail),
 				CreatorLastLoginAt: types.StringPointerValue(creatorLastLoginAt),
 				CreatorName:        types.StringPointerValue(group.CreatorName),
-				GroupNames:         groupNames,
+				Groups:             groupInfos,
 				UserCreatedAt:      types.StringValue(group.UserCreatedAt.Format(time.RFC3339)),
 				UserEmail:          types.StringPointerValue(group.UserEmail),
 				UserId:             types.StringValue(group.UserId),
@@ -444,4 +464,48 @@ func (r *iamGroupMemberResource) Read(ctx context.Context, req resource.ReadRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func getGroupMembersV1Dot4(_members []scpsdkiam.GroupMemberV1Dot4) []iam.MemberV1Dot4 {
+	var members []iam.MemberV1Dot4
+
+	for _, member := range _members {
+		var creatorLastLoginAt *string
+		var userLastLoginAt *string
+
+		if member.CreatorLastLoginAt.Get() != nil {
+			t := member.CreatorLastLoginAt.Get().Format(time.RFC3339)
+			creatorLastLoginAt = &t
+		}
+		if member.UserLastLoginAt.Get() != nil {
+			t := member.UserLastLoginAt.Get().Format(time.RFC3339)
+			userLastLoginAt = &t
+		}
+
+		var groupInfos []iam.GroupInfo
+		for _, groupInfo := range member.Groups {
+			groupInfos = append(groupInfos, iam.GroupInfo{
+				Id:   types.StringValue(groupInfo.Id),
+				Name: types.StringValue(groupInfo.Name),
+			})
+		}
+
+		memberState := iam.MemberV1Dot4{
+			CreatedAt:          types.StringValue(member.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:          types.StringValue(member.CreatedBy),
+			CreatorCreatedAt:   types.StringValue(member.CreatorCreatedAt.Format(time.RFC3339)),
+			CreatorEmail:       types.StringPointerValue(member.CreatorEmail),
+			CreatorLastLoginAt: types.StringPointerValue(creatorLastLoginAt),
+			CreatorName:        types.StringPointerValue(member.CreatorName),
+			Groups:             groupInfos,
+			UserCreatedAt:      types.StringValue(member.UserCreatedAt.Format(time.RFC3339)),
+			UserEmail:          types.StringPointerValue(member.UserEmail),
+			UserId:             types.StringValue(member.UserId),
+			UserLastLoginAt:    types.StringPointerValue(userLastLoginAt),
+			UserName:           types.StringPointerValue(member.UserName),
+		}
+
+		members = append(members, memberState)
+	}
+	return members
 }

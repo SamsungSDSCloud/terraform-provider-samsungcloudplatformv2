@@ -51,7 +51,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 	resp.Schema = schema.Schema{
 		Description: "Alert Resource",
 		Attributes: map[string]schema.Attribute{
-			"last_updated": schema.StringAttribute{
+			common.ToSnakeCase("LastUpdated"): schema.StringAttribute{
 				Description: "Timestamp of the last Terraform update of the Resource Group",
 				Computed:    true,
 			},
@@ -73,7 +73,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 				Description: "Alert type",
 				Required:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("METRIC_ALERT", "SERVICE_ALERT", "COMPOSITE_ALERT"),
+					stringvalidator.OneOf(AlertTypeMetric, AlertTypeService, AlertTypeComposite),
 				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
@@ -85,14 +85,14 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 				Computed:    true,
 				Optional:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("Y", "N"),
+					stringvalidator.OneOf(YnYes, YnNo),
 				},
 			},
 			common.ToSnakeCase("Level"): schema.StringAttribute{
 				Description: "Alert level - HIGH, MIDDLE, LOW",
 				Required:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("HIGH", "MIDDLE", "LOW"),
+					stringvalidator.OneOf(AlertLevelHigh, AlertLevelMiddle, AlertLevelLow),
 				},
 			},
 			common.ToSnakeCase("NamespaceId"): schema.StringAttribute{
@@ -136,7 +136,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 				Description: "Statistic - SUM, AVG, MAX, MIN",
 				Required:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("SUM", "AVG", "MAX", "MIN"),
+					stringvalidator.OneOf(StatSum, StatAvg, StatMax, StatMin),
 				},
 			},
 			common.ToSnakeCase("EvaluationCount"): schema.Int32Attribute{
@@ -163,7 +163,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 				Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE",
 				Required:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("EQ", "NOT_EQ", "GT", "GTE", "LT", "LTE", "RANGE"),
+					stringvalidator.OneOf(OpEQ, OpNotEQ, OpGT, OpGTE, OpLT, OpLTE, OpRange),
 				},
 			},
 			common.ToSnakeCase("ViolationCount"): schema.Int32Attribute{
@@ -175,7 +175,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 				Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE",
 				Required:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("MISSING", "BREACHING", "NOT_BREACHING", "IGNORE"),
+					stringvalidator.OneOf(MissingDataMissing, MissingDataBreaching, MissingDataNotBreaching, MissingDataIgnore),
 				},
 			},
 			common.ToSnakeCase("RecipientIds"): schema.ListAttribute{
@@ -183,7 +183,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 				Optional:    true,
 				ElementType: types.StringType,
 			},
-			"tags": tag.ResourceSchema(),
+			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 				Description: "Created date time",
 				Computed:    true,
@@ -216,8 +216,8 @@ func (r *serviceWatchAlertResource) Configure(_ context.Context, req resource.Co
 	inst, ok := req.ProviderData.(client.Instance)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.Instance, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			ErrUnexpectedConfigure,
+			fmt.Sprintf(ErrUnexpectedConfigureFmt, req.ProviderData),
 		)
 
 		return
@@ -255,8 +255,8 @@ func (r *serviceWatchAlertResource) Create(ctx context.Context, req resource.Cre
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Alert",
-			"Could not create Alert, unexpected error: "+err.Error()+"\nReason: "+detail,
+			ErrCreateAlert,
+			fmt.Sprintf(ErrCreateAlertFmt, err.Error(), detail),
 		)
 		return
 	}
@@ -266,8 +266,8 @@ func (r *serviceWatchAlertResource) Create(ctx context.Context, req resource.Cre
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Alert",
-			"Could not read Alert ID "+data.GetId()+": "+err.Error()+"\nReason: "+detail,
+			ErrReadAlert,
+			fmt.Sprintf(ErrReadAlertFmt, data.GetId(), err.Error(), detail),
 		)
 		return
 	}
@@ -300,8 +300,8 @@ func (r *serviceWatchAlertResource) Read(ctx context.Context, req resource.ReadR
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Alert",
-			"Could not read Alert ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			ErrReadAlert,
+			fmt.Sprintf(ErrReadAlertFmt, state.Id.ValueString(), err.Error(), detail),
 		)
 		return
 	}
@@ -337,9 +337,22 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 	plan.Description = useStateIfUnset(plan.Description, state.Description)
 	plan.MetricId = useStateIfUnset(plan.MetricId, state.MetricId)
 	plan.NamespaceId = useStateIfUnset(plan.NamespaceId, state.NamespaceId)
+	plan.EvaluationCount = useStateIfUnset(plan.EvaluationCount, state.EvaluationCount)
+	plan.ViolationCount = useStateIfUnset(plan.ViolationCount, state.ViolationCount)
 
-	fmt.Printf("plan: %v", plan)
-	fmt.Printf("state: %v", state)
+	// operator 변경 시 threshold/bound 값 처리
+	if !plan.Operator.Equal(state.Operator) {
+		if plan.Operator.ValueString() == "RANGE" {
+			plan.Threshold = types.Float32Null()
+		} else {
+			plan.UpperBound = types.Float32Null()
+			plan.LowerBound = types.Float32Null()
+		}
+	} else {
+		plan.Threshold = useStateIfUnset(plan.Threshold, state.Threshold)
+		plan.UpperBound = useStateIfUnset(plan.UpperBound, state.UpperBound)
+		plan.LowerBound = useStateIfUnset(plan.LowerBound, state.LowerBound)
+	}
 
 	// activatedYn 이 변경되면, activated Update 수행
 	if !plan.ActivatedYn.Equal(state.ActivatedYn) {
@@ -347,8 +360,8 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		if err != nil {
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
-				"Error Updating Alert Activated",
-				"Could not update alert activated, unexpected error: "+err.Error()+"\nReason: "+detail,
+				ErrUpdateActivatedAlert,
+				fmt.Sprintf(ErrUpdateActivatedAlertFmt, err.Error(), detail),
 			)
 			return
 		}
@@ -361,8 +374,8 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		if err != nil {
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
-				"Error Updating Alert Description",
-				"Could not update alert description, unexpected error: "+err.Error()+"\nReason: "+detail,
+				ErrUpdateDescriptionAlert,
+				fmt.Sprintf(ErrUpdateDescriptionAlertFmt, err.Error(), detail),
 			)
 			return
 		}
@@ -386,13 +399,14 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		}
 	}
 
-	if needsUpdate(plan, state) {
+	needsUpdateResult := needsUpdate(plan, state)
+	if needsUpdateResult {
 		_, err := r.client.UpdateAlert(ctx, plan.Id.ValueString(), plan)
 		if err != nil {
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
-				"Error Updating Alert Description",
-				"Could not update alert description, unexpected error: "+err.Error()+"\nReason: "+detail,
+				ErrUpdateAlert,
+				fmt.Sprintf(ErrUpdateAlertFmt, err.Error(), detail),
 			)
 			return
 		}
@@ -403,8 +417,8 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Alert",
-			"Could not read Alert ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			ErrReadAlert,
+			fmt.Sprintf(ErrReadAlertFmt, state.Id.ValueString(), err.Error(), detail),
 		)
 		return
 	}
@@ -436,8 +450,8 @@ func (r *serviceWatchAlertResource) Delete(ctx context.Context, req resource.Del
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Deleting Alert",
-			"Could not delete Alert, unexpected error: "+err.Error()+"\nReason: "+detail,
+			ErrDeleteAlert,
+			fmt.Sprintf(ErrDeleteAlertFmt, err.Error(), detail),
 		)
 		return
 	}
@@ -449,11 +463,8 @@ func (r *serviceWatchAlertResource) readMetrics(ctx context.Context, plan *servi
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		diagnostics.AddError(
-			"Error Get Metrics",
-			"Could not get Metrics, unexpected error: "+err.Error()+"\nReason: "+detail+
-				"\n   namespace_name: "+plan.NamespaceName.ValueString()+
-				"\n   metricName: "+plan.MetricName.ValueString()+
-				"\n   dimensionKeys: "+fmt.Sprintf("%v", dimensionKeys),
+			ErrGetMetrics,
+			fmt.Sprintf(ErrGetMetricsFmt, err.Error(), detail, plan.NamespaceName.ValueString(), plan.MetricName.ValueString(), dimensionKeys),
 		)
 		return
 	}
@@ -461,11 +472,8 @@ func (r *serviceWatchAlertResource) readMetrics(ctx context.Context, plan *servi
 	// if namespace does not exist, generate 404 error
 	if len(metrics.Namespaces) == 0 {
 		diagnostics.AddError(
-			"Error Reading Metrics",
-			"Cloud not read Metrics.\nReason: 404 Not Found"+
-				"\n   namespace_name: "+plan.NamespaceName.ValueString()+
-				"\n   metricName: "+plan.MetricName.ValueString()+
-				"\n   dimensionKeys: "+fmt.Sprintf("%v", dimensionKeys),
+			ErrReadMetrics,
+			fmt.Sprintf(ErrReadMetricsFmt, plan.NamespaceName.ValueString(), plan.MetricName.ValueString(), dimensionKeys),
 		)
 		return
 	}
@@ -477,11 +485,8 @@ func (r *serviceWatchAlertResource) readMetrics(ctx context.Context, plan *servi
 		plan.MetricId = types.StringValue(namespace.Dimensions[0].Metrics[0].GetId())
 	} else {
 		diagnostics.AddError(
-			"Error Reading Metrics",
-			"Cloud not read Metrics.\nReason: 404 Not Found"+
-				"\n   namespace_name: "+plan.NamespaceName.ValueString()+
-				"\n   metricName: "+plan.MetricName.ValueString()+
-				"\n   dimensionKeys: "+fmt.Sprintf("%v", dimensionKeys),
+			ErrReadMetrics,
+			fmt.Sprintf(ErrReadMetricsFmt, plan.NamespaceName.ValueString(), plan.MetricName.ValueString(), dimensionKeys),
 		)
 		return
 	}
@@ -532,9 +537,9 @@ func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.Ale
 	state.Operator = types.StringValue(string(alertResp.GetOperator()))
 	state.ViolationCount = types.Int32Value(alertResp.GetViolationCount())
 	state.MissingDataOption = types.StringValue(string(alertResp.GetMissingDataOption()))
-	state.CreatedAt = types.StringValue(alertResp.GetCreatedAt().Format("2006-01-02 15:04:05"))
+	state.CreatedAt = types.StringValue(alertResp.GetCreatedAt().Format(TimeFormatDisplay))
 	state.CreatedBy = types.StringValue(alertResp.GetCreatedBy())
-	state.ModifiedAt = types.StringValue(alertResp.GetModifiedAt().Format("2006-01-02 15:04:05"))
+	state.ModifiedAt = types.StringValue(alertResp.GetModifiedAt().Format(TimeFormatDisplay))
 	state.ModifiedBy = types.StringValue(alertResp.GetModifiedBy())
 
 	return *state
@@ -548,7 +553,6 @@ func useStateIfUnset[T attr.Value](plan, state T) T {
 }
 
 func needsUpdate(plan, state servicewatch.AlertResource) bool {
-	// convertUpdateModel extracts only updatable fields for change detection
 	planReq := convertUpdateModel(plan)
 	stateReq := convertUpdateModel(state)
 

@@ -3,13 +3,17 @@ package mariadb
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/mariadb"
 	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/database"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpMariadb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/mariadb/1.0"
+	scpMariadb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/mariadb/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,9 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
-	"strings"
-	"time"
 )
 
 var (
@@ -156,16 +157,10 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 									common.ToSnakeCase("Id"): schema.StringAttribute{
 										Description: "Id",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
 										Description: "Name",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
 										Description: "Role type \n" +
@@ -389,7 +384,7 @@ func (r *mariadbClusterResource) Create(ctx context.Context, req resource.Create
 	clusterId := data.Resource.Id
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -476,7 +471,7 @@ func (r *mariadbClusterResource) AsyncPollingTags(ctx context.Context, clusterId
 	return types.Map{}, fmt.Errorf("max attempts reached (%d)", maxAttempts)
 }
 
-func (r *mariadbClusterResource) MapGetResponseToState(ctx context.Context, resp *scpMariadb.MariadbClusterDetailResponse, plan mariadb.ClusterResource, tagsMap types.Map) (mariadb.ClusterResource, error) {
+func (r *mariadbClusterResource) MapGetResponseToState(ctx context.Context, resp *scpMariadb.MariadbClusterDetailResponseV1Dot1, plan mariadb.ClusterResource, tagsMap types.Map) (mariadb.ClusterResource, error) {
 
 	var allowableIpAddresses types.List
 	if len(resp.AllowableIpAddresses) == 0 {
@@ -755,7 +750,7 @@ func (r *mariadbClusterResource) handlerUpdateClusterState(ctx context.Context, 
 	}
 
 	// wait for 구현
-	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -812,7 +807,7 @@ func (r *mariadbClusterResource) handlerUpdateClusterInitConfig(ctx context.Cont
 	}
 
 	// wait for 구현
-	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -846,7 +841,7 @@ func (r *mariadbClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx co
 		return err
 	}
 
-	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -947,7 +942,7 @@ func (r *mariadbClusterResource) handlerUpdateInstanceGroups(ctx context.Context
 							return err
 						}
 
-						immutableBsFields := []string{"Id", "Name", "RoleType", "VolumeType"}
+						immutableBsFields := []string{"RoleType", "VolumeType"}
 
 						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
 							resp.Diagnostics.AddError(
@@ -977,7 +972,7 @@ func (r *mariadbClusterResource) handlerUpdateInstanceGroups(ctx context.Context
 			}
 
 			// wait for 구현
-			getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponse, error) {
+			getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponseV1Dot1, error) {
 				return r.client.GetCluster(ctx, id)
 			}
 
@@ -1031,7 +1026,7 @@ func (r *mariadbClusterResource) Delete(ctx context.Context, req resource.Delete
 	}
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMariadb.MariadbClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 	// wait for 구현

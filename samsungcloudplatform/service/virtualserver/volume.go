@@ -12,13 +12,15 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.2"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+const reasonPrefix = "\nReason: "
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
@@ -193,7 +195,7 @@ func (r *virtualServerVolumeResource) Create(ctx context.Context, req resource.C
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating volume",
-			"Could not create volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not create volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -205,7 +207,7 @@ func (r *virtualServerVolumeResource) Create(ctx context.Context, req resource.C
 				detail := client.GetDetailFromError(err)
 				resp.Diagnostics.AddError(
 					"Error updating volume",
-					"Could not update volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+					"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 				)
 				return
 			}
@@ -222,7 +224,7 @@ func (r *virtualServerVolumeResource) Create(ctx context.Context, req resource.C
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating volume",
-			"Could not create volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not create volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -232,7 +234,7 @@ func (r *virtualServerVolumeResource) Create(ctx context.Context, req resource.C
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading volume",
-			"Could not create volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not create volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -271,7 +273,7 @@ func (r *virtualServerVolumeResource) Read(ctx context.Context, req resource.Rea
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading volume",
-			"Could not read volume ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			"Could not read volume ID "+state.Id.ValueString()+": "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -294,6 +296,124 @@ func (r *virtualServerVolumeResource) Read(ctx context.Context, req resource.Rea
 	}
 }
 
+func (r *virtualServerVolumeResource) updateVolumeName(
+	ctx context.Context,
+	plan virtualserver.VolumeResource,
+	state virtualserver.VolumeResource,
+	resp *resource.UpdateResponse,
+) bool {
+	if plan.Name.Equal(state.Name) {
+		return true
+	}
+
+	_, err := r.client.UpdateVolume(ctx, state.Id.ValueString(), plan)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error updating volume",
+			"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
+		)
+		return false
+	}
+	return true
+}
+
+func (r *virtualServerVolumeResource) updateVolumeSize(
+	ctx context.Context,
+	plan virtualserver.VolumeResource,
+	state virtualserver.VolumeResource,
+	resp *resource.UpdateResponse,
+) bool {
+	if plan.Size.Equal(state.Size) {
+		return true
+	}
+
+	_, err := r.client.ExtendVolume(ctx, state.Id.ValueString(), plan)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error updating volume",
+			"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
+		)
+		return false
+	}
+	return true
+}
+
+func (r *virtualServerVolumeResource) updateVolumeServers(
+	ctx context.Context,
+	plan virtualserver.VolumeResource,
+	state virtualserver.VolumeResource,
+	resp *resource.UpdateResponse,
+) bool {
+	if reflect.DeepEqual(plan.Servers, state.Servers) {
+		return true
+	}
+
+	addedVmIds, deletedVmIds := getOldAndNewVmIds(plan, state)
+
+	for _, deletedVmId := range deletedVmIds {
+		err := r.client.DetachVolume(ctx, state.Id.ValueString(), deletedVmId)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error updating volume",
+				"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
+			)
+			return false
+		}
+	}
+
+	for _, addedVmId := range addedVmIds {
+		_, err := r.client.AttachVolume(ctx, state.Id.ValueString(), addedVmId)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error updating volume",
+				"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
+			)
+			return false
+		}
+	}
+
+	return true
+}
+
+func (r *virtualServerVolumeResource) updateVolumeQos(
+	ctx context.Context,
+	plan virtualserver.VolumeResource,
+	state virtualserver.VolumeResource,
+	resp *resource.UpdateResponse,
+) bool {
+	if plan.MaxThroughput.Equal(state.MaxThroughput) && plan.MaxIops.Equal(state.MaxIops) {
+		return true
+	}
+
+	err := r.client.UpdateVolumeQos(ctx, state.Id.ValueString(), plan)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error updating volume",
+			"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
+		)
+		return false
+	}
+
+	if !((plan.MaxThroughput.IsNull() || plan.MaxThroughput.IsUnknown()) && (plan.MaxIops.IsNull() || plan.MaxIops.IsUnknown())) {
+		err = r.AsyncPollingQosUpdate(ctx, state.Id.ValueString(), plan.MaxIops.ValueInt32(), plan.MaxThroughput.ValueInt32())
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error waiting for volume update",
+				"Timed out waiting for values to apply: "+err.Error()+reasonPrefix+detail,
+			)
+			return false
+		}
+	}
+
+	return true
+}
+
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *virtualServerVolumeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state virtualserver.VolumeResource
@@ -305,82 +425,20 @@ func (r *virtualServerVolumeResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	if !plan.Name.Equal(state.Name) {
-		// name attribute was changed
-		_, err := r.client.UpdateVolume(ctx, state.Id.ValueString(), plan)
-		if err != nil {
-			detail := client.GetDetailFromError(err)
-			resp.Diagnostics.AddError(
-				"Error updating volume",
-				"Could not update volume, unexpected error: "+err.Error()+"\nReason: "+detail,
-			)
-			return
-		}
+	if !r.updateVolumeName(ctx, plan, state, resp) {
+		return
 	}
 
-	if !plan.Size.Equal(state.Size) {
-		// size attribute was changed
-		_, err := r.client.ExtendVolume(ctx, state.Id.ValueString(), plan)
-		if err != nil {
-			detail := client.GetDetailFromError(err)
-			resp.Diagnostics.AddError(
-				"Error updating volume",
-				"Could not update volume, unexpected error: "+err.Error()+"\nReason: "+detail,
-			)
-			return
-		}
+	if !r.updateVolumeSize(ctx, plan, state, resp) {
+		return
 	}
 
-	if !reflect.DeepEqual(plan.Servers, state.Servers) {
-		addedVmIds, deletedVmIds := getOldAndNewVmIds(plan, state)
-
-		for _, deletedVmId := range deletedVmIds {
-			err := r.client.DetachVolume(ctx, state.Id.ValueString(), deletedVmId)
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				resp.Diagnostics.AddError(
-					"Error updating volume",
-					"Could not update volume, unexpected error: "+err.Error()+"\nReason: "+detail,
-				)
-				return
-			}
-		}
-
-		for _, addedVmId := range addedVmIds {
-			_, err := r.client.AttachVolume(ctx, state.Id.ValueString(), addedVmId)
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				resp.Diagnostics.AddError(
-					"Error updating volume",
-					"Could not update volume, unexpected error: "+err.Error()+"\nReason: "+detail,
-				)
-				return
-			}
-		}
+	if !r.updateVolumeServers(ctx, plan, state, resp) {
+		return
 	}
 
-	if !plan.MaxThroughput.Equal(state.MaxThroughput) || !plan.MaxIops.Equal(state.MaxIops) {
-		err := r.client.UpdateVolumeQos(ctx, state.Id.ValueString(), plan)
-		if err != nil {
-			detail := client.GetDetailFromError(err)
-			resp.Diagnostics.AddError(
-				"Error updating volume",
-				"Could not update volume, unexpected error: "+err.Error()+"\nReason: "+detail,
-			)
-			return
-		}
-
-		if !((plan.MaxThroughput.IsNull() || plan.MaxThroughput.IsUnknown()) && (plan.MaxIops.IsNull() || plan.MaxIops.IsUnknown())) {
-			err = r.AsyncPollingQosUpdate(ctx, state.Id.ValueString(), plan.MaxIops.ValueInt32(), plan.MaxThroughput.ValueInt32())
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				resp.Diagnostics.AddError(
-					"Error waiting for volume update",
-					"Timed out waiting for values to apply: "+err.Error()+"\nReason: "+detail,
-				)
-				return
-			}
-		}
+	if !r.updateVolumeQos(ctx, plan, state, resp) {
+		return
 	}
 
 	data, err := r.client.GetVolume(ctx, state.Id.ValueString())
@@ -388,7 +446,7 @@ func (r *virtualServerVolumeResource) Update(ctx context.Context, req resource.U
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading volume",
-			"Could not read volume ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			"Could not read volume ID "+state.Id.ValueString()+": "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}

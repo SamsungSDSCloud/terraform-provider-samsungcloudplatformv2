@@ -16,22 +16,84 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_vpc_peering_rules" "my_vpc_peering_rule_list" {
-  vpc_peering_id = var.vpc_peering_id
-  size           = var.size
+  vpc_peering_id       = var.vpc_peering_id
+  size                 = var.size
+  page                 = var.page
+  sort                 = var.sort
+  id                   = var.id
+  source_vpc_id        = var.source_vpc_id
+  source_vpc_type      = var.source_vpc_type
+  destination_vpc_id   = var.destination_vpc_id
+  destination_vpc_type = var.destination_vpc_type
+  destination_cidr     = var.destination_cidr
+  state                = var.state
 }
 
 
 output "vpc_peering_rules" {
-  value = data.samsungcloudplatformv2_vpc_vpc_peering_rules.my_vpc_peering_rule_list.vpc_peering_rules
+  value = {
+    count : data.samsungcloudplatformv2_vpc_vpc_peering_rules.my_vpc_peering_rule_list.total_count,
+    page : data.samsungcloudplatformv2_vpc_vpc_peering_rules.my_vpc_peering_rule_list.page,
+    size : data.samsungcloudplatformv2_vpc_vpc_peering_rules.my_vpc_peering_rule_list.size,
+    sort : data.samsungcloudplatformv2_vpc_vpc_peering_rules.my_vpc_peering_rule_list.sort_final,
+    vpc_peering_rules : data.samsungcloudplatformv2_vpc_vpc_peering_rules.my_vpc_peering_rule_list.vpc_peering_rules
+  }
 }
+
 
 variable "vpc_peering_id" {
   type    = string
   default = ""
 }
+
 variable "size" {
   type    = number
   default = 0
+}
+
+variable "page" {
+  type    = number
+  default = 0
+}
+
+variable "sort" {
+  type    = string
+  default = ""
+}
+
+variable "id" {
+  type    = string
+  default = ""
+}
+
+variable "source_vpc_id" {
+  type    = string
+  default = ""
+}
+
+variable "source_vpc_type" {
+  type    = string
+  default = ""
+}
+
+variable "destination_vpc_id" {
+  type    = string
+  default = ""
+}
+
+variable "destination_vpc_type" {
+  type    = string
+  default = ""
+}
+
+variable "destination_cidr" {
+  type    = string
+  default = ""
+}
+
+variable "state" {
+  type    = string
+  default = ""
 }
 ```
 
@@ -48,7 +110,6 @@ variable "size" {
 - `destination_vpc_id` (String) Destination VPC ID
 - `destination_vpc_type` (String) Destination VPC Type
 - `id` (String) VPC Peering Rule ID
-- `name` (String) Name
 - `page` (Number) Page 
   - Example: 0
 - `size` (Number) Size 
@@ -61,6 +122,9 @@ variable "size" {
 
 ### Read-Only
 
+- `sort_final` (List of String) List of sort condition 
+  - example : ["created_at:desc"]
+- `total_count` (Number) Total count
 - `vpc_peering_rules` (Attributes List) List of VPC peering rules (see [below for nested schema](#nestedatt--vpc_peering_rules))
 
 <a id="nestedatt--vpc_peering_rules"></a>

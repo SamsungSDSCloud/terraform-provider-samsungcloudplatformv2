@@ -437,6 +437,59 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						Description:         "UTC Offset",
 						MarkdownDescription: "UTC Offset",
 					},
+					"access_keys": schema.ListNestedAttribute{
+						Computed:            true,
+						Description:         "Access Keys",
+						MarkdownDescription: "Access Keys",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"access_key": schema.StringAttribute{
+									Description:         "Access Key",
+									MarkdownDescription: "Access Key",
+									Computed:            true,
+								},
+								"created_at": schema.StringAttribute{
+									Description:         "Created At",
+									MarkdownDescription: "Created At",
+									Computed:            true,
+								},
+								"expiration_timestamp": schema.StringAttribute{
+									Description:         "Expiration Timestmap",
+									MarkdownDescription: "Expiration Timestmap",
+									Computed:            true,
+								},
+								"id": schema.StringAttribute{
+									Description:         "ID",
+									MarkdownDescription: "ID",
+									Computed:            true,
+								},
+								"is_enabled": schema.BoolAttribute{
+									Description:         "Is Enabled",
+									MarkdownDescription: "Is Enabled",
+									Computed:            true,
+								},
+							},
+						},
+					},
+					"groups": schema.ListNestedAttribute{
+						Computed:            true,
+						Description:         "Groups",
+						MarkdownDescription: "Groups",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Group ID",
+									MarkdownDescription: "Group ID",
+								},
+								"name": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Group Name",
+									MarkdownDescription: "Group Name",
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -498,6 +551,18 @@ func (d *iamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		userLastPasswordUpdateAt = &emptyTime
 	}
 
+	// mapped access key info
+	var accessKeyInfos []iam.AccessKeyV1Dot4
+	for _, accessKeyInfo := range data.AccessKeys {
+		accessKeyInfos = append(accessKeyInfos, iam.AccessKeyV1Dot4{
+			AccessKey:           types.StringValue(accessKeyInfo.AccessKey),
+			CreatedAt:           types.StringValue(accessKeyInfo.CreatedAt.Format(time.RFC3339)),
+			ExpirationTimestamp: types.StringValue(accessKeyInfo.ExpirationTimestamp.Format(time.RFC3339)),
+			Id:                  types.StringValue(accessKeyInfo.Id),
+			IsEnabled:           types.BoolValue(accessKeyInfo.IsEnabled),
+		})
+	}
+
 	userState := iam.User{
 		AccountId:            types.StringValue(*data.AccountId.Get()),
 		CompanyName:          types.StringValue(*userCompanyName),
@@ -523,6 +588,7 @@ func (d *iamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		TzId:                 types.StringValue(*data.TzId.Get()),
 		UserName:             types.StringValue(*data.UserName.Get()),
 		UtcOffset:            types.StringValue(*data.UtcOffset.Get()),
+		AccessKeys:           accessKeyInfos,
 	}
 
 	userObjectValue, _ := types.ObjectValueFrom(ctx, userState.AttributeTypes(), userState)

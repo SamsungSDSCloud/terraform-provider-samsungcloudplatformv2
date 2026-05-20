@@ -165,7 +165,10 @@ func getClusters(ctx context.Context, clients *client.SCPClient, state ske.Clust
 	tags := state.Tags.Elements()
 	if len(tags) > 0 {
 		filteredContents = filteredContents[:0]
-		indices := tag.GetTagIndices(clients, contents, tags, idField)
+		indices, err := tag.GetTagIndices(clients, contents, tags, idField)
+		if err != nil {
+			return nil, err
+		}
 		for i, resource := range contents {
 			if common.Contains(indices, i) {
 				filteredContents = append(filteredContents, resource)
@@ -177,7 +180,10 @@ func getClusters(ctx context.Context, clients *client.SCPClient, state ske.Clust
 	filters := state.Filter
 	if len(filters) > 0 {
 		filteredContents = filteredContents[:0]
-		indices := filter.GetFilterIndices(contents, state.Filter)
+		indices, err := filter.GetFilterIndices(contents, state.Filter)
+		if err != nil {
+			return nil, err
+		}
 		for i, resource := range contents {
 			if common.Contains(indices, i) {
 				filteredContents = append(filteredContents, resource)

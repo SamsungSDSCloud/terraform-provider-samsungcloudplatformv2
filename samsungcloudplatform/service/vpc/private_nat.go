@@ -3,19 +3,18 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -29,11 +28,11 @@ func NewVpcPrivateNatResource() resource.Resource {
 	return &vpcPrivateNatResource{}
 }
 
-// vpcPrivateNatResource is the data source implementation.
+// vpcPrivateNatResource is the resource implementation.
 type vpcPrivateNatResource struct {
-	config  *scpsdk.Configuration
-	client  *vpc.Client
-	clients *client.SCPClient
+	config    *scpsdk.Configuration
+	client1d2 *vpcv1d2.Client
+	clients   *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -46,95 +45,110 @@ func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaReque
 	resp.Schema = schema.Schema{
 		Description: "Private NAT.",
 		Attributes: map[string]schema.Attribute{
-			"tags": tag.ResourceSchema(),
-			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Private NAT Name \n" +
-					"  - example : privateNatName\n" +
-					"  - minLength : 3\n" +
-					"  - maxLength : 20\n" +
-					"  - pattern : ^[a-zA-Z0-9]+$",
-				Required: true,
-			},
-			common.ToSnakeCase("DirectConnectId"): schema.StringAttribute{
-				Description: "Direct Connect ID \n" +
-					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
-				Required: true,
-			},
+			// Input
 			common.ToSnakeCase("Cidr"): schema.StringAttribute{
-				Description: "CIDR \n" +
-					"  - example : 192.168.10.0/24 \n",
+				Description: "Private NAT IP range \n" +
+					"  - example : 192.167.0.0/24",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
-					"  - example : Private NAT description\n" +
-					"  - maxLength : 50",
+				Description: "Description \n" +
+					"  - example : PrivateNat Description",
 				Optional: true,
-				Computed: true,
 				Default:  stringdefault.StaticString(""),
+				Computed: true,
+			},
+			common.ToSnakeCase("Name"): schema.StringAttribute{
+				Description: "Private NAT Name \n" +
+					"  - example : PrivateNatName",
+				Required: true,
+			},
+			common.ToSnakeCase("ServiceResourceId"): schema.StringAttribute{
+				Description: "Private NAT connected Service Resource ID \n" +
+					"  - example : 3f342bf9a557405b997c2cf48c89cbc2",
+				Required: true,
+			},
+			common.ToSnakeCase("ServiceType"): schema.StringAttribute{
+				Description: "Private NAT connected Service Type \n" +
+					"  - example : DIRECT_CONNECT",
+				Required: true,
+			},
+			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
+
+			// Output
+			common.ToSnakeCase("Id"): schema.StringAttribute{
+				Description: "Private NAT ID \n" +
+					"  - example : 12f56e27070248a6a240a497e43fbe18",
+				Computed: true,
 			},
 			common.ToSnakeCase("PrivateNat"): schema.SingleNestedAttribute{
-				Description: "Private NAT",
+				Description: "Private NAT details",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
-					},
-					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
-					},
-					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Computed:    true,
-					},
-					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "VpcName",
-						Computed:    true,
-					},
-					common.ToSnakeCase("DirectConnectId"): schema.StringAttribute{
-						Description: "DirectConnectId",
-						Computed:    true,
-					},
-					common.ToSnakeCase("DirectConnectName"): schema.StringAttribute{
-						Description: "DirectConnectName",
-						Computed:    true,
+					common.ToSnakeCase("AccountId"): schema.StringAttribute{
+						Description: "Account ID \n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("Cidr"): schema.StringAttribute{
-						Description: "Cidr",
-						Computed:    true,
-					},
-					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
-					},
-					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Private NAT IP range \n" +
+							"  - example : 192.167.0.0/24",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "Created At \n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "Created By \n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
+					},
+					common.ToSnakeCase("Description"): schema.StringAttribute{
+						Description: "Description \n" +
+							"  - example : PrivateNat Description",
+						Computed: true,
+					},
+					common.ToSnakeCase("Id"): schema.StringAttribute{
+						Description: "Private NAT ID \n" +
+							"  - example : 12f56e27070248a6a240a497e43fbe18",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "Modified At \n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "Modified By \n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
+					},
+					common.ToSnakeCase("Name"): schema.StringAttribute{
+						Description: "Private NAT Name \n" +
+							"  - example : PrivateNatName",
+						Computed: true,
+					},
+					common.ToSnakeCase("ServiceResourceId"): schema.StringAttribute{
+						Description: "Private NAT connected Service Resource ID \n" +
+							"  - example : 3f342bf9a557405b997c2cf48c89cbc2",
+						Computed: true,
+					},
+					common.ToSnakeCase("ServiceResourceName"): schema.StringAttribute{
+						Description: "Private NAT connected Service Resource Name \n" +
+							"  - example : PrivateNatName",
+						Computed: true,
+					},
+					common.ToSnakeCase("ServiceType"): schema.StringAttribute{
+						Description: "Private NAT connected Service Type \n" +
+							"  - example : DIRECT_CONNECT",
+						Computed: true,
+					},
+					common.ToSnakeCase("State"): schema.StringAttribute{
+						Description: "Private NAT State \n" +
+							"  - example : ACTIVE",
+						Computed: true,
 					},
 				},
 			},
@@ -160,21 +174,21 @@ func (d *vpcPrivateNatResource) Configure(_ context.Context, req resource.Config
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client1d2 = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vpcPrivateNatResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan vpc.PrivateNatResource
+	var plan vpcv1d2.PrivateNatResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data, err := r.client.CreatePrivateNat(ctx, plan)
+	data, err := r.client1d2.CreatePrivateNat(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -188,20 +202,20 @@ func (r *vpcPrivateNatResource) Create(ctx context.Context, req resource.CreateR
 	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(privateNat.Id)
 
-	privateNatModel := vpc.PrivateNat{
-		Id:                types.StringValue(privateNat.Id),
-		Name:              types.StringValue(privateNat.Name),
-		VpcId:             types.StringValue(privateNat.VpcId),
-		VpcName:           types.StringPointerValue(privateNat.VpcName.Get()),
-		DirectConnectId:   types.StringValue(privateNat.DirectConnectId),
-		DirectConnectName: types.StringPointerValue(privateNat.DirectConnectName.Get()),
-		Cidr:              types.StringValue(privateNat.Cidr),
-		State:             types.StringValue(string(privateNat.State)),
-		Description:       types.StringPointerValue(privateNat.Description.Get()),
-		CreatedAt:         types.StringValue(privateNat.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:         types.StringValue(privateNat.CreatedBy),
-		ModifiedAt:        types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:        types.StringValue(privateNat.ModifiedBy),
+	privateNatModel := vpcv1d2.PrivateNat{
+		Id:                  types.StringValue(privateNat.Id),
+		Name:                types.StringValue(privateNat.Name),
+		AccountId:           types.StringValue(privateNat.AccountId),
+		Cidr:                types.StringValue(privateNat.Cidr),
+		State:               types.StringValue(string(privateNat.State)),
+		Description:         types.StringPointerValue(privateNat.Description.Get()),
+		ServiceResourceId:   types.StringValue(privateNat.ServiceResourceId),
+		ServiceResourceName: types.StringValue(privateNat.ServiceResourceName),
+		ServiceType:         types.StringValue(string(privateNat.ServiceType)),
+		CreatedAt:           types.StringValue(privateNat.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:           types.StringValue(privateNat.CreatedBy),
+		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
 	privateNatObjectValue, diags := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
 	plan.PrivateNat = privateNatObjectValue
@@ -209,7 +223,7 @@ func (r *vpcPrivateNatResource) Create(ctx context.Context, req resource.CreateR
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 
-	err = waitForPrivateNatStatus(ctx, r.client, privateNat.Id, []string{}, []string{"ACTIVE"})
+	err = waitForPrivateNatStatus(ctx, r.client1d2, privateNat.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Private NAT",
@@ -232,7 +246,7 @@ func (r *vpcPrivateNatResource) Create(ctx context.Context, req resource.CreateR
 // Read refreshes the Terraform state with the latest data.
 func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state vpc.PrivateNatResource
+	var state vpcv1d2.PrivateNatResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -240,7 +254,7 @@ func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	// Get refreshed order value from Private NAT
-	data, err := r.client.GetPrivateNat(ctx, state.Id.ValueString())
+	data, err := r.client1d2.GetPrivateNat(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -252,22 +266,22 @@ func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadReque
 
 	privateNat := data.PrivateNat
 
-	privateNatModel := vpc.PrivateNat{
-		Id:                types.StringValue(privateNat.Id),
-		Name:              types.StringValue(privateNat.Name),
-		VpcId:             types.StringValue(privateNat.VpcId),
-		VpcName:           types.StringPointerValue(privateNat.VpcName.Get()),
-		DirectConnectId:   types.StringValue(privateNat.DirectConnectId),
-		DirectConnectName: types.StringPointerValue(privateNat.DirectConnectName.Get()),
-		Cidr:              types.StringValue(privateNat.Cidr),
-		State:             types.StringValue(string(privateNat.State)),
-		Description:       types.StringPointerValue(privateNat.Description.Get()),
-		CreatedAt:         types.StringValue(privateNat.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:         types.StringValue(privateNat.CreatedBy),
-		ModifiedAt:        types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:        types.StringValue(privateNat.ModifiedBy),
+	privateNatModel := vpcv1d2.PrivateNat{
+		Id:                  types.StringValue(privateNat.Id),
+		Name:                types.StringValue(privateNat.Name),
+		AccountId:           types.StringValue(privateNat.AccountId),
+		Cidr:                types.StringValue(privateNat.Cidr),
+		State:               types.StringValue(string(privateNat.State)),
+		Description:         types.StringPointerValue(privateNat.Description.Get()),
+		ServiceResourceId:   types.StringValue(privateNat.ServiceResourceId),
+		ServiceResourceName: types.StringValue(privateNat.ServiceResourceName),
+		ServiceType:         types.StringValue(string(privateNat.ServiceType)),
+		CreatedAt:           types.StringValue(privateNat.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:           types.StringValue(privateNat.CreatedBy),
+		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
-	privateNatObjectValue, diags := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
+	privateNatObjectValue, _ := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
 	state.PrivateNat = privateNatObjectValue
 
 	// Set refreshed state
@@ -281,15 +295,17 @@ func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadReque
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpcPrivateNatResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state vpc.PrivateNatResource
-	diags := req.Plan.Get(ctx, &state)
+	var plan vpcv1d2.PrivateNatResource  // Changed Data
+	var state vpcv1d2.PrivateNatResource // Stored data
+	req.Plan.Get(ctx, &plan)
+	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Update existing Private NAT
-	_, err := r.client.UpdatePrivateNat(ctx, state.Id.ValueString(), state)
+	_, err := r.client1d2.UpdatePrivateNat(ctx, state.Id.ValueString(), plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -300,7 +316,7 @@ func (r *vpcPrivateNatResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	// Fetch updated items from GetPrivateNat as UpdatePrivateNat items are not populated.
-	data, err := r.client.GetPrivateNat(ctx, state.Id.ValueString())
+	data, err := r.client1d2.GetPrivateNat(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -311,26 +327,27 @@ func (r *vpcPrivateNatResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	privateNat := data.PrivateNat
+	plan.Id = types.StringValue(privateNat.Id)
 
-	privateNatModel := vpc.PrivateNat{
-		Id:                types.StringValue(privateNat.Id),
-		Name:              types.StringValue(privateNat.Name),
-		VpcId:             types.StringValue(privateNat.VpcId),
-		VpcName:           types.StringPointerValue(privateNat.VpcName.Get()),
-		DirectConnectId:   types.StringValue(privateNat.DirectConnectId),
-		DirectConnectName: types.StringPointerValue(privateNat.DirectConnectName.Get()),
-		Cidr:              types.StringValue(privateNat.Cidr),
-		State:             types.StringValue(string(privateNat.State)),
-		Description:       types.StringPointerValue(privateNat.Description.Get()),
-		CreatedAt:         types.StringValue(privateNat.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:         types.StringValue(privateNat.CreatedBy),
-		ModifiedAt:        types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:        types.StringValue(privateNat.ModifiedBy),
+	privateNatModel := vpcv1d2.PrivateNat{
+		Id:                  types.StringValue(privateNat.Id),
+		Name:                types.StringValue(privateNat.Name),
+		AccountId:           types.StringValue(privateNat.AccountId),
+		Cidr:                types.StringValue(privateNat.Cidr),
+		State:               types.StringValue(string(privateNat.State)),
+		Description:         types.StringPointerValue(privateNat.Description.Get()),
+		ServiceResourceId:   types.StringValue(privateNat.ServiceResourceId),
+		ServiceResourceName: types.StringValue(privateNat.ServiceResourceName),
+		ServiceType:         types.StringValue(string(privateNat.ServiceType)),
+		CreatedAt:           types.StringValue(privateNat.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:           types.StringValue(privateNat.CreatedBy),
+		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
-	privateNatObjectValue, diags := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
-	state.PrivateNat = privateNatObjectValue
+	privateNatObjectValue, _ := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
+	plan.PrivateNat = privateNatObjectValue
 
-	diags = resp.State.Set(ctx, state)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -340,7 +357,7 @@ func (r *vpcPrivateNatResource) Update(ctx context.Context, req resource.UpdateR
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vpcPrivateNatResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state vpc.PrivateNatResource
+	var state vpcv1d2.PrivateNatResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -348,7 +365,7 @@ func (r *vpcPrivateNatResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	// Delete existing Private NAT
-	err := r.client.DeletePrivateNat(ctx, state.Id.ValueString())
+	err := r.client1d2.DeletePrivateNat(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -358,7 +375,7 @@ func (r *vpcPrivateNatResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	err = waitForPrivateNatStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"DELETED"})
+	err = waitForPrivateNatStatus(ctx, r.client1d2, state.Id.ValueString(), []string{}, []string{"DELETED"})
 	if err != nil && !strings.Contains(err.Error(), "404") {
 		resp.Diagnostics.AddError(
 			"Error deleting Private NAT",
@@ -368,7 +385,7 @@ func (r *vpcPrivateNatResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 }
 
-func waitForPrivateNatStatus(ctx context.Context, vpcClient *vpc.Client, id string, pendingStates []string, targetStates []string) error {
+func waitForPrivateNatStatus(ctx context.Context, vpcClient *vpcv1d2.Client, id string, pendingStates []string, targetStates []string) error {
 	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
 		info, err := vpcClient.GetPrivateNat(ctx, id)
 		if err != nil {

@@ -16,17 +16,65 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_directconnect_direct_connects" "directconnects" {
-  limit = var.limit
+  size     = var.size
+  page     = var.page
+  sort     = var.sort
+  id       = var.id
+  name     = var.name
+  state    = var.state
+  vpc_id   = var.vpc_id
+  vpc_name = var.vpc_name
 }
 
 
 output "directConnects" {
-  value = data.samsungcloudplatformv2_directconnect_direct_connects.directconnects
+  value = {
+    count: data.samsungcloudplatformv2_directconnect_direct_connects.directconnects.total_count,
+    direct_connects: data.samsungcloudplatformv2_directconnect_direct_connects.directconnects.direct_connects,
+    page: data.samsungcloudplatformv2_directconnect_direct_connects.directconnects.page,
+    size: data.samsungcloudplatformv2_directconnect_direct_connects.directconnects.size,
+    sort: data.samsungcloudplatformv2_directconnect_direct_connects.directconnects.sort_final,
+  }
 }
 
-variable "limit" {
+variable "size" {
   type    = number
   default = 0
+}
+
+variable "page" {
+  type    = number
+  default = 0
+}
+
+variable "sort" {
+  type    = string
+  default = ""
+}
+
+variable "id" {
+  type    = string
+  default = ""
+}
+
+variable "name" {
+  type    = string
+  default = ""
+}
+
+variable "state" {
+  type    = string
+  default = ""
+}
+
+variable "vpc_id" {
+  type    = string
+  default = ""
+}
+
+variable "vpc_name" {
+  type    = string
+  default = ""
 }
 ```
 
@@ -36,17 +84,15 @@ variable "limit" {
 ### Optional
 
 - `id` (String) Direct Connect ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
-- `limit` (Number) Limit 
-  - example : 10 
-  - maximum : 10000 
-  - minimum : 1
-- `marker` (String) Marker 
-  - example : 607e0938521643b5b4b266f343fae693 
-  - maxLength : 64 
-  - minLength : 1
+  - example : fe860e0af0c04dcd8182b84f907f31f4
 - `name` (String) Direct Connect Name 
   - example : directConnectName
+- `page` (Number) page 
+  - example : 0 
+  - minimum : 0
+- `size` (Number) size 
+  - example : 20 
+  - minimum : 0
 - `sort` (String) Sort 
   - example : created_at:desc
 - `state` (String) State 
@@ -59,6 +105,9 @@ variable "limit" {
 ### Read-Only
 
 - `direct_connects` (Attributes List) A list of direct connect. (see [below for nested schema](#nestedatt--direct_connects))
+- `sort_final` (List of String) List of sort condition 
+  - example : ["created_at:desc"]
+- `total_count` (Number) total count
 
 <a id="nestedatt--direct_connects"></a>
 ### Nested Schema for `direct_connects`
@@ -71,10 +120,10 @@ Read-Only:
 - `created_by` (String) created by
 - `description` (String) description
 - `firewall_id` (String) firewall id
-- `id` (String) id
+- `id` (String) Direct Connect Id
 - `modified_at` (String) modified at
 - `modified_by` (String) modified by
-- `name` (String) name
+- `name` (String) Direct Connect Name
 - `state` (String) state
 - `vpc_id` (String) vpc id
 - `vpc_name` (String) vpc name

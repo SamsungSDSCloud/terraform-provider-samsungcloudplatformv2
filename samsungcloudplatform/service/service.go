@@ -20,8 +20,10 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/loadbalancer"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/loggingaudit"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/mariadb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/multinodegpucluster"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/mysql"
 	network_logging "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/network-logging"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/organization"
 	billing "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/plannedcompute"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/postgresql"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/quota"
@@ -35,7 +37,6 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/virtualserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/vpc"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/multinodegpucluster"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -52,6 +53,19 @@ var ResourceConstructors = []func() resource.Resource{
 	iam.NewIamRolePolicyBindingsResource,
 	iam.NewIamUserResource,
 	iam.NewIamUserPolicyBindingsResource,
+
+	// Organization
+	organization.NewOrganizationResource,
+	organization.NewOrganizationUnitResource,
+	organization.NewAccountResource,
+	organization.NewAccountMoveResource,
+	organization.NewAccountRemoveResource,
+	organization.NewInvitationResource,
+	organization.NewInvitationAcceptResource,
+	organization.NewInvitationDeclineResource,
+	organization.NewInvitationCancelResource,
+	organization.NewDelegationPolicyResource,
+	organization.NewServiceControlPolicyResource,
 
 	resourcemanager.NewResourceManagerResourceGroupResource,
 	ske.NewSkeClusterResource,
@@ -70,8 +84,15 @@ var ResourceConstructors = []func() resource.Resource{
 	vpc.NewVpcPeeringApprovalResource,
 	vpc.NewVpcVpcPeeringRuleResource,
 	vpc.NewVpcTgwResource,
+	vpc.NewVpcTgwFirewallResource,
+	vpc.NewVpcTgwFirewallConnectionResource,
 	vpc.NewVpcTgwRuleResource,
 	vpc.NewVpcTgwVpcConnectionResource,
+	vpc.NewVPCSubnetVipResource,
+	vpc.NewVpcTgwUplinkRuleResource,
+	vpc.NewVPCSubnetVipNatIpResource,
+	vpc.NewVpcCidrResource,
+	vpc.NewVPCSubnetVipPortResource,
 	network_logging.NewNetworkLoggingNetworkLoggingStorageResource,
 	directconnect.NewDirectConnectDirectConnectResource,
 
@@ -173,6 +194,20 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	iam.NewIamUserDataSources,
 	iam.NewIamUserPolicyBindingDataSources,
 
+	// Organization
+	organization.NewOrganizationDataSource,
+	organization.NewOrganizationDataSources,
+	organization.NewOrganizationUnitDataSource,
+	organization.NewOrganizationUnitsDataSource,
+	organization.NewOrganizationUnitParentsDataSource,
+	organization.NewAccountDataSource,
+	organization.NewAccountListDataSource,
+	organization.NewAccountInvitationsDataSource,
+	organization.NewOrganizationInvitationsDataSource,
+	organization.NewDelegationPolicyDataSource,
+	organization.NewServiceControlPolicyDataSource,
+	organization.NewServiceControlPoliciesDataSource,
+
 	resourcemanager.NewResourceManagerTagDataSource,
 	resourcemanager.NewResourceManagerResourceTagDataSource,
 	resourcemanager.NewResourceManagerResourceGroupDataSource,
@@ -183,12 +218,11 @@ var DataSourceConstructors = []func() datasource.DataSource{
 
 	ske.NewSkeClusterDataSource,
 	ske.NewSkeClusterDataSources,
-	ske.NewSkeClusterKubeconfigDataSource,
-	ske.NewSkeClusterUserKubeconfigDataSource,
 	ske.NewSkeKubernetesVersionDataSources,
 	ske.NewSkeNodepoolDataSource,
 	ske.NewSkeNodepoolDataSources,
 	ske.NewSkeNodepoolnodeDataSources,
+	ske.NewSkeNodepoolImageDataSources,
 
 	vpc.NewVpcVpcDataSource,
 	vpc.NewVpcSubnetDataSource,
@@ -203,11 +237,17 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	vpc.NewVpcVpcEndpointDataSource,
 	vpc.NewVpcVpcPeeringRuleDataSource,
 	vpc.NewVpcPrivateNatDataSource,
+	vpc.NewVpcPrivateNatDataSources,
 	vpc.NewVpcPrivateNatIpDataSource,
 	vpc.NewTransitGatewayDataSources,
 	vpc.NewTransitGatewayDataSource,
 	vpc.NewTransitGatewayRoutingRuleDataSources,
 	vpc.NewTransitGatewayVpcConnectionDataSources,
+
+	// vpc subnets vip
+	vpc.NewVpcSubnetVipDataSource,
+	vpc.NewVpcSubnetVipDataSources,
+
 	network_logging.NewNetworkLoggingNetworkLoggingStorageDataSource,
 	network_logging.NewNetworkLoggingNetworkLoggingConfigurationDataSource,
 	directconnect.NewDirectConnectDirectConnectDataSource,

@@ -3,8 +3,10 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -44,121 +45,164 @@ func (d *vpcSubnetDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 	resp.Schema = schema.Schema{
 		Description: "list of subnet.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
-					"  - example : 10 \n" +
-					"  - maximum : 10000 \n" +
-					"  - minimum : 1",
-				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
-				},
-			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
-					"  - maxLength : 64 \n" +
-					"  - minLength : 1",
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
-				},
-			},
-			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
-					"  - example : created_at:desc",
-				Optional: true,
+			common.ToSnakeCase("cidr"): schema.StringAttribute{
+				Optional:            true,
+				Description:         "Subnet Cidr",
+				MarkdownDescription: "Subnet Cidr",
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "Subnet ID \n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				MarkdownDescription: "Subnet ID \n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "Subnet Name \n" +
 					"  - example : subnetName",
+				MarkdownDescription: "Subnet Name \n" +
+					"  - example : subnetName",
 				Optional: true,
 			},
-			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description: "VPC Name \n" +
-					"  - example : vpcName",
+			common.ToSnakeCase("page"): schema.Int32Attribute{
+				Optional:            true,
+				Description:         "page",
+				MarkdownDescription: "page",
+				Validators: []validator.Int32{
+					int32validator.Between(0, 99999),
+				},
+			},
+			common.ToSnakeCase("size"): schema.Int32Attribute{
+				Optional:            true,
+				Description:         "size",
+				MarkdownDescription: "size",
+				Validators: []validator.Int32{
+					int32validator.Between(1, 10000),
+				},
+			},
+			common.ToSnakeCase("Sort"): schema.StringAttribute{
+				Description: "Sort \n" +
+					"  - example : created_at:desc",
+				MarkdownDescription: "Sort \n" +
+					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State \n" +
-					"  - example : CREATING | ACTIVE | DELETING | ERROR",
+				Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
+				MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"CREATING",
+						"ACTIVE",
+						"DELETING",
+						"DELETED",
+						"ERROR",
+					),
+				},
 				Optional: true,
 			},
-			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
-					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
-				Optional: true,
+			common.ToSnakeCase("Subnets"): schema.ListNestedAttribute{
+				Description:         "A list of subnet.",
+				MarkdownDescription: "A list of subnet.",
+				Computed:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						common.ToSnakeCase("account_id"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+							MarkdownDescription: "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+						},
+						common.ToSnakeCase("cidr"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Subnet Cidr\n  - example: 192.167.1.0/24",
+							MarkdownDescription: "Subnet Cidr\n  - example: 192.167.1.0/24",
+						},
+						common.ToSnakeCase("created_at"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+							MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+						},
+						common.ToSnakeCase("created_by"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							MarkdownDescription: "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						},
+						common.ToSnakeCase("gateway_ip_address"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Gateway IP Address\n  - example: 192.167.1.1",
+							MarkdownDescription: "Gateway IP Address\n  - example: 192.167.1.1",
+						},
+						common.ToSnakeCase("id"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Subnet Id\n  - example: 023c57b14f11483689338d085e061492",
+							MarkdownDescription: "Subnet Id\n  - example: 023c57b14f11483689338d085e061492",
+						},
+						common.ToSnakeCase("modified_at"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+							MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						},
+						common.ToSnakeCase("modified_by"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							MarkdownDescription: "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						},
+						common.ToSnakeCase("name"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "Subnet Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: subnetName",
+							MarkdownDescription: "Subnet Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: subnetName",
+						},
+						common.ToSnakeCase("state"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
+							MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
+						},
+						common.ToSnakeCase("type"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "- enum: [\"GENERAL\",\"LOCAL\",\"VPC_ENDPOINT\"]",
+							MarkdownDescription: "- enum: [\"GENERAL\",\"LOCAL\",\"VPC_ENDPOINT\"]",
+						},
+						common.ToSnakeCase("vpc_id"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+							MarkdownDescription: "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+						},
+						common.ToSnakeCase("vpc_name"): schema.StringAttribute{
+							Computed:            true,
+							Description:         "VPC Name\n  - example: vpcName",
+							MarkdownDescription: "VPC Name\n  - example: vpcName",
+						},
+					},
+				},
+			},
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "Total count\n" +
+					"  - Example : 20",
+				MarkdownDescription: "Total count\n" +
+					"  - Example : 20",
+				Computed: true,
 			},
 			common.ToSnakeCase("Type"): schema.ListAttribute{
 				ElementType: types.StringType,
 				Description: "Type \n" +
 					"  - example : [\"LOCAL\", \"GENERAL\", \"VPC_ENDPOINT\"]",
+				MarkdownDescription: "Type \n" +
+					"  - example : [\"LOCAL\", \"GENERAL\", \"VPC_ENDPOINT\"]",
 				Optional: true,
 			},
-			common.ToSnakeCase("Subnets"): schema.ListNestedAttribute{
-				Description: "A list of subnet.",
-				Computed:    true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
-						},
-						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Computed:    true,
-						},
-						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Computed:    true,
-						},
-						common.ToSnakeCase("VpcID"): schema.StringAttribute{
-							Description: "VpcID",
-							Computed:    true,
-						},
-						common.ToSnakeCase("VpcName"): schema.StringAttribute{
-							Description: "VpcName",
-							Computed:    true,
-						},
-						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Type",
-							Computed:    true,
-						},
-						common.ToSnakeCase("Cidr"): schema.StringAttribute{
-							Description: "Cidr",
-							Computed:    true,
-						},
-						common.ToSnakeCase("GatewayIpAddress"): schema.StringAttribute{
-							Description: "GatewayIpAddress",
-							Computed:    true,
-						},
-						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Computed:    true,
-						},
-						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
-						},
-						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Computed:    true,
-						},
-						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
-						},
-						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Computed:    true,
-						},
-					},
-				},
+			common.ToSnakeCase("VpcId"): schema.StringAttribute{
+				Description: "VPC ID \n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				MarkdownDescription: "VPC ID \n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Optional: true,
+			},
+			common.ToSnakeCase("VpcName"): schema.StringAttribute{
+				Description: "VPC Name \n" +
+					"  - example : vpcName",
+				MarkdownDescription: "VPC Name \n" +
+					"  - example : vpcName",
+				Optional: true,
 			},
 		},
 	}
@@ -182,7 +226,7 @@ func (d *vpcSubnetDataSource) Configure(_ context.Context, req datasource.Config
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
@@ -226,6 +270,8 @@ func (d *vpcSubnetDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 		state.Subnets = append(state.Subnets, subnetState)
 	}
+
+	state.TotalCount = types.Int32Value(data.Count)
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)

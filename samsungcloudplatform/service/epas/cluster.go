@@ -3,13 +3,17 @@ package epas
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/epas"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/database"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpEpas "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/epas/1.0"
+	scpEpas "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/epas/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,9 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
-	"strings"
-	"time"
 )
 
 var (
@@ -161,16 +162,10 @@ func (r *epasClusterResource) Schema(_ context.Context, _ resource.SchemaRequest
 									common.ToSnakeCase("Id"): schema.StringAttribute{
 										Description: "Id",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
 										Description: "Name",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
 										Description: "Role type \n" +
@@ -394,7 +389,7 @@ func (r *epasClusterResource) Create(ctx context.Context, req resource.CreateReq
 	clusterId := data.Resource.Id
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -482,7 +477,7 @@ func (r *epasClusterResource) AsyncPollingTags(ctx context.Context, clusterId st
 }
 
 func (r *epasClusterResource) MapGetResponseToState(ctx context.Context,
-	resp *scpEpas.EpasClusterDetailResponse, plan epas.ClusterResource, tagsMap types.Map) (epas.ClusterResource, error) {
+	resp *scpEpas.EpasClusterDetailResponseV1Dot1, plan epas.ClusterResource, tagsMap types.Map) (epas.ClusterResource, error) {
 
 	var allowableIpAddresses types.List
 	if len(resp.AllowableIpAddresses) == 0 {
@@ -761,7 +756,7 @@ func (r *epasClusterResource) handlerUpdateClusterState(ctx context.Context, req
 		return err
 	}
 
-	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -817,7 +812,7 @@ func (r *epasClusterResource) handlerUpdateClusterInitConfig(ctx context.Context
 		}
 	}
 
-	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -852,7 +847,7 @@ func (r *epasClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx conte
 		return err
 	}
 
-	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -953,7 +948,7 @@ func (r *epasClusterResource) handlerUpdateInstanceGroups(ctx context.Context, r
 							return err
 						}
 
-						immutableBsFields := []string{"Id", "Name", "RoleType", "VolumeType"}
+						immutableBsFields := []string{"RoleType", "VolumeType"}
 
 						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
 							resp.Diagnostics.AddError(
@@ -983,7 +978,7 @@ func (r *epasClusterResource) handlerUpdateInstanceGroups(ctx context.Context, r
 			}
 
 			// wait for 구현
-			getFunc := func(id string) (*scpEpas.EpasClusterDetailResponse, error) {
+			getFunc := func(id string) (*scpEpas.EpasClusterDetailResponseV1Dot1, error) {
 				return r.client.GetCluster(ctx, id)
 			}
 
@@ -1037,7 +1032,7 @@ func (r *epasClusterResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEpas.EpasClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 

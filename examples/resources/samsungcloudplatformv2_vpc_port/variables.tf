@@ -18,8 +18,12 @@ variable "port_fixed_ip_address" {
   default = ""
 }
 
-variable "port_security_groups" {
-  type    = list(string)
-  default = [""]
+variable "security_groups" {
+  type = list(object({
+    id = string
+  }))
+  default = [{
+    id = ""
+  }]
 }
 

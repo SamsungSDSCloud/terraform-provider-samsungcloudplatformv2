@@ -3,17 +3,15 @@ package directconnect
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnect"
+	directconnectv1d1 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnectv1d1"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -30,7 +28,7 @@ func NewNetworkDirectConnectRoutingRuleDataSource() datasource.DataSource {
 // networkRoutingRuleDataSource is the data source implementation.
 type networkDirectConnectRoutingRuleDataSource struct {
 	config  *scpsdk.Configuration
-	client  *directconnect.Client
+	client  *directconnectv1d1.Client
 	clients *client.SCPClient
 }
 
@@ -44,25 +42,18 @@ func (d *networkDirectConnectRoutingRuleDataSource) Schema(_ context.Context, _ 
 	resp.Schema = schema.Schema{
 		Description: "list of routing rule.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
-					"  - example : 10 \n" +
-					"  - maximum : 10000 \n" +
-					"  - minimum : 1",
+			// Input
+			common.ToSnakeCase("Size"): schema.Int32Attribute{
+				Description: "Size \n" +
+					"  - example : 20 \n" +
+					"  - minimum : 0",
 				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
-				},
 			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
-					"  - maxLength : 64 \n" +
-					"  - minLength : 1",
+			common.ToSnakeCase("Page"): schema.Int32Attribute{
+				Description: "Page \n" +
+					"  - example : 0 \n" +
+					"  - minimum : 0",
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
-				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
 				Description: "Sort \n" +
@@ -93,6 +84,18 @@ func (d *networkDirectConnectRoutingRuleDataSource) Schema(_ context.Context, _ 
 				Description: "State \n" +
 					"  - example : CREATING | ACTIVE | DELETING | ERROR",
 				Optional: true,
+			},
+
+			// Output
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "total count",
+				Computed:    true,
+			},
+			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
+				Description: "List of sort condition \n" +
+					"  - example : [\"created_at:desc\"]",
+				ElementType: types.StringType,
+				Computed:    true,
 			},
 			common.ToSnakeCase("RoutingRules"): schema.ListNestedAttribute{
 				Description: "A list of routing rule.",
@@ -180,13 +183,13 @@ func (d *networkDirectConnectRoutingRuleDataSource) Configure(_ context.Context,
 		return
 	}
 
-	d.client = inst.Client.DirectConnect
+	d.client = inst.Client.DirectConnectV1d1
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *networkDirectConnectRoutingRuleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state directconnect.RoutingRuleDataSource
+	var state directconnectv1d1.RoutingRuleDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -205,8 +208,15 @@ func (d *networkDirectConnectRoutingRuleDataSource) Read(ctx context.Context, re
 	}
 
 	// Map response body to model
+	state.TotalCount = types.Int32Value(data.Count)
+	state.Page = types.Int32Value(data.Page)
+	state.Size = types.Int32Value(data.Size)
+	for _, sortVal := range data.Sort {
+		state.SortFinal = append(state.SortFinal, types.StringValue(sortVal))
+	}
+
 	for _, routingRule := range data.RoutingRules {
-		routingRuleState := directconnect.RoutingRule{
+		routingRuleState := directconnectv1d1.RoutingRule{
 			Id:                      types.StringValue(routingRule.Id),
 			AccountId:               types.StringValue(routingRule.AccountId),
 			OwnerId:                 types.StringValue(routingRule.OwnerId),

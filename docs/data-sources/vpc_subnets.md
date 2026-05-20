@@ -16,7 +16,16 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_subnets" "subnets" {
-  limit = var.limit
+  cidr     = var.cidr
+  id       = var.id
+  name     = var.name
+  page     = 3
+  size     = 4
+  sort     = var.sort
+  state    = var.state
+  type     = ["LOCAL", "GENERAL", "VPC_ENDPOINT"]
+  vpc_id   = var.vpc_id
+  vpc_name = var.vpc_name
 }
 
 
@@ -25,9 +34,55 @@ output "subnets" {
 }
 
 
-variable "limit" {
+
+variable "cidr" {
+  type    = string
+  default = ""
+}
+
+variable "id" {
+  type    = string
+  default = ""
+}
+
+variable "name" {
+  type    = string
+  default = ""
+}
+
+variable "page" {
   type    = number
   default = 0
+}
+
+variable "size" {
+  type    = number
+  default = 0
+}
+
+variable "sort" {
+  type    = string
+  default = ""
+}
+
+variable "state" {
+  type    = string
+  default = ""
+}
+
+variable "type" {
+  type    = list(string)
+  default = [""]
+}
+
+variable "vpc_id" {
+  type    = string
+  default = ""
+}
+
+variable "vpc_name" {
+  type    = string
+  default = ""
 }
 ```
 
@@ -36,22 +91,16 @@ variable "limit" {
 
 ### Optional
 
+- `cidr` (String) Subnet Cidr
 - `id` (String) Subnet ID 
   - example : 7df8abb4912e4709b1cb237daccca7a8
-- `limit` (Number) Limit 
-  - example : 10 
-  - maximum : 10000 
-  - minimum : 1
-- `marker` (String) Marker 
-  - example : 607e0938521643b5b4b266f343fae693 
-  - maxLength : 64 
-  - minLength : 1
 - `name` (String) Subnet Name 
   - example : subnetName
+- `page` (Number) page
+- `size` (Number) size
 - `sort` (String) Sort 
   - example : created_at:desc
-- `state` (String) State 
-  - example : CREATING | ACTIVE | DELETING | ERROR
+- `state` (String) - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR"]
 - `type` (List of String) Type 
   - example : ["LOCAL", "GENERAL", "VPC_ENDPOINT"]
 - `vpc_id` (String) VPC ID 
@@ -62,22 +111,38 @@ variable "limit" {
 ### Read-Only
 
 - `subnets` (Attributes List) A list of subnet. (see [below for nested schema](#nestedatt--subnets))
+- `total_count` (Number) Total count
+  - Example : 20
 
 <a id="nestedatt--subnets"></a>
 ### Nested Schema for `subnets`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `cidr` (String) Cidr
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `gateway_ip_address` (String) GatewayIpAddress
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `state` (String) State
-- `type` (String) Type
-- `vpc_id` (String) VpcID
-- `vpc_name` (String) VpcName
+- `account_id` (String) Account ID
+  - example: f1e6c81a2b054582878cb9724dc2ce9f
+- `cidr` (String) Subnet Cidr
+  - example: 192.167.1.0/24
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `gateway_ip_address` (String) Gateway IP Address
+  - example: 192.167.1.1
+- `id` (String) Subnet Id
+  - example: 023c57b14f11483689338d085e061492
+- `modified_at` (String) Modified At
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) Subnet Name
+  - maxLength: 20
+  - minLength: 3
+  - pattern: `^[a-zA-Z0-9-]*$`
+  - example: subnetName
+- `state` (String) - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR"]
+- `type` (String) - enum: ["GENERAL","LOCAL","VPC_ENDPOINT"]
+- `vpc_id` (String) VPC Id
+  - example: 7df8abb4912e4709b1cb237daccca7a8
+- `vpc_name` (String) VPC Name
+  - example: vpcName

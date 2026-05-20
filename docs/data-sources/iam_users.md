@@ -96,6 +96,7 @@ Optional:
 
 Read-Only:
 
+- `access_keys` (Attributes List) Access Keys (see [below for nested schema](#nestedatt--users--access_keys))
 - `account_id` (String) Account ID
 - `created_at` (String) Created At
 - `created_by` (String) Created By
@@ -103,6 +104,7 @@ Read-Only:
 - `dst_offset` (String) Dst Offset
 - `email` (String) Email
 - `email_authenticated` (Boolean) Email Authenticated
+- `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--users--groups))
 - `id` (String) ID
 - `last_password_update_at` (String) Last Password Update At
 - `modified_at` (String) Modified At
@@ -119,76 +121,28 @@ Read-Only:
 <a id="nestedatt--users--policies"></a>
 ### Nested Schema for `users.policies`
 
-Optional:
-
-- `account_id` (String) Account ID
-- `policy_versions` (Attributes List) Policy Versions (see [below for nested schema](#nestedatt--users--policies--policy_versions))
-
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `creator_email` (String) Creator Email
-- `creator_name` (String) Creator Name
-- `default_version_id` (String) Default Version ID
-- `description` (String) Description
-- `domain_name` (String) Domain Name
 - `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `modifier_email` (String) Modifier Email
-- `modifier_name` (String) Modifier Name
-- `policy_category` (String) Policy Category
-- `policy_name` (String) Policy Name
-- `policy_type` (String) Policy Type
-- `resource_type` (String) Resource Type
-- `service_name` (String) Service Name
-- `service_type` (String) Service Type
-- `srn` (String) SRN
-- `state` (String) State
+- `name` (String) Name
 
-<a id="nestedatt--users--policies--policy_versions"></a>
-### Nested Schema for `users.policies.policy_versions`
+
+<a id="nestedatt--users--access_keys"></a>
+### Nested Schema for `users.access_keys`
 
 Read-Only:
 
+- `access_key` (String) Access Key
 - `created_at` (String) Created At
-- `created_by` (String) Created By
+- `expiration_timestamp` (String) Expiration Timestmap
 - `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `policy_document` (Attributes) Policy Document (see [below for nested schema](#nestedatt--users--policies--policy_versions--policy_document))
-- `policy_id` (String) Policy ID
-- `policy_version_name` (String) Policy Version Name
+- `is_enabled` (Boolean) Is Enabled
 
-<a id="nestedatt--users--policies--policy_versions--policy_document"></a>
-### Nested Schema for `users.policies.policy_versions.policy_document`
+
+<a id="nestedatt--users--groups"></a>
+### Nested Schema for `users.groups`
 
 Read-Only:
 
-- `statement` (Attributes List) Statement (see [below for nested schema](#nestedatt--users--policies--policy_versions--policy_document--statement))
-- `version` (String) Policy Version
-
-<a id="nestedatt--users--policies--policy_versions--policy_document--statement"></a>
-### Nested Schema for `users.policies.policy_versions.policy_document.statement`
-
-Optional:
-
-- `action` (List of String) Action
-- `condition` (Map of Map of List of String)
-- `not_action` (List of String) Not Action
-- `principal` (Attributes) Principal (see [below for nested schema](#nestedatt--users--policies--policy_versions--policy_document--statement--principal))
-- `resource` (List of String) Resource
-
-Read-Only:
-
-- `effect` (String) Effect
-- `sid` (String) SID
-
-<a id="nestedatt--users--policies--policy_versions--policy_document--statement--principal"></a>
-### Nested Schema for `users.policies.policy_versions.policy_document.statement.principal`
-
-Optional:
-
-- `principal_map` (Map of List of String)
-- `principal_string` (String)
+- `id` (String) Group ID
+- `name` (String) Group Name

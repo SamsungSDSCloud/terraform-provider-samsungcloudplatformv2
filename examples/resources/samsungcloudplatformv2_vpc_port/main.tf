@@ -6,5 +6,5 @@ resource "samsungcloudplatformv2_vpc_port" "port" {
     subnet_id = var.subnet_id
     description = var.port_description
     fixed_ip_address = var.port_fixed_ip_address
-    security_groups = var.port_security_groups
+    security_groups = var.security_groups
 }

@@ -3,17 +3,18 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpcV1Dot2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -29,9 +30,10 @@ func NewVpcVpcEndpointDataSource() datasource.DataSource {
 
 // vpcNatGatewayDataSource is the data source implementation.
 type vpcVpcEndpointDataSource struct {
-	config  *scpsdk.Configuration
-	client  *vpc.Client
-	clients *client.SCPClient
+	config    *scpsdk.Configuration
+	client    *vpc.Client
+	client1d2 *vpcV1Dot2.Client
+	clients   *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -44,24 +46,25 @@ func (d *vpcVpcEndpointDataSource) Schema(_ context.Context, _ datasource.Schema
 	resp.Schema = schema.Schema{
 		Description: "list of vpcendpoints.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
-					"  - example : 10 \n" +
-					"  - maximum : 10000 \n" +
-					"  - minimum : 1",
+			// Input
+			common.ToSnakeCase("Size"): schema.Int32Attribute{
+				Description: "Size \n" +
+					"  - example : 20 \n" +
+					"  - minimum : 0",
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
+					int32validator.AtLeast(0),
 				},
 			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
-					"  - maxLength : 64 \n" +
-					"  - minLength : 1",
+			common.ToSnakeCase("Page"): schema.Int32Attribute{
+				Description: "Page \n" +
+					"  - example : 0 \n" +
+					"  - minimum : 0",
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
+				Computed: true,
+				Validators: []validator.Int32{
+					int32validator.AtLeast(0),
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
@@ -90,6 +93,11 @@ func (d *vpcVpcEndpointDataSource) Schema(_ context.Context, _ datasource.Schema
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
+			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
+				Description: "Subnet ID \n" +
+					"  - example : 023c57b14f11483689338d085e061492",
+				Optional: true,
+			},
 			common.ToSnakeCase("ResourceType"): schema.StringAttribute{
 				Description: "VPC Endpoint Resource Type \n" +
 					"  - example : FS | OBS | SCR | DNS",
@@ -110,6 +118,13 @@ func (d *vpcVpcEndpointDataSource) Schema(_ context.Context, _ datasource.Schema
 				Description: "State \n" +
 					"  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR",
 				Optional: true,
+			},
+
+			// Output
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "Count \n" +
+					"  - example : 20 \n",
+				Computed: true,
 			},
 			common.ToSnakeCase("VpcEndpoints"): schema.ListNestedAttribute{
 				Description: "A list of endpoints.",
@@ -210,12 +225,13 @@ func (d *vpcVpcEndpointDataSource) Configure(_ context.Context, req datasource.C
 	}
 
 	d.client = inst.Client.Vpc
+	d.client1d2 = inst.Client.VpcV1Dot2 // For VPC endpoint list v1.2
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *vpcVpcEndpointDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpc.VpcEndpointDataSource
+	var state vpcV1Dot2.VpcEndpointDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -223,7 +239,7 @@ func (d *vpcVpcEndpointDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	data, err := d.client.GetVpcEndpointList(ctx, state)
+	data, err := d.client1d2.GetVpcEndpointList(ctx, state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -233,9 +249,13 @@ func (d *vpcVpcEndpointDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
+	state.TotalCount = types.Int32Value(data.Count)
+	state.Page = types.Int32Value(data.Page)
+	state.Size = types.Int32Value(data.Size)
+
 	// Map response body to model
 	for _, vpcendpoint := range data.VpcEndpoints {
-		vpcendpointState := vpc.VpcEndpoint{
+		vpcendpointState := vpcV1Dot2.VpcEndpoint{
 			Id:                types.StringValue(vpcendpoint.Id),
 			Name:              types.StringValue(vpcendpoint.Name),
 			VpcId:             types.StringValue(vpcendpoint.VpcId),

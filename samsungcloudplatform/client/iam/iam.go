@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.2"
+	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -220,7 +220,7 @@ func (client *Client) DeleteGroup(ctx context.Context, groupId string) error {
 	return err
 }
 
-func (client *Client) GetGroupMembers(ctx context.Context, groupId string, request GroupMembersDataResource) (*scpsdkiam.GroupMemberPageResponse, error) {
+func (client *Client) GetGroupMembers(ctx context.Context, groupId string, request GroupMembersDataResource) (*scpsdkiam.GroupMemberPageResponseV1Dot4, error) {
 	req := client.sdkClient.IamV1GroupsApiAPI.ListGroupMember(ctx, groupId)
 
 	if !request.Size.IsNull() {
@@ -707,7 +707,7 @@ func (client *Client) CreateRole(ctx context.Context, request RoleResource) (*sc
 		policyDocument.Unset()
 	}
 
-	req = req.RoleCreateRequest(scpsdkiam.RoleCreateRequest{
+	req = req.RoleCreateRequestV1Dot3(scpsdkiam.RoleCreateRequestV1Dot3{
 		Description:              *scpsdkiam.NewNullableString(request.Description.ValueStringPointer()),
 		Name:                     request.Name.ValueString(),
 		MaxSessionDuration:       request.MaxSessionDuration.ValueInt32Pointer(),
@@ -816,7 +816,7 @@ func (client *Client) RemoveRolePolicyBindings(ctx context.Context, roleId strin
 }
 
 // / USER ///
-func (client *Client) GetUsers(ctx context.Context, accountId string, request UserDataSource) (*scpsdkiam.ListIAMUserResponse, error) {
+func (client *Client) GetUsers(ctx context.Context, accountId string, request UserDataSource) (*scpsdkiam.ListIAMUserResponseV1Dot4, error) {
 	req := client.sdkClient.IamV1AccountsApiAPI.ListIAMUser(ctx, accountId)
 
 	if !request.Size.IsNull() {
@@ -839,7 +839,7 @@ func (client *Client) GetUsers(ctx context.Context, accountId string, request Us
 	return resp, err
 }
 
-func (client *Client) GetUser(ctx context.Context, accountId string, userId string) (*scpsdkiam.IAMUserDetailResponse, error) {
+func (client *Client) GetUser(ctx context.Context, accountId string, userId string) (*scpsdkiam.IAMUserDetailResponseV1Dot4, error) {
 	req := client.sdkClient.IamV1AccountsApiAPI.GetIAMUser(ctx, accountId, userId)
 	resp, _, err := req.Execute()
 	return resp, err

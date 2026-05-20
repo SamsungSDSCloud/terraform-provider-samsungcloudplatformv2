@@ -8,6 +8,7 @@ import (
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
+	util "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/iam"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -21,14 +22,14 @@ func TestAccGroupResourceTest(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGroupCreate("test-acc-group", "group for test-acc",
+				Config: testAccGroupCreate("test-acc-group", "test-acc group desc",
 					map[string]string{
 						"test-acc-key": "test-acc-value",
 					},
 					[]string{"d258561c5cf04106bb0f2a8d02a7479e"}),
 			},
 			{
-				Config: testAccGroupUpdate("change-test-acc-group", "change group for test-acc"),
+				Config: testAccGroupUpdate("change-test-acc-group", "test-acc group desc change"),
 			},
 		},
 	})
@@ -63,7 +64,7 @@ func init() {
 }
 
 func sweepGroup(region string) error {
-	scpClient, err := SharedClientForRegion(region)
+	scpClient, err := util.SharedClientForRegion(region)
 	if err != nil {
 		return fmt.Errorf("error getting client for region %s: %v", region, err)
 	}

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_publicips Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  list of publicip.
+  List of PublicIPs.
 ---
 
 # samsungcloudplatformv2_vpc_publicips (Data Source)
 
-list of publicip.
+List of PublicIPs.
 
 ## Example Usage
 
@@ -16,18 +16,88 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_publicips" "publicips" {
-  limit = var.limit
+  size                   = var.size
+  page                   = var.page
+  sort                   = var.sort
+  ip_address             = var.ip_address
+  state                  = var.state
+  attached_resource_type = var.attached_resource_type
+  attached_resource_id   = var.attached_resource_id
+  attached_resource_name = var.attached_resource_name
+  vpc_id                 = var.vpc_id
+  type                   = var.type
 }
 
 
 output "publicips" {
-  value = data.samsungcloudplatformv2_vpc_publicips.publicips
+  value = {
+    count: data.samsungcloudplatformv2_vpc_publicips.publicips.total_count,
+    page: data.samsungcloudplatformv2_vpc_publicips.publicips.page,
+    publicips: data.samsungcloudplatformv2_vpc_publicips.publicips.publicips,
+    size: data.samsungcloudplatformv2_vpc_publicips.publicips.size,
+    sort: data.samsungcloudplatformv2_vpc_publicips.publicips.sort,
+  }
 }
 
 
-variable "limit" {
-  type    = number
-  default = 0
+variable "size" {
+  type        = number
+  description = "Number of items to return per page (minimum: 0)"
+  default     = 0
+}
+
+variable "page" {
+  type        = number
+  description = "Page number (minimum: 0)"
+  default     = 0
+}
+
+variable "sort" {
+  type        = string
+  description = "Sort order (e.g., created_at:desc)"
+  default     = ""
+}
+
+variable "ip_address" {
+  type        = string
+  description = "Filter by IP address"
+  default     = ""
+}
+
+variable "state" {
+  type        = string
+  description = "Filter by PublicIP state (RESERVED | ATTACHED | DELETED)"
+  default     = ""
+}
+
+variable "attached_resource_type" {
+  type        = string
+  description = "Filter by attached resource type (VM | ALB | LB | BM | DB | NAT_GW | GPU_NODE | VPN | GPU_SERVER | EPAS | POSTGRESQL | MARIADB | SQLSERVER | CACHESTORE | SCALABLEDB | EVENTSTREAMS | SEARCHENGINE | VERTICA | SUBNET | MYSQL)"
+  default     = ""
+}
+
+variable "attached_resource_id" {
+  type        = string
+  description = "Filter by attached resource ID"
+  default     = ""
+}
+
+variable "attached_resource_name" {
+  type        = string
+  description = "Filter by attached resource name"
+  default     = ""
+}
+
+variable "vpc_id" {
+  type        = string
+  description = "Filter by VPC ID"
+  default     = ""
+}
+
+variable "type" {
+  type        = string
+  description = "Filter by PublicIP type (IGW | GGW | SIGW)"
+  default     = ""
 }
 ```
 
@@ -36,50 +106,50 @@ variable "limit" {
 
 ### Optional
 
-- `attached_resource_id` (String) Attached Resource ID 
-  - example : 4fa0e75475df40fbb1ab4e74bd60ff37
-- `attached_resource_name` (String) Attached Resource Name 
-  - example : VirtualServerName
-- `attached_resource_type` (String) Attached Resource Type 
-  - example : VM | LB | BM | NAT_GW
+- `attached_resource_id` (String) PublicIP Attached Resource ID 
+  - example : 37e6db41f5124184a43251a63124cdc9
+- `attached_resource_name` (String) PublicIP Attached Resource Name 
+  - example : Attached NAT Gateway Name
+- `attached_resource_type` (String) PublicIP Attached Resource Type 
+  - example : VM | ALB | LB | BM | DB | NAT_GW | GPU_NODE | VPN | GPU_SERVER | EPAS | POSTGRESQL | MARIADB | SQLSERVER | CACHESTORE | SCALABLEDB | EVENTSTREAMS | SEARCHENGINE | VERTICA | SUBNET | MYSQL
 - `ip_address` (String) IP Address 
-  - example : 172.24.4.2
-- `limit` (Number) Limit 
-  - example : 10 
-  - maximum : 10000 
-  - minimum : 1
-- `marker` (String) Marker 
-  - example : 607e0938521643b5b4b266f343fae693 
-  - maxLength : 64 
-  - minLength : 1
+  - example : 192.167.0.5
+- `page` (Number) Page 
+  - example : 0 
+  - minimum : 0
+- `size` (Number) Size 
+  - example : 20 
+  - minimum : 0
 - `sort` (String) Sort 
   - example : created_at:desc
-- `state` (String) State 
-  - example : RESERVED | ATTACHED
-- `type` (String) Type 
+- `state` (String) PublicIP State 
+  - example : RESERVED | ATTACHED | DELETED
+- `type` (String) PublicIP Type 
   - example : IGW | GGW | SIGW
 - `vpc_id` (String) VPC ID 
   - example : 7df8abb4912e4709b1cb237daccca7a8
 
 ### Read-Only
 
-- `publicips` (Attributes List) A list of publicip. (see [below for nested schema](#nestedatt--publicips))
+- `publicips` (Attributes List) A list of public IPs. (see [below for nested schema](#nestedatt--publicips))
+- `total_count` (Number) Count 
+  - example : 20
 
 <a id="nestedatt--publicips"></a>
 ### Nested Schema for `publicips`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `attached_resource_id` (String) AttachedResourceId
-- `attached_resource_name` (String) AttachedResourceName
-- `attached_resource_type` (String) AttachedResourceType
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `ip_address` (String) IpAddress
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `state` (String) State
-- `type` (String) Type
+- `account_id` (String) Account ID
+- `attached_resource_id` (String) PublicIP Attached Resource ID
+- `attached_resource_name` (String) PublicIP Attached Resource Name
+- `attached_resource_type` (String) PublicIP Attached Resource Type
+- `created_at` (String) Created At
+- `created_by` (String) Created By
+- `description` (String) PublicIP Description
+- `id` (String) PublicIP ID
+- `ip_address` (String) IP Address
+- `modified_at` (String) Modified At
+- `modified_by` (String) Modified By
+- `state` (String) PublicIP State
+- `type` (String) PublicIP Type

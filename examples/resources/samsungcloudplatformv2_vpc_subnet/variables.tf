@@ -50,3 +50,18 @@ variable "subnet_host_routes" {
   }]
 }
 
+variable "dhcp_ip_address" {
+  type    = string
+  default = ""
+}
+
+variable "gateway_ip_address" {
+  type    = string
+  default = ""
+}
+
+variable "tags" {
+  type    = map(string)
+  default = null
+}
+

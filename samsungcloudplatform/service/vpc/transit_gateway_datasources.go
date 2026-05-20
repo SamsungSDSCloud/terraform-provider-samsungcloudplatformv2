@@ -1,19 +1,19 @@
 package vpc
 
 import (
+	"context"
 	"fmt"
-	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"golang.org/x/net/context"
 )
 
 var (
@@ -39,28 +39,65 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Description: "List of Transit Gateway",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size (between 1 and 10000)",
-				Optional:    true,
+			common.ToSnakeCase("firewall_connection_state"): schema.StringAttribute{
+				Description:         "- enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]",
+				MarkdownDescription: "- enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"ATTACHING",
+						"ACTIVE",
+						"DETACHING",
+						"DELETED",
+						"INACTIVE",
+						"ERROR",
+					),
+				},
+				Optional: true,
+			},
+			common.ToSnakeCase("Name"): schema.StringAttribute{
+				Description: "Transit Gateway Name \n" +
+					"  - example : TransitGatewayName",
+				MarkdownDescription: "Transit Gateway Name \n" +
+					"  - example : TransitGatewayName",
+				Optional: true,
+			},
+			common.ToSnakeCase("page"): schema.Int32Attribute{
+				Optional:            true,
+				Description:         "page",
+				MarkdownDescription: "page",
+				Validators: []validator.Int32{
+					int32validator.Between(0, 99999),
+				},
+			},
+			common.ToSnakeCase("size"): schema.Int32Attribute{
+				Optional:            true,
+				Description:         "Size (between 1 and 10000)",
+				MarkdownDescription: "Size (between 1 and 10000)",
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
-			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
-			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "Sort \n" +
+					"  - example : created_at:desc",
+				MarkdownDescription: "Sort \n" +
+					"  - example : created_at:desc",
+				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
+				Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\", \"EDITTING\"]",
+				MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\", \"EDITTING\"]",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"CREATING",
+						"ACTIVE",
+						"DELETING",
+						"DELETED",
+						"ERROR",
+						"EDITTING",
+					),
+				},
+				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "id",
@@ -91,6 +128,10 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 							Description: "Description\n" +
 								"  - example : Tgw description\n",
 							Computed: true,
+						},
+						common.ToSnakeCase("firewall_connection_state"): schema.StringAttribute{
+							Description: "firewall connection state",
+							Computed:    true,
 						},
 						common.ToSnakeCase("FirewallIds"): schema.StringAttribute{
 							Description: "FirewallIds",
@@ -126,6 +167,13 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 					},
 				},
 			},
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "Total count\n" +
+					"  - Example : 20",
+				MarkdownDescription: "Total count\n" +
+					"  - Example : 20",
+				Computed: true,
+			},
 		},
 	}
 }
@@ -144,7 +192,7 @@ func (d *tgwDataSources) Configure(_ context.Context, req datasource.ConfigureRe
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
@@ -168,22 +216,11 @@ func (d *tgwDataSources) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	// Map response body to model
 	for _, d := range data.TransitGateways {
-		tgwState := vpc.Tgw{
-			Id:            types.StringValue(d.Id),
-			Description:   types.StringPointerValue(d.Description.Get()),
-			Name:          types.StringValue(d.Name),
-			AccountId:     types.StringValue(d.AccountId),
-			Bandwidth:     types.Int32PointerValue(d.Bandwidth.Get()),
-			CreatedAt:     types.StringValue(d.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:     types.StringValue(d.CreatedBy),
-			FirewallIds:   types.StringPointerValue(d.FirewallIds.Get()),
-			ModifiedAt:    types.StringValue(d.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:    types.StringValue(d.ModifiedBy),
-			State:         types.StringValue(string(d.State)),
-			UplinkEnabled: types.BoolValue(d.GetUplinkEnabled()),
-		}
+		tgwState := vpc.MapToTgw(d)
 		state.Tgws = append(state.Tgws, tgwState)
 	}
+
+	state.TotalCount = types.Int32Value(data.Count)
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)

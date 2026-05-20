@@ -52,6 +52,10 @@ func testAccDashboardUpdate(name string,
 	namespaceName string) string {
 
 	return fmt.Sprintf(`
+            // virtualserver list
+            data "samsungcloudplatformv2_virtualserver_servers" "servers" {
+              state = "ACTIVE"
+            }
 			resource "samsungcloudplatformv2_servicewatch_dashboard" "dashboard"{
 				  name = "%s"
 				  widgets = [{
@@ -72,7 +76,7 @@ func testAccDashboardUpdate(name string,
 							namespace_name = "%s"
 							period = "%d"
 							statistic_type = "%s"
-							dimensions = [{key="resource_id", value="d5b49100-e3e3-4d10-b2e9-9da68aed7747"}]
+							dimensions = [{key="resource_id", value=data.samsungcloudplatformv2_virtualserver_servers.servers.ids.0}]
 						}]
 					}
 				  }]

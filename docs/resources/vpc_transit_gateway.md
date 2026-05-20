@@ -77,6 +77,7 @@ Read-Only:
   - example : Tgw description
   - maxLength : 50
   - minLength : 1
+- `firewall_connection_state` (String) firewall connection state
 - `firewall_ids` (String) FirewallIds
 - `id` (String) Id
 - `modified_at` (String) ModifiedAt 

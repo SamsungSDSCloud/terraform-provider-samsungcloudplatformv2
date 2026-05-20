@@ -27,4 +27,12 @@ category:
   vpc_vpc_peering_rules : VPC
   vpc_transit_gateway_rule : VPC
   vpc_transit_gateway_rules : VPC
+  vpc_transit_gateway_firewall : VPC
+  vpc_transit_gateway_firewall_connection : VPC
   vpc_vpc_peering_approval : VPC
+  vpc_subnet_vips: VPC
+  vpc_subnet_vip: VPC
+  vpc_subnet_vip_nat_ip: VPC
+  vpc_transit_gateway_uplink_rule: VPC
+  vpc_cidr: VPC
+  vpc_subnet_vip_port: VPC

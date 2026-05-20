@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
@@ -97,6 +96,10 @@ func (r *vpcTgwResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 							"  - minLength : 1",
 						Computed: true,
 					},
+					common.ToSnakeCase("firewall_connection_state"): schema.StringAttribute{
+						Description: "firewall connection state",
+						Computed:    true,
+					},
 					common.ToSnakeCase("FirewallIds"): schema.StringAttribute{
 						Description: "FirewallIds",
 						Computed:    true,
@@ -151,7 +154,7 @@ func (r *vpcTgwResource) Configure(_ context.Context, req resource.ConfigureRequ
 		return
 	}
 
-	r.client = inst.Client.Vpc
+	r.client = inst.Client.VpcV1Dot2
 	r.clients = inst.Client
 }
 
@@ -205,8 +208,6 @@ func (r *vpcTgwResource) Create(ctx context.Context, req resource.CreateRequest,
 func (r *vpcTgwResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
 
-	fmt.Println("getRequestDetail", req)
-
 	var state vpc.TgwResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -227,20 +228,7 @@ func (r *vpcTgwResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	transitGateway := data.TransitGateway
 
-	tgwModel := vpc.Tgw{
-		Id:            types.StringValue(transitGateway.Id),
-		Description:   types.StringPointerValue(transitGateway.Description.Get()),
-		Name:          types.StringValue(transitGateway.Name),
-		AccountId:     types.StringValue(transitGateway.AccountId),
-		Bandwidth:     types.Int32PointerValue(transitGateway.Bandwidth.Get()),
-		CreatedAt:     types.StringValue(transitGateway.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:     types.StringValue(transitGateway.CreatedBy),
-		FirewallIds:   types.StringPointerValue(transitGateway.FirewallIds.Get()),
-		ModifiedAt:    types.StringValue(transitGateway.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:    types.StringValue(transitGateway.ModifiedBy),
-		State:         types.StringValue(string(transitGateway.State)),
-		UplinkEnabled: types.BoolPointerValue(transitGateway.UplinkEnabled),
-	}
+	tgwModel := vpc.MapToTgw(transitGateway)
 	tgwObjectValue, diags := types.ObjectValueFrom(ctx, tgwModel.AttributeTypes(), tgwModel)
 	state.Tgw = tgwObjectValue
 
@@ -256,7 +244,6 @@ func (r *vpcTgwResource) Read(ctx context.Context, req resource.ReadRequest, res
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpcTgwResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	fmt.Println("getRequestUpdate", req)
 	var state vpc.TgwResource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -287,20 +274,7 @@ func (r *vpcTgwResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	tgwElem := data.TransitGateway
 
-	tgwModel := vpc.Tgw{
-		Id:            types.StringValue(tgwElem.Id),
-		Description:   types.StringPointerValue(tgwElem.Description.Get()),
-		Name:          types.StringValue(tgwElem.Name),
-		AccountId:     types.StringValue(tgwElem.AccountId),
-		Bandwidth:     types.Int32PointerValue(tgwElem.Bandwidth.Get()),
-		CreatedAt:     types.StringValue(tgwElem.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:     types.StringValue(tgwElem.CreatedBy),
-		FirewallIds:   types.StringPointerValue(tgwElem.FirewallIds.Get()),
-		ModifiedAt:    types.StringValue(tgwElem.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:    types.StringValue(tgwElem.ModifiedBy),
-		State:         types.StringValue(string(tgwElem.State)),
-		UplinkEnabled: types.BoolPointerValue(tgwElem.UplinkEnabled),
-	}
+	tgwModel := vpc.MapToTgw(tgwElem)
 	vpcObjectValue, diags := types.ObjectValueFrom(ctx, tgwModel.AttributeTypes(), tgwModel)
 	state.Tgw = vpcObjectValue
 
@@ -314,8 +288,6 @@ func (r *vpcTgwResource) Update(ctx context.Context, req resource.UpdateRequest,
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vpcTgwResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-
-	fmt.Println("getRequestDelete", req)
 
 	var state vpc.TgwResource
 	diags := req.State.Get(ctx, &state)

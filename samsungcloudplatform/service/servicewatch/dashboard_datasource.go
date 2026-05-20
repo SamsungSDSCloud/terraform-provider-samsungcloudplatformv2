@@ -202,8 +202,8 @@ func (d *serviceWatchDashboardDataSource) Configure(_ context.Context, req datas
 	inst, ok := req.ProviderData.(client.Instance)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.Instance, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			ErrUnexpectedConfigure,
+			fmt.Sprintf(ErrUnexpectedConfigureFmt, req.ProviderData),
 		)
 
 		return
@@ -227,8 +227,8 @@ func (d *serviceWatchDashboardDataSource) Read(ctx context.Context, req datasour
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Dashboard",
-			"Could not read Dashboard ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			ErrReadDashboard,
+			fmt.Sprintf(ErrReadDashboardFmt, state.Id.ValueString(), err.Error(), detail),
 		)
 		return
 	}
@@ -251,8 +251,8 @@ func (d *serviceWatchDashboardDataSource) Read(ctx context.Context, req datasour
 	state.FavoriteEnabled = types.BoolValue(dashboard.GetFavoriteEnabled())
 	state.Srn = types.StringValue(dashboard.GetSrn())
 	state.ShareType = types.StringValue(dashboard.GetShareType())
-	state.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format("2006-01-02 15:04:05"))
-	state.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format("2006-01-02 15:04:05"))
+	state.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay))
+	state.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay))
 	state.CreatedBy = types.StringValue(dashboard.GetCreatedBy())
 	state.ModifiedBy = types.StringValue(dashboard.GetModifiedBy())
 	state.Widgets = widgets

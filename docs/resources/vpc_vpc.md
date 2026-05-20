@@ -16,9 +16,9 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_vpc_vpc" "vpc" {
-  cidr = var.vpc_cidr
+  cidr        = var.vpc_cidr
   description = var.vpc_description
-  name = var.vpc_name
+  name        = var.vpc_name
 }
 
 
@@ -77,13 +77,41 @@ variable "vpc_name" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `cidr` (String) Cidr
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
+- `account_id` (String) Account ID
+  - example: f1e6c81a2b054582878cb9724dc2ce9f
+- `cidr_count` (Number) Cidr Count
+  - example: 20
+- `cidrs` (Attributes List) (see [below for nested schema](#nestedatt--vpc--cidrs))
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
 - `description` (String) Description
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `state` (String) State
+  - maxLength: 50
+  - example: vpcDescription
+- `id` (String) VPC Id
+  - example: 7df8abb4912e4709b1cb237daccca7a8
+- `modified_at` (String) Modified At
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) VPC Name
+  - maxLength: 20
+  - minLength: 3
+  - pattern: `^[a-zA-Z0-9-]*$`
+  - example: vpcName
+- `state` (String) - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
+
+<a id="nestedatt--vpc--cidrs"></a>
+### Nested Schema for `vpc.cidrs`
+
+Read-Only:
+
+- `cidr` (String) VPC Cidr
+  - example: 192.167.0.0/18
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By
+  - example: 7df8abb4912e4709b1cb237daccca7a8
+- `id` (String) Cidr ID
+  - example: 7df8abb4912e4709b1cb237daccca7a8

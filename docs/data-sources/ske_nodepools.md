@@ -81,6 +81,8 @@ Read-Only:
   - example: ubuntu
 - `os_version` (String) OsVersion
   - example: 22.04
+- `scp_gpu_driver` (String) GPU Driver Version
+  - example: ND_535.183.06
 
 
 <a id="nestedatt--nodepools--server_type"></a>

@@ -16,4 +16,5 @@ resource "samsungcloudplatformv2_eventstreams_cluster" "cluster" {
   service_state           = var.service_state
   timezone                = var.timezone
   maintenance_option      = var.maintenance_option
+  service_watch_log_collection = var.service_watch_log_collection
 }

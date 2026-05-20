@@ -13,6 +13,11 @@ variable "vpc_id" {
   default = ""
 }
 
+variable "subnet_id" {
+  type    = string
+  default = ""
+}
+
 variable "vpc_name" {
   type    = string
   default = ""
@@ -38,14 +43,14 @@ variable "state" {
   default = ""
 }
 
-variable "limit" {
+variable "size" {
   type    = number
   default = 0
 }
 
-variable "marker" {
-  type    = string
-  default = ""
+variable "page" {
+  type    = number
+  default = 0
 }
 
 variable "sort" {

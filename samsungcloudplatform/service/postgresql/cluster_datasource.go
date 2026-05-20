@@ -205,6 +205,10 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 							},
 						},
 					},
+					common.ToSnakeCase("IsKernelPatchable"): schema.BoolAttribute{
+						Description: "IsKernelPatchable",
+						Computed:    true,
+					},
 					common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 						Description: "MaintenanceOption",
 						Computed:    true,
@@ -346,15 +350,18 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 		allowableIpAddresses[i] = types.StringValue(allowableIpAddress)
 	}
 
-	backupOption := postgresql.BackupOption{
-		ArchiveFrequencyMinute: types.StringPointerValue(data.InitConfigOption.BackupOption.Get().ArchiveFrequencyMinute.Get()),
-		RetentionPeriodDay:     types.StringPointerValue(data.InitConfigOption.BackupOption.Get().RetentionPeriodDay.Get()),
-		StartingTimeHour:       types.StringPointerValue(data.InitConfigOption.BackupOption.Get().StartingTimeHour.Get()),
+	var BackupOption = postgresql.BackupOption{}
+	if data.InitConfigOption.BackupOption.Get() != nil {
+		BackupOption = postgresql.BackupOption{
+			ArchiveFrequencyMinute: types.StringPointerValue(data.InitConfigOption.BackupOption.Get().ArchiveFrequencyMinute.Get()),
+			RetentionPeriodDay:     types.StringPointerValue(data.InitConfigOption.BackupOption.Get().RetentionPeriodDay.Get()),
+			StartingTimeHour:       types.StringPointerValue(data.InitConfigOption.BackupOption.Get().StartingTimeHour.Get()),
+		}
 	}
 
 	var initConfigOption = postgresql.InitConfigOption{
 		AuditEnabled:         types.BoolPointerValue(data.InitConfigOption.AuditEnabled),
-		BackupOption:         backupOption,
+		BackupOption:         BackupOption,
 		DatabaseEncoding:     types.StringPointerValue(data.InitConfigOption.DatabaseEncoding.Get()),
 		DatabaseLocale:       types.StringPointerValue(data.InitConfigOption.DatabaseLocale.Get()),
 		DatabaseName:         types.StringValue(data.InitConfigOption.DatabaseName),
@@ -414,6 +421,7 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 		InitConfigOption:     initConfigOption,
 		InstanceCount:        types.Int32PointerValue(data.InstanceCount),
 		InstanceGroups:       InstanceGroups,
+		IsKernelPatchable:    types.BoolValue(data.IsKernelPatchable),
 		MaintenanceOption:    MaintenanceOption,
 		Name:                 types.StringValue(data.Name),
 		OriginClusterId:      types.StringPointerValue(data.OriginClusterId.Get()),
@@ -426,12 +434,13 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 		Timezone:             types.StringValue(data.Timezone),
 		VipPublicIpId:        types.StringPointerValue(data.VipPublicIpId.Get()),
 		//VipPublicIpAddress:   types.StringPointerValue(data.VipPublicIpAddress.Get()),
-		VirtualIpAddress:     types.StringPointerValue(data.VirtualIpAddress.Get()),
-		CreatedAt:            types.StringValue(data.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:            types.StringValue(data.CreatedBy),
-		ModifiedAt:           types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:           types.StringValue(data.ModifiedBy),
+		VirtualIpAddress: types.StringPointerValue(data.VirtualIpAddress.Get()),
+		CreatedAt:        types.StringValue(data.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:        types.StringValue(data.CreatedBy),
+		ModifiedAt:       types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:       types.StringValue(data.ModifiedBy),
 	}
+
 	postgresqlObjectValue, _ := types.ObjectValueFrom(ctx, postgresqlState.AttributeTypes(), postgresqlState)
 	state.ClusterDetail = postgresqlObjectValue
 

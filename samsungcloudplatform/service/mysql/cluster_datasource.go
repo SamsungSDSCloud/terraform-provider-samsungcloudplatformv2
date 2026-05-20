@@ -201,6 +201,10 @@ func (d *mysqlClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 							},
 						},
 					},
+					common.ToSnakeCase("IsKernelPatchable"): schema.BoolAttribute{
+						Description: "IsKernelPatchable",
+						Computed:    true,
+					},
 					common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 						Description: "MaintenanceOption",
 						Computed:    true,
@@ -412,6 +416,7 @@ func (d *mysqlClusterDataSource) Read(ctx context.Context, req datasource.ReadRe
 		InitConfigOption:     InitConfigOption,
 		InstanceCount:        types.Int32PointerValue(data.InstanceCount),
 		InstanceGroups:       InstanceGroups,
+		IsKernelPatchable:    types.BoolValue(data.IsKernelPatchable),
 		MaintenanceOption:    MaintenanceOption,
 		Name:                 types.StringValue(data.Name),
 		OriginClusterId:      types.StringPointerValue(data.OriginClusterId.Get()),

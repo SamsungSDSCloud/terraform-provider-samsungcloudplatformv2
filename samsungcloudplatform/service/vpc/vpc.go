@@ -3,18 +3,21 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"regexp"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -41,20 +44,16 @@ func (r *vpcVpcResource) Metadata(_ context.Context, req resource.MetadataReques
 }
 
 // Schema defines the schema for the data source.
-func (r *vpcVpcResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *vpcVpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "vpc",
 		Attributes: map[string]schema.Attribute{
-			"tags": tag.ResourceSchema(),
-			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 			common.ToSnakeCase("Cidr"): schema.StringAttribute{
 				Description: "VPC CIDR\n" +
+					"  - example : 192.167.0.0/18\n" +
+					"  - maxMask : /24\n" +
+					"  - minMask : /16",
+				MarkdownDescription: "VPC CIDR\n" +
 					"  - example : 192.167.0.0/18\n" +
 					"  - maxMask : /24\n" +
 					"  - minMask : /16",
@@ -64,9 +63,21 @@ func (r *vpcVpcResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Description: "Description\n" +
 					"  - example : VPC description\n" +
 					"  - maxLength : 50",
+				MarkdownDescription: "Description\n" +
+					"  - example : VPC description\n" +
+					"  - maxLength : 50",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(50),
+				},
 				Optional: true,
 				Computed: true,
 				Default:  stringdefault.StaticString(""),
+			},
+			"id": schema.StringAttribute{
+				Description:         "Identifier of the resource.",
+				MarkdownDescription: "Identifier of the resource.",
+				Computed:            true,
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "VPC Name \n" +
@@ -74,51 +85,99 @@ func (r *vpcVpcResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 					"  - maxLength : 20\n" +
 					"  - minLength : 3\n" +
 					"  - pattern : ^[a-zA-Z0-9-]+$",
+				MarkdownDescription: "VPC Name \n" +
+					"  - example : vpcName\n" +
+					"  - maxLength : 20\n" +
+					"  - minLength : 3\n" +
+					"  - pattern : ^[a-zA-Z0-9-]+$",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(3, 20),
+					stringvalidator.RegexMatches(regexp.MustCompile("^[a-zA-Z0-9-]*$"), "Enter 3 -20 chars. (English, number, hyphen)"),
+				},
 				Required: true,
 			},
+			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("Vpc"): schema.SingleNestedAttribute{
-				Description: "Vpc",
-				Computed:    true,
+				Description:         "Vpc",
+				MarkdownDescription: "Vpc",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("Cidr"): schema.StringAttribute{
-						Description: "Cidr",
-						Computed:    true,
+					common.ToSnakeCase("AccountId"): schema.StringAttribute{
+						Description:         "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+						MarkdownDescription: "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed:            true,
+					},
+					common.ToSnakeCase("CidrCount"): schema.Int32Attribute{
+						Description:         "Cidr Count\n  - example: 20",
+						MarkdownDescription: "Cidr Count\n  - example: 20",
+						Computed:            true,
+					},
+					common.ToSnakeCase("cidrs"): schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"cidr": schema.StringAttribute{
+									Computed:            true,
+									Description:         "VPC Cidr\n  - example: 192.167.0.0/18",
+									MarkdownDescription: "VPC Cidr\n  - example: 192.167.0.0/18",
+								},
+								"created_at": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+									MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+								},
+								"created_by": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Created By\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+									MarkdownDescription: "Created By\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+								},
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Cidr ID\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+									MarkdownDescription: "Cidr ID\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+								},
+							},
+						},
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description:         "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description:         "Description\n  - maxLength: 50\n  - example: vpcDescription",
+						MarkdownDescription: "Description\n  - maxLength: 50\n  - example: vpcDescription",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description:         "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+						MarkdownDescription: "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description:         "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
-					},
-					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description:         "VPC Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: vpcName",
+						MarkdownDescription: "VPC Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: vpcName",
+						Computed:            true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETED\",\"ERROR\"]",
+						MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETED\",\"ERROR\"]",
+						Computed:            true,
 					},
 				},
 			},
@@ -144,7 +203,7 @@ func (r *vpcVpcResource) Configure(_ context.Context, req resource.ConfigureRequ
 		return
 	}
 
-	r.client = inst.Client.Vpc
+	r.client = inst.Client.VpcV1Dot2
 	r.clients = inst.Client
 }
 
@@ -154,6 +213,7 @@ func (r *vpcVpcResource) Create(ctx context.Context, req resource.CreateRequest,
 	var plan vpc.VpcResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -169,24 +229,12 @@ func (r *vpcVpcResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	vpcElement := data.Vpc
 	// Map response body to schema and populate Computed attribute values
-	plan.Id = types.StringValue(vpcElement.Id)
+	plan.Id = types.StringValue(data.Vpc.Id)
 
-	vpcModel := vpc.Vpc{
-		Cidr:        types.StringValue(vpcElement.Cidr),
-		CreatedAt:   types.StringValue(vpcElement.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:   types.StringValue(vpcElement.CreatedBy),
-		Description: types.StringPointerValue(vpcElement.Description.Get()),
-		Id:          types.StringValue(vpcElement.Id),
-		ModifiedAt:  types.StringValue(vpcElement.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:  types.StringValue(vpcElement.ModifiedBy),
-		Name:        types.StringValue(vpcElement.Name),
-		AccountId:   types.StringValue(vpcElement.AccountId),
-		State:       types.StringValue(string(vpcElement.State)),
-	}
-	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(), vpcModel)
-	plan.Vpc = vpcObjectValue
+	vpcModel := vpc.ResponseToVpcDSValue(data.Vpc)
+	vpcObjectValueue, _ := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
+	plan.Vpc = vpcObjectValueue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -217,22 +265,9 @@ func (r *vpcVpcResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	vpcElement := data.Vpc
-
-	vpcModel := vpc.Vpc{
-		Cidr:        types.StringValue(vpcElement.Cidr),
-		CreatedAt:   types.StringValue(vpcElement.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:   types.StringValue(vpcElement.CreatedBy),
-		Description: types.StringPointerValue(vpcElement.Description.Get()),
-		Id:          types.StringValue(vpcElement.Id),
-		ModifiedAt:  types.StringValue(vpcElement.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:  types.StringValue(vpcElement.ModifiedBy),
-		Name:        types.StringValue(vpcElement.Name),
-		AccountId:   types.StringValue(vpcElement.AccountId),
-		State:       types.StringValue(string(vpcElement.State)),
-	}
-	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(), vpcModel)
-	state.Vpc = vpcObjectValue
+	vpcModel := vpc.ResponseToVpcDSValue(data.Vpc)
+	vpcObjectValueue, _ := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
+	state.Vpc = vpcObjectValueue
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -274,22 +309,9 @@ func (r *vpcVpcResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	vpcElement := data.Vpc
-
-	vpcModel := vpc.Vpc{
-		Cidr:        types.StringValue(vpcElement.Cidr),
-		CreatedAt:   types.StringValue(vpcElement.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:   types.StringValue(vpcElement.CreatedBy),
-		Description: types.StringPointerValue(vpcElement.Description.Get()),
-		Id:          types.StringValue(vpcElement.Id),
-		ModifiedAt:  types.StringValue(vpcElement.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:  types.StringValue(vpcElement.ModifiedBy),
-		Name:        types.StringValue(vpcElement.Name),
-		AccountId:   types.StringValue(vpcElement.AccountId),
-		State:       types.StringValue(string(vpcElement.State)),
-	}
-	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(), vpcModel)
-	state.Vpc = vpcObjectValue
+	vpcModel := vpc.ResponseToVpcDSValue(data.Vpc)
+	vpcObjectValueue, _ := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
+	state.Vpc = vpcObjectValueue
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)

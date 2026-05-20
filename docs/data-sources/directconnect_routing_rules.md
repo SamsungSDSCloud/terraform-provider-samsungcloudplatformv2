@@ -16,13 +16,25 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_directconnect_routing_rules" "routingrules" {
-  limit = var.limit
+  size              = var.size
+  page              = var.page
+  sort              = var.sort
+  id                = var.id
   direct_connect_id = var.direct_connect_id
+  destination_type  = var.destination_type
+  destination_cidr  = var.destination_cidr
+  state             = var.state
 }
 
 
 output "routingRules" {
-  value = data.samsungcloudplatformv2_directconnect_routing_rules.routingrules
+  value = {
+    count: data.samsungcloudplatformv2_directconnect_routing_rules.routingrules.total_count,
+    routing_rules: data.samsungcloudplatformv2_directconnect_routing_rules.routingrules.routing_rules,
+    page: data.samsungcloudplatformv2_directconnect_routing_rules.routingrules.page,
+    size: data.samsungcloudplatformv2_directconnect_routing_rules.routingrules.size,
+    sort: data.samsungcloudplatformv2_directconnect_routing_rules.routingrules.sort_final,
+  }
 }
 
 variable "direct_connect_id" {
@@ -30,9 +42,39 @@ variable "direct_connect_id" {
   default = ""
 }
 
-variable "limit" {
+variable "size" {
   type    = number
   default = 0
+}
+
+variable "page" {
+  type    = number
+  default = 0
+}
+
+variable "sort" {
+  type    = string
+  default = ""
+}
+
+variable "id" {
+  type    = string
+  default = ""
+}
+
+variable "destination_type" {
+  type    = string
+  default = ""
+}
+
+variable "destination_cidr" {
+  type    = string
+  default = ""
+}
+
+variable "state" {
+  type    = string
+  default = ""
 }
 ```
 
@@ -52,14 +94,12 @@ variable "limit" {
   - example : ON-PREM | VPC
 - `id` (String) Routing Rule ID 
   - example : 7df8abb4912e4709b1cb237daccca7a8
-- `limit` (Number) Limit 
-  - example : 10 
-  - maximum : 10000 
-  - minimum : 1
-- `marker` (String) Marker 
-  - example : 607e0938521643b5b4b266f343fae693 
-  - maxLength : 64 
-  - minLength : 1
+- `page` (Number) Page 
+  - example : 0 
+  - minimum : 0
+- `size` (Number) Size 
+  - example : 20 
+  - minimum : 0
 - `sort` (String) Sort 
   - example : created_at:desc
 - `state` (String) State 
@@ -68,6 +108,9 @@ variable "limit" {
 ### Read-Only
 
 - `routing_rules` (Attributes List) A list of routing rule. (see [below for nested schema](#nestedatt--routing_rules))
+- `sort_final` (List of String) List of sort condition 
+  - example : ["created_at:desc"]
+- `total_count` (Number) total count
 
 <a id="nestedatt--routing_rules"></a>
 ### Nested Schema for `routing_rules`

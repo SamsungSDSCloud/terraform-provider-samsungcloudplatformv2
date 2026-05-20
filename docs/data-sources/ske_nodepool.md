@@ -46,6 +46,11 @@ variable "id" {
 <a id="nestedatt--nodepool"></a>
 ### Nested Schema for `nodepool`
 
+Optional:
+
+- `volume_max_iops` (Number)
+- `volume_max_throughput` (Number)
+
 Read-Only:
 
 - `account_id` (String) Account ID
@@ -71,6 +76,7 @@ Read-Only:
 - `kubernetes_version` (String) Kubernetes Version
   - example: v1.29.8
 - `labels` (Attributes List) Node Pool Labels (see [below for nested schema](#nestedatt--nodepool--labels))
+- `linked_resources` (Attributes List) (see [below for nested schema](#nestedatt--nodepool--linked_resources))
 - `max_node_count` (Number) Max Node Count
   - example: 5
 - `min_node_count` (Number) Min Node Count
@@ -144,6 +150,8 @@ Read-Only:
   - example: ubuntu
 - `os_version` (String) Image OS Version
   - example: 22.04
+- `scp_gpu_driver` (String) GPU Driver Version
+  - example: ND_535.183.06
 
 
 <a id="nestedatt--nodepool--keypair"></a>
@@ -167,6 +175,19 @@ Read-Only:
   - maxLength: 63
   - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
   - example: bar
+
+
+<a id="nestedatt--nodepool--linked_resources"></a>
+### Nested Schema for `nodepool.linked_resources`
+
+Read-Only:
+
+- `id` (String) Linked Resource ID
+  - example: res-12345678
+- `name` (String) Linked Resource Name
+  - example: my-resource
+- `type` (String) Linked Resource Type (fs/obs)
+  - example: fs
 
 
 <a id="nestedatt--nodepool--server_type"></a>

@@ -201,6 +201,10 @@ func (d *mariadbClusterDataSource) Schema(_ context.Context, _ datasource.Schema
 							},
 						},
 					},
+					common.ToSnakeCase("IsKernelPatchable"): schema.BoolAttribute{
+						Description: "IsKernelPatchable",
+						Computed:    true,
+					},
 					common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 						Description: "MaintenanceOption",
 						Computed:    true,
@@ -412,6 +416,7 @@ func (d *mariadbClusterDataSource) Read(ctx context.Context, req datasource.Read
 		InitConfigOption:     InitConfigOption,
 		InstanceCount:        types.Int32PointerValue(data.InstanceCount),
 		InstanceGroups:       InstanceGroups,
+		IsKernelPatchable:    types.BoolValue(data.IsKernelPatchable),
 		MaintenanceOption:    MaintenanceOption,
 		Name:                 types.StringValue(data.Name),
 		OriginClusterId:      types.StringPointerValue(data.OriginClusterId.Get()),

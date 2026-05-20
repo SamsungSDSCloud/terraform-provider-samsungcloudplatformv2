@@ -64,8 +64,16 @@ Read-Only:
 - `creator_email` (String) 생성자 Email
 - `creator_last_login_at` (String) 생성자 마지막 로그인 일시
 - `creator_name` (String) 생성자 성, 이름
-- `group_names` (List of String) Group Names
+- `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--group_member--groups))
 - `user_email` (String) User Email
 - `user_id` (String) User ID
 - `user_last_login_at` (String) User 마지막 로그인 일시
 - `user_name` (String) User 성, 이름
+
+<a id="nestedatt--group_member--groups"></a>
+### Nested Schema for `group_member.groups`
+
+Read-Only:
+
+- `id` (String) Group ID
+- `name` (String) Group Name

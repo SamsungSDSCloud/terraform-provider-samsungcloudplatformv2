@@ -7,7 +7,7 @@ import (
 
 	virtualservercommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.2"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -574,7 +574,7 @@ func (client *Client) DeleteServerInterfaceNat(ctx context.Context, serverId str
 // -------------------- Image -------------------- //
 
 func (client *Client) GetImageList(ScpImageType types.String, ScpOriginalImageType types.String, Name types.String,
-	OsDistro types.String, Status types.String, Visibility types.String) (*scpvirtualserver.ImageListResponseV1Dot2, error) {
+	OsDistro types.String, Status types.String, Visibility types.String) (*scpvirtualserver.ImageListResponseV1Dot3, error) {
 	ctx := context.Background()
 
 	req := client.sdkClient.VirtualserverV1VirtualserverV1ImagesAPI.ListImages(ctx)

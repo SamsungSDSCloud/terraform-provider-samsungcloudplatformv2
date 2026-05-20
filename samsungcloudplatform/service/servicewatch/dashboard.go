@@ -205,8 +205,8 @@ func (r *serviceWatchDashboardResource) Configure(_ context.Context, req resourc
 	inst, ok := req.ProviderData.(client.Instance)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.Instance, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			ErrUnexpectedConfigure,
+			fmt.Sprintf(ErrUnexpectedConfigureFmt, req.ProviderData),
 		)
 
 		return
@@ -231,8 +231,8 @@ func (r *serviceWatchDashboardResource) Create(ctx context.Context, req resource
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Dashboard",
-			"Could not create Dashboard, unexpected error: "+err.Error()+"\nReason: "+detail,
+			ErrCreateDashboard,
+			fmt.Sprintf(ErrCreateDashboardFmt, err.Error(), detail),
 		)
 		return
 	}
@@ -254,8 +254,8 @@ func (r *serviceWatchDashboardResource) Create(ctx context.Context, req resource
 	plan.Type = types.StringValue(dashboard.Type)
 	plan.Srn = types.StringValue(dashboard.Srn)
 	plan.ShareType = types.StringValue(dashboard.ShareType)
-	plan.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format("2006-01-02 15:04:05"))
-	plan.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format("2006-01-02 15:04:05"))
+	plan.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay))
+	plan.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay))
 	plan.CreatedBy = types.StringValue(dashboard.GetCreatedBy())
 	plan.ModifiedBy = types.StringValue(dashboard.GetModifiedBy())
 	plan.Widgets = widgets
@@ -285,8 +285,8 @@ func (r *serviceWatchDashboardResource) Read(ctx context.Context, req resource.R
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Dashboard",
-			"Could not read Dashboard ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			ErrReadDashboard,
+			fmt.Sprintf(ErrReadDashboardFmt, state.Id.ValueString(), err.Error(), detail),
 		)
 		return
 	}
@@ -308,8 +308,8 @@ func (r *serviceWatchDashboardResource) Read(ctx context.Context, req resource.R
 	state.Type = types.StringValue(dashboard.Type)
 	state.Srn = types.StringValue(dashboard.Srn)
 	state.ShareType = types.StringValue(dashboard.ShareType)
-	state.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format("2006-01-02 15:04:05"))
-	state.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format("2006-01-02 15:04:05"))
+	state.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay))
+	state.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay))
 	state.CreatedBy = types.StringValue(dashboard.GetCreatedBy())
 	state.ModifiedBy = types.StringValue(dashboard.GetModifiedBy())
 	state.Widgets = widgets
@@ -339,8 +339,8 @@ func (r *serviceWatchDashboardResource) Update(ctx context.Context, req resource
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Updating Dashboard",
-			"Could not update dashboard, unexpected error: "+err.Error()+"\nReason: "+detail,
+			ErrUpdateDashboard,
+			fmt.Sprintf(ErrUpdateDashboardFmt, err.Error(), detail),
 		)
 		return
 	}
@@ -350,8 +350,8 @@ func (r *serviceWatchDashboardResource) Update(ctx context.Context, req resource
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Dashboard",
-			"Could not read Dashboard ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			ErrReadDashboard,
+			fmt.Sprintf(ErrReadDashboardFmt, state.Id.ValueString(), err.Error(), detail),
 		)
 		return
 	}
@@ -373,8 +373,8 @@ func (r *serviceWatchDashboardResource) Update(ctx context.Context, req resource
 	state.Type = types.StringValue(dashboard.Type)
 	state.Srn = types.StringValue(dashboard.Srn)
 	state.ShareType = types.StringValue(dashboard.ShareType)
-	state.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format("2006-01-02 15:04:05"))
-	state.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format("2006-01-02 15:04:05"))
+	state.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay))
+	state.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay))
 	state.CreatedBy = types.StringValue(dashboard.GetCreatedBy())
 	state.ModifiedBy = types.StringValue(dashboard.GetModifiedBy())
 	state.Widgets = widgets
@@ -404,8 +404,8 @@ func (r *serviceWatchDashboardResource) Delete(ctx context.Context, req resource
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Deleting Dashboard",
-			"Could not delete Dashboard, unexpected error: "+err.Error()+"\nReason: "+detail,
+			ErrDeleteDashboard,
+			fmt.Sprintf(ErrDeleteDashboardFmt, err.Error(), detail),
 		)
 		return
 	}

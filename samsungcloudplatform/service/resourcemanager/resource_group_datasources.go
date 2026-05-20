@@ -139,7 +139,10 @@ func GetResourceGroups(clients *client.SCPClient, id types.String, name types.St
 
 	if len(tags) > 0 {
 		filteredContents = filteredContents[:0]
-		indices := tag.GetTagIndices(clients, contents, tags, idField)
+		indices, err := tag.GetTagIndices(clients, contents, tags, idField)
+		if err != nil {
+			return nil, err
+		}
 
 		for i, resource := range contents {
 			if common.Contains(indices, i) {
@@ -151,7 +154,10 @@ func GetResourceGroups(clients *client.SCPClient, id types.String, name types.St
 
 	if len(filters) > 0 {
 		filteredContents = filteredContents[:0]
-		indices := filter.GetFilterIndices(contents, filters)
+		indices, err := filter.GetFilterIndices(contents, filters)
+		if err != nil {
+			return nil, err
+		}
 
 		for i, resource := range contents {
 			if common.Contains(indices, i) {

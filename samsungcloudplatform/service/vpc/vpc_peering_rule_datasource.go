@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -28,7 +28,7 @@ func NewVpcVpcPeeringRuleDataSource() datasource.DataSource {
 // vpcNatGatewayDataSource is the data source implementation.
 type vpcVpcPeeringRuleDataSource struct {
 	_config *scpsdk.Configuration
-	client  *vpc.Client
+	client  *vpcv1d2.Client
 	clients *client.SCPClient
 }
 
@@ -49,11 +49,13 @@ func (d *vpcVpcPeeringRuleDataSource) Schema(_ context.Context, _ datasource.Sch
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
 				Optional: true,
+				Computed: true,
 				Description: "Size \n" +
 					"  - Example: 20",
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
 				Optional: true,
+				Computed: true,
 				Description: "Page \n" +
 					"  - Example: 0",
 			},
@@ -65,10 +67,6 @@ func (d *vpcVpcPeeringRuleDataSource) Schema(_ context.Context, _ datasource.Sch
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Optional:    true,
 				Description: "VPC Peering Rule ID",
-			},
-			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Optional:    true,
-				Description: "Name",
 			},
 			common.ToSnakeCase("SourceVpcId"): schema.StringAttribute{
 				Optional:    true,
@@ -95,7 +93,17 @@ func (d *vpcVpcPeeringRuleDataSource) Schema(_ context.Context, _ datasource.Sch
 				Description: "State",
 			},
 
-			// Response
+			// Output
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "Total count",
+				Computed:    true,
+			},
+			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
+				Description: "List of sort condition \n" +
+					"  - example : [\"created_at:desc\"]",
+				ElementType: types.StringType,
+				Computed:    true,
+			},
 			common.ToSnakeCase("VpcPeeringRules"): schema.ListNestedAttribute{
 				Description: "List of VPC peering rules",
 				Computed:    true,
@@ -192,13 +200,13 @@ func (d *vpcVpcPeeringRuleDataSource) Configure(_ context.Context, req datasourc
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *vpcVpcPeeringRuleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpc.VpcPeeringRuleDataSource
+	var state vpcv1d2.VpcPeeringRuleDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -218,7 +226,7 @@ func (d *vpcVpcPeeringRuleDataSource) Read(ctx context.Context, req datasource.R
 
 	// Map response body to model
 	for _, vpcPeering := range data.VpcPeeringRules {
-		vpcpeeringState := vpc.VpcPeeringRule{
+		vpcpeeringState := vpcv1d2.VpcPeeringRule{
 			Id:                 types.StringValue(vpcPeering.Id),
 			CreatedAt:          types.StringValue(vpcPeering.CreatedAt.Format(time.RFC3339)),
 			CreatedBy:          types.StringValue(vpcPeering.CreatedBy),
@@ -235,6 +243,13 @@ func (d *vpcVpcPeeringRuleDataSource) Read(ctx context.Context, req datasource.R
 			VpcPeeringId:       types.StringValue(vpcPeering.VpcPeeringId),
 		}
 		state.VpcPeeringRules = append(state.VpcPeeringRules, vpcpeeringState)
+	}
+
+	state.TotalCount = types.Int32Value(int32(data.Count))
+	state.Page = types.Int32Value(data.Page)
+	state.Size = types.Int32Value(data.Size)
+	for _, sortVal := range data.Sort {
+		state.SortFinal = append(state.SortFinal, types.StringValue(sortVal))
 	}
 
 	// Set state

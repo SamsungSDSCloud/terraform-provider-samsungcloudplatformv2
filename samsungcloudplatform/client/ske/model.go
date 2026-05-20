@@ -205,26 +205,30 @@ type NodeInNodepool struct {
 type NodepoolResource struct {
 	Id types.String `tfsdk:"id"`
 	//LastUpdated       types.String      `tfsdk:"last_updated"`
-	Name              types.String      `tfsdk:"name"`
-	ClusterId         types.String      `tfsdk:"cluster_id"`
-	CustomImageId     types.String      `tfsdk:"custom_image_id"`
-	DesiredNodeCount  types.Int32       `tfsdk:"desired_node_count"`
-	ImageOs           types.String      `tfsdk:"image_os"`
-	ImageOsVersion    types.String      `tfsdk:"image_os_version"`
-	Labels            []Label           `tfsdk:"labels"`
-	Taints            []Taint           `tfsdk:"taints"`
-	IsAutoRecovery    types.Bool        `tfsdk:"is_auto_recovery"`
-	IsAutoScale       types.Bool        `tfsdk:"is_auto_scale"`
-	KeypairName       types.String      `tfsdk:"keypair_name"`
-	KubernetesVersion types.String      `tfsdk:"kubernetes_version"`
-	MaxNodeCount      types.Int32       `tfsdk:"max_node_count"`
-	MinNodeCount      types.Int32       `tfsdk:"min_node_count"`
-	ServerTypeId      types.String      `tfsdk:"server_type_id"`
-	VolumeTypeName    types.String      `tfsdk:"volume_type_name"`
-	VolumeSize        types.Int32       `tfsdk:"volume_size"`
-	ServerGroupId     types.String      `tfsdk:"server_group_id"`   // v1.1
-	AdvancedSettings  *AdvancedSettings `tfsdk:"advanced_settings"` // v1.1
-	Nodepool          types.Object      `tfsdk:"nodepool"`
+	Name                types.String      `tfsdk:"name"`
+	ClusterId           types.String      `tfsdk:"cluster_id"`
+	CustomImageId       types.String      `tfsdk:"custom_image_id"`
+	DesiredNodeCount    types.Int32       `tfsdk:"desired_node_count"`
+	ImageOs             types.String      `tfsdk:"image_os"`
+	ImageOsVersion      types.String      `tfsdk:"image_os_version"`
+	Labels              []Label           `tfsdk:"labels"`
+	Taints              []Taint           `tfsdk:"taints"`
+	IsAutoRecovery      types.Bool        `tfsdk:"is_auto_recovery"`
+	IsAutoScale         types.Bool        `tfsdk:"is_auto_scale"`
+	KeypairName         types.String      `tfsdk:"keypair_name"`
+	KubernetesVersion   types.String      `tfsdk:"kubernetes_version"`
+	MaxNodeCount        types.Int32       `tfsdk:"max_node_count"`
+	MinNodeCount        types.Int32       `tfsdk:"min_node_count"`
+	ServerTypeId        types.String      `tfsdk:"server_type_id"`
+	VolumeTypeName      types.String      `tfsdk:"volume_type_name"`
+	VolumeSize          types.Int32       `tfsdk:"volume_size"`
+	ServerGroupId       types.String      `tfsdk:"server_group_id"`       // v1.1
+	AdvancedSettings    *AdvancedSettings `tfsdk:"advanced_settings"`     // v1.1
+	LinkedResources     []LinkedResource  `tfsdk:"linked_resources"`      // v1.3
+	VolumeMaxIops       types.Int32       `tfsdk:"volume_max_iops"`       // v1.4
+	VolumeMaxThroughput types.Int32       `tfsdk:"volume_max_throughput"` // v1.4
+	ScpGpuDriver        types.String      `tfsdk:"scp_gpu_driver"`        // v1.4
+	Nodepool            types.Object      `tfsdk:"nodepool"`
 }
 
 type Nodepool struct {
@@ -251,8 +255,11 @@ type Nodepool struct {
 	CreatedBy           types.String      `tfsdk:"created_by"`
 	ModifiedAt          types.String      `tfsdk:"modified_at"`
 	ModifiedBy          types.String      `tfsdk:"modified_by"`
-	ServerGroupId       types.String      `tfsdk:"server_group_id"`   // v1.1
-	AdvancedSettings    *AdvancedSettings `tfsdk:"advanced_settings"` // v1.1
+	ServerGroupId       types.String      `tfsdk:"server_group_id"`       // v1.1
+	AdvancedSettings    *AdvancedSettings `tfsdk:"advanced_settings"`     // v1.1
+	LinkedResources     []LinkedResource  `tfsdk:"linked_resources"`      // v1.3
+	VolumeMaxIops       *int32            `tfsdk:"volume_max_iops"`       // v1.4
+	VolumeMaxThroughput *int32            `tfsdk:"volume_max_throughput"` // v1.4
 }
 
 func (m Nodepool) AttributeTypes() map[string]attr.Type {
@@ -274,6 +281,7 @@ func (m Nodepool) AttributeTypes() map[string]attr.Type {
 				"custom_image_name": types.StringType,
 				"os":                types.StringType,
 				"os_version":        types.StringType,
+				"scp_gpu_driver":    types.StringType, // v1.4
 			},
 		},
 		"keypair": types.ObjectType{
@@ -316,7 +324,7 @@ func (m Nodepool) AttributeTypes() map[string]attr.Type {
 		"created_by":  types.StringType,
 		"modified_at": types.StringType,
 		"modified_by": types.StringType,
-		//v1.1
+		// v1.1
 		"server_group_id": types.StringType,
 		"advanced_settings": types.ObjectType{
 			AttrTypes: map[string]attr.Type{
@@ -329,5 +337,46 @@ func (m Nodepool) AttributeTypes() map[string]attr.Type {
 				"pod_max_pids":            types.Int32Type,
 			},
 		},
+		// v1.3
+		"linked_resources": types.ListType{ElemType: types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"id":   types.StringType,
+				"name": types.StringType,
+				"type": types.StringType,
+			},
+		}},
+		// v1.4
+		"volume_max_iops":       types.Int32Type,
+		"volume_max_throughput": types.Int32Type,
 	}
+}
+
+//------------ NodepoolImage -------------------//
+
+type NodepoolImageDataSources struct {
+	Size                 types.Int32            `tfsdk:"size"`
+	Page                 types.Int32            `tfsdk:"page"`
+	Sort                 types.String           `tfsdk:"sort"`
+	KubernetesVersion    types.String           `tfsdk:"kubernetes_version"`
+	Os                   types.String           `tfsdk:"os"`
+	ScpOriginalImageType types.String           `tfsdk:"scp_original_image_type"`
+	NodepoolImages       []NodepoolImageSummary `tfsdk:"nodepool_images"`
+}
+
+type NodepoolImageSummary struct {
+	Id                     types.String         `tfsdk:"id"`
+	Name                   types.String         `tfsdk:"name"`
+	Os                     types.String         `tfsdk:"os"`
+	OsVersion              types.String         `tfsdk:"os_version"`
+	KubernetesVersion      types.String         `tfsdk:"kubernetes_version"`
+	EndOfSupport           types.Bool           `tfsdk:"end_of_support"`
+	ScpImageType           types.String         `tfsdk:"scp_image_type"`
+	ScpOriginalImageType   types.String         `tfsdk:"scp_original_image_type"`
+	Volume                 *NodepoolImageVolume `tfsdk:"volume"`
+	ScpGpuDriver           types.String         `tfsdk:"scp_gpu_driver"`
+	ScpSupportedClassTypes []types.String       `tfsdk:"scp_supported_class_types"`
+}
+
+type NodepoolImageVolume struct {
+	Size types.Int64 `tfsdk:"size"`
 }

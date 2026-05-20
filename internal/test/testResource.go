@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/internal/util"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,7 +36,7 @@ type Update struct {
 }
 
 func getTestCases(filepath string) (*TestCases, error) {
-	buf, err := ioutil.ReadFile(filepath)
+	buf, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}

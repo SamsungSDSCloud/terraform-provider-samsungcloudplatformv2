@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_nat_gateways Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  list of natgateway.
+  List of NAT Gateways.
 ---
 
 # samsungcloudplatformv2_vpc_nat_gateways (Data Source)
 
-list of natgateway.
+List of NAT Gateways.
 
 ## Example Usage
 
@@ -16,17 +16,87 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_nat_gateways" "natgateways" {
-  limit = var.limit
+  size                   = var.size
+  page                   = var.page
+  sort                   = var.sort
+  name                   = var.name
+  vpc_id                 = var.vpc_id
+  vpc_name               = var.vpc_name
+  subnet_id              = var.subnet_id
+  subnet_name            = var.subnet_name
+  nat_gateway_ip_address = var.nat_gateway_ip_address
+  state                  = var.state
 }
 
 
 output "natgateways" {
-  value = data.samsungcloudplatformv2_vpc_nat_gateways.natgateways
+  value = {
+    count : data.samsungcloudplatformv2_vpc_nat_gateways.natgateways.total_count,
+    nat_gateways : data.samsungcloudplatformv2_vpc_nat_gateways.natgateways.nat_gateways,
+    page : data.samsungcloudplatformv2_vpc_nat_gateways.natgateways.page,
+    size : data.samsungcloudplatformv2_vpc_nat_gateways.natgateways.size,
+    sort : data.samsungcloudplatformv2_vpc_nat_gateways.natgateways.sort_final,
+  }
 }
 
-variable "limit" {
-  type    = number
-  default = 0
+variable "size" {
+  type        = number
+  description = "Size"
+  default     = 0
+}
+
+variable "page" {
+  type        = number
+  description = "Page"
+  default     = 0
+}
+
+variable "sort" {
+  type        = string
+  description = "Sort"
+  default     = ""
+}
+
+variable "name" {
+  type        = string
+  description = "NAT Gateway Name"
+  default     = ""
+}
+
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID"
+  default     = ""
+}
+
+variable "vpc_name" {
+  type        = string
+  description = "VPC Name"
+  default     = ""
+}
+
+variable "subnet_id" {
+  type        = string
+  description = "Subnet ID"
+  default     = ""
+}
+
+variable "subnet_name" {
+  type        = string
+  description = "Subnet Name"
+  default     = ""
+}
+
+variable "nat_gateway_ip_address" {
+  type        = string
+  description = "NAT Gateway IP Address"
+  default     = ""
+}
+
+variable "state" {
+  type        = string
+  description = "NAT Gateway State"
+  default     = ""
 }
 ```
 
@@ -35,24 +105,20 @@ variable "limit" {
 
 ### Optional
 
-- `limit` (Number) Limit 
-  - example : 10 
-  - maximum : 10000 
-  - minimum : 1
-- `marker` (String) Marker 
-  - example : 607e0938521643b5b4b266f343fae693 
-  - maxLength : 64 
-  - minLength : 1
 - `name` (String) NAT Gateway Name 
-  - example : natGatewayName
+  - example : NatGatewayName
 - `nat_gateway_ip_address` (String) NAT Gateway IP Address 
-  - example : 172.24.4.2
+  - example : 192.167.0.5
+- `page` (Number) Page 
+  - example : 0
+- `size` (Number) Size 
+  - example : 20
 - `sort` (String) Sort 
   - example : created_at:desc
-- `state` (String) State 
-  - example : CREATING | ACTIVE | DELETING | ERROR
+- `state` (String) NAT Gateway State 
+  - example : CREATING | ACTIVE | DELETING | DELETED | ERROR
 - `subnet_id` (String) Subnet ID 
-  - example : 607e0938521643b5b4b266f343fae693
+  - example : 023c57b14f11483689338d085e061492
 - `subnet_name` (String) Subnet Name 
   - example : subnetName
 - `vpc_id` (String) VPC ID 
@@ -62,25 +128,29 @@ variable "limit" {
 
 ### Read-Only
 
-- `nat_gateways` (Attributes List) A list of natgateway. (see [below for nested schema](#nestedatt--nat_gateways))
+- `nat_gateways` (Attributes List) A list of NAT Gateways. (see [below for nested schema](#nestedatt--nat_gateways))
+- `sort_final` (List of String) List of sort condition 
+  - example : ["created_at:desc"]
+- `total_count` (Number) Count
 
 <a id="nestedatt--nat_gateways"></a>
 ### Nested Schema for `nat_gateways`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `nat_gateway_ip_address` (String) NatGatewayIpAddress
-- `state` (String) State
-- `subnet_cidr` (String) SubnetCidr
-- `subnet_id` (String) SubnetId
-- `subnet_name` (String) SubnetName
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) Account ID
+- `created_at` (String) Created At
+- `created_by` (String) Created By
+- `description` (String) NAT Gateway Description
+- `id` (String) NAT Gateway ID
+- `modified_at` (String) Modified At
+- `modified_by` (String) Modified By
+- `name` (String) NAT Gateway Name
+- `nat_gateway_ip_address` (String) NAT Gateway IP Address
+- `publicip_id` (String) PublicIP ID
+- `state` (String) NAT Gateway State
+- `subnet_cidr` (String) Subnet CIDR
+- `subnet_id` (String) Subnet ID
+- `subnet_name` (String) Subnet Name
+- `vpc_id` (String) VPC ID
+- `vpc_name` (String) VPC Name

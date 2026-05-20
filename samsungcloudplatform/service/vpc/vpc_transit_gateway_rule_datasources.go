@@ -1,19 +1,20 @@
 package vpc
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"golang.org/x/net/context"
 )
 
 var (
@@ -50,13 +51,20 @@ func (d *tgwRoutingRuleDataSources) Schema(_ context.Context, _ datasource.Schem
 					int32validator.Between(1, 10000),
 				},
 			},
-			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+			common.ToSnakeCase("page"): schema.Int32Attribute{
+				Optional:            true,
+				Description:         "page",
+				MarkdownDescription: "page",
+				Validators: []validator.Int32{
+					int32validator.Between(0, 99999),
+				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "Sort \n" +
+					"  - example : created_at:desc",
+				MarkdownDescription: "Sort \n" +
+					"  - example : created_at:desc",
+				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "id",
@@ -74,20 +82,58 @@ func (d *tgwRoutingRuleDataSources) Schema(_ context.Context, _ datasource.Schem
 				Description: "source type" +
 					" - enum(VPC, TGW)",
 				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"VPC",
+						"TGW",
+					),
+				},
 			},
 			common.ToSnakeCase("DestinationType"): schema.StringAttribute{
 				Description: "destination type" +
 					" - enum(VPC, TGW)",
 				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"VPC",
+						"TGW",
+					),
+				},
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
 				Description: "destination cidr",
 				Optional:    true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State" +
-					" - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
+				Description:         " - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
+				MarkdownDescription: " - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
+				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"CREATING",
+						"ACTIVE",
+						"DELETED",
+						"ERROR",
+						"DELETING",
+						"EDITING",
+					),
+				},
+			},
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Computed:            true,
+				Description:         "count\n  - example: 20",
+				MarkdownDescription: "count\n  - example: 20",
+			},
+			common.ToSnakeCase("rule_type"): schema.StringAttribute{
+				Description: "Rule type" +
+					" - enum: TGW_VPC, TGW_UPLINK",
 				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"TGW_VPC",
+						"TGW_UPLINK",
+					),
+				},
 			},
 			common.ToSnakeCase("RoutingRules"): schema.ListNestedAttribute{
 				Description: "transit gateway rules",
@@ -183,12 +229,12 @@ func (d *tgwRoutingRuleDataSources) Configure(_ context.Context, req datasource.
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
 func (d *tgwRoutingRuleDataSources) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpc.RoutingRuleDataSource
+	var state vpc.TransitGatewayRuleDataSource
 
 	diags := req.Config.Get(ctx, &state) // datasource 블록에 작성된 configuration data 를 읽어온다.
 	resp.Diagnostics.Append(diags...)
@@ -196,7 +242,7 @@ func (d *tgwRoutingRuleDataSources) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	data, _, err := d.client.GetRoutingRuleList(ctx, state)
+	data, _, err := d.client.GetTGWRuleList(ctx, state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -230,6 +276,8 @@ func (d *tgwRoutingRuleDataSources) Read(ctx context.Context, req datasource.Rea
 
 		state.RoutingRules = append(state.RoutingRules, routingRuleState)
 	}
+
+	state.TotalCount = types.Int32Value(data.Count)
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)

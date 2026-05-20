@@ -36,8 +36,10 @@ type securityGroupRuleResource struct {
 }
 
 func (r *securityGroupRuleResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
-	//TODO implement me
-	panic("implement me")
+	response.Diagnostics.AddError(
+        "Update not supported",
+        "This resource does not support in-place updates.",
+    )
 }
 
 // Metadata returns the data source type name.
@@ -54,7 +56,7 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Description: "Identifier of the resource.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("SecurityGroupId"): schema.StringAttribute{
@@ -209,7 +211,7 @@ func (r *securityGroupRuleResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	// Create new internet gateway
+	// Create new security group rule
 	data, err := r.client.CreateSecurityGroupRule(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)

@@ -26,21 +26,22 @@ type ClusterDataSourceDetail struct {
 
 // Create Cluster의 Request
 type ClusterResource struct {
-	Id                   types.String      `tfsdk:"id"`
-	AkhqEnabled          types.Bool        `tfsdk:"akhq_enabled"`
-	AllowableIpAddresses types.List        `tfsdk:"allowable_ip_addresses"`
-	DbaasEngineVersionId types.String      `tfsdk:"dbaas_engine_version_id"`
-	IsCombined           types.Bool        `tfsdk:"is_combined"`
-	InitConfigOption     InitConfigOption  `tfsdk:"init_config_option"`
-	InstanceGroups       []InstanceGroup   `tfsdk:"instance_groups"`
-	InstanceNamePrefix   types.String      `tfsdk:"instance_name_prefix"`
-	MaintenanceOption    MaintenanceOption `tfsdk:"maintenance_option"`
-	Name                 types.String      `tfsdk:"name"`
-	NatEnabled           types.Bool        `tfsdk:"nat_enabled"`
-	ServiceState         types.String      `tfsdk:"service_state"`
-	SubnetId             types.String      `tfsdk:"subnet_id"`
-	Tags                 types.Map         `tfsdk:"tags"`
-	Timezone             types.String      `tfsdk:"timezone"`
+	Id                        types.String      `tfsdk:"id"`
+	AkhqEnabled               types.Bool        `tfsdk:"akhq_enabled"`
+	AllowableIpAddresses      types.List        `tfsdk:"allowable_ip_addresses"`
+	DbaasEngineVersionId      types.String      `tfsdk:"dbaas_engine_version_id"`
+	IsCombined                types.Bool        `tfsdk:"is_combined"`
+	InitConfigOption          InitConfigOption  `tfsdk:"init_config_option"`
+	InstanceGroups            []InstanceGroup   `tfsdk:"instance_groups"`
+	InstanceNamePrefix        types.String      `tfsdk:"instance_name_prefix"`
+	MaintenanceOption         MaintenanceOption `tfsdk:"maintenance_option"`
+	Name                      types.String      `tfsdk:"name"`
+	NatEnabled                types.Bool        `tfsdk:"nat_enabled"`
+	ServiceState              types.String      `tfsdk:"service_state"`
+	SubnetId                  types.String      `tfsdk:"subnet_id"`
+	Tags                      types.Map         `tfsdk:"tags"`
+	Timezone                  types.String      `tfsdk:"timezone"`
+	ServiceWatchLogCollection types.Bool        `tfsdk:"service_watch_log_collection"`
 }
 
 // List Clusters의 Response
@@ -106,26 +107,27 @@ type MaintenanceOption struct {
 }
 
 type ClusterDetail struct {
-	AccountId            types.String       `tfsdk:"account_id"`
-	AllowableIpAddresses []types.String     `tfsdk:"allowable_ip_addresses"`
-	DbaasEngine          types.String       `tfsdk:"dbaas_engine"`
-	IsCombined           types.Bool         `tfsdk:"is_combined"`
-	Id                   types.String       `tfsdk:"id"`
-	InitConfigOption     InitConfigResponse `tfsdk:"init_config_option"`
-	InstanceCount        types.Int32        `tfsdk:"instance_count"`
-	InstanceGroups       []InstanceGroup    `tfsdk:"instance_groups"`
-	MaintenanceOption    MaintenanceOption  `tfsdk:"maintenance_option"`
-	Name                 types.String       `tfsdk:"name"`
-	NatEnabled           types.Bool         `tfsdk:"nat_enabled"`
-	ProductType          types.String       `tfsdk:"product_type"`
-	ServiceState         types.String       `tfsdk:"service_state"`
-	SoftwareVersion      types.String       `tfsdk:"software_version"`
-	SubnetId             types.String       `tfsdk:"subnet_id"`
-	Timezone             types.String       `tfsdk:"timezone"`
-	CreatedAt            types.String       `tfsdk:"created_at"`
-	CreatedBy            types.String       `tfsdk:"created_by"`
-	ModifiedAt           types.String       `tfsdk:"modified_at"`
-	ModifiedBy           types.String       `tfsdk:"modified_by"`
+	AccountId                 types.String       `tfsdk:"account_id"`
+	AllowableIpAddresses      []types.String     `tfsdk:"allowable_ip_addresses"`
+	DbaasEngine               types.String       `tfsdk:"dbaas_engine"`
+	IsCombined                types.Bool         `tfsdk:"is_combined"`
+	Id                        types.String       `tfsdk:"id"`
+	InitConfigOption          InitConfigResponse `tfsdk:"init_config_option"`
+	InstanceCount             types.Int32        `tfsdk:"instance_count"`
+	InstanceGroups            []InstanceGroup    `tfsdk:"instance_groups"`
+	MaintenanceOption         MaintenanceOption  `tfsdk:"maintenance_option"`
+	Name                      types.String       `tfsdk:"name"`
+	NatEnabled                types.Bool         `tfsdk:"nat_enabled"`
+	ProductType               types.String       `tfsdk:"product_type"`
+	ServiceState              types.String       `tfsdk:"service_state"`
+	SoftwareVersion           types.String       `tfsdk:"software_version"`
+	SubnetId                  types.String       `tfsdk:"subnet_id"`
+	Timezone                  types.String       `tfsdk:"timezone"`
+	CreatedAt                 types.String       `tfsdk:"created_at"`
+	CreatedBy                 types.String       `tfsdk:"created_by"`
+	ModifiedAt                types.String       `tfsdk:"modified_at"`
+	ModifiedBy                types.String       `tfsdk:"modified_by"`
+	ServiceWatchLogCollection types.Bool         `tfsdk:"service_watch_log_collection"`
 }
 
 func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
@@ -183,17 +185,18 @@ func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 				"use_maintenance_option": types.BoolType,
 			},
 		},
-		"name":             types.StringType,
-		"nat_enabled":      types.BoolType,
-		"product_type":     types.StringType,
-		"service_state":    types.StringType,
-		"software_version": types.StringType,
-		"subnet_id":        types.StringType,
-		"timezone":         types.StringType,
-		"created_at":       types.StringType,
-		"created_by":       types.StringType,
-		"modified_at":      types.StringType,
-		"modified_by":      types.StringType,
+		"name":                         types.StringType,
+		"nat_enabled":                  types.BoolType,
+		"product_type":                 types.StringType,
+		"service_state":                types.StringType,
+		"software_version":             types.StringType,
+		"subnet_id":                    types.StringType,
+		"timezone":                     types.StringType,
+		"created_at":                   types.StringType,
+		"created_by":                   types.StringType,
+		"modified_at":                  types.StringType,
+		"modified_by":                  types.StringType,
+		"service_watch_log_collection": types.BoolType,
 	}
 }
 
@@ -220,4 +223,3 @@ type EngineVersion struct {
 	ProductImageType types.String `tfsdk:"product_image_type"`
 	SoftwareVersion  types.String `tfsdk:"software_version"`
 }
-

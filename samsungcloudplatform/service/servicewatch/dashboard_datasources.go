@@ -109,8 +109,8 @@ func (d *serviceWatchDashboardDataSources) Configure(_ context.Context, req data
 	inst, ok := req.ProviderData.(client.Instance)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.Instance, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			ErrUnexpectedConfigure,
+			fmt.Sprintf(ErrUnexpectedConfigureFmt, req.ProviderData),
 		)
 
 		return
@@ -148,8 +148,8 @@ func (d *serviceWatchDashboardDataSources) Read(ctx context.Context, req datasou
 				Name:            types.StringValue(dashboard.GetName()),
 				Type:            types.StringValue(dashboard.GetType()),
 				FavoriteEnabled: types.BoolValue(dashboard.GetFavoriteEnabled()),
-				CreatedAt:       types.StringValue(dashboard.GetCreatedAt().Format("2006-01-02 15:04:05")),
-				ModifiedAt:      types.StringValue(dashboard.GetModifiedAt().Format("2006-01-02 15:04:05")),
+				CreatedAt:       types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay)),
+				ModifiedAt:      types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay)),
 			}
 			dashboardList = append(dashboardList, dashboardState)
 		}

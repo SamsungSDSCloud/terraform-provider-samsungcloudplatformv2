@@ -3,13 +3,16 @@ package eventstreams
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/eventstreams"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/database"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpEventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/eventstreams/1.0"
+	scpEventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/eventstreams/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 var (
@@ -136,16 +137,10 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 									common.ToSnakeCase("Id"): schema.StringAttribute{
 										Description: "Id",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
 										Description: "Name",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
 										Description: "Role type \n" +
@@ -303,6 +298,11 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 					"  - example: 'Asia/Seoul' \n",
 				Required: true,
 			},
+			common.ToSnakeCase("ServiceWatchLogCollection"): schema.BoolAttribute{
+				Description: "ServiceWatchLogCollection",
+				Optional:    true,
+				Computed:    true,
+			},
 		},
 	}
 }
@@ -351,7 +351,7 @@ func (r *eventstreamsClusterResource) Create(ctx context.Context, req resource.C
 	clusterId := data.Resource.Id
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -439,7 +439,7 @@ func (r *eventstreamsClusterResource) AsyncPollingTags(ctx context.Context, clus
 }
 
 func (r *eventstreamsClusterResource) MapGetResponseToState(ctx context.Context,
-	resp *scpEventstreams.EventStreamsClusterDetailResponse, plan eventstreams.ClusterResource, tagsMap types.Map) (eventstreams.ClusterResource, error) {
+	resp *scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, plan eventstreams.ClusterResource, tagsMap types.Map) (eventstreams.ClusterResource, error) {
 
 	var allowableIpAddresses types.List
 	if len(resp.AllowableIpAddresses) == 0 {
@@ -464,37 +464,14 @@ func (r *eventstreamsClusterResource) MapGetResponseToState(ctx context.Context,
 	}
 
 	var InstanceGroups []eventstreams.InstanceGroup
-	for _, instanceGroup := range resp.InstanceGroups {
-		var BlockStorage []eventstreams.BlockStorageGroup
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			BlockStorage = append(BlockStorage, eventstreams.BlockStorageGroup{
-				Id:         types.StringValue(blockStorage.Id),
-				Name:       types.StringValue(blockStorage.Name),
-				RoleType:   types.StringValue(string(blockStorage.RoleType)),
-				SizeGb:     types.Int32Value(blockStorage.SizeGb),
-				VolumeType: types.StringValue(string(blockStorage.VolumeType)),
-			})
-		}
+	for _, instanceGroup := range plan.InstanceGroups {
 
-		var Instance []eventstreams.Instance
-		for _, instance := range instanceGroup.Instances {
-			Instance = append(Instance, eventstreams.Instance{
-				Name:             types.StringValue(instance.Name),
-				RoleType:         types.StringValue(string(instance.RoleType)),
-				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
-				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
-			})
-		}
+		cutIGs, updatedIG := mapInstanceGroup(resp.InstanceGroups, instanceGroup)
 
-		InstanceGroups = append(InstanceGroups, eventstreams.InstanceGroup{
-			Id:                 types.StringValue(instanceGroup.Id),
-			BlockStorageGroups: BlockStorage,
-			Instances:          Instance,
-			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
-			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
-		})
+		InstanceGroups = append(InstanceGroups, updatedIG)
+
+		resp.InstanceGroups = cutIGs
+
 	}
 
 	var maintenanceOption = eventstreams.MaintenanceOption{}
@@ -508,21 +485,22 @@ func (r *eventstreamsClusterResource) MapGetResponseToState(ctx context.Context,
 	}
 
 	return eventstreams.ClusterResource{
-		Id:                   types.StringValue(resp.Id),
-		AkhqEnabled:          plan.AkhqEnabled,
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: plan.DbaasEngineVersionId,
-		InitConfigOption:     initConfigOption,
-		InstanceGroups:       InstanceGroups,
-		InstanceNamePrefix:   plan.InstanceNamePrefix,
-		IsCombined:           plan.IsCombined,
-		MaintenanceOption:    maintenanceOption,
-		Name:                 types.StringValue(resp.Name),
-		NatEnabled:           plan.NatEnabled,
-		ServiceState:         types.StringValue(string(resp.ServiceState)),
-		SubnetId:             types.StringValue(resp.SubnetId),
-		Tags:                 tagsMap,
-		Timezone:             types.StringValue(resp.Timezone),
+		Id:                        types.StringValue(resp.Id),
+		AkhqEnabled:               plan.AkhqEnabled,
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      plan.DbaasEngineVersionId,
+		InitConfigOption:          initConfigOption,
+		InstanceGroups:            InstanceGroups,
+		InstanceNamePrefix:        plan.InstanceNamePrefix,
+		IsCombined:                plan.IsCombined,
+		MaintenanceOption:         maintenanceOption,
+		Name:                      types.StringValue(resp.Name),
+		NatEnabled:                plan.NatEnabled,
+		ServiceState:              types.StringValue(string(resp.ServiceState)),
+		SubnetId:                  types.StringValue(resp.SubnetId),
+		Tags:                      tagsMap,
+		Timezone:                  types.StringValue(resp.Timezone),
+		ServiceWatchLogCollection: types.BoolPointerValue(resp.ServiceWatchLogCollection),
 	}, nil
 }
 
@@ -612,7 +590,7 @@ func (r *eventstreamsClusterResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "IsCombined", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress"}
+	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "IsCombined", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress", "ServiceWatchLogCollection"}
 
 	if databaseUtils.IsOverlapFields(immutableFields, changeFields) {
 		resp.Diagnostics.AddError(
@@ -703,7 +681,7 @@ func (r *eventstreamsClusterResource) handlerUpdateClusterState(ctx context.Cont
 		return err
 	}
 
-	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -734,7 +712,7 @@ func (r *eventstreamsClusterResource) handlerUpdateClusterAllowableIpAddresses(c
 		return err
 	}
 
-	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -835,7 +813,7 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 							return err
 						}
 
-						immutableBsFields := []string{"Id", "Name", "RoleType", "VolumeType"}
+						immutableBsFields := []string{"RoleType", "VolumeType"}
 
 						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
 							resp.Diagnostics.AddError(
@@ -900,7 +878,7 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 			}
 
 			// wait for 구현
-			getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponse, error) {
+			getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
 				return r.client.GetCluster(ctx, id)
 			}
 
@@ -954,7 +932,7 @@ func (r *eventstreamsClusterResource) Delete(ctx context.Context, req resource.D
 	}
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -970,4 +948,78 @@ func (r *eventstreamsClusterResource) Delete(ctx context.Context, req resource.D
 			return
 		}
 	}
+}
+
+func mapInstanceGroup(instanceGroups []scpEventstreams.InstanceGroupResponse, def eventstreams.InstanceGroup) ([]scpEventstreams.InstanceGroupResponse, eventstreams.InstanceGroup) {
+
+	for rm, instanceGroup := range instanceGroups {
+
+		if !isEqualInstanceGroup(instanceGroup, def) {
+			continue
+		}
+
+		var BlockStorage []eventstreams.BlockStorageGroup
+		for _, blockStorage := range instanceGroup.BlockStorageGroups {
+			BlockStorage = append(BlockStorage, eventstreams.BlockStorageGroup{
+				Id:         types.StringValue(blockStorage.Id),
+				Name:       types.StringValue(blockStorage.Name),
+				RoleType:   types.StringValue(string(blockStorage.RoleType)),
+				SizeGb:     types.Int32Value(blockStorage.SizeGb),
+				VolumeType: types.StringValue(string(blockStorage.VolumeType)),
+			})
+		}
+
+		var Instance []eventstreams.Instance
+		for _, instance := range instanceGroup.Instances {
+			Instance = append(Instance, eventstreams.Instance{
+				Name:             types.StringValue(instance.Name),
+				RoleType:         types.StringValue(string(instance.RoleType)),
+				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
+				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
+				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
+				//ServiceState:     types.StringValue(string(instance.ServiceState)),
+			})
+		}
+
+		return append(instanceGroups[:rm], instanceGroups[rm+1:]...), eventstreams.InstanceGroup{
+			Id:                 types.StringValue(instanceGroup.Id),
+			BlockStorageGroups: BlockStorage,
+			Instances:          Instance,
+			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
+			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
+		}
+
+	}
+
+	return instanceGroups, def
+
+}
+
+func isEqualInstanceGroup(actual scpEventstreams.InstanceGroupResponse, expect eventstreams.InstanceGroup) bool {
+
+	equal := string(actual.RoleType) == expect.RoleType.ValueString()
+	equal = equal && actual.ServerTypeName == expect.ServerTypeName.ValueString()
+
+	actualIt := actual.GetInstances()
+	expectIt := expect.Instances
+	equal = equal && len(actualIt) == len(expectIt)
+	if equal {
+		for pos := range len(expectIt) {
+			equal = equal && expectIt[pos].RoleType.ValueString() == string(actualIt[pos].RoleType)
+		}
+	}
+
+	actualBS := actual.GetBlockStorageGroups()
+	expectBS := expect.BlockStorageGroups
+	equal = equal && len(actualBS) == len(expectBS)
+	if equal {
+		for pos := range len(expectBS) {
+			equal = equal && expectBS[pos].RoleType.ValueString() == string(actualBS[pos].RoleType)
+			equal = equal && expectBS[pos].VolumeType.ValueString() == string(actualBS[pos].VolumeType)
+			equal = equal && expectBS[pos].SizeGb.ValueInt32() == actualBS[pos].SizeGb
+		}
+	}
+
+	return equal
+
 }

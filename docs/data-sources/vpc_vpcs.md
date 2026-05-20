@@ -16,7 +16,13 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_vpcs" "vpcs" {
-  limit = var.limit
+  cidr  = var.cidr
+  id    = var.id
+  name  = var.name
+  page  = var.page
+  size  = var.size
+  sort  = var.sort
+  state = var.state
 }
 
 
@@ -24,9 +30,40 @@ output "vpcs" {
   value = data.samsungcloudplatformv2_vpc_vpcs.vpcs
 }
 
-variable "limit" {
+variable "cidr" {
+  type    = string
+  default = ""
+}
+
+variable "id" {
+  type    = string
+  default = ""
+}
+
+variable "name" {
+  type    = string
+  default = ""
+}
+
+variable "page" {
   type    = number
   default = 0
+}
+
+variable "size" {
+  type    = number
+  default = 0
+}
+
+variable "sort" {
+  type    = string
+  default = ""
+}
+
+variable "state" {
+  type = string
+
+  default = ""
 }
 ```
 
@@ -39,23 +76,18 @@ variable "limit" {
   - example : 192.167.0.0/18
 - `id` (String) VPC ID 
   - example : 7df8abb4912e4709b1cb237daccca7a8
-- `limit` (Number) Limit 
-  - example : 10 
-  - maximum : 10000 
-  - minimum : 1
-- `marker` (String) Marker 
-  - example : 607e0938521643b5b4b266f343fae693 
-  - maxLength : 64 
-  - minLength : 1
 - `name` (String) VPC Name 
   - example : vpcName
+- `page` (Number) page
+- `size` (Number) size
 - `sort` (String) Sort 
   - example : created_at:desc
-- `state` (String) State 
-  - example : CREATING | ACTIVE | ERROR
+- `state` (String) - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
 
 ### Read-Only
 
+- `total_count` (Number) count
+  - example: 20
 - `vpcs` (Attributes List) A list of vpc. (see [below for nested schema](#nestedatt--vpcs))
 
 <a id="nestedatt--vpcs"></a>
@@ -63,13 +95,41 @@ variable "limit" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `cidr` (String) Cidr
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
+- `account_id` (String) Account ID
+  - example: f1e6c81a2b054582878cb9724dc2ce9f
+- `cidr_count` (Number) Cidr Count
+  - example: 20
+- `cidrs` (Attributes List) (see [below for nested schema](#nestedatt--vpcs--cidrs))
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
 - `description` (String) Description
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `state` (String) State
+  - maxLength: 50
+  - example: vpcDescription
+- `id` (String) VPC Id
+  - example: 7df8abb4912e4709b1cb237daccca7a8
+- `modified_at` (String) Modified At
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By
+  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) VPC Name
+  - maxLength: 20
+  - minLength: 3
+  - pattern: `^[a-zA-Z0-9-]*$`
+  - example: vpcName
+- `state` (String) - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
+
+<a id="nestedatt--vpcs--cidrs"></a>
+### Nested Schema for `vpcs.cidrs`
+
+Read-Only:
+
+- `cidr` (String) VPC Cidr
+  - example: 192.167.0.0/18
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By
+  - example: 7df8abb4912e4709b1cb237daccca7a8
+- `id` (String) Cidr ID
+  - example: 7df8abb4912e4709b1cb237daccca7a8

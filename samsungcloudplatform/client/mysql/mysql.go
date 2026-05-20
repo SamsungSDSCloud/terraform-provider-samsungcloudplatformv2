@@ -3,7 +3,7 @@ package mysql
 import (
 	"context"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/mysql/1.0"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/mysql/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -145,7 +145,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.MysqlClusterCreateRequest(mysql.MysqlClusterCreateRequest{
+	req = req.MysqlClusterCreateRequestV1Dot1(mysql.MysqlClusterCreateRequestV1Dot1{
 		AllowableIpAddresses: allowableIpAddresses,
 		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
 		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
@@ -174,7 +174,7 @@ func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*mysql.MysqlClusterDetailResponse, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*mysql.MysqlClusterDetailResponseV1Dot1, error) {
 	req := client.sdkClient.MysqlV1MysqlClustersApiAPI.MysqlShowCluster(ctx, clusterId)
 	resp, _, err := req.Execute()
 	return resp, err

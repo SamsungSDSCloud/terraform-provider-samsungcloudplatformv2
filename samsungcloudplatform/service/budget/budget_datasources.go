@@ -116,7 +116,11 @@ func (d *budgetBudgetDataSources) Read(ctx context.Context, req datasource.ReadR
 
 	if len(state.Filter) > 0 {
 		filteredContents = filteredContents[:0]
-		indices := filter.GetFilterIndices(contents, state.Filter)
+		indices, err := filter.GetFilterIndices(contents, state.Filter)
+		if err != nil {
+			resp.Diagnostics.AddError("Filter Error", err.Error())
+			return
+		}
 
 		for i, resource := range contents {
 			if common.Contains(indices, i) {

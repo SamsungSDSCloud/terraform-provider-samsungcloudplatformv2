@@ -2,8 +2,9 @@ package eventstreams
 
 import (
 	"context"
+
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/eventstreams/1.0"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/eventstreams/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -57,7 +58,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	// AllowableIpAddresses
 	var allowableIpAddresses []string
 
-	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown(){
+	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown() {
 		allowableIpAddresses = []string{}
 	} else {
 		for _, elem := range request.AllowableIpAddresses.Elements() {
@@ -134,20 +135,21 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.EventStreamsClusterCreateRequest(eventstreams.EventStreamsClusterCreateRequest{
-		AkhqEnabled:          request.AkhqEnabled.ValueBoolPointer(),
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		IsCombined:           request.IsCombined.ValueBoolPointer(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *eventstreams.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
+	req = req.EventStreamsClusterCreateRequestV1Dot1(eventstreams.EventStreamsClusterCreateRequestV1Dot1{
+		AkhqEnabled:               request.AkhqEnabled.ValueBoolPointer(),
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		IsCombined:                request.IsCombined.ValueBoolPointer(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		Name:                      request.Name.ValueString(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *eventstreams.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		ServiceWatchLogCollection: *eventstreams.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
+		Tags:                      TagsObject,
 	})
 
 	resp, _, err := req.Execute()
@@ -158,7 +160,7 @@ func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*eventstreams.EventStreamsClusterDetailResponse, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*eventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
 	req := client.sdkClient.EventstreamsV1EventStreamsClustersApiAPI.EventstreamsShowCluster(ctx, clusterId)
 	resp, _, err := req.Execute()
 	return resp, err

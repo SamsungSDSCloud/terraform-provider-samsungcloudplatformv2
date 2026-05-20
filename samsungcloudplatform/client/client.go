@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/backup"
@@ -12,7 +13,8 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/certificatemanager"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/cloudmonitoring"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/configinspection"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnect"
+	dc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnect"
+	dcv1d1 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnectv1d1"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/epas"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/eventstreams"
@@ -23,8 +25,10 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loggingaudit"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/mariadb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/multinodegpucluster"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/mysql"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/networklogging"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/organization"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/postgresql"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/quota"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/resourcemanager"
@@ -37,8 +41,8 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/multinodegpucluster"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/config"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
@@ -58,10 +62,12 @@ type SCPClient struct {
 	Vpc *vpc.Client
 
 	// VPC
-	VpcV1 *vpcv1.Client
+	VpcV1     *vpcv1.Client
+	VpcV1Dot2 *vpcv1d2.Client
 
 	// DirectConnect
-	DirectConnect *directconnect.Client
+	DirectConnect     *dc.Client
+	DirectConnectV1d1 *dcv1d1.Client
 
 	// Firewall
 	Firewall *firewall.Client
@@ -105,6 +111,7 @@ type SCPClient struct {
 	Budget          *budget.Client
 	LoggingAudit    *loggingaudit.Client
 	Quota           *quota.Client
+	Organization    *organization.Client
 
 	// LoadBalancer
 	LoadBalancer *loadbalancer.Client
@@ -130,18 +137,17 @@ type SCPClient struct {
 	Mngc *multinodegpucluster.Client
 	// ServiceWatch
 	ServiceWatch *servicewatch.Client
-
 }
 
 var AllowSDKDefaultVersion = map[string][]string{
 	// VPC
-	vpc.ServiceType: {"v1.1"},
+	vpc.ServiceType: {"v1.1", "v1.2"},
 
 	// CertificateManager V1
 	certificatemanager.ServiceType: {"v1.1"},
 
 	// DirectConnect
-	directconnect.ServiceType: {"v1.0"},
+	dc.ServiceType: {"v1.0", "v1.1"},
 
 	// Firewall
 	firewall.ServiceType: {"v1.0"},
@@ -156,10 +162,10 @@ var AllowSDKDefaultVersion = map[string][]string{
 	securitygroup.ServiceType: {"v1.0"},
 
 	// Kubernetes
-	ske.ServiceType: {"v1.1"},
+	ske.ServiceType: {"v1.4"},
 
 	// Compute
-	virtualserver.ServiceType: {"v1.2"},
+	virtualserver.ServiceType: {"v1.3"},
 	backup.ServiceType:        {"v1.2"},
 	baremetal.ServiceType:     {"v1.1"},
 
@@ -168,23 +174,24 @@ var AllowSDKDefaultVersion = map[string][]string{
 	filestorage.ServiceType:           {"v1.1"},
 
 	// Database
-	mysql.ServiceType:        {"v1.0"},
-	mariadb.ServiceType:      {"v1.0"},
-	postgresql.ServiceType:   {"v1.0"},
-	epas.ServiceType:         {"v1.0"},
+	mysql.ServiceType:        {"v1.1"},
+	mariadb.ServiceType:      {"v1.1"},
+	postgresql.ServiceType:   {"v1.1"},
+	epas.ServiceType:         {"v1.1"},
 	sqlserver.ServiceType:    {"v1.0"},
 	cachestore.ServiceType:   {"v1.0"},
 	searchengine.ServiceType: {"v1.0"},
-	eventstreams.ServiceType: {"v1.0"},
+	eventstreams.ServiceType: {"v1.1"},
 	vertica.ServiceType:      {"v1.0"},
 
 	// Platform
-	iam.ServiceType:             {"v1.2"},
+	iam.ServiceType:             {"v1.4"},
 	resourcemanager.ServiceType: {"v1.0"},
 	billing.ServiceType:         {"v1.0"},
 	budget.ServiceType:          {"v1.0"},
 	loggingaudit.ServiceType:    {"v1.1"},
-	quota.ServiceType:           {"v1.3"},
+	quota.ServiceType:           {"v1.4"},
+	organization.ServiceType:    {"v1.2"},
 
 	// LoadBalancer
 	loadbalancer.ServiceType: {"v1.3"},
@@ -204,15 +211,21 @@ var AllowSDKDefaultVersion = map[string][]string{
 	// Multi-node GPU Cluster
 	multinodegpucluster.ServiceType: {"v1.2"},
 	// ServiceWatch
-	servicewatch.ServiceType: {"v1.2"},
+	servicewatch.ServiceType: {"v1.2", "v1.3"},
 
 	// Misc.
-
 
 }
 
 func NewDefaultConfig(config *config.ProviderConfig, serviceType string) *scpsdk.Configuration {
-	tlsConfig, _ := common.CreateTlsConfig()
+	tlsConfig, err := common.CreateTlsConfig()
+	if err != nil {
+		fmt.Println(
+			"Failed to build TLS config",
+			"Error details: "+err.Error(),
+		)
+		return nil
+	}
 
 	cfg := &scpsdk.Configuration{
 		AuthUrl:         config.AuthUrl.ValueString(),
@@ -249,10 +262,12 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 		// VPC
 		Vpc: vpc.NewClient(NewDefaultConfig(providerConfig, vpc.ServiceType)),
 
-		VpcV1: vpcv1.NewClient(NewDefaultConfig(providerConfig, vpcv1.ServiceType)),
+		VpcV1:     vpcv1.NewClient(NewDefaultConfig(providerConfig, vpcv1.ServiceType)),
+		VpcV1Dot2: vpcv1d2.NewClient(NewDefaultConfig(providerConfig, vpcv1d2.ServiceType)),
 
 		// DirectConnect
-		DirectConnect: directconnect.NewClient(NewDefaultConfig(providerConfig, directconnect.ServiceType)),
+		DirectConnect:     dc.NewClient(NewDefaultConfig(providerConfig, dc.ServiceType)),
+		DirectConnectV1d1: dcv1d1.NewClient(NewDefaultConfig(providerConfig, dcv1d1.ServiceType)),
 
 		// Firewall
 		Firewall: firewall.NewClient(NewDefaultConfig(providerConfig, firewall.ServiceType)),
@@ -294,6 +309,7 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 		Billing:         billing.NewClient((NewDefaultConfig(providerConfig, billing.ServiceType))),
 		Budget:          budget.NewClient((NewDefaultConfig(providerConfig, budget.ServiceType))),
 		Quota:           quota.NewClient(NewDefaultConfig(providerConfig, quota.ServiceType)),
+		Organization:    organization.NewClient(NewDefaultConfig(providerConfig, organization.ServiceType)),
 
 		// LoadBalancer
 		LoadBalancer: loadbalancer.NewClient(NewDefaultConfig(providerConfig, loadbalancer.ServiceType)),
@@ -322,7 +338,6 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 		Mngc: multinodegpucluster.NewClient(NewDefaultConfig(providerConfig, multinodegpucluster.ServiceType)),
 		// ServiceWatch
 		ServiceWatch: servicewatch.NewClient(NewDefaultConfig(providerConfig, servicewatch.ServiceType)),
-
 	}
 
 	return client, nil

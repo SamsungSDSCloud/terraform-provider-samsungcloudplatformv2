@@ -1,17 +1,16 @@
 package vpc
 
 import (
+	"context"
 	"fmt"
-	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"golang.org/x/net/context"
 )
 
 var (
@@ -65,6 +64,10 @@ func (d *tgwDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, re
 						Description: "Description",
 						Computed:    true,
 					},
+					common.ToSnakeCase("firewall_connection_state"): schema.StringAttribute{
+						Description: "firewall connection state",
+						Computed:    true,
+					},
 					common.ToSnakeCase("FirewallIds"): schema.StringAttribute{
 						Description: "FirewallIds",
 						Computed:    true,
@@ -115,7 +118,7 @@ func (d *tgwDataSource) Configure(_ context.Context, req datasource.ConfigureReq
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
@@ -142,20 +145,7 @@ func (d *tgwDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	}
 	data := tgwResp.TransitGateway
 
-	transitGateway := vpc.Tgw{
-		Id:            types.StringValue(data.Id),
-		Description:   types.StringPointerValue(data.Description.Get()),
-		Name:          types.StringValue(data.Name),
-		AccountId:     types.StringValue(data.AccountId),
-		Bandwidth:     types.Int32PointerValue(data.Bandwidth.Get()),
-		CreatedAt:     types.StringValue(data.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:     types.StringValue(data.CreatedBy),
-		FirewallIds:   types.StringPointerValue(data.FirewallIds.Get()),
-		ModifiedAt:    types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:    types.StringValue(data.ModifiedBy),
-		State:         types.StringValue(string(data.State)),
-		UplinkEnabled: types.BoolPointerValue(data.UplinkEnabled),
-	}
+	transitGateway := vpc.MapToTgw(data)
 
 	tgwObjectValue, _ := types.ObjectValueFrom(ctx, transitGateway.AttributeTypes(), transitGateway)
 	state.TransitGateway = tgwObjectValue

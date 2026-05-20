@@ -116,6 +116,7 @@ type ClusterDetail struct {
 	InitConfigOption     InitConfigOption  `tfsdk:"init_config_option"`
 	InstanceCount        types.Int32       `tfsdk:"instance_count"`
 	InstanceGroups       []InstanceGroup   `tfsdk:"instance_groups"`
+	IsKernelPatchable    types.Bool        `tfsdk:"is_kernel_patchable"`
 	MaintenanceOption    MaintenanceOption `tfsdk:"maintenance_option"`
 	Name                 types.String      `tfsdk:"name"`
 	OriginClusterId      types.String      `tfsdk:"origin_cluster_id"`
@@ -194,6 +195,7 @@ func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 				},
 			},
 		},
+		"is_kernel_patchable": types.BoolType,
 		"maintenance_option": types.ObjectType{
 			AttrTypes: map[string]attr.Type{
 				"period_hour":            types.StringType,
@@ -233,7 +235,6 @@ type UpdateHandler struct {
 	Fields  []string
 	Handler func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error
 }
-
 
 // --------------- Engine Version ------------ //
 

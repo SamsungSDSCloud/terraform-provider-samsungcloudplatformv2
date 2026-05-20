@@ -56,6 +56,7 @@ Read-Only:
 - `init_config_option` (Attributes) InitConfigOption (see [below for nested schema](#nestedatt--cluster--init_config_option))
 - `instance_count` (Number) InstanceCount
 - `instance_groups` (Attributes List) InstanceGroups (see [below for nested schema](#nestedatt--cluster--instance_groups))
+- `is_kernel_patchable` (Boolean) IsKernelPatchable
 - `maintenance_option` (Attributes) MaintenanceOption (see [below for nested schema](#nestedatt--cluster--maintenance_option))
 - `modified_at` (String) ModifiedAt
 - `modified_by` (String) ModifiedBy

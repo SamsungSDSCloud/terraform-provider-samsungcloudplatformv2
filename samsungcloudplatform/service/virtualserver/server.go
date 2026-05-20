@@ -13,7 +13,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.2"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -26,6 +26,17 @@ var (
 	_ resource.Resource              = &virtualServerServerResource{}
 	_ resource.ResourceWithConfigure = &virtualServerServerResource{}
 )
+
+var osDiskDeviceNames = []string{"/dev/vda", "/dev/sda"}
+
+func isOsDisk(device string) bool {
+	for _, name := range osDiskDeviceNames {
+		if device == name {
+			return true
+		}
+	}
+	return false
+}
 
 func NewVirtualServerServerResource() resource.Resource {
 	return &virtualServerServerResource{}
@@ -428,6 +439,65 @@ func (r *virtualServerServerResource) AsyncPollingVolumeIops(ctx context.Context
 	return fmt.Errorf("timeout waiting for volume update")
 }
 
+func (r *virtualServerServerResource) matchVolumeAttributes(
+	unmappedVolume virtualserver.ServerResourceVolume,
+	planVolume virtualserver.ServerResourceVolume,
+	defaultVolumeTypeName string,
+) bool {
+	if !(planVolume.Size.IsNull() || planVolume.Size.IsUnknown()) &&
+		unmappedVolume.Size.ValueInt32() != planVolume.Size.ValueInt32() {
+		return false
+	}
+
+	if !(planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
+		unmappedVolume.Type.ValueString() != planVolume.Type.ValueString() {
+		return false
+	}
+	if (planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
+		*unmappedVolume.Type.ValueStringPointer() != defaultVolumeTypeName {
+		return false
+	}
+
+	if !(planVolume.DeleteOnTermination.IsNull() || planVolume.DeleteOnTermination.IsUnknown()) &&
+		unmappedVolume.DeleteOnTermination.ValueBool() != planVolume.DeleteOnTermination.ValueBool() {
+		return false
+	}
+	if (planVolume.DeleteOnTermination.IsNull() || planVolume.DeleteOnTermination.IsUnknown()) &&
+		unmappedVolume.DeleteOnTermination.ValueBool() != false {
+		return false
+	}
+
+	if !(planVolume.MaxIops.IsNull() || planVolume.MaxIops.IsUnknown()) &&
+		unmappedVolume.MaxIops.ValueInt32() != planVolume.MaxIops.ValueInt32() {
+		return false
+	}
+
+	if !(planVolume.MaxThroughput.IsNull() || planVolume.MaxThroughput.IsUnknown()) &&
+		unmappedVolume.MaxThroughput.ValueInt32() != planVolume.MaxThroughput.ValueInt32() {
+		return false
+	}
+
+	return true
+}
+
+func (r *virtualServerServerResource) findMatchingVolumeKey(
+	unmappedVolume virtualserver.ServerResourceVolume,
+	extraVolumesMap map[string]virtualserver.ServerResourceVolume,
+	mappedVolumeKeys map[string]bool,
+	defaultVolumeTypeName string,
+) string {
+	for key, planVolume := range extraVolumesMap {
+		if mappedVolumeKeys[key] {
+			continue
+		}
+
+		if r.matchVolumeAttributes(unmappedVolume, planVolume, defaultVolumeTypeName) {
+			return key
+		}
+	}
+	return ""
+}
+
 func (r *virtualServerServerResource) MapUnmappedExtraVolumes(
 	unmappedExtraVolumes []virtualserver.ServerResourceVolume,
 	extraVolumesMap map[string]virtualserver.ServerResourceVolume,
@@ -437,46 +507,7 @@ func (r *virtualServerServerResource) MapUnmappedExtraVolumes(
 	allMatched := true
 
 	for _, unmappedVolume := range unmappedExtraVolumes {
-		bestKey := ""
-
-		for key, planVolume := range extraVolumesMap {
-			if mappedVolumeKeys[key] {
-				continue
-			}
-
-			if !(planVolume.Size.IsNull() || planVolume.Size.IsUnknown()) &&
-				unmappedVolume.Size.ValueInt32() != planVolume.Size.ValueInt32() {
-				continue
-			}
-
-			if !(planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
-				unmappedVolume.Type.ValueString() != planVolume.Type.ValueString() {
-				continue
-			} else if (planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
-				*unmappedVolume.Type.ValueStringPointer() != defaultVolumeTypeName {
-				continue
-			}
-
-			if !(planVolume.DeleteOnTermination.IsNull() || planVolume.DeleteOnTermination.IsUnknown()) &&
-				unmappedVolume.DeleteOnTermination.ValueBool() != planVolume.DeleteOnTermination.ValueBool() {
-				continue
-			} else if (planVolume.DeleteOnTermination.IsNull() || planVolume.DeleteOnTermination.IsUnknown()) &&
-				unmappedVolume.DeleteOnTermination.ValueBool() != false {
-				continue
-			}
-
-			if !(planVolume.MaxIops.IsNull() || planVolume.MaxIops.IsUnknown()) &&
-				unmappedVolume.MaxIops.ValueInt32() != planVolume.MaxIops.ValueInt32() {
-				continue
-			}
-
-			if !(planVolume.MaxThroughput.IsNull() || planVolume.MaxThroughput.IsUnknown()) &&
-				unmappedVolume.MaxThroughput.ValueInt32() != planVolume.MaxThroughput.ValueInt32() {
-				continue
-			}
-			bestKey = key
-			break
-		}
+		bestKey := r.findMatchingVolumeKey(unmappedVolume, extraVolumesMap, mappedVolumeKeys, defaultVolumeTypeName)
 
 		if bestKey != "" {
 			extraVolumesMap[bestKey] = unmappedVolume
@@ -489,22 +520,35 @@ func (r *virtualServerServerResource) MapUnmappedExtraVolumes(
 	return allMatched
 }
 
-func (r *virtualServerServerResource) ResolveServerVolumes(
-	ctx context.Context,
-	serverId string,
+func (r *virtualServerServerResource) isBootVolumeMatched(
+	bootVolume virtualserver.ServerResourceVolume,
 	stateBootVolume virtualserver.ServerResourceVolume,
-	stateExtraVolumes types.Map) (virtualserver.ServerResourceVolume, types.Map, bool, error) {
-	getServerVolumes, err := r.client.GetServerVolumeList(ctx, serverId)
-	if err != nil {
-		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
+) bool {
+	if bootVolume.Id.IsNull() || bootVolume.Id.IsUnknown() {
+		return false
 	}
 
+	if !stateBootVolume.MaxIops.IsNull() && !stateBootVolume.MaxIops.IsUnknown() &&
+		bootVolume.MaxIops.ValueInt32() != stateBootVolume.MaxIops.ValueInt32() {
+		return false
+	}
+	if !stateBootVolume.MaxThroughput.IsNull() && !stateBootVolume.MaxThroughput.IsUnknown() &&
+		bootVolume.MaxThroughput.ValueInt32() != stateBootVolume.MaxThroughput.ValueInt32() {
+		return false
+	}
+
+	return true
+}
+
+func (r *virtualServerServerResource) buildVolumeSets(getServerVolumes *scpvirtualserver.ServerVolumesResponse) (
+	map[string]bool, map[string]bool, map[string]bool) {
 	volumeBootVolumeSet := make(map[string]bool)
 	volumeIdsSet := make(map[string]bool)
 	volumeDeleteOnTerminationSet := make(map[string]bool)
+
 	for _, volume := range getServerVolumes.Volumes {
 		volumeIdsSet[volume.VolumeId] = true
-		if volume.Device == "/dev/vda" {
+		if isOsDisk(volume.Device) {
 			volumeBootVolumeSet[volume.VolumeId] = true
 		} else {
 			volumeBootVolumeSet[volume.VolumeId] = false
@@ -512,13 +556,18 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 		volumeDeleteOnTerminationSet[volume.Id] = volume.DeleteOnTermination
 	}
 
-	getVolumes, err := r.client.GetVolumeList()
-	if err != nil {
-		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
-	}
+	return volumeBootVolumeSet, volumeIdsSet, volumeDeleteOnTerminationSet
+}
 
+func (r *virtualServerServerResource) categorizeVolumes(
+	getVolumes *scpvirtualserver.VolumeListResponseV1Dot2,
+	volumeIdsSet map[string]bool,
+	volumeDeleteOnTerminationSet map[string]bool,
+	volumeBootVolumeSet map[string]bool,
+) (virtualserver.ServerResourceVolume, []virtualserver.ServerResourceVolume) {
 	var bootVolume virtualserver.ServerResourceVolume
 	var extraVolumes []virtualserver.ServerResourceVolume
+
 	for _, volume := range getVolumes.Volumes {
 		if volumeIdsSet[volume.Id] {
 			volumeObject := virtualserver.ServerResourceVolume{
@@ -537,20 +586,14 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 		}
 	}
 
-	bootVolumeMatched := false
-	if !bootVolume.Id.IsNull() && !bootVolume.Id.IsUnknown() {
-		bootVolumeMatched = true
+	return bootVolume, extraVolumes
+}
 
-		if !stateBootVolume.MaxIops.IsNull() && !stateBootVolume.MaxIops.IsUnknown() &&
-			bootVolume.MaxIops.ValueInt32() != stateBootVolume.MaxIops.ValueInt32() {
-			bootVolumeMatched = false
-		}
-		if !stateBootVolume.MaxThroughput.IsNull() && !stateBootVolume.MaxThroughput.IsUnknown() &&
-			bootVolume.MaxThroughput.ValueInt32() != stateBootVolume.MaxThroughput.ValueInt32() {
-			bootVolumeMatched = false
-		}
-	}
-
+func (r *virtualServerServerResource) processExtraVolumes(
+	ctx context.Context,
+	extraVolumes []virtualserver.ServerResourceVolume,
+	stateExtraVolumes types.Map,
+) (map[string]virtualserver.ServerResourceVolume, []virtualserver.ServerResourceVolume, map[string]bool) {
 	var extraVolumesMap map[string]virtualserver.ServerResourceVolume
 	stateExtraVolumes.ElementsAs(ctx, &extraVolumesMap, false)
 
@@ -575,6 +618,32 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 	for _, key := range extraVolumeIdKeyMap {
 		mappedVolumeKeys[key] = true
 	}
+
+	return extraVolumesMap, unmappedExtraVolumes, mappedVolumeKeys
+}
+
+func (r *virtualServerServerResource) ResolveServerVolumes(
+	ctx context.Context,
+	serverId string,
+	stateBootVolume virtualserver.ServerResourceVolume,
+	stateExtraVolumes types.Map) (virtualserver.ServerResourceVolume, types.Map, bool, error) {
+	getServerVolumes, err := r.client.GetServerVolumeList(ctx, serverId)
+	if err != nil {
+		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
+	}
+
+	volumeBootVolumeSet, volumeIdsSet, volumeDeleteOnTerminationSet := r.buildVolumeSets(getServerVolumes)
+
+	getVolumes, err := r.client.GetVolumeList()
+	if err != nil {
+		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
+	}
+
+	bootVolume, extraVolumes := r.categorizeVolumes(getVolumes, volumeIdsSet, volumeDeleteOnTerminationSet, volumeBootVolumeSet)
+
+	bootVolumeMatched := r.isBootVolumeMatched(bootVolume, stateBootVolume)
+
+	extraVolumesMap, unmappedExtraVolumes, mappedVolumeKeys := r.processExtraVolumes(ctx, extraVolumes, stateExtraVolumes)
 
 	defaultVolumeType, err := r.client.GetDefaultVolumeType(ctx)
 	if err != nil {
@@ -609,9 +678,58 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 	return bootVolume, extraVolumeObject, allMatched, nil
 }
 
-func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponse, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
-	// Network
+func (r *virtualServerServerResource) mapNetworksBySubnetAndFixedIp(
+	unmappedNetworks []virtualserver.ServerResourceNetwork,
+	networkMap map[string]virtualserver.ServerResourceNetwork,
+	mappedNetworkKeys map[string]bool,
+) {
+	for _, unmappedNetwork := range unmappedNetworks {
+		for key, planNetwork := range networkMap {
+			if mappedNetworkKeys[key] {
+				continue
+			}
+
+			if !(planNetwork.SubnetId.IsNull() || planNetwork.SubnetId.IsUnknown()) &&
+				!(planNetwork.FixedIp.IsNull() || planNetwork.FixedIp.IsUnknown()) {
+				if unmappedNetwork.SubnetId.ValueString() == planNetwork.SubnetId.ValueString() &&
+					unmappedNetwork.FixedIp.ValueString() == planNetwork.FixedIp.ValueString() {
+					networkMap[key] = unmappedNetwork
+					mappedNetworkKeys[key] = true
+					break
+				}
+			}
+		}
+	}
+}
+
+func (r *virtualServerServerResource) mapNetworksBySubnetOnly(
+	unmappedNetworks []virtualserver.ServerResourceNetwork,
+	networkMap map[string]virtualserver.ServerResourceNetwork,
+	mappedNetworkKeys map[string]bool,
+) {
+	for _, unmappedNetwork := range unmappedNetworks {
+		for key, planNetwork := range networkMap {
+			if mappedNetworkKeys[key] {
+				continue
+			}
+
+			if !(planNetwork.SubnetId.IsNull() || planNetwork.SubnetId.IsUnknown()) &&
+				(planNetwork.FixedIp.IsNull() || planNetwork.FixedIp.IsUnknown()) {
+				if unmappedNetwork.SubnetId.ValueString() == planNetwork.SubnetId.ValueString() {
+					networkMap[key] = unmappedNetwork
+					mappedNetworkKeys[key] = true
+					break
+				}
+			}
+		}
+	}
+}
+
+func (r *virtualServerServerResource) processNetworks(
+	ctx context.Context,
+	resp *scpvirtualserver.ServerShowResponse,
+	state virtualserver.ServerResource,
+) (types.Map, error) {
 	var networkMap map[string]virtualserver.ServerResourceNetwork
 	state.Networks.ElementsAs(ctx, &networkMap, false)
 
@@ -624,7 +742,7 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 
 	getInterfaces, err := r.client.GetServerInterfaceList(ctx, resp.Id)
 	if err != nil {
-		return virtualserver.ServerResource{}, err
+		return types.Map{}, err
 	}
 
 	var unmappedNetworks []virtualserver.ServerResourceNetwork
@@ -634,9 +752,6 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 		if natExist {
 			publicIpId = staticNat.PublicipId.Get()
 			staticNatId = &staticNat.Id
-		} else {
-			publicIpId = nil
-			staticNatId = nil
 		}
 
 		network := virtualserver.ServerResourceNetwork{
@@ -660,54 +775,8 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 		mappedNetworkKeys[key] = true
 	}
 
-	// Step 1. subnet_id + fixed_ip mapping
-	for _, unmappedNetwork := range unmappedNetworks {
-		bestKey := ""
-
-		for key, planNetwork := range networkMap {
-			if mappedNetworkKeys[key] {
-				continue
-			}
-
-			if !(planNetwork.SubnetId.IsNull() || planNetwork.SubnetId.IsUnknown()) &&
-				!(planNetwork.FixedIp.IsNull() || planNetwork.FixedIp.IsUnknown()) {
-				if unmappedNetwork.SubnetId.ValueString() == planNetwork.SubnetId.ValueString() &&
-					unmappedNetwork.FixedIp.ValueString() == planNetwork.FixedIp.ValueString() {
-					bestKey = key
-					break
-				}
-			}
-		}
-
-		if bestKey != "" {
-			networkMap[bestKey] = unmappedNetwork
-			mappedNetworkKeys[bestKey] = true
-		}
-	}
-
-	// Step2. only subnet_id mapping
-	for _, unmappedNetwork := range unmappedNetworks {
-		bestKey := ""
-
-		for key, planNetwork := range networkMap {
-			if mappedNetworkKeys[key] {
-				continue
-			}
-
-			if !(planNetwork.SubnetId.IsNull() || planNetwork.SubnetId.IsUnknown()) &&
-				(planNetwork.FixedIp.IsNull() || planNetwork.FixedIp.IsUnknown()) {
-				if unmappedNetwork.SubnetId.ValueString() == planNetwork.SubnetId.ValueString() {
-					bestKey = key
-					break
-				}
-			}
-		}
-
-		if bestKey != "" {
-			networkMap[bestKey] = unmappedNetwork
-			mappedNetworkKeys[bestKey] = true
-		}
-	}
+	r.mapNetworksBySubnetAndFixedIp(unmappedNetworks, networkMap, mappedNetworkKeys)
+	r.mapNetworksBySubnetOnly(unmappedNetworks, networkMap, mappedNetworkKeys)
 
 	networkElemType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -721,31 +790,26 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 	}
 
 	networks, _ := types.MapValueFrom(ctx, networkElemType, networkMap)
+	return networks, nil
+}
 
-	// Metadata
+func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.ServerShowResponse) types.Map {
 	metadataMap := make(map[string]attr.Value)
-
 	for k, v := range resp.Metadata {
 		metadataMap[k] = types.StringValue(v.(string))
 	}
 	metadata, _ := types.MapValue(types.StringType, metadataMap)
+	return metadata
+}
 
-	//PlannedComputeOsType
-	plannedComputeOsTypeJson, _ := resp.PlannedComputeOsType.MarshalJSON()
-	plannedComputeOsType := strings.Trim(string(plannedComputeOsTypeJson), "\"")
-
-	// ProductCategory
-	productCategoryJson, _ := resp.ProductCategory.MarshalJSON()
-	productCategory := strings.Trim(string(productCategoryJson), "\"")
-
-	// ProductOffering
-	productOfferingJson, _ := resp.ProductOffering.MarshalJSON()
-	productOffering := strings.Trim(string(productOfferingJson), "\"")
-
-	// SecurityGroups
+func (r *virtualServerServerResource) processSecurityGroups(
+	ctx context.Context,
+	resp *scpvirtualserver.ServerShowResponse,
+	state virtualserver.ServerResource,
+) ([]attr.Value, error) {
 	getSecurityGroups, err := r.client.GetServerSecurityGroupList(ctx, resp.Id)
 	if err != nil {
-		return virtualserver.ServerResource{}, err
+		return nil, err
 	}
 
 	securityGroups := make([]attr.Value, len(getSecurityGroups.SecurityGroups))
@@ -758,7 +822,32 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 		}
 	}
 
-	// Volume
+	return securityGroups, nil
+}
+
+func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
+	resp *scpvirtualserver.ServerShowResponse, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
+	networks, err := r.processNetworks(ctx, resp, state)
+	if err != nil {
+		return virtualserver.ServerResource{}, err
+	}
+
+	metadata := r.processMetadata(resp)
+
+	plannedComputeOsTypeJson, _ := resp.PlannedComputeOsType.MarshalJSON()
+	plannedComputeOsType := strings.Trim(string(plannedComputeOsTypeJson), "\"")
+
+	productCategoryJson, _ := resp.ProductCategory.MarshalJSON()
+	productCategory := strings.Trim(string(productCategoryJson), "\"")
+
+	productOfferingJson, _ := resp.ProductOffering.MarshalJSON()
+	productOffering := strings.Trim(string(productOfferingJson), "\"")
+
+	securityGroups, err := r.processSecurityGroups(ctx, resp, state)
+	if err != nil {
+		return virtualserver.ServerResource{}, err
+	}
+
 	bootVolume, extraVolumeObject, _, err := r.ResolveServerVolumes(ctx, resp.Id, state.BootVolume, state.ExtraVolumes)
 
 	return virtualserver.ServerResource{
@@ -903,6 +992,105 @@ func (r *virtualServerServerResource) handlerUpdateServerType(ctx context.Contex
 	return nil
 }
 
+func (r *virtualServerServerResource) normalizeNetworkFields(
+	planNetwork virtualserver.ServerResourceNetwork,
+	stateNetwork virtualserver.ServerResourceNetwork,
+) virtualserver.ServerResourceNetwork {
+	if planNetwork.PublicIpId.IsUnknown() {
+		planNetwork.PublicIpId = stateNetwork.PublicIpId
+	}
+	if planNetwork.SubnetId.IsUnknown() {
+		planNetwork.SubnetId = stateNetwork.SubnetId
+	}
+	if planNetwork.FixedIp.IsUnknown() {
+		planNetwork.FixedIp = stateNetwork.FixedIp
+	}
+	if planNetwork.PortId.IsUnknown() {
+		planNetwork.PortId = stateNetwork.PortId
+	}
+	if planNetwork.IsDefault.IsUnknown() {
+		planNetwork.IsDefault = stateNetwork.IsDefault
+	}
+	return planNetwork
+}
+
+func (r *virtualServerServerResource) updateNetworkPublicIp(
+	ctx context.Context,
+	serverId string,
+	planNetwork virtualserver.ServerResourceNetwork,
+	stateNetwork virtualserver.ServerResourceNetwork,
+) error {
+	if planNetwork.PublicIpId.IsNull() {
+		err := r.client.DeleteServerInterfaceNat(ctx, serverId, planNetwork.PortId.ValueString(), stateNetwork.StaticNatId.ValueString())
+		if err != nil {
+			return err
+		}
+		return r.AsyncPollingNetworkInterface(ctx, serverId, planNetwork.PortId.ValueString(), "NatDelete", 1000, 3*time.Second)
+	} else {
+		_, err := r.client.CreateServerInterfaceNat(ctx, serverId, planNetwork.PortId.ValueString(), planNetwork.PublicIpId.ValueString())
+		if err != nil {
+			return err
+		}
+		return r.AsyncPollingNetworkInterface(ctx, serverId, planNetwork.PortId.ValueString(), "NatCreate", 1000, 3*time.Second)
+	}
+}
+
+func (r *virtualServerServerResource) updateExistingNetwork(
+	ctx context.Context,
+	serverId string,
+	planNetwork virtualserver.ServerResourceNetwork,
+	stateNetwork virtualserver.ServerResourceNetwork,
+) error {
+	normalizedPlanNetwork := r.normalizeNetworkFields(planNetwork, stateNetwork)
+
+	networksFields := []string{"PortId", "SubnetId", "FixedIp", "PublicIpId", "IsDefault"}
+	immutableNetworksFiled := []string{"PortId", "SubnetId", "FixedIp", "IsDefault"}
+
+	changesFields, err := virtualserverutil.GetChangedFields(normalizedPlanNetwork, stateNetwork, networksFields)
+	if err != nil {
+		return err
+	}
+
+	if len(changesFields) == 0 {
+		return nil
+	}
+
+	if virtualserverutil.IsOverlapFields(changesFields, immutableNetworksFiled) {
+		detailed := fmt.Sprintf("Plan: %v,\nState: %v", normalizedPlanNetwork, stateNetwork)
+		return fmt.Errorf("Immutable Networks Field changes: %s\n%s", strings.Join(immutableNetworksFiled, ", "), detailed)
+	}
+
+	if virtualserverutil.IsOverlapFields(changesFields, []string{"PublicIpId"}) {
+		return r.updateNetworkPublicIp(ctx, serverId, normalizedPlanNetwork, stateNetwork)
+	}
+
+	return nil
+}
+
+func (r *virtualServerServerResource) createNewNetwork(
+	ctx context.Context,
+	serverId string,
+	planNetwork virtualserver.ServerResourceNetwork,
+) error {
+	resp, err := r.client.CreateServerInterface(ctx, serverId, planNetwork)
+	if err != nil {
+		return err
+	}
+	return r.AsyncPollingNetworkInterface(ctx, serverId, resp.PortId, "InterfaceCreate", 1000, 3*time.Second)
+}
+
+func (r *virtualServerServerResource) deleteNetwork(
+	ctx context.Context,
+	serverId string,
+	stateNetwork virtualserver.ServerResourceNetwork,
+) error {
+	err := r.client.DeleteServerInterface(ctx, serverId, stateNetwork.PortId.ValueString())
+	if err != nil {
+		return err
+	}
+	return r.AsyncPollingNetworkInterface(ctx, serverId, stateNetwork.PortId.ValueString(), "InterfaceDelete", 1000, 3*time.Second)
+}
+
 func (r *virtualServerServerResource) handlerUpdateServerNetwork(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan virtualserver.ServerResource
 	var state virtualserver.ServerResource
@@ -913,96 +1101,169 @@ func (r *virtualServerServerResource) handlerUpdateServerNetwork(ctx context.Con
 	plan.Networks.ElementsAs(ctx, &planNetworks, false)
 	state.Networks.ElementsAs(ctx, &stateNetworks, false)
 
-	// 1. Update (plan & state both key)
+	serverId := plan.Id.ValueString()
+
 	for key, planNetwork := range planNetworks {
 		if stateNetwork, exists := stateNetworks[key]; exists {
-			if planNetwork.PublicIpId.IsUnknown() {
-				planNetwork.PublicIpId = stateNetwork.PublicIpId
-			}
-			if planNetwork.SubnetId.IsUnknown() {
-				planNetwork.SubnetId = stateNetwork.SubnetId
-			}
-			if planNetwork.FixedIp.IsUnknown() {
-				planNetwork.FixedIp = stateNetwork.FixedIp
-			}
-			if planNetwork.PortId.IsUnknown() {
-				planNetwork.PortId = stateNetwork.PortId
-			}
-			if planNetwork.IsDefault.IsUnknown() {
-				planNetwork.IsDefault = stateNetwork.IsDefault
-			}
-
-			networksFields := []string{"PortId", "SubnetId", "FixedIp", "PublicIpId", "IsDefault"}
-			immutableNetworksFiled := []string{"PortId", "SubnetId", "FixedIp", "IsDefault"}
-
-			changesFields, err := virtualserverutil.GetChangedFields(planNetwork, stateNetwork, networksFields)
-			if err != nil {
+			if err := r.updateExistingNetwork(ctx, serverId, planNetwork, stateNetwork); err != nil {
 				return err
-			}
-
-			if len(changesFields) > 0 {
-				if virtualserverutil.IsOverlapFields(changesFields, immutableNetworksFiled) {
-					detailed := fmt.Sprintf("Plan: %v,\nState: %v", planNetwork, stateNetwork)
-					return fmt.Errorf("Immutable Networks Field changes: %s\n%s", strings.Join(immutableNetworksFiled, ", "), detailed)
-				}
-
-				// Public IP ID
-				if virtualserverutil.IsOverlapFields(changesFields, []string{"PublicIpId"}) {
-					if planNetwork.PublicIpId.IsNull() {
-						// Delete NAT
-						err := r.client.DeleteServerInterfaceNat(ctx, plan.Id.ValueString(), planNetwork.PortId.ValueString(), stateNetwork.StaticNatId.ValueString())
-						if err != nil {
-							return err
-						}
-						err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), planNetwork.PortId.ValueString(), "NatDelete", 1000, 3*time.Second)
-						if err != nil {
-							return err
-						}
-
-					} else {
-						// Create NAT
-						_, err := r.client.CreateServerInterfaceNat(ctx, plan.Id.ValueString(), planNetwork.PortId.ValueString(), planNetwork.PublicIpId.ValueString())
-						if err != nil {
-							return err
-						}
-						err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), planNetwork.PortId.ValueString(), "NatCreate", 1000, 3*time.Second)
-						if err != nil {
-							return err
-						}
-					}
-				}
 			}
 		}
 	}
 
-	// 2.Create (only plan key)
 	for key, planNetwork := range planNetworks {
 		if _, exists := stateNetworks[key]; !exists {
-			resp, err := r.client.CreateServerInterface(ctx, plan.Id.ValueString(), planNetwork)
-			if err != nil {
-				return err
-			}
-			err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), resp.PortId, "InterfaceCreate", 1000, 3*time.Second)
-			if err != nil {
+			if err := r.createNewNetwork(ctx, serverId, planNetwork); err != nil {
 				return err
 			}
 		}
 	}
 
-	// 3.Delete (only state key)
 	for key, stateNetwork := range stateNetworks {
 		if _, exists := planNetworks[key]; !exists {
-			err := r.client.DeleteServerInterface(ctx, plan.Id.ValueString(), stateNetwork.PortId.ValueString())
-			if err != nil {
-				return err
-			}
-			err = r.AsyncPollingNetworkInterface(ctx, plan.Id.ValueString(), stateNetwork.PortId.ValueString(), "InterfaceDelete", 1000, 3*time.Second)
-			if err != nil {
+			if err := r.deleteNetwork(ctx, serverId, stateNetwork); err != nil {
 				return err
 			}
 		}
 	}
+
 	return nil
+}
+
+func (r *virtualServerServerResource) updateVolumeSize(
+	ctx context.Context,
+	serverId string,
+	planVolume virtualserver.ServerResourceVolume,
+	stateVolume virtualserver.ServerResourceVolume,
+) error {
+	if planVolume.Size.ValueInt32() <= stateVolume.Size.ValueInt32() {
+		return fmt.Errorf("Volume size must be expanded. \nPlan : %v, State: %v",
+			planVolume.Size.ValueInt32(), stateVolume.Size.ValueInt32())
+	}
+	if planVolume.Size.ValueInt32()%8 != 0 {
+		return fmt.Errorf("volume size must be a multiple of 8")
+	}
+
+	_, err := r.client.ExtendVolume(ctx, stateVolume.Id.ValueString(), virtualserver.VolumeResource{
+		Size: planVolume.Size,
+	})
+	return err
+}
+
+func (r *virtualServerServerResource) updateVolumeQos(
+	ctx context.Context,
+	planVolume virtualserver.ServerResourceVolume,
+	stateVolume virtualserver.ServerResourceVolume,
+) error {
+	volumeResource := virtualserver.VolumeResource{
+		MaxIops:       planVolume.MaxIops,
+		MaxThroughput: planVolume.MaxThroughput,
+	}
+	err := r.client.UpdateVolumeQos(ctx, stateVolume.Id.ValueString(), volumeResource)
+	if err != nil {
+		return err
+	}
+
+	if !((planVolume.MaxThroughput.IsNull() || planVolume.MaxThroughput.IsUnknown()) && (planVolume.MaxIops.IsNull() || planVolume.MaxIops.IsUnknown())) {
+		return r.AsyncPollingQosUpdate(ctx, stateVolume.Id.ValueString(), planVolume.MaxIops.ValueInt32(), planVolume.MaxThroughput.ValueInt32())
+	}
+
+	return nil
+}
+
+func (r *virtualServerServerResource) updateSingleVolume(
+	ctx context.Context,
+	serverId string,
+	planVolume virtualserver.ServerResourceVolume,
+	stateVolume virtualserver.ServerResourceVolume,
+) error {
+	if !planVolume.Type.Equal(stateVolume.Type) {
+		return fmt.Errorf("immutable Volume Field changes: Type")
+	}
+
+	if !planVolume.Size.Equal(stateVolume.Size) {
+		if err := r.updateVolumeSize(ctx, serverId, planVolume, stateVolume); err != nil {
+			return err
+		}
+	}
+
+	if !planVolume.DeleteOnTermination.Equal(stateVolume.DeleteOnTermination) {
+		if err := r.client.UpdateServerVolume(ctx, serverId, stateVolume.Id.ValueString(), planVolume.DeleteOnTermination.ValueBool()); err != nil {
+			return err
+		}
+	}
+
+	if !planVolume.MaxThroughput.Equal(stateVolume.MaxThroughput) || !planVolume.MaxIops.Equal(stateVolume.MaxIops) {
+		if err := r.updateVolumeQos(ctx, planVolume, stateVolume); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *virtualServerServerResource) createExtraVolume(
+	ctx context.Context,
+	serverId string,
+	plan virtualserver.ServerResource,
+	planExtraVolume virtualserver.ServerResourceVolume,
+	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error),
+) error {
+	volumeResource := virtualserver.VolumeResource{
+		Name:          types.StringValue(serverId + "-blank-vol"),
+		Size:          planExtraVolume.Size,
+		VolumeType:    planExtraVolume.Type,
+		Tags:          plan.Tags,
+		MaxIops:       planExtraVolume.MaxIops,
+		MaxThroughput: planExtraVolume.MaxThroughput,
+	}
+	resp, err := r.client.CreateVolume(ctx, volumeResource)
+	if err != nil {
+		return err
+	}
+
+	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, resp.Id, 100, 3*time.Second,
+		"State", "available", "error", getVolumeFunc)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.client.AttachVolume(ctx, resp.Id, serverId)
+	if err != nil {
+		return err
+	}
+
+	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, resp.Id, 100, 3*time.Second,
+		"State", "in-use", "error", getVolumeFunc)
+	if err != nil {
+		return err
+	}
+
+	if planExtraVolume.DeleteOnTermination.ValueBool() {
+		return r.client.UpdateServerVolume(ctx, serverId, resp.Id, planExtraVolume.DeleteOnTermination.ValueBool())
+	}
+
+	return nil
+}
+
+func (r *virtualServerServerResource) deleteExtraVolume(
+	ctx context.Context,
+	stateVolume virtualserver.ServerResourceVolume,
+	serverId string,
+	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error),
+) error {
+	err := r.client.DetachVolume(ctx, stateVolume.Id.ValueString(), serverId)
+	if err != nil {
+		return err
+	}
+
+	_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, stateVolume.Id.ValueString(), 100, 3*time.Second,
+		"State", "available", "error", getVolumeFunc)
+	if err != nil {
+		return err
+	}
+
+	return r.client.DeleteVolume(ctx, stateVolume.Id.ValueString())
 }
 
 func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
@@ -1011,74 +1272,22 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 	req.Plan.Get(ctx, &plan)
 	req.State.Get(ctx, &state)
 
-	updateVolumeFunc := func(planVolume virtualserver.ServerResourceVolume, stateVolume virtualserver.ServerResourceVolume) error {
-		if !planVolume.Type.Equal(stateVolume.Type) {
-			return fmt.Errorf("immutable Volume Field changes: Type")
-		}
+	serverId := plan.Id.ValueString()
 
-		if !planVolume.Size.Equal(stateVolume.Size) {
-			if planVolume.Size.ValueInt32() <= stateVolume.Size.ValueInt32() {
-				return fmt.Errorf("Volume size must be expanded. \nPlan : %v, State: %v",
-					planVolume.Size.ValueInt32(), stateVolume.Size.ValueInt32())
-			}
-			if planVolume.Size.ValueInt32()%8 != 0 {
-				return fmt.Errorf("volume size must be a multiple of 8")
-			}
-
-			_, err := r.client.ExtendVolume(ctx, stateVolume.Id.ValueString(), virtualserver.VolumeResource{
-				Size: planVolume.Size,
-			})
-			if err != nil {
-				return err
-			}
-		}
-
-		if !planVolume.DeleteOnTermination.Equal(stateVolume.DeleteOnTermination) {
-			err := r.client.UpdateServerVolume(ctx, plan.Id.ValueString(), stateVolume.Id.ValueString(), planVolume.DeleteOnTermination.ValueBool())
-			if err != nil {
-				return err
-			}
-		}
-
-		if !planVolume.MaxThroughput.Equal(stateVolume.MaxThroughput) || !planVolume.MaxIops.Equal(stateVolume.MaxIops) {
-			volumeResource := virtualserver.VolumeResource{
-				MaxIops:       planVolume.MaxIops,
-				MaxThroughput: planVolume.MaxThroughput,
-			}
-			err := r.client.UpdateVolumeQos(ctx, stateVolume.Id.ValueString(), volumeResource)
-			if err != nil {
-				return err
-			}
-			if !((planVolume.MaxThroughput.IsNull() || planVolume.MaxThroughput.IsUnknown()) && (planVolume.MaxIops.IsNull() || planVolume.MaxIops.IsUnknown())) {
-				err = r.AsyncPollingQosUpdate(ctx, stateVolume.Id.ValueString(), planVolume.MaxIops.ValueInt32(), planVolume.MaxThroughput.ValueInt32())
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		return nil
-	}
-
-	// Boot Volume Update
 	if plan.BootVolume != state.BootVolume {
-		err := updateVolumeFunc(plan.BootVolume, state.BootVolume)
-		if err != nil {
+		if err := r.updateSingleVolume(ctx, serverId, plan.BootVolume, state.BootVolume); err != nil {
 			return err
 		}
 	}
 
 	if !plan.ExtraVolumes.Equal(state.ExtraVolumes) {
-		// Extra Volume
 		var planExtraVolumes, stateExtraVolumes map[string]virtualserver.ServerResourceVolume
 		plan.ExtraVolumes.ElementsAs(ctx, &planExtraVolumes, false)
 		state.ExtraVolumes.ElementsAs(ctx, &stateExtraVolumes, false)
 
-		// Update
 		for key, volume := range planExtraVolumes {
 			if stateExtraVolume, exists := stateExtraVolumes[key]; exists {
-				err := updateVolumeFunc(volume, stateExtraVolume)
-				if err != nil {
+				if err := r.updateSingleVolume(ctx, serverId, volume, stateExtraVolume); err != nil {
 					return err
 				}
 			}
@@ -1088,64 +1297,17 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 			return r.client.GetVolume(ctx, id)
 		}
 
-		// Create
 		for key, planExtraVolume := range planExtraVolumes {
 			if _, exists := stateExtraVolumes[key]; !exists {
-				volumeResource := virtualserver.VolumeResource{
-					Name:          types.StringValue(plan.Id.ValueString() + "-blank-vol"),
-					Size:          planExtraVolume.Size,
-					VolumeType:    planExtraVolume.Type,
-					Tags:          plan.Tags,
-					MaxIops:       planExtraVolume.MaxIops,
-					MaxThroughput: planExtraVolume.MaxThroughput,
-				}
-				resp, err := r.client.CreateVolume(ctx, volumeResource)
-				if err != nil {
+				if err := r.createExtraVolume(ctx, serverId, plan, planExtraVolume, getVolumeFunc); err != nil {
 					return err
-				}
-
-				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, resp.Id, 100, 3*time.Second,
-					"State", "available", "error", getVolumeFunc)
-				if err != nil {
-					return err
-				}
-
-				_, err = r.client.AttachVolume(ctx, resp.Id, plan.Id.ValueString())
-				if err != nil {
-					return err
-				}
-
-				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, resp.Id, 100, 3*time.Second,
-					"State", "in-use", "error", getVolumeFunc)
-				if err != nil {
-					return err
-				}
-
-				if planExtraVolume.DeleteOnTermination.ValueBool() {
-					err := r.client.UpdateServerVolume(ctx, plan.Id.ValueString(), resp.Id, planExtraVolume.DeleteOnTermination.ValueBool())
-					if err != nil {
-						return err
-					}
 				}
 			}
 		}
 
-		// Delete
 		for key, stateVolume := range stateExtraVolumes {
 			if _, exists := planExtraVolumes[key]; !exists {
-				err := r.client.DetachVolume(ctx, stateVolume.Id.ValueString(), plan.Id.ValueString())
-				if err != nil {
-					return err
-				}
-
-				_, err = virtualserverutil.AsyncRequestPollingWithState(ctx, stateVolume.Id.ValueString(), 100, 3*time.Second,
-					"State", "available", "error", getVolumeFunc)
-				if err != nil {
-					return err
-				}
-
-				err = r.client.DeleteVolume(ctx, stateVolume.Id.ValueString())
-				if err != nil {
+				if err := r.deleteExtraVolume(ctx, stateVolume, serverId, getVolumeFunc); err != nil {
 					return err
 				}
 			}

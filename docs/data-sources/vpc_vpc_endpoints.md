@@ -16,23 +16,30 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_vpc_endpoints" "vpcendpoints" {
-  id = var.id
-  name = var.name
-  vpc_id = var.vpc_id
-  vpc_name = var.vpc_name
-  resource_type = var.resource_type
-  resource_key = var.resource_key
+  id                  = var.id
+  name                = var.name
+  vpc_id              = var.vpc_id
+  subnet_id           = var.subnet_id
+  vpc_name            = var.vpc_name
+  resource_type       = var.resource_type
+  resource_key        = var.resource_key
   endpoint_ip_address = var.endpoint_ip_address
-  state = var.state
-  limit = var.limit
-  marker = var.marker
-  sort = var.sort
+  state               = var.state
+  size                = var.size
+  page                = var.page
+  sort                = var.sort
 }
 
 
 
 output "vpcendpoints" {
-  value = data.samsungcloudplatformv2_vpc_vpc_endpoints.vpcendpoints
+  value = {
+    count : data.samsungcloudplatformv2_vpc_vpc_endpoints.vpcendpoints.total_count,
+    page : data.samsungcloudplatformv2_vpc_vpc_endpoints.vpcendpoints.page,
+    size : data.samsungcloudplatformv2_vpc_vpc_endpoints.vpcendpoints.size,
+    sort : data.samsungcloudplatformv2_vpc_vpc_endpoints.vpcendpoints.sort,
+    vpc_endpoints : data.samsungcloudplatformv2_vpc_vpc_endpoints.vpcendpoints.vpc_endpoints
+  }
 }
 
 
@@ -47,6 +54,11 @@ variable "name" {
 }
 
 variable "vpc_id" {
+  type    = string
+  default = ""
+}
+
+variable "subnet_id" {
   type    = string
   default = ""
 }
@@ -76,14 +88,14 @@ variable "state" {
   default = ""
 }
 
-variable "limit" {
+variable "size" {
   type    = number
   default = 0
 }
 
-variable "marker" {
-  type    = string
-  default = ""
+variable "page" {
+  type    = number
+  default = 0
 }
 
 variable "sort" {
@@ -101,25 +113,25 @@ variable "sort" {
   - example : 1.1.1.1
 - `id` (String) VPC Endpoint ID 
   - example : 7df8abb4912e4709b1cb237daccca7a8
-- `limit` (Number) Limit 
-  - example : 10 
-  - maximum : 10000 
-  - minimum : 1
-- `marker` (String) Marker 
-  - example : 607e0938521643b5b4b266f343fae693 
-  - maxLength : 64 
-  - minLength : 1
 - `name` (String) VPC Endpoint Name 
   - example : vpcName
+- `page` (Number) Page 
+  - example : 0 
+  - minimum : 0
 - `resource_key` (String) VPC Endpoint Resource Key 
   - example(case: SCR/DNS) : 07c5364702384471b650147321b52173 
   - example(case: FS/OBS) : 1.1.1.1
 - `resource_type` (String) VPC Endpoint Resource Type 
   - example : FS | OBS | SCR | DNS
+- `size` (Number) Size 
+  - example : 20 
+  - minimum : 0
 - `sort` (String) Sort 
   - example : created_at:desc
 - `state` (String) State 
   - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
+- `subnet_id` (String) Subnet ID 
+  - example : 023c57b14f11483689338d085e061492
 - `vpc_id` (String) VPC ID 
   - example : 7df8abb4912e4709b1cb237daccca7a8
 - `vpc_name` (String) VPC Name 
@@ -127,6 +139,8 @@ variable "sort" {
 
 ### Read-Only
 
+- `total_count` (Number) Count 
+  - example : 20
 - `vpc_endpoints` (Attributes List) A list of endpoints. (see [below for nested schema](#nestedatt--vpc_endpoints))
 
 <a id="nestedatt--vpc_endpoints"></a>

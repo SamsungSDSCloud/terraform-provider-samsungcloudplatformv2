@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 	"regexp"
@@ -130,38 +128,48 @@ func HasField(obj interface{}, fieldName string) bool {
 	return field.IsValid()
 }
 
-func ToMap(in any) map[string]interface{} {
+func ToMap(in any) (map[string]interface{}, error) {
+	inrec, err := json.Marshal(in)
+	if err != nil {
+		return nil, fmt.Errorf("json marshal failed: %w", err)
+	}
+
 	var inInterface map[string]interface{}
-	inrec, _ := json.Marshal(in)
-	json.Unmarshal(inrec, &inInterface)
+	if err := json.Unmarshal(inrec, &inInterface); err != nil {
+		return nil, fmt.Errorf("json unmarshal failed: %w", err)
+	}
 
 	m := map[string]interface{}{}
-
 	for field, val := range inInterface {
 		field = ToSnakeCase(field)
 
-		log.Println("KV Pair: ", field, val)
-
-		var typeOfValue []interface{} //TODO:
-
-		if reflect.TypeOf(val) == reflect.TypeOf(typeOfValue) {
-			m[field] = ConvertStructToMaps(val.([]interface{}))
-		} else {
-			m[field] = val
+		if reflect.TypeOf(val) != nil && reflect.TypeOf(val).Kind() == reflect.Slice {
+			if reflect.TypeOf(val).Elem() == reflect.TypeOf((*interface{})(nil)).Elem() {
+				converted, err := ConvertStructToMaps(val.([]interface{}))
+				if err != nil {
+					return nil, fmt.Errorf("ToMap: ConvertStructToMaps failed for field %s: %w", field, err)
+				}
+				m[field] = converted
+				continue
+			}
 		}
 
+		m[field] = val
 	}
-	return m
+
+	return m, nil
 }
 
-func ConvertStructToMaps[T any](contents []T) []map[string]interface{} {
+func ConvertStructToMaps[T any](contents []T) ([]map[string]interface{}, error) {
 	var contentMaps []map[string]interface{}
-
 	for _, content := range contents {
-		contentMaps = append(contentMaps, ToMap(content))
+		m, err := ToMap(content)
+		if err != nil {
+			return nil, fmt.Errorf("ConvertStructToMaps: %w", err)
+		}
+		contentMaps = append(contentMaps, m)
 	}
-
-	return contentMaps
+	return contentMaps, nil
 }
 
 func ToInt(value interface{}) (int, error) {
@@ -239,7 +247,7 @@ func CreateTlsConfig() (*tls.Config, error) {
 	if certPath == "" {
 		certPool, err = x509.SystemCertPool()
 	} else {
-		crt, err := ioutil.ReadFile(certPath)
+		crt, err := os.ReadFile(certPath)
 		if err != nil {
 			return nil, err
 		}

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
@@ -139,11 +138,24 @@ func (d *iamGroupMemberDataSources) Schema(_ context.Context, _ datasource.Schem
 							Description:         "생성자 성, 이름",
 							MarkdownDescription: "생성자 성, 이름",
 						},
-						"group_names": schema.ListAttribute{
-							ElementType:         types.StringType,
-							Optional:            true,
-							Description:         "Group names",
-							MarkdownDescription: "Group names",
+						"groups": schema.ListNestedAttribute{
+							Computed:            true,
+							Description:         "Groups",
+							MarkdownDescription: "Groups",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"id": schema.StringAttribute{
+										Computed:            true,
+										Description:         "Group ID",
+										MarkdownDescription: "Group ID",
+									},
+									"name": schema.StringAttribute{
+										Computed:            true,
+										Description:         "Group Name",
+										MarkdownDescription: "Group Name",
+									},
+								},
+							},
 						},
 						"user_created_at": schema.StringAttribute{
 							Computed:            true,
@@ -195,7 +207,7 @@ func (d *iamGroupMemberDataSources) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	state.GroupMembers = getGroupMembers(data.GroupMembers)
+	state.GroupMembers = getGroupMembersV1Dot4(data.GroupMembers)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

@@ -53,6 +53,7 @@ Read-Only:
 - `created_at` (String) CreatedAt
 - `created_by` (String) CreatedBy
 - `description` (String) Description
+- `firewall_connection_state` (String) firewall connection state
 - `firewall_ids` (String) FirewallIds
 - `id` (String) Id
 - `modified_at` (String) ModifiedAt

@@ -2,11 +2,12 @@ package ske
 
 import (
 	"context"
+	"io"
+
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.1"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"io"
 )
 
 type Client struct {
@@ -204,36 +205,40 @@ func (client *Client) GetKubernetesVersionList(ctx context.Context) (*scpske.Kub
 
 //------------ Nodepool -------------------//
 
-func (client *Client) GetNodePoolList(ctx context.Context, request NodepoolDataSources) (*scpske.NodepoolListResponse, error) {
+func (client *Client) GetNodePoolList(ctx context.Context, request NodepoolDataSources) (*scpske.NodepoolListResponseV1Dot4, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.ListNodepools(ctx, request.ClusterId.ValueString())
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CreateNodepool(ctx context.Context, request NodepoolResource) (*scpske.NodepoolShowResponseV1Dot1, error) {
+func (client *Client) CreateNodepool(ctx context.Context, request NodepoolResource) (*scpske.NodepoolShowResponseV1Dot4, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.CreateNodepool(ctx)
 
-	req = req.NodepoolCreateRequestV1Dot1(scpske.NodepoolCreateRequestV1Dot1{
-		Name:              request.Name.ValueString(),
-		ClusterId:         request.ClusterId.ValueString(),
-		CustomImageId:     *scpske.NewNullableString(request.CustomImageId.ValueStringPointer()),
-		DesiredNodeCount:  *scpske.NewNullableInt32(request.DesiredNodeCount.ValueInt32Pointer()),
-		ImageOs:           request.ImageOs.ValueString(),
-		ImageOsVersion:    request.ImageOsVersion.ValueString(),
-		Labels:            convertLablels(request.Labels),
-		Taints:            convertTaints(request.Taints),
-		IsAutoRecovery:    request.IsAutoRecovery.ValueBool(),
-		IsAutoScale:       request.IsAutoScale.ValueBool(),
-		KeypairName:       request.KeypairName.ValueString(),
-		KubernetesVersion: request.KubernetesVersion.ValueString(),
-		MaxNodeCount:      *scpske.NewNullableInt32(request.MaxNodeCount.ValueInt32Pointer()),
-		MinNodeCount:      *scpske.NewNullableInt32(request.MinNodeCount.ValueInt32Pointer()),
-		ServerTypeId:      request.ServerTypeId.ValueString(),
-		VolumeTypeName:    request.VolumeTypeName.ValueString(),
-		VolumeSize:        request.VolumeSize.ValueInt32(),
-		ServerGroupId:     *scpske.NewNullableString(request.ServerGroupId.ValueStringPointer()), // v1.1
-		AdvancedSettings:  convertAdvancedSettings(request.AdvancedSettings),                     // v1.1
+	req = req.NodepoolCreateRequestV1Dot4(scpske.NodepoolCreateRequestV1Dot4{
+		Name:                request.Name.ValueString(),
+		ClusterId:           request.ClusterId.ValueString(),
+		CustomImageId:       *scpske.NewNullableString(request.CustomImageId.ValueStringPointer()),
+		DesiredNodeCount:    *scpske.NewNullableInt32(request.DesiredNodeCount.ValueInt32Pointer()),
+		ImageOs:             request.ImageOs.ValueString(),
+		ImageOsVersion:      request.ImageOsVersion.ValueString(),
+		Labels:              convertLablels(request.Labels),
+		Taints:              convertTaints(request.Taints),
+		IsAutoRecovery:      request.IsAutoRecovery.ValueBool(),
+		IsAutoScale:         request.IsAutoScale.ValueBool(),
+		KeypairName:         request.KeypairName.ValueString(),
+		KubernetesVersion:   request.KubernetesVersion.ValueString(),
+		MaxNodeCount:        *scpske.NewNullableInt32(request.MaxNodeCount.ValueInt32Pointer()),
+		MinNodeCount:        *scpske.NewNullableInt32(request.MinNodeCount.ValueInt32Pointer()),
+		ServerTypeId:        request.ServerTypeId.ValueString(),
+		VolumeTypeName:      request.VolumeTypeName.ValueString(),
+		VolumeSize:          request.VolumeSize.ValueInt32(),
+		ServerGroupId:       *scpske.NewNullableString(request.ServerGroupId.ValueStringPointer()),     // v1.1
+		AdvancedSettings:    convertAdvancedSettings(request.AdvancedSettings),                         // v1.1
+		LinkedResources:     convertLinkedResources(request.LinkedResources),                           // v1.3
+		VolumeMaxIops:       *scpske.NewNullableInt32(request.VolumeMaxIops.ValueInt32Pointer()),       // v1.4
+		VolumeMaxThroughput: *scpske.NewNullableInt32(request.VolumeMaxThroughput.ValueInt32Pointer()), // v1.4
+		ScpGpuDriver:        *scpske.NewNullableString(request.ScpGpuDriver.ValueStringPointer()),      // v1.4
 	})
 
 	resp, _, err := req.Execute()
@@ -277,8 +282,14 @@ func (client *Client) UpdateNodepoolTaints(ctx context.Context, nodepoolId strin
 	return resp, err
 }
 
-func (client *Client) UpgradeNodepool(ctx context.Context, nodepoolId string) (*scpske.AsyncResponse, error) {
-	req := client.sdkClient.SkeV1NodepoolsApiAPI.SetNodepoolUpgrade(ctx, nodepoolId)
+func (client *Client) UpgradeNodepool(ctx context.Context, request NodepoolResource) (*scpske.AsyncResponse, error) {
+	reqV1Dot4 := scpske.NewNodepoolUpgradeSetRequestV1Dot4WithDefaults()
+	reqV1Dot4.SetOsVersion(request.ImageOsVersion.ValueString())
+	if request.ScpGpuDriver.ValueStringPointer() != nil {
+		reqV1Dot4.SetScpGpuDriver(request.ScpGpuDriver.ValueString())
+	}
+	req := client.sdkClient.SkeV1NodepoolsApiAPI.SetNodepoolUpgrade(ctx, request.Id.ValueString())
+	req = req.NodepoolUpgradeSetRequestV1Dot4(*reqV1Dot4)
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -290,14 +301,14 @@ func (client *Client) DeleteNodepool(ctx context.Context, nodepoolId string) (*s
 	return resp, err
 }
 
-func (client *Client) GetNodepool(ctx context.Context, nodepoolId string) (*scpske.NodepoolShowResponseV1Dot1, int, error) {
+func (client *Client) GetNodepool(ctx context.Context, nodepoolId string) (*scpske.NodepoolShowResponseV1Dot4, int, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.ShowNodepool(ctx, nodepoolId)
 
 	resp, httpResponse, err := req.Execute()
 	return resp, httpResponse.StatusCode, err
 }
 
-func (client *Client) CheckNodepoolList(ctx context.Context, clusterId string) (*scpske.NodepoolListResponse, error) {
+func (client *Client) CheckNodepoolList(ctx context.Context, clusterId string) (*scpske.NodepoolListResponseV1Dot4, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.ListNodepools(ctx, clusterId)
 
 	resp, _, err := req.Execute()
@@ -381,4 +392,32 @@ func convertTags(elements map[string]attr.Value) []scpske.Tag {
 		tags = append(tags, tagObject)
 	}
 	return tags
+}
+
+func convertLinkedResources(linkedResources []LinkedResource) []scpske.LinkedResource {
+	result := make([]scpske.LinkedResource, len(linkedResources))
+
+	for i, linkedResource := range linkedResources {
+		result[i] = scpske.LinkedResource{
+			Id:   linkedResource.Id.ValueString(),
+			Name: linkedResource.Name.ValueString(),
+			Type: linkedResource.Type.ValueString(),
+		}
+	}
+	return result
+}
+
+//------------ Nodepool Image -------------------//
+
+func (client *Client) GetNodepoolImageList(ctx context.Context, request NodepoolImageDataSources) (*scpske.NodepoolImageListResponseV1Dot4, error) {
+	req := client.sdkClient.SkeV1ImagesAPIAPI.ListImages(ctx)
+	req = req.ScpOriginalImageType(request.ScpOriginalImageType.ValueString())
+	req = req.Size(request.Size.ValueInt32())
+	req = req.Page(request.Page.ValueInt32())
+	req = req.Sort(request.Sort.ValueString())
+	req = req.KubernetesVersion(request.KubernetesVersion.ValueString())
+	req = req.Os(request.Os.ValueString())
+
+	resp, _, err := req.Execute()
+	return resp, err
 }

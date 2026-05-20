@@ -3,6 +3,10 @@ package vertica
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vertica"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
@@ -19,9 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
-	"strings"
-	"time"
 )
 
 var (
@@ -151,16 +152,10 @@ func (r *verticaClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 									common.ToSnakeCase("Id"): schema.StringAttribute{
 										Description: "Id",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
 										Description: "Name",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
 										Description: "Role type \n" +
@@ -916,7 +911,7 @@ func (r *verticaClusterResource) handlerUpdateInstanceGroups(ctx context.Context
 							return err
 						}
 
-						immutableBsFields := []string{"Id", "Name", "RoleType", "VolumeType"}
+						immutableBsFields := []string{"RoleType", "VolumeType"}
 
 						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
 							resp.Diagnostics.AddError(

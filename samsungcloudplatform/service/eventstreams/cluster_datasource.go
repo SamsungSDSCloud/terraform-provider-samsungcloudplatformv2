@@ -3,6 +3,8 @@ package eventstreams
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/eventstreams"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
@@ -10,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 var (
@@ -229,6 +230,10 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 						Description: "ModifiedBy",
 						Computed:    true,
 					},
+					common.ToSnakeCase("ServiceWatchLogCollection"): schema.BoolAttribute{
+						Description: "ServiceWatchLogCollection",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -323,26 +328,27 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 	}
 
 	var eventstreamsState = eventstreams.ClusterDetail{
-		AccountId:            types.StringValue(data.AccountId),
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngine:          types.StringValue(string(data.DbaasEngine)),
-		IsCombined:           types.BoolPointerValue(data.IsCombined.Get()),
-		Id:                   types.StringValue(data.Id),
-		InitConfigOption:     initConfigOption,
-		InstanceCount:        types.Int32PointerValue(data.InstanceCount),
-		InstanceGroups:       InstanceGroups,
-		MaintenanceOption:    MaintenanceOption,
-		Name:                 types.StringValue(data.Name),
-		NatEnabled:           types.BoolPointerValue(data.NatEnabled.Get()),
-		ProductType:          types.StringValue(string(data.ProductType)),
-		ServiceState:         types.StringValue(string(data.ServiceState)),
-		SoftwareVersion:      types.StringValue(data.SoftwareVersion),
-		SubnetId:             types.StringValue(data.SubnetId),
-		Timezone:             types.StringValue(data.Timezone),
-		CreatedAt:            types.StringValue(data.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:            types.StringValue(data.CreatedBy),
-		ModifiedAt:           types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:           types.StringValue(data.ModifiedBy),
+		AccountId:                 types.StringValue(data.AccountId),
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngine:               types.StringValue(string(data.DbaasEngine)),
+		IsCombined:                types.BoolPointerValue(data.IsCombined.Get()),
+		Id:                        types.StringValue(data.Id),
+		InitConfigOption:          initConfigOption,
+		InstanceCount:             types.Int32PointerValue(data.InstanceCount),
+		InstanceGroups:            InstanceGroups,
+		MaintenanceOption:         MaintenanceOption,
+		Name:                      types.StringValue(data.Name),
+		NatEnabled:                types.BoolPointerValue(data.NatEnabled.Get()),
+		ProductType:               types.StringValue(string(data.ProductType)),
+		ServiceState:              types.StringValue(string(data.ServiceState)),
+		SoftwareVersion:           types.StringValue(data.SoftwareVersion),
+		SubnetId:                  types.StringValue(data.SubnetId),
+		Timezone:                  types.StringValue(data.Timezone),
+		CreatedAt:                 types.StringValue(data.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:                 types.StringValue(data.CreatedBy),
+		ModifiedAt:                types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:                types.StringValue(data.ModifiedBy),
+		ServiceWatchLogCollection: types.BoolValue(data.GetServiceWatchLogCollection()),
 	}
 	eventstreamsObjectValue, _ := types.ObjectValueFrom(ctx, eventstreamsState.AttributeTypes(), eventstreamsState)
 	state.ClusterDetail = eventstreamsObjectValue

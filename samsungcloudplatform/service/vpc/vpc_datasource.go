@@ -3,8 +3,9 @@ package vpc
 import (
 	"context"
 	"fmt"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -44,95 +44,149 @@ func (d *vpcVpcDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 	resp.Schema = schema.Schema{
 		Description: "list of vpc.",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
-					"  - example : 10 \n" +
-					"  - maximum : 10000 \n" +
-					"  - minimum : 1",
-				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.Between(1, 10000),
-				},
-			},
-			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
-					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
-					"  - maxLength : 64 \n" +
-					"  - minLength : 1",
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
-				},
-			},
-			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
-					"  - example : created_at:desc",
+			common.ToSnakeCase("Cidr"): schema.StringAttribute{
+				Description: "VPC CIDR \n" +
+					"  - example : 192.167.0.0/18",
+				MarkdownDescription: "VPC CIDR \n" +
+					"  - example : 192.167.0.0/18",
 				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "VPC ID \n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				MarkdownDescription: "VPC ID \n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "VPC Name \n" +
 					"  - example : vpcName",
+				MarkdownDescription: "VPC Name \n" +
+					"  - example : vpcName",
+				Optional: true,
+			},
+			common.ToSnakeCase("page"): schema.Int32Attribute{
+				Optional:            true,
+				Description:         "page",
+				MarkdownDescription: "page",
+				Validators: []validator.Int32{
+					int32validator.Between(0, 99999),
+				},
+			},
+			common.ToSnakeCase("size"): schema.Int32Attribute{
+				Optional:            true,
+				Description:         "size",
+				MarkdownDescription: "size",
+				Validators: []validator.Int32{
+					int32validator.Between(1, 10000),
+				},
+			},
+			common.ToSnakeCase("Sort"): schema.StringAttribute{
+				Description: "Sort \n" +
+					"  - example : created_at:desc",
+				MarkdownDescription: "Sort \n" +
+					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State \n" +
-					"  - example : CREATING | ACTIVE | ERROR",
-				Optional: true,
+				Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETED\",\"ERROR\"]",
+				MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETED\",\"ERROR\"]",
+				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"CREATING",
+						"ACTIVE",
+						"DELETED",
+						"ERROR",
+					),
+				},
 			},
-			common.ToSnakeCase("Cidr"): schema.StringAttribute{
-				Description: "VPC CIDR \n" +
-					"  - example : 192.167.0.0/18",
-				Optional: true,
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Computed:            true,
+				Description:         "count\n  - example: 20",
+				MarkdownDescription: "count\n  - example: 20",
 			},
 			common.ToSnakeCase("Vpcs"): schema.ListNestedAttribute{
 				Description: "A list of vpc.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						common.ToSnakeCase("Cidr"): schema.StringAttribute{
-							Description: "Cidr",
-							Computed:    true,
+						common.ToSnakeCase("AccountId"): schema.StringAttribute{
+							Description:         "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+							MarkdownDescription: "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+							Computed:            true,
+						},
+						common.ToSnakeCase("cidr_count"): schema.Int32Attribute{
+							Computed:            true,
+							Description:         "Cidr Count\n  - example: 20",
+							MarkdownDescription: "Cidr Count\n  - example: 20",
+						},
+						common.ToSnakeCase("cidrs"): schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"cidr": schema.StringAttribute{
+										Computed:            true,
+										Description:         "VPC Cidr\n  - example: 192.167.0.0/18",
+										MarkdownDescription: "VPC Cidr\n  - example: 192.167.0.0/18",
+									},
+									"created_at": schema.StringAttribute{
+										Computed:            true,
+										Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+										MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+									},
+									"created_by": schema.StringAttribute{
+										Computed:            true,
+										Description:         "Created By\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+										MarkdownDescription: "Created By\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+									},
+									"id": schema.StringAttribute{
+										Computed:            true,
+										Description:         "Cidr ID\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+										MarkdownDescription: "Cidr ID\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+									},
+								},
+							},
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
+							Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+							MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+							Computed:            true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Computed:    true,
+							Description:         "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							MarkdownDescription: "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed:            true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Computed:    true,
+							Description:         "Description\n  - maxLength: 50\n  - example: vpcDescription",
+							MarkdownDescription: "Description\n  - maxLength: 50\n  - example: vpcDescription",
+							Computed:            true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
+							Description:         "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+							MarkdownDescription: "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+							Computed:            true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
+							Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+							MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
+							Computed:            true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Computed:    true,
+							Description:         "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							MarkdownDescription: "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed:            true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Computed:    true,
-						},
-						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Computed:    true,
+							Description:         "VPC Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: vpcName",
+							MarkdownDescription: "VPC Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: vpcName",
+							Computed:            true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Computed:    true,
+							Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETED\",\"ERROR\"]",
+							MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETED\",\"ERROR\"]",
+							Computed:            true,
 						},
 					},
 				},
@@ -159,7 +213,7 @@ func (d *vpcVpcDataSource) Configure(_ context.Context, req datasource.Configure
 		return
 	}
 
-	d.client = inst.Client.Vpc
+	d.client = inst.Client.VpcV1Dot2
 	d.clients = inst.Client
 }
 
@@ -183,23 +237,18 @@ func (d *vpcVpcDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	// Map response body to model
-	for _, vpcElement := range data.Vpcs {
-		vpcState := vpc.Vpc{
-			Cidr:        types.StringValue(vpcElement.Cidr),
-			CreatedAt:   types.StringValue(vpcElement.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:   types.StringValue(vpcElement.CreatedBy),
-			Description: types.StringPointerValue(vpcElement.Description.Get()),
-			Id:          types.StringValue(vpcElement.Id),
-			ModifiedAt:  types.StringValue(vpcElement.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:  types.StringValue(vpcElement.ModifiedBy),
-			Name:        types.StringValue(vpcElement.Name),
-			AccountId:   types.StringValue(vpcElement.AccountId),
-			State:       types.StringValue(string(vpcElement.State)),
-		}
+	vpcs := make([]vpc.VpcDSValue, len(data.Vpcs))
 
-		state.Vpcs = append(state.Vpcs, vpcState)
+	// Map response body to model
+	for pos, vpcElement := range data.Vpcs {
+
+		vpcs[pos] = vpc.ResponseToVpcDSValue(vpcElement)
+
 	}
+
+	state.Vpcs = vpcs
+
+	state.TotalCount = types.Int32Value(data.Count)
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)

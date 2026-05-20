@@ -184,8 +184,8 @@ func (d *serviceWatchAlertDataSource) Configure(_ context.Context, req datasourc
 	inst, ok := req.ProviderData.(client.Instance)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.Instance, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			ErrUnexpectedConfigure,
+			fmt.Sprintf(ErrUnexpectedConfigureFmt, req.ProviderData),
 		)
 
 		return
@@ -209,8 +209,8 @@ func (d *serviceWatchAlertDataSource) Read(ctx context.Context, req datasource.R
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Alert",
-			"Could not read Alert ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			ErrReadAlert,
+			fmt.Sprintf(ErrReadAlertFmt, state.Id.ValueString(), err.Error(), detail),
 		)
 		return
 	}
@@ -255,8 +255,8 @@ func (d *serviceWatchAlertDataSource) Read(ctx context.Context, req datasource.R
 		Operator:             types.StringValue(string(alertResp.GetOperator())),
 		ViolationCount:       types.Int32Value(alertResp.GetViolationCount()),
 		MissingDataOption:    types.StringValue(string(alertResp.GetMissingDataOption())),
-		CreatedAt:            types.StringValue(alertResp.GetCreatedAt().Format("2006-01-02 15:04:05")),
-		ModifiedAt:           types.StringValue(alertResp.GetModifiedAt().Format("2006-01-02 15:04:05")),
+		CreatedAt:            types.StringValue(alertResp.GetCreatedAt().Format(TimeFormatDisplay)),
+		ModifiedAt:           types.StringValue(alertResp.GetModifiedAt().Format(TimeFormatDisplay)),
 		CreatedBy:            types.StringValue(alertResp.GetCreatedBy()),
 		ModifiedBy:           types.StringValue(alertResp.GetModifiedBy()),
 	}

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_internet_gateways Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  list of internet gateway.
+  List of internet gateways.
 ---
 
 # samsungcloudplatformv2_vpc_internet_gateways (Data Source)
 
-list of internet gateway.
+List of internet gateways.
 
 ## Example Usage
 
@@ -16,17 +16,77 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_vpc_internet_gateways" "internetgateways" {
-  limit = var.limit
+  size     = var.size
+  page     = var.page
+  sort     = var.sort
+  id       = var.id
+  name     = var.name
+  type     = var.type
+  state    = var.state
+  vpc_id   = var.vpc_id
+  vpc_name = var.vpc_name
 }
 
 
 output "internetGateways" {
-  value = data.samsungcloudplatformv2_vpc_internet_gateways.internetgateways
+  value = {
+    count : data.samsungcloudplatformv2_vpc_internet_gateways.internetgateways.total_count,
+    internet_gateways : data.samsungcloudplatformv2_vpc_internet_gateways.internetgateways.internet_gateways,
+    page : data.samsungcloudplatformv2_vpc_internet_gateways.internetgateways.page,
+    size : data.samsungcloudplatformv2_vpc_internet_gateways.internetgateways.size,
+    sort : data.samsungcloudplatformv2_vpc_internet_gateways.internetgateways.sort_final,
+  }
 }
 
-variable "limit" {
+variable "size" {
   type    = number
   default = 0
+}
+
+variable "page" {
+  type    = number
+  default = 0
+}
+
+variable "sort" {
+  type    = string
+  default = ""
+}
+
+variable "id" {
+  description = "Filter by Internet Gateway ID"
+  type        = string
+  default     = ""
+}
+
+variable "name" {
+  description = "Filter by Internet Gateway name"
+  type        = string
+  default     = ""
+}
+
+variable "type" {
+  description = "Filter by Internet Gateway type"
+  type        = string
+  default     = ""
+}
+
+variable "state" {
+  description = "Filter by Internet Gateway state"
+  type        = string
+  default     = ""
+}
+
+variable "vpc_id" {
+  description = "Filter by VPC ID"
+  type        = string
+  default     = ""
+}
+
+variable "vpc_name" {
+  description = "Filter by VPC name"
+  type        = string
+  default     = ""
 }
 ```
 
@@ -36,22 +96,20 @@ variable "limit" {
 ### Optional
 
 - `id` (String) Internet Gateway ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
-- `limit` (Number) Limit 
-  - example : 10 
-  - maximum : 10000 
-  - minimum : 1
-- `marker` (String) Marker 
-  - example : 607e0938521643b5b4b266f343fae693 
-  - maxLength : 64 
-  - minLength : 1
+  - example : 023c57b14f11483689338d085e061492
 - `name` (String) Internet Gateway Name 
-  - example : internetGatewayName
+  - example : IGW_VPCname
+- `page` (Number) Page 
+  - example : 0 
+  - minimum : 0
+- `size` (Number) Size 
+  - example : 20 
+  - minimum : 0
 - `sort` (String) Sort 
   - example : created_at:desc
 - `state` (String) State 
   - example : CREATING | ACTIVE | DELETING | ERROR
-- `type` (String) Type 
+- `type` (String) Internet Gateway Type 
   - example : IGW | GGW | SIGW
 - `vpc_id` (String) VPC ID 
   - example : 7df8abb4912e4709b1cb237daccca7a8
@@ -60,24 +118,27 @@ variable "limit" {
 
 ### Read-Only
 
-- `internet_gateways` (Attributes List) A list of internet gateway. (see [below for nested schema](#nestedatt--internet_gateways))
+- `internet_gateways` (Attributes List) A list of internet gateways. (see [below for nested schema](#nestedatt--internet_gateways))
+- `sort_final` (List of String) List of sort condition 
+  - example : ["created_at:desc"]
+- `total_count` (Number) Total count
 
 <a id="nestedatt--internet_gateways"></a>
 ### Nested Schema for `internet_gateways`
 
 Read-Only:
 
-- `account_id` (String) account id
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `description` (String) description
-- `firewall_id` (String) firewall id
-- `id` (String) id
-- `loggable` (Boolean) loggable
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `name` (String) name
-- `state` (String) state
-- `type` (String) type
-- `vpc_id` (String) vpc id
-- `vpc_name` (String) vpc name
+- `account_id` (String) Account ID
+- `created_at` (String) Created At
+- `created_by` (String) Created By
+- `description` (String) Description
+- `firewall_id` (String) Firewall ID
+- `id` (String) Internet Gateway ID
+- `loggable` (Boolean) NAT Loggable
+- `modified_at` (String) Modified At
+- `modified_by` (String) Modified By
+- `name` (String) Internet Gateway Name
+- `state` (String) State
+- `type` (String) Internet Gateway Type
+- `vpc_id` (String) VPC ID
+- `vpc_name` (String) VPC Name

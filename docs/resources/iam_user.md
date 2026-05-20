@@ -116,6 +116,7 @@ Optional:
 
 Read-Only:
 
+- `access_keys` (Attributes List) Access Keys (see [below for nested schema](#nestedatt--user--access_keys))
 - `account_id` (String) Account ID
 - `created_at` (String) Created At
 - `created_by` (String) Created By
@@ -123,6 +124,7 @@ Read-Only:
 - `dst_offset` (String) Dst Offset
 - `email` (String) Email
 - `email_authenticated` (Boolean) Email Authenticated
+- `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--user--groups))
 - `id` (String) ID
 - `last_password_update_at` (String) Last Password Update At
 - `modified_at` (String) Modified At
@@ -212,3 +214,28 @@ Optional:
 
 - `principal_map` (Map of List of String)
 - `principal_string` (String)
+
+
+
+
+
+
+<a id="nestedatt--user--access_keys"></a>
+### Nested Schema for `user.access_keys`
+
+Read-Only:
+
+- `access_key` (String) Access Key
+- `created_at` (String) Created At
+- `expiration_timestamp` (String) Expiration Timestmap
+- `id` (String) ID
+- `is_enabled` (Boolean) Is Enabled
+
+
+<a id="nestedatt--user--groups"></a>
+### Nested Schema for `user.groups`
+
+Read-Only:
+
+- `id` (String) Group ID
+- `name` (String) Group Name

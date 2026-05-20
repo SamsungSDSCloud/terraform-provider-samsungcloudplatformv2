@@ -19,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+const reasonPrefix = "\nReason: "
+
 // Ensure the implementation satisfies the expected interfaces.
 var (
 	_ resource.Resource              = &gslbGslbResource{}
@@ -316,7 +318,7 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating Gslb",
-			"Could not create Gslb, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not create Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
 		)
 		return
 	}
@@ -362,7 +364,7 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Gslb",
-			"Could not read Gslb, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not read Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
 		)
 		return
 	}
@@ -407,7 +409,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
 				"Error updating Gslb",
-				"Could not update Gslb, unexpected error: "+err.Error()+"\nReason: "+detail,
+				"Could not update Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
 			)
 			return
 		}
@@ -419,7 +421,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
 				"Error updating Gslb",
-				"Could not update Gslb, unexpected error: "+err.Error()+"\nReason: "+detail,
+				"Could not update Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
 			)
 			return
 		}
@@ -431,7 +433,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
 				"Error updating Gslb",
-				"Could not update Gslb, unexpected error: "+err.Error()+"\nReason: "+detail,
+				"Could not update Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
 			)
 			return
 		}
@@ -451,7 +453,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Gslb",
-			"Could not read Gslb, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not read Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
 		)
 		return
 	}
@@ -485,7 +487,7 @@ func (r *gslbGslbResource) Delete(ctx context.Context, req resource.DeleteReques
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Deleting Gslb",
-			"Could not delete Gslb, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not delete Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
 		)
 		return
 	}

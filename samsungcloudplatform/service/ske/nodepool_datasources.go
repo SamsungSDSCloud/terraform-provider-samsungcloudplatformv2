@@ -90,6 +90,11 @@ func (d *skeNodepoolDataSources) Schema(_ context.Context, _ datasource.SchemaRe
 									Description: "OsVersion\n  - example: 22.04",
 									Computed:    true,
 								},
+								"scp_gpu_driver": schema.StringAttribute{
+									Computed:            true,
+									Description:         "GPU Driver Version\n  - example: ND_535.183.06",
+									MarkdownDescription: "GPU Driver Version\n  - example: ND_535.183.06",
+								},
 							},
 						},
 						common.ToSnakeCase("KubernetesVersion"): schema.StringAttribute{
@@ -191,6 +196,7 @@ func (d *skeNodepoolDataSources) Read(ctx context.Context, req datasource.ReadRe
 				CustomImageName: types.StringPointerValue(nodepool.Image.CustomImageName.Get()),
 				Os:              types.StringValue(nodepool.Image.Os),
 				OsVersion:       types.StringValue(nodepool.Image.OsVersion),
+				ScpGpuDriver:    types.StringPointerValue(nodepool.Image.ScpGpuDriver.Get()),
 			},
 			KubernetesVersion: types.StringValue(nodepool.KubernetesVersion),
 			ServerType: ske.ServerType{

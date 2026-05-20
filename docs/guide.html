@@ -399,11 +399,10 @@
 			<p>Data Sources</p>
 			<ul>
 				<li><a href='data-sources/ske_cluster' target='contentFrame'>ske_cluster</a></li>
-				<li><a href='data-sources/ske_cluster_kubeconfig' target='contentFrame'>ske_cluster_kubeconfig</a></li>
-				<li><a href='data-sources/ske_cluster_user_kubeconfig' target='contentFrame'>ske_cluster_user_kubeconfig</a></li>
 				<li><a href='data-sources/ske_clusters' target='contentFrame'>ske_clusters</a></li>
 				<li><a href='data-sources/ske_kubernetes_versions' target='contentFrame'>ske_kubernetes_versions</a></li>
 				<li><a href='data-sources/ske_nodepool' target='contentFrame'>ske_nodepool</a></li>
+				<li><a href='data-sources/ske_nodepool_images' target='contentFrame'>ske_nodepool_images</a></li>
 				<li><a href='data-sources/ske_nodepoolnodes' target='contentFrame'>ske_nodepoolnodes</a></li>
 				<li><a href='data-sources/ske_nodepools' target='contentFrame'>ske_nodepools</a></li>
 			</ul>
@@ -746,9 +745,12 @@
 				<li><a href='data-sources/vpc_internet_gateways' target='contentFrame'>vpc_internet_gateways</a></li>
 				<li><a href='data-sources/vpc_nat_gateways' target='contentFrame'>vpc_nat_gateways</a></li>
 				<li><a href='data-sources/vpc_ports' target='contentFrame'>vpc_ports</a></li>
+				<li><a href='data-sources/vpc_private_nat' target='contentFrame'>vpc_private_nat</a></li>
 				<li><a href='data-sources/vpc_private_nat_ips' target='contentFrame'>vpc_private_nat_ips</a></li>
 				<li><a href='data-sources/vpc_private_nats' target='contentFrame'>vpc_private_nats</a></li>
 				<li><a href='data-sources/vpc_publicips' target='contentFrame'>vpc_publicips</a></li>
+				<li><a href='data-sources/vpc_subnet_vip' target='contentFrame'>vpc_subnet_vip</a></li>
+				<li><a href='data-sources/vpc_subnet_vips' target='contentFrame'>vpc_subnet_vips</a></li>
 				<li><a href='data-sources/vpc_subnets' target='contentFrame'>vpc_subnets</a></li>
 				<li><a href='data-sources/vpc_transit_gateway' target='contentFrame'>vpc_transit_gateway</a></li>
 				<li><a href='data-sources/vpc_transit_gateway_rules' target='contentFrame'>vpc_transit_gateway_rules</a></li>
@@ -762,6 +764,7 @@
 			</ul>
 			<p>Resources</p>
 			<ul>
+				<li><a href='resources/vpc_cidr' target='contentFrame'>vpc_cidr</a></li>
 				<li><a href='resources/vpc_internet_gateway' target='contentFrame'>vpc_internet_gateway</a></li>
 				<li><a href='resources/vpc_nat_gateway' target='contentFrame'>vpc_nat_gateway</a></li>
 				<li><a href='resources/vpc_port' target='contentFrame'>vpc_port</a></li>
@@ -769,8 +772,14 @@
 				<li><a href='resources/vpc_private_nat_ip' target='contentFrame'>vpc_private_nat_ip</a></li>
 				<li><a href='resources/vpc_publicip' target='contentFrame'>vpc_publicip</a></li>
 				<li><a href='resources/vpc_subnet' target='contentFrame'>vpc_subnet</a></li>
+				<li><a href='resources/vpc_subnet_vip' target='contentFrame'>vpc_subnet_vip</a></li>
+				<li><a href='resources/vpc_subnet_vip_nat_ip' target='contentFrame'>vpc_subnet_vip_nat_ip</a></li>
+				<li><a href='resources/vpc_subnet_vip_port' target='contentFrame'>vpc_subnet_vip_port</a></li>
 				<li><a href='resources/vpc_transit_gateway' target='contentFrame'>vpc_transit_gateway</a></li>
+				<li><a href='resources/vpc_transit_gateway_firewall' target='contentFrame'>vpc_transit_gateway_firewall</a></li>
+				<li><a href='resources/vpc_transit_gateway_firewall_connection' target='contentFrame'>vpc_transit_gateway_firewall_connection</a></li>
 				<li><a href='resources/vpc_transit_gateway_rule' target='contentFrame'>vpc_transit_gateway_rule</a></li>
+				<li><a href='resources/vpc_transit_gateway_uplink_rule' target='contentFrame'>vpc_transit_gateway_uplink_rule</a></li>
 				<li><a href='resources/vpc_transit_gateway_vpc_connection' target='contentFrame'>vpc_transit_gateway_vpc_connection</a></li>
 				<li><a href='resources/vpc_vpc' target='contentFrame'>vpc_vpc</a></li>
 				<li><a href='resources/vpc_vpc_endpoint' target='contentFrame'>vpc_vpc_endpoint</a></li>
@@ -840,6 +849,41 @@
 				<li><a href='resources/virtualserver_volume' target='contentFrame'>virtualserver_volume</a></li>
 			</ul>
 		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_account_invitations</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/account_invitations' target='contentFrame'>account_invitations</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_invitation</p>
+		<div class='collapsible'>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/invitation' target='contentFrame'>invitation</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_invitation_accept</p>
+		<div class='collapsible'>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/invitation_accept' target='contentFrame'>invitation_accept</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_invitation_cancel</p>
+		<div class='collapsible'>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/invitation_cancel' target='contentFrame'>invitation_cancel</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_invitation_decline</p>
+		<div class='collapsible'>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/invitation_decline' target='contentFrame'>invitation_decline</a></li>
+			</ul>
+		</div>
 		<p class='category collapsible-header'>samsungcloudplatformv2_loadbalancer_loadbalancer_private_nat_ip</p>
 		<div class='collapsible'>
 			<p>Data Sources</p>
@@ -849,6 +893,117 @@
 			<p>Resources</p>
 			<ul>
 				<li><a href='resources/loadbalancer_loadbalancer_private_nat_ip' target='contentFrame'>loadbalancer_loadbalancer_private_nat_ip</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization' target='contentFrame'>organization</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/organization' target='contentFrame'>organization</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_account</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_account' target='contentFrame'>organization_account</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/organization_account' target='contentFrame'>organization_account</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_account_move</p>
+		<div class='collapsible'>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/organization_account_move' target='contentFrame'>organization_account_move</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_account_remove</p>
+		<div class='collapsible'>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/organization_account_remove' target='contentFrame'>organization_account_remove</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_accounts</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_accounts' target='contentFrame'>organization_accounts</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_delegation_policy</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_delegation_policy' target='contentFrame'>organization_delegation_policy</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/organization_delegation_policy' target='contentFrame'>organization_delegation_policy</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_invitations</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_invitations' target='contentFrame'>organization_invitations</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_service_control_policies</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_service_control_policies' target='contentFrame'>organization_service_control_policies</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_service_control_policy</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_service_control_policy' target='contentFrame'>organization_service_control_policy</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/organization_service_control_policy' target='contentFrame'>organization_service_control_policy</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_unit</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_unit' target='contentFrame'>organization_unit</a></li>
+			</ul>
+			<p>Resources</p>
+			<ul>
+				<li><a href='resources/organization_unit' target='contentFrame'>organization_unit</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_unit_parents</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_unit_parents' target='contentFrame'>organization_unit_parents</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organization_units</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organization_units' target='contentFrame'>organization_units</a></li>
+			</ul>
+		</div>
+		<p class='category collapsible-header'>samsungcloudplatformv2_organizations</p>
+		<div class='collapsible'>
+			<p>Data Sources</p>
+			<ul>
+				<li><a href='data-sources/organizations' target='contentFrame'>organizations</a></li>
 			</ul>
 		</div>
 	</div>

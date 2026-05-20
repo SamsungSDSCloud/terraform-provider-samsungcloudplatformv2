@@ -20,7 +20,7 @@ resource "samsungcloudplatformv2_vpc_port" "port" {
     subnet_id = var.subnet_id
     description = var.port_description
     fixed_ip_address = var.port_fixed_ip_address
-    security_groups = var.port_security_groups
+    security_groups = var.security_groups
 }
 
 
@@ -49,9 +49,13 @@ variable "port_fixed_ip_address" {
   default = ""
 }
 
-variable "port_security_groups" {
-  type    = list(string)
-  default = [""]
+variable "security_groups" {
+  type = list(object({
+    id = string
+  }))
+  default = [{
+    id = ""
+  }]
 }
 ```
 
@@ -75,8 +79,7 @@ variable "port_security_groups" {
   - maxLength : 50
 - `fixed_ip_address` (String) Fixed IP Address 
   - example : 172.24.4.2
-- `security_groups` (List of String) ID lists of Security Groups 
-  - example : [ "3eef50bc-d638-41fa-99f3-5f9a877dd864", "b81d2ec8-b896-4853-bc7d-b06a5f28e228" ]
+- `security_groups` (Attributes List) Security groups (see [below for nested schema](#nestedatt--security_groups))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
@@ -92,5 +95,17 @@ variable "port_security_groups" {
 - `modified_at` (String) ModifiedAt
 - `state` (String) State
 - `subnet_name` (String) SubnetName
+- `virtual_ip_addresses` (List of String) Virtual IP Addresses
 - `vpc_id` (String) VpcId
 - `vpc_name` (String) VpcName
+
+<a id="nestedatt--security_groups"></a>
+### Nested Schema for `security_groups`
+
+Optional:
+
+- `id` (String)
+
+Read-Only:
+
+- `name` (String)

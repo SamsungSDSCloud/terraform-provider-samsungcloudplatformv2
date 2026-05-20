@@ -54,15 +54,19 @@ func DataSourceSchema() datasourceschema.MapAttribute {
 	}
 }
 
-func GetTagIndices(clients *client.SCPClient, input interface{}, tagElements map[string]attr.Value, id string) []int {
+func GetTagIndices(clients *client.SCPClient, input interface{}, tagElements map[string]attr.Value, id string) ([]int, error) {
 	ctx := context.Background()
-
 	var filters []filter.Filter
+
 	for k, v := range tagElements {
-		tagInfo, _ := clients.ResourceManager.GetTagList(ctx, resourcemanager.TagDataSource{
+		tagInfo, err := clients.ResourceManager.GetTagList(ctx, resourcemanager.TagDataSource{
 			Key:   types.StringValue(k),
 			Value: types.StringValue(strings.Trim(v.String(), `"`)),
 		})
+		if err != nil {
+			return nil, fmt.Errorf("GetTagIndices: GetTagList failed for key %s: %w", k, err)
+		}
+
 		tagContents := tagInfo.Content
 		for _, tagContent := range tagContents {
 			f := filter.Filter{
@@ -76,11 +80,19 @@ func GetTagIndices(clients *client.SCPClient, input interface{}, tagElements map
 	}
 
 	if len(filters) == 0 {
-		return []int{}
+		return []int{}, nil
 	}
 
-	wrapStructs, _ := filter.WrapStructs(input)
-	contents := common.ConvertStructToMaps(wrapStructs)
+	wrapStructs, err := filter.WrapStructs(input)
+	if err != nil {
+		return nil, fmt.Errorf("GetTagIndices: WrapStructs failed: %w", err)
+	}
+
+	contents, err := common.ConvertStructToMaps(wrapStructs)
+	if err != nil {
+		return nil, fmt.Errorf("GetTagIndices: ConvertStructToMaps failed: %w", err)
+	}
+
 	contents = filter.ApplyFilter(contents, filters)
 
 	var indices []int
@@ -89,7 +101,7 @@ func GetTagIndices(clients *client.SCPClient, input interface{}, tagElements map
 		indices = append(indices, index)
 	}
 
-	return indices
+	return indices, nil
 }
 
 func getOffering(AuthUrl string) (string, error) {

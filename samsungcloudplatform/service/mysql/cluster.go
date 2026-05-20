@@ -3,13 +3,17 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/mysql"
 	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/database"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpMysql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/mysql/1.0"
+	scpMysql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/mysql/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,9 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
-	"strings"
-	"time"
 )
 
 var (
@@ -157,16 +158,10 @@ func (r *mysqlClusterResource) Schema(_ context.Context, _ resource.SchemaReques
 									common.ToSnakeCase("Id"): schema.StringAttribute{
 										Description: "Id",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
 										Description: "Name",
 										Computed:    true,
-										PlanModifiers: []planmodifier.String{
-											stringplanmodifier.UseStateForUnknown(),
-										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
 										Description: "Role type \n" +
@@ -390,7 +385,7 @@ func (r *mysqlClusterResource) Create(ctx context.Context, req resource.CreateRe
 	clusterId := data.Resource.Id
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -477,7 +472,7 @@ func (r *mysqlClusterResource) AsyncPollingTags(ctx context.Context, clusterId s
 	return types.Map{}, fmt.Errorf("max attempts reached (%d)", maxAttempts)
 }
 
-func (r *mysqlClusterResource) MapGetResponseToState(ctx context.Context, resp *scpMysql.MysqlClusterDetailResponse, plan mysql.ClusterResource, tagsMap types.Map) (mysql.ClusterResource, error) {
+func (r *mysqlClusterResource) MapGetResponseToState(ctx context.Context, resp *scpMysql.MysqlClusterDetailResponseV1Dot1, plan mysql.ClusterResource, tagsMap types.Map) (mysql.ClusterResource, error) {
 
 	var allowableIpAddresses types.List
 	if len(resp.AllowableIpAddresses) == 0 {
@@ -756,7 +751,7 @@ func (r *mysqlClusterResource) handlerUpdateClusterState(ctx context.Context, re
 	}
 
 	// wait for 구현
-	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -813,7 +808,7 @@ func (r *mysqlClusterResource) handlerUpdateClusterInitConfig(ctx context.Contex
 	}
 
 	// wait for 구현
-	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -847,7 +842,7 @@ func (r *mysqlClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx cont
 		return err
 	}
 
-	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 
@@ -948,7 +943,7 @@ func (r *mysqlClusterResource) handlerUpdateInstanceGroups(ctx context.Context, 
 							return err
 						}
 
-						immutableBsFields := []string{"Id", "Name", "RoleType", "VolumeType"}
+						immutableBsFields := []string{"RoleType", "VolumeType"}
 
 						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
 							resp.Diagnostics.AddError(
@@ -978,7 +973,7 @@ func (r *mysqlClusterResource) handlerUpdateInstanceGroups(ctx context.Context, 
 			}
 
 			// wait for 구현
-			getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponse, error) {
+			getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponseV1Dot1, error) {
 				return r.client.GetCluster(ctx, id)
 			}
 
@@ -1032,7 +1027,7 @@ func (r *mysqlClusterResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 
 	// cluster 조회 func
-	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponse, error) {
+	getFunc := func(id string) (*scpMysql.MysqlClusterDetailResponseV1Dot1, error) {
 		return r.client.GetCluster(ctx, id)
 	}
 	// wait for 구현
