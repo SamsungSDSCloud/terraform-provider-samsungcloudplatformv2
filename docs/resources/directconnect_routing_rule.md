@@ -29,17 +29,17 @@ output "routingrule_output" {
 
 variable "routing_rule_direct_connect_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ROUTING_RULE_DIRECT_CONNECT_ID"
 }
 
 variable "routing_rule_destination_type" {
   type    = string
-  default = ""
+  default = "ON_PREMISE"
 }
 
 variable "routing_rule_destination_cidr" {
   type    = string
-  default = ""
+  default = "192.168.0.0/24"
 }
 ```
 
@@ -53,7 +53,7 @@ variable "routing_rule_destination_cidr" {
 - `destination_type` (String) Destination Type 
   - example : ON-PREM | VPC
 - `direct_connect_id` (String) Direct Connect ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S DIRECT_CONNECT_ID
 
 ### Optional
 
@@ -62,7 +62,7 @@ variable "routing_rule_destination_cidr" {
   - maxLength : 50
   - minLength : 1
 - `destination_resource_id` (String) Destination Resource ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S DESTINATION_RESOURCE_ID
 
 ### Read-Only
 

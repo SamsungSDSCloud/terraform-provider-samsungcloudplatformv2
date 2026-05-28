@@ -44,22 +44,22 @@ variable "public_domain_name" {
     auto_extension             = bool
   })
   default = {
-    address_type               = ""
-    auto_extension             = false
-    description                = ""
-    domestic_first_address_en  = ""
-    domestic_first_address_ko  = ""
-    domestic_second_address_en = ""
-    domestic_second_address_ko = ""
-    name                       = ""
+    address_type               = "DOMESTIC"
+    auto_extension             = true
+    description                = "hahaha"
+    domestic_first_address_en  = "51-29 Jamsil-ro, Songpa-gu, Seoul"
+    domestic_first_address_ko  = "서울특별시 송파구 잠실로 51-29 (잠실동)"
+    domestic_second_address_en = "asd"
+    domestic_second_address_ko = "ㅁㄴㅇ"
+    name                       = "terraform22.com"
     overseas_first_address     = ""
     overseas_second_address    = ""
     overseas_third_address     = ""
-    postal_code                = ""
-    register_email             = ""
-    register_name_en           = ""
-    register_name_ko           = ""
-    register_telno             = ""
+    postal_code                = "05503"
+    register_email             = "asd@asd.com"
+    register_name_en           = "asd"
+    register_name_ko           = "ㅁㄴㅇ"
+    register_telno             = "010-1111-1111"
   }
 }
 
@@ -68,7 +68,7 @@ variable "tag" {
     test_terraform_tag_key = string
   })
   default = {
-    test_terraform_tag_key = ""
+    test_terraform_tag_key = "test_terraform_tag_value"
   }
 }
 ```

@@ -25,7 +25,7 @@ output "volume" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -35,12 +35,12 @@ variable "id" {
 ### Required
 
 - `id` (String) ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
 - `account_id` (String) Account ID 
-  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c'
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `created_at` (String) Created At 
   - example : '2024-07-30T04:54:33.219373'
 - `encryption_enabled` (Boolean) Volume Encryption Enabled 
@@ -59,7 +59,7 @@ variable "id" {
 - `state` (String) Volume State 
   - example : 'available'
 - `type_id` (String) Volume Type ID 
-  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu'
+  - example: YOUR RESOURCE'S TYPE_ID
 - `type_name` (String) Volume Type Name 
   - example : 'HDD'
 - `usage` (Number) Volume Usage 

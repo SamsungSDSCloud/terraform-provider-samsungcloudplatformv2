@@ -42,37 +42,37 @@ output "response" {
 variable "diagnosis_id" {
   description = "Id of diagnosis"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S DIAGNOSIS_ID"
 }
 
 variable "diagnosis_request_sequence" {
   description = "Sequence of diagnosis request"
   type        = string
-  default     = ""
+  default     = "SCPCIS-EC862048D7744453A759493BCC165BAC"
 }
 
 variable "with_count" {
   description = "With count"
   type        = string
-  default     = ""
+  default     = true
 }
 
 variable "limit" {
   description = "Limit"
   type        = number
-  default     = 0
+  default     = 5
 }
 
 variable "marker" {
   description = "Marker"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "sort" {
   description = "Sort"
   type        = string
-  default     = ""
+  default     = null
 }
 ```
 

@@ -32,7 +32,7 @@ output "clusters" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "page" {
@@ -42,7 +42,7 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "name" {

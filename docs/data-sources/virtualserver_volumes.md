@@ -31,22 +31,22 @@ output "ids" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "volumes_filter_name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "volumes_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["test"]
 }
 
 variable "volumes_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
 ```
 

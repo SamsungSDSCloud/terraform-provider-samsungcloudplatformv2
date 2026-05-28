@@ -1,5 +1,6 @@
 variable "volume_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VOLUME_ID"
 }
+
 

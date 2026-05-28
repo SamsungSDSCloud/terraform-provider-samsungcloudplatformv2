@@ -39,12 +39,12 @@ output "routingRules" {
 
 variable "direct_connect_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S DIRECT_CONNECT_ID"
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
@@ -54,27 +54,27 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "destination_type" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "destination_cidr" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -84,7 +84,7 @@ variable "state" {
 ### Required
 
 - `direct_connect_id` (String) Direct Connect ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S DIRECT_CONNECT_ID
 
 ### Optional
 
@@ -93,7 +93,7 @@ variable "state" {
 - `destination_type` (String) Destination Type 
   - example : ON-PREM | VPC
 - `id` (String) Routing Rule ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID
 - `page` (Number) Page 
   - example : 0 
   - minimum : 0

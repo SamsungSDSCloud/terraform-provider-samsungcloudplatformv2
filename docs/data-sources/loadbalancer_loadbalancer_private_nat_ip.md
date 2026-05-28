@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_loadbalancer_loadbalancer_private_nat_ip Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_loadbalancer_loadbalancer_private_nat_ip
+subcategory: Load Balancer
 description: |-
   Show Loadbalancer Private NAT.
 ---
@@ -25,7 +25,7 @@ output "static_nat" {
 
 variable "loadbalancer_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S LOADBALANCER_ID"
 }
 ```
 

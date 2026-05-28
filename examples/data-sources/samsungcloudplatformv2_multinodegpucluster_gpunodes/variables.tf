@@ -1,6 +1,6 @@
 variable "cluster_fabric_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CLUSTER_FABRIC_ID"
 }
 
 variable "cluster_fabric_name" {
@@ -20,11 +20,12 @@ variable "ip" {
 
 variable "state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
+
 

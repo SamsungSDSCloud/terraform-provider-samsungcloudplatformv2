@@ -1,35 +1,38 @@
 variable "ip_address" {
   type    = string
-  default = ""
+  default = "42.14.6.17"
 }
 
 variable "ip_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S IP_ID"
 }
 
 variable "ip_type" {
   type    = string
-  default = ""
+  default = "PUBLIC"
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraformVpnGW"
 }
 
 variable "description" {
   type    = string
-  default = ""
+  default = "test_123"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    vpn_tag_key = "vpn_tag_value"
+  }
 }
+
 

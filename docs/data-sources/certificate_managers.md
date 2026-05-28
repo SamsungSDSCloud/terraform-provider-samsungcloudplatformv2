@@ -32,7 +32,7 @@ output "certificates" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
@@ -47,12 +47,12 @@ variable "cn" {
 
 variable "is_mine" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "page" {
@@ -62,12 +62,12 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "state" {
   type    = list(string)
-  default = [""]
+  default = []
 }
 ```
 

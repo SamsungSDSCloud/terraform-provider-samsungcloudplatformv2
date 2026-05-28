@@ -1,6 +1,6 @@
 variable "firewall_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S FIREWALL_ID"
 }
 
 variable "firewall_rule1" {
@@ -17,16 +17,16 @@ variable "firewall_rule1" {
     status         = string
   })
   default = {
-    action              = ""
-    description         = ""
-    destination_address = [""]
-    direction           = ""
+    action              = "ALLOW"
+    description         = "firewall rule 1"
+    destination_address = ["1.1.1.1", "2.2.2.4"]
+    direction           = "INBOUND"
     service = [{
-      service_type  = ""
-      service_value = ""
+      service_type  = "TCP"
+      service_value = "443"
     }]
-    source_address = [""]
-    status         = ""
+    source_address = ["4.4.4.4-4.4.4.10", "5.5.5.0/24"]
+    status         = "ENABLE"
   }
 }
 
@@ -44,16 +44,16 @@ variable "firewall_rule2" {
     status         = string
   })
   default = {
-    action              = ""
-    description         = ""
-    destination_address = [""]
-    direction           = ""
+    action              = "ALLOW"
+    description         = "firewall rule 2"
+    destination_address = ["4.4.4.4-4.4.4.10"]
+    direction           = "OUTBOUND"
     service = [{
-      service_type  = ""
-      service_value = ""
+      service_type  = "TCP"
+      service_value = "80"
     }]
-    source_address = [""]
-    status         = ""
+    source_address = ["1.1.1.1", "2.2.2.2"]
+    status         = "ENABLE"
   }
 }
 
@@ -71,17 +71,18 @@ variable "firewall_rule3" {
     status         = string
   })
   default = {
-    action              = ""
-    description         = ""
-    destination_address = [""]
-    direction           = ""
+    action              = "DENY"
+    description         = "firewall rule 3"
+    destination_address = ["4.4.4.0/24"]
+    direction           = "OUTBOUND"
     service = [{
-      service_type  = ""
-      service_value = ""
+      service_type  = "TCP"
+      service_value = "80"
     }]
-    source_address = [""]
-    status         = ""
+    source_address = ["1.1.1.1", "2.2.2.2"]
+    status         = "ENABLE"
   }
 }
+
 
 

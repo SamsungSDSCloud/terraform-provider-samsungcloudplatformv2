@@ -33,47 +33,47 @@ output "replication_output" {
 
 variable "volume_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VOLUME_ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "backuptest"
 }
 
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "replication_frequency" {
   type    = string
-  default = ""
+  default = "hourly"
 }
 
 variable "cifs_password" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CIFS_PASSWORD"
 }
 
 variable "backup_retention_count" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "replication_type" {
   type    = string
-  default = ""
+  default = "backup"
 }
 
 variable "replication_update_type" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "replication_policy" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -96,7 +96,7 @@ variable "replication_policy" {
   - example : 'replication' 
   - pattern: `^(replication|backup)$`
 - `volume_id` (String) Source Volume ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S VOLUME_ID
 
 ### Optional
 
@@ -105,7 +105,7 @@ variable "replication_policy" {
   - maximum : 128 
   - minimum : 1
 - `cifs_password` (String) Cifs Password 
-  - example : 'cifspwd0!!' 
+  - example: YOUR RESOURCE'S CIFS_PASSWORD
   - maxLength: 20  
   - minLength: 6  
   - pattern: `^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$`
@@ -119,13 +119,13 @@ variable "replication_policy" {
 ### Read-Only
 
 - `replication_id` (String) Replication ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S REPLICATION_ID
 - `replication_status` (String) Replication Status 
   - example : 'creating'
 - `replication_volume_access_level` (String) Target Access Level 
   - example : 'ro'
 - `replication_volume_id` (String) Target Volume ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S REPLICATION_VOLUME_ID
 - `replication_volume_name` (String) Target Volume Name 
   - example : 'my_volume'
 - `replication_volume_region` (String) Target Volume Region 
@@ -133,7 +133,7 @@ variable "replication_policy" {
 - `source_volume_access_level` (String) Source Access Level 
   - example : 'ro'
 - `source_volume_id` (String) Source Volume ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S SOURCE_VOLUME_ID
 - `source_volume_name` (String) Source Volume Name 
   - example : 'my_volume'
 - `source_volume_region` (String) Source Volume Region 

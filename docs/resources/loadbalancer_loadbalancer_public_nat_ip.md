@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_loadbalancer_loadbalancer_public_nat_ip Resource - samsungcloudplatformv2"
-subcategory: Public NAT IP
+subcategory: Load Balancer
 description: |-
   Loadbalancer Public NAT.
 ---
@@ -26,14 +26,14 @@ output "static_nat" {
 
 variable "loadbalancer_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S LOADBALANCER_ID"
 }
 variable "static_nat" {
   type = object({
     publicip_id = string
   })
   default = {
-    publicip_id = ""
+    publicip_id = "ENTER YOUR RESOURCE'S PUBLICIP_ID"
   }
 }
 ```

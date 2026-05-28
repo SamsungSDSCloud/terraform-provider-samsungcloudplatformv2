@@ -7,17 +7,18 @@ variable "record" {
     type        = string
   })
   default = {
-    description = ""
-    name        = ""
-    records     = [""]
-    ttl         = 0
-    type        = ""
+    description = "aaaaa"
+    name        = "terraform22.com"
+    records     = ["1.1.1.6"]
+    ttl         = 300
+    type        = "A"
   }
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
+
 
 

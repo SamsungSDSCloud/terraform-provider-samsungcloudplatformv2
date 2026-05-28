@@ -26,7 +26,7 @@ output "baremetal" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -40,15 +40,15 @@ variable "id" {
 ### Read-Only
 
 - `account_id` (String) Account ID
-  - example: f5c8e56a4d9b49a8bd89e14758a32d53
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created by
-  - example: ef716e80-1fac-4faa-892d-0132fc7f5583
+  - example: YOUR RESOURCE'S CREATED_BY
 - `hyper_threading_use` (Boolean) Use Hyper Threading
   - example: true
 - `image_id` (String) Image ID
-  - example: IMAGE-7XFMaJpLsapKvskFMjCtmm
+  - example: YOUR RESOURCE'S IMAGE_ID
 - `image_version` (String) Image version
   - example: RHEL 8.7 for BM
 - `init_script` (String) Init script
@@ -59,9 +59,9 @@ variable "id" {
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified by
-  - example: ef716e80-1fac-4faa-892d-0132fc7f5583
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `network_id` (String) Subnet ID
-  - example: ab313c43291e4b678f4bacffe10768ae
+  - example: YOUR RESOURCE'S NETWORK_ID
 - `os_type` (String) OS type
   - example: WINDOWS
 - `placement_group_name` (String) placement group name
@@ -70,10 +70,10 @@ variable "id" {
   - example: 192.168.0.1
 - `private_nat_info` (Attributes) Private Nat Info (see [below for nested schema](#nestedatt--private_nat_info))
 - `product_type_id` (String) Bare Metal Server scale ID
-  - example: PRODUCT-0iT9dNiLr4lVoYmjlY2Vgg
+  - example: YOUR RESOURCE'S PRODUCT_TYPE_ID
 - `public_nat_info` (Attributes) Public Nat Info (see [below for nested schema](#nestedatt--public_nat_info))
 - `region_id` (String) Region ID
-  - example: kr-west1
+  - example: YOUR RESOURCE'S REGION_ID
 - `root_account` (String) Root Account
   - example: rootaccount
 - `server_name` (String) Bare Metal Server name
@@ -87,7 +87,7 @@ variable "id" {
 - `use_local_subnet` (Boolean) Use Local Subnet
   - example: true
 - `vpc_id` (String) VPC ID
-  - example: e58348b1bc9148e5af86500fd4ef99ca
+  - example: YOUR RESOURCE'S VPC_ID
 
 <a id="nestedatt--local_subnet_info"></a>
 ### Nested Schema for `local_subnet_info`
@@ -97,13 +97,13 @@ Read-Only:
 - `interface_name` (String) Interface Name
   - example: ens8f1,bond_serv.2
 - `local_subnet_id` (String) Local Subnet ID
-  - example: ab313c43291e4b678f4bacffe10768ae
+  - example: YOUR RESOURCE'S LOCAL_SUBNET_ID
 - `policy_local_subnet_ip` (String) Policy Local Subnet IP
   - example: 192.168.0.1
 - `state` (String) LocalSubnet IP state
   - example: CREATING
 - `vlan_id` (String) Vlan Id
-  - example: 500
+  - example: YOUR RESOURCE'S VLAN_ID
 - `vni_role_name` (String) VNI Role Name
   - example: mgmtJ4dzQBo
 
@@ -114,15 +114,15 @@ Read-Only:
 Read-Only:
 
 - `nat_id` (String) NAT ID
-  - example: cadcc59a44264eca9674be339cf3e857
+  - example: YOUR RESOURCE'S NAT_ID
 - `nat_ip` (String) NAT IP
   - example: 192.170.2.10
 - `nat_ip_id` (String) NAT IP ID
-  - example: 20c507a036c447cdb3b19468d8ea62ac
+  - example: YOUR RESOURCE'S NAT_IP_ID
 - `state` (String) Static NAT state
   - example: ACTIVE
 - `static_nat_id` (String) NAT ID
-  - example: 997e99959c7b415b84bbd250c9fe716c
+  - example: YOUR RESOURCE'S STATIC_NAT_ID
 
 
 <a id="nestedatt--public_nat_info"></a>
@@ -134,8 +134,8 @@ Read-Only:
 - `nat_ip` (String) NAT IP
   - example: 192.170.2.10
 - `nat_ip_id` (String) NAT IP ID
-  - example: 20c507a036c447cdb3b19468d8ea62ac
+  - example: YOUR RESOURCE'S NAT_IP_ID
 - `state` (String) Static NAT state
   - example: ACTIVE
 - `static_nat_id` (String) NAT ID
-  - example: 997e99959c7b415b84bbd250c9fe716c
+  - example: YOUR RESOURCE'S STATIC_NAT_ID

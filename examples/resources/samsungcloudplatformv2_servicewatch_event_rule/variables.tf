@@ -1,40 +1,43 @@
 variable "event_ids" {
   type    = list(string)
-  default = [""]
+  default = ["ENTER YOUR RESOURCE'S EVENT_IDS"]
 }
 
 variable "event_rule_name" {
   type    = string
-  default = ""
+  default = "tf_event_rule_test"
 }
 
 variable "recipient_ids" {
   type    = list(string)
-  default = [""]
+  default = []
 }
 
 variable "service_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SERVICE_ID"
 }
 
 variable "resource_type_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S RESOURCE_TYPE_ID"
 }
 
 variable "srn_list" {
   type    = list(string)
-  default = [""]
+  default = []
 }
 
 variable "description" {
   type    = string
-  default = ""
+  default = "terraform test"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    test_terraform_tag_key = "test_terraform_tag_value"
+  }
 }
+
 

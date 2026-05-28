@@ -32,22 +32,22 @@ output "server_group" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "server_group_filter_name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "server_group_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["test"]
 }
 
 variable "server_group_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
 ```
 

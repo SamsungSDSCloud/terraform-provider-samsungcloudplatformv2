@@ -1,11 +1,11 @@
 variable "allowable_ip_addresses" {
-  type    = list(string)
-  default = [""]
+  type    = set(string)
+  default = ["192.168.10.1/32"]
 }
 
 variable "dbaas_engine_version_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID"
 }
 
 variable "init_config_option" {
@@ -21,13 +21,13 @@ variable "init_config_option" {
   })
   default = {
     backup_option = {
-      retention_period_day = ""
-      starting_time_hour   = ""
+      retention_period_day = null
+      starting_time_hour   = null
     }
-    database_locale        = ""
-    database_name          = ""
-    database_user_name     = ""
-    database_user_password = ""
+    database_locale        = "ko_KR.utf8"
+    database_name          = "terra"
+    database_user_name     = "terraformtest"
+    database_user_password = "ENTER YOUR RESOURCE'S DATABASE_USER_PASSWORD"
   }
 }
 
@@ -42,38 +42,39 @@ variable "instance_groups" {
     }))
     instances = list(object({
       role_type = string
-      #      service_ip_address = string
-      #      public_ip_id       = string
     }))
   }))
   default = [{
     block_storage_groups = [{
-      role_type   = ""
-      size_gb     = 0
-      volume_type = ""
+      role_type   = "OS"
+      size_gb     = 104
+      volume_type = "SSD"
+      }, {
+      role_type   = "DATA"
+      size_gb     = 16
+      volume_type = "SSD"
     }]
     instances = [{
-      role_type = ""
+      role_type = "DATA"
     }]
-    role_type        = ""
-    server_type_name = ""
+    role_type        = "DATA"
+    server_type_name = "db1v1m2"
   }]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = ""
+  default = "terra"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraa"
 }
 
 variable "subnet_id" {
-  type = string
-  #default = "ce93a65b18164072a856c1c31adc1108"
-  default = ""
+  type    = string
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 // OPTION
@@ -85,36 +86,38 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = ""
-    starting_day_of_week   = ""
-    starting_time          = ""
+    period_hour            = null
+    starting_day_of_week   = null
+    starting_time          = null
     use_maintenance_option = false
   }
 }
 
 variable "service_state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "nat_enabled" {
-  type = bool
-  #  default = true
+  type    = bool
   default = false
 }
 
 variable "timezone" {
   type    = string
-  default = ""
+  default = "Asia/Seoul"
 }
 
 variable "license" {
   type    = string
-  default = ""
+  default = "vertica_community"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    key = "value"
+  }
 }
+
 

@@ -34,37 +34,37 @@ output "clusters" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10000
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "status" {
   type    = list(string)
-  default = [""]
+  default = []
 }
 
 variable "kubernetes_version" {
   type    = list(string)
-  default = [""]
+  default = []
 }
 
 
@@ -72,22 +72,22 @@ variable "kubernetes_version" {
 
 variable "clusters_region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "clusters_filter_name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "clusters_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["test"]
 }
 
 variable "clusters_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
 ```
 
@@ -111,7 +111,7 @@ variable "clusters_filter_use_regex" {
 - `status` (List of String) Status List
   - example: [RUNNING]
 - `subnet_id` (String) SubnetId (validation)
-  - example: 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.

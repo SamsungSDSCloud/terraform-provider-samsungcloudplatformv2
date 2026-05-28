@@ -1,21 +1,21 @@
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform_test_volume"
 }
 
 variable "protocol" {
   type    = string
-  default = ""
+  default = "CIFS"
 }
 
 variable "type_name" {
   type    = string
-  default = ""
+  default = "HDD"
 }
 
 variable "cifs_password" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CIFS_PASSWORD"
 }
 
 variable "file_unit_recovery_enabled" {
@@ -29,14 +29,17 @@ variable "access_rules" {
     object_id   = string
   }))
   default = [{
-    object_id   = ""
-    object_type = ""
+    object_id   = "ENTER YOUR RESOURCE'S OBJECT_ID"
+    object_type = "VM"
   }]
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    test_terraform = "test_terraform_value"
+  }
 }
+
 
 

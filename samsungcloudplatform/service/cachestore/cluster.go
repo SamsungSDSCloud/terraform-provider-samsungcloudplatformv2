@@ -54,7 +54,7 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 				Description: "Allowed IP addresses list  \n" +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
@@ -199,13 +199,6 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 										Description: "Public IP ID (Required when NatEnabled=True)",
 										Optional:    true,
 									},
-									//common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
-									//	Description: "Public IP address",
-									//	Optional:    true,
-									//	PlanModifiers: []planmodifier.String{
-									//		stringplanmodifier.UseStateForUnknown(),
-									//	},
-									//},
 								},
 							},
 						},
@@ -430,15 +423,15 @@ func (r *cachestoreClusterResource) AsyncPollingTags(ctx context.Context, cluste
 func (r *cachestoreClusterResource) MapGetResponseToState(ctx context.Context,
 	resp *scpCachestore.RedisClusterDetailResponse, plan cachestore.ClusterResource, tagsMap types.Map) (cachestore.ClusterResource, error) {
 
-	var allowableIpAddresses types.List
+	var allowableIpAddresses types.Set
 	if len(resp.AllowableIpAddresses) == 0 {
-		allowableIpAddresses, _ = types.ListValue(types.StringType, []attr.Value{})
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
 	} else {
 		ipAddresses := make([]attr.Value, len(resp.AllowableIpAddresses))
 		for i, ipAddress := range resp.AllowableIpAddresses {
 			ipAddresses[i] = types.StringValue(ipAddress)
 		}
-		allowableIpAddresses, _ = types.ListValue(types.StringType, ipAddresses)
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var backupOption = cachestore.BackupOption{}
@@ -777,10 +770,7 @@ func (r *cachestoreClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx
 
 	clusterId := plan.Id.ValueString()
 
-	ipState, _ := databaseUtils.ConvertListtoStringSlice(state.AllowableIpAddresses)
-	ipPlan, _ := databaseUtils.ConvertListtoStringSlice(plan.AllowableIpAddresses)
-
-	addedIPs, removedIps := databaseUtils.CompareIPAddresses(ipState, ipPlan)
+	addedIPs, removedIps := databaseUtils.CompareIPAddresses(state.AllowableIpAddresses, plan.AllowableIpAddresses)
 
 	err := r.client.SetSecurityGroupRules(ctx, clusterId, addedIPs, removedIps)
 	if err != nil {
@@ -798,44 +788,6 @@ func (r *cachestoreClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx
 	}
 
 	return nil
-}
-
-func compareIPAddresses(state []types.String, plan []types.String) ([]string, []string) {
-	toStringSlice := func(input []types.String) []string {
-		var result []string
-		for _, item := range input {
-			if !item.IsNull() {
-				result = append(result, item.ValueString())
-			}
-		}
-		return result
-	}
-
-	toSet := func(items []string) map[string]bool {
-		set := make(map[string]bool)
-		for _, item := range items {
-			set[item] = true
-		}
-		return set
-	}
-
-	stateIPSet := toSet(toStringSlice(state))
-	planIPSet := toSet(toStringSlice(plan))
-
-	diff := func(sourceSet map[string]bool, targetSet map[string]bool) []string {
-		var result []string
-		for key := range sourceSet {
-			if !targetSet[key] {
-				result = append(result, key)
-			}
-		}
-		return result
-	}
-
-	addedIPs := diff(planIPSet, stateIPSet)
-	removedIPs := diff(stateIPSet, planIPSet)
-
-	return addedIPs, removedIPs
 }
 
 func (r *cachestoreClusterResource) handlerUpdateInstanceGroups(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {

@@ -29,17 +29,20 @@ output "tgw01" {
 
 
 variable "name" {
-  default = null
+  default = "tgwNAMLEE01"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    test_tag_key  = "test_tag_value"
+    test_tag_key2 = "test_tag_value2"
+  }
 }
 
 variable "description" {
+  default = "description nam dep trai aaa"
 
-  default = null
 }
 ```
 
@@ -72,7 +75,7 @@ Read-Only:
 - `created_at` (String) CreatedAt 
   - example : 2024-05-17T00:23:17Z
 - `created_by` (String) CreatedBy 
-  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Description
   - example : Tgw description
   - maxLength : 50
@@ -83,7 +86,7 @@ Read-Only:
 - `modified_at` (String) ModifiedAt 
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) ModifiedBy 
-  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Name
   - example : Tgw name
 - `state` (String) State - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING 

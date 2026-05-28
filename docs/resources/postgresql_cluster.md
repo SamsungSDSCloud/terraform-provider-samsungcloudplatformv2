@@ -39,13 +39,13 @@ output "cluster_output" {
 }
 
 variable "allowable_ip_addresses" {
-  type    = list(string)
-  default = [""]
+  type    = set(string)
+  default = ["192.168.10.1/32", "192.168.10.2/32"]
 }
 
 variable "dbaas_engine_version_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID"
 }
 
 variable "ha_enabled" {
@@ -76,16 +76,16 @@ variable "init_config_option" {
   default = {
     audit_enabled = false
     backup_option = {
-      archive_frequency_minute = ""
-      retention_period_day     = ""
-      starting_time_hour       = ""
+      archive_frequency_minute = "60"
+      retention_period_day     = "7"
+      starting_time_hour       = "11"
     }
-    database_encoding      = ""
-    database_locale        = ""
-    database_name          = ""
-    database_port          = 0
-    database_user_name     = ""
-    database_user_password = ""
+    database_encoding      = "UTF-8"
+    database_locale        = "C"
+    database_name          = "terra"
+    database_port          = 2866
+    database_user_name     = "terraformtest"
+    database_user_password = "ENTER YOUR RESOURCE'S DATABASE_USER_PASSWORD"
   }
 }
 
@@ -104,36 +104,40 @@ variable "instance_groups" {
   }))
   default = [{
     block_storage_groups = [{
-      role_type   = ""
-      size_gb     = 0
-      volume_type = ""
+      role_type   = "OS"
+      size_gb     = 104
+      volume_type = "SSD"
+      }, {
+      role_type   = "DATA"
+      size_gb     = 16
+      volume_type = "SSD"
     }]
     instances = [{
-      role_type = ""
+      role_type = "ACTIVE"
     }]
-    role_type        = ""
-    server_type_name = ""
+    role_type        = "ACTIVE"
+    server_type_name = "db1v2m8"
   }]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = ""
+  default = "postterrb"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "postterrb"
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "timezone" {
   type    = string
-  default = ""
+  default = "Asia/Seoul"
 }
 
 // OPTION
@@ -145,16 +149,16 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = ""
-    starting_day_of_week   = ""
-    starting_time          = ""
-    use_maintenance_option = false
+    period_hour            = "0.5"
+    starting_day_of_week   = "MON"
+    starting_time          = "0000"
+    use_maintenance_option = true
   }
 }
 
 variable "vip_public_ip_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VIP_PUBLIC_IP_ID"
 }
 
 variable "virtual_ip_address" {
@@ -164,12 +168,14 @@ variable "virtual_ip_address" {
 
 variable "service_state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    key = "value"
+  }
 }
 ```
 
@@ -178,10 +184,10 @@ variable "tags" {
 
 ### Required
 
-- `allowable_ip_addresses` (List of String) Allowed IP addresses list  
+- `allowable_ip_addresses` (Set of String) Allowed IP addresses list  
   - example: ['192.168.10.1/32']
 - `dbaas_engine_version_id` (String) DBaaS engine version ID 
-  - example: '9fa40db8fadc47599ee6d539fa72a597' (PostgreSQL Community 16.8)
+  - example: YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID
 - `ha_enabled` (Boolean) HA availability 
   - example: False
 - `init_config_option` (Attributes) Init config option (see [below for nested schema](#nestedatt--init_config_option))

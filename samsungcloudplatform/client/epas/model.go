@@ -28,7 +28,7 @@ type ClusterDataSourceDetail struct {
 // Create Cluster의 Request
 type ClusterResource struct {
 	Id                   types.String      `tfsdk:"id"`
-	AllowableIpAddresses types.List        `tfsdk:"allowable_ip_addresses"`
+	AllowableIpAddresses types.Set         `tfsdk:"allowable_ip_addresses"`
 	DbaasEngineVersionId types.String      `tfsdk:"dbaas_engine_version_id"`
 	NatEnabled           types.Bool        `tfsdk:"nat_enabled"`
 	HaEnabled            types.Bool        `tfsdk:"ha_enabled"`
@@ -42,8 +42,7 @@ type ClusterResource struct {
 	Tags                 types.Map         `tfsdk:"tags"`
 	Timezone             types.String      `tfsdk:"timezone"`
 	VipPublicIpId        types.String      `tfsdk:"vip_public_ip_id"`
-	//VipPublicIpAddress   types.String      `tfsdk:"vip_public_ip_address"`
-	VirtualIpAddress types.String `tfsdk:"virtual_ip_address"`
+	VirtualIpAddress     types.String      `tfsdk:"virtual_ip_address"`
 }
 
 // List Clusters의 Response
@@ -113,7 +112,7 @@ type MaintenanceOption struct {
 
 type ClusterDetail struct {
 	AccountId            types.String      `tfsdk:"account_id"`
-	AllowableIpAddresses []types.String    `tfsdk:"allowable_ip_addresses"`
+	AllowableIpAddresses types.Set         `tfsdk:"allowable_ip_addresses"`
 	DbaasEngine          types.String      `tfsdk:"dbaas_engine"`
 	NatEnabled           types.Bool        `tfsdk:"nat_enabled"`
 	HaEnabled            types.Bool        `tfsdk:"ha_enabled"`
@@ -126,7 +125,7 @@ type ClusterDetail struct {
 	Name                 types.String      `tfsdk:"name"`
 	OriginClusterId      types.String      `tfsdk:"origin_cluster_id"`
 	ProductType          types.String      `tfsdk:"product_type"`
-	Replicas             []types.String    `tfsdk:"replicas"`
+	Replicas             types.Set         `tfsdk:"replicas"`
 	RoleType             types.String      `tfsdk:"role_type"`
 	ServiceState         types.String      `tfsdk:"service_state"`
 	SoftwareVersion      types.String      `tfsdk:"software_version"`
@@ -144,7 +143,7 @@ type ClusterDetail struct {
 func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"account_id": types.StringType,
-		"allowable_ip_addresses": types.ListType{
+		"allowable_ip_addresses": types.SetType{
 			ElemType: types.StringType,
 		},
 		"dbaas_engine": types.StringType,
@@ -213,12 +212,8 @@ func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 		"name":              types.StringType,
 		"origin_cluster_id": types.StringType,
 		"product_type":      types.StringType,
-		"replicas": types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"replica": types.StringType,
-				},
-			},
+		"replicas": types.SetType{
+			ElemType: types.StringType,
 		},
 		"role_type":        types.StringType,
 		"service_state":    types.StringType,

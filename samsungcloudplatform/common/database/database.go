@@ -3,12 +3,13 @@ package database
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"reflect"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func AsyncRequestPollingWithState[T any](ctx context.Context, clusterId string, maxAttempts int, internal time.Duration,
@@ -31,7 +32,7 @@ func AsyncRequestPollingWithState[T any](ctx context.Context, clusterId string, 
 		}
 
 		if errorState != "" && currentState == errorState {
-			return zero, fmt.Errorf(string("resource state:" + errorState))
+			return zero, fmt.Errorf("resource state:" + errorState)
 		}
 
 		if currentState == DesiredState {
@@ -152,47 +153,39 @@ func IsOverlapFields(fields []string, changedFields []string) bool {
 	return false
 }
 
-func ConvertListtoStringSlice(list types.List) ([]string, error) {
-	if list.IsNull() || list.IsUnknown() {
-		return nil, nil
+// setToMap converts a types.Set to a map[string]struct{} for efficient lookups
+func setToMap(ips types.Set) map[string]struct{} {
+	if ips.IsNull() || ips.IsUnknown() {
+		return make(map[string]struct{})
 	}
 
-	result := make([]string, len(list.Elements()))
-	for i, elem := range list.Elements() {
-		strVal, ok := elem.(types.String)
-		if !ok {
-			return nil, fmt.Errorf("unexpected elementtype: %T", elem)
+	ipSet := make(map[string]struct{}, len(ips.Elements()))
+	for _, ip := range ips.Elements() {
+		if strVal, ok := ip.(types.String); ok {
+			ipSet[strVal.ValueString()] = struct{}{}
 		}
-		result[i] = strVal.ValueString()
 	}
-	return result, nil
+	return ipSet
 }
 
-func CompareIPAddresses(state []string, plan []string) ([]string, []string) {
-
-	toSet := func(items []string) map[string]bool {
-		set := make(map[string]bool)
-		for _, item := range items {
-			set[item] = true
+// diffSets returns elements in sourceSet that are not in targetSet
+func diffSets(sourceSet, targetSet map[string]struct{}) []string {
+	result := make([]string, 0, len(sourceSet))
+	for key := range sourceSet {
+		if _, exists := targetSet[key]; !exists {
+			result = append(result, key)
 		}
-		return set
 	}
+	return result
+}
 
-	stateIPSet := toSet(state)
-	planIPSet := toSet(plan)
+// CompareIPAddresses compares two IP address sets and returns added and removed IPs
+func CompareIPAddresses(state types.Set, plan types.Set) ([]string, []string) {
+	stateIPSet := setToMap(state)
+	planIPSet := setToMap(plan)
 
-	diff := func(sourceSet map[string]bool, targetSet map[string]bool) []string {
-		var result []string
-		for key := range sourceSet {
-			if !targetSet[key] {
-				result = append(result, key)
-			}
-		}
-		return result
-	}
-
-	addedIPs := diff(planIPSet, stateIPSet)
-	removedIPs := diff(stateIPSet, planIPSet)
+	addedIPs := diffSets(planIPSet, stateIPSet)
+	removedIPs := diffSets(stateIPSet, planIPSet)
 
 	return addedIPs, removedIPs
 }

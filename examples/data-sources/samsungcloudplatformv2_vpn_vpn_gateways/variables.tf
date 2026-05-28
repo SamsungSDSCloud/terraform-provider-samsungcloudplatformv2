@@ -1,6 +1,6 @@
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
@@ -10,27 +10,28 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = null
 }
+
 
 

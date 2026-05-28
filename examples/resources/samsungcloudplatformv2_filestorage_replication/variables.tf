@@ -1,45 +1,46 @@
 variable "volume_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VOLUME_ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "backuptest"
 }
 
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "replication_frequency" {
   type    = string
-  default = ""
+  default = "hourly"
 }
 
 variable "cifs_password" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CIFS_PASSWORD"
 }
 
 variable "backup_retention_count" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "replication_type" {
   type    = string
-  default = ""
+  default = "backup"
 }
 
 variable "replication_update_type" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "replication_policy" {
   type    = string
-  default = ""
+  default = null
 }
+
 

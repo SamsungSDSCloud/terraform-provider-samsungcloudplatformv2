@@ -30,7 +30,7 @@ output "response" {
 
 variable "diagnosis_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S DIAGNOSIS_ID"
 }
 ```
 

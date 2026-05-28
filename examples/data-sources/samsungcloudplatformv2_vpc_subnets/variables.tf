@@ -1,17 +1,17 @@
 
 variable "cidr" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "page" {
@@ -21,32 +21,33 @@ variable "page" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "type" {
   type    = list(string)
-  default = [""]
+  default = null
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = null
 }
+
 
 

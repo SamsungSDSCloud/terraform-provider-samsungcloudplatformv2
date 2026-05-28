@@ -3,14 +3,16 @@ package epas
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/epas"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 var (
@@ -48,7 +50,7 @@ func (d *epasClusterDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						Description: "AccountId",
 						Computed:    true,
 					},
-					common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+					common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 						ElementType: types.StringType,
 						Description: "AllowableIpAddresses",
 						Computed:    true,
@@ -243,17 +245,10 @@ func (d *epasClusterDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						Description: "ProductType",
 						Computed:    true,
 					},
-					common.ToSnakeCase("Replicas"): schema.ListNestedAttribute{
+					common.ToSnakeCase("Replicas"): schema.SetAttribute{
 						Description: "Replicas",
 						Computed:    true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								common.ToSnakeCase("Replica"): schema.StringAttribute{
-									Description: "Replica",
-									Computed:    true,
-								},
-							},
-						},
+						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("RoleType"): schema.StringAttribute{
 						Description: "RoleType",
@@ -345,9 +340,15 @@ func (d *epasClusterDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	allowableIpAddresses := make([]types.String, len(data.AllowableIpAddresses))
-	for i, allowableIpAddress := range data.AllowableIpAddresses {
-		allowableIpAddresses[i] = types.StringValue(allowableIpAddress)
+	var allowableIpAddresses types.Set
+	if len(data.AllowableIpAddresses) == 0 {
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
+	} else {
+		ipAddresses := make([]attr.Value, len(data.AllowableIpAddresses))
+		for i, ipAddress := range data.AllowableIpAddresses {
+			ipAddresses[i] = types.StringValue(ipAddress)
+		}
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var backupOption epas.BackupOption
@@ -396,8 +397,6 @@ func (d *epasClusterDataSource) Read(ctx context.Context, req datasource.ReadReq
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
 				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
 			})
 		}
 
@@ -417,6 +416,17 @@ func (d *epasClusterDataSource) Read(ctx context.Context, req datasource.ReadReq
 		UseMaintenanceOption: types.BoolPointerValue(data.MaintenanceOption.Get().UseMaintenanceOption),
 	}
 
+	var replicas types.Set
+	if len(data.Replicas) == 0 {
+		replicas, _ = types.SetValue(types.StringType, []attr.Value{})
+	} else {
+		replicaIds := make([]attr.Value, len(data.Replicas))
+		for i, replicaId := range data.Replicas {
+			replicaIds[i] = types.StringValue(replicaId)
+		}
+		replicas, _ = types.SetValue(types.StringType, replicaIds)
+	}
+
 	var epasState = epas.ClusterDetail{
 		AccountId:            types.StringValue(data.AccountId),
 		AllowableIpAddresses: allowableIpAddresses,
@@ -432,19 +442,18 @@ func (d *epasClusterDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Name:                 types.StringValue(data.Name),
 		OriginClusterId:      types.StringPointerValue(data.OriginClusterId.Get()),
 		ProductType:          types.StringValue(string(data.ProductType)),
-		Replicas:             make([]types.String, len(data.Replicas)),
+		Replicas:             replicas,
 		RoleType:             types.StringPointerValue((*string)(data.RoleType.Get())),
 		ServiceState:         types.StringValue(string(data.ServiceState)),
 		SoftwareVersion:      types.StringValue(data.SoftwareVersion),
 		SubnetId:             types.StringValue(data.SubnetId),
 		Timezone:             types.StringValue(data.Timezone),
 		VipPublicIpId:        types.StringPointerValue(data.VipPublicIpId.Get()),
-		//VipPublicIpAddress:   types.StringPointerValue(data.VipPublicIpAddress.Get()),
-		VirtualIpAddress: types.StringPointerValue(data.VirtualIpAddress.Get()),
-		CreatedAt:        types.StringValue(data.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:        types.StringValue(data.CreatedBy),
-		ModifiedAt:       types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:       types.StringValue(data.ModifiedBy),
+		VirtualIpAddress:     types.StringPointerValue(data.VirtualIpAddress.Get()),
+		CreatedAt:            types.StringValue(data.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:            types.StringValue(data.CreatedBy),
+		ModifiedAt:           types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:           types.StringValue(data.ModifiedBy),
 	}
 
 	epasObjectValue, _ := types.ObjectValueFrom(ctx, epasState.AttributeTypes(), epasState)

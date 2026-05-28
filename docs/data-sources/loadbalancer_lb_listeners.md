@@ -27,38 +27,38 @@ output "lbListeners" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "loadbalancer_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S LOADBALANCER_ID"
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = null
 }
 
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "service_port" {
   type    = number
-  default = 0
+  default = null
 }
 ```
 

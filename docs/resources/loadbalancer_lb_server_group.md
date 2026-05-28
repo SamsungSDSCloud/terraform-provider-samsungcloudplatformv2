@@ -35,14 +35,17 @@ variable "lb_server_group" {
     tags               = map(string)
   })
   default = {
-    description        = ""
-    lb_health_check_id = ""
-    lb_method          = ""
-    name               = ""
-    protocol           = ""
-    subnet_id          = ""
-    tags               = null
-    vpc_id             = ""
+    description        = "123456789012345678901234567890123456789012345678902"
+    lb_health_check_id = "ENTER YOUR RESOURCE'S LB_HEALTH_CHECK_ID"
+    lb_method          = "ROUND_ROBIN"
+    name               = "test-terraform"
+    protocol           = "TCP"
+    subnet_id          = "ENTER YOUR RESOURCE'S SUBNET_ID"
+    tags = {
+      key  = "value"
+      key1 = "value1"
+    }
+    vpc_id = "ENTER YOUR RESOURCE'S VPC_ID"
   }
 }
 
@@ -53,9 +56,9 @@ variable "lb_server_group_modify" {
     lb_health_check_id = string
   })
   default = {
-    description        = ""
-    lb_health_check_id = ""
-    lb_method          = ""
+    description        = "987654321"
+    lb_health_check_id = "ENTER YOUR RESOURCE'S LB_HEALTH_CHECK_ID"
+    lb_method          = "LEAST_CONNECTION"
   }
 }
 ```

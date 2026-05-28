@@ -31,9 +31,9 @@ variable "private_dns" {
     name              = string
   })
   default = {
-    connected_vpc_ids = [""]
-    description       = ""
-    name              = ""
+    connected_vpc_ids = "ENTER YOUR RESOURCE'S CONNECTED_VPC_IDS"
+    description       = "aaaaa"
+    name              = "terraform"
   }
 }
 
@@ -42,7 +42,7 @@ variable "tag" {
     test_terraform_tag_key = string
   })
   default = {
-    test_terraform_tag_key = ""
+    test_terraform_tag_key = "test_terraform_tag_value"
   }
 }
 ```

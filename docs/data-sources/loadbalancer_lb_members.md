@@ -29,37 +29,37 @@ output "lbMembers" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "lb_server_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S LB_SERVER_GROUP_ID"
 }
 
 variable "member_ip" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "member_port" {
   type    = number
-  default = 0
+  default = null
 }
 ```
 

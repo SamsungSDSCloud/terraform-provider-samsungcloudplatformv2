@@ -1,5 +1,6 @@
 variable "cluster_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CLUSTER_ID"
 }
+
 

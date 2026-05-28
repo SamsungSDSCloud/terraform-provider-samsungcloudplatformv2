@@ -29,7 +29,7 @@ output "volumes" {
 
 variable "limit" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "offset" {
@@ -39,17 +39,17 @@ variable "offset" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "test"
 }
 
 variable "type_name" {
   type    = string
-  default = ""
+  default = "HDD"
 }
 ```
 

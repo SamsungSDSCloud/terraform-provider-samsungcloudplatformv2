@@ -1,16 +1,17 @@
 variable "access_key_access_key_type" {
   type    = string
-  default = ""
+  default = "PERMANENT"
 }
 
 variable "access_key_description" {
   type    = string
-  default = ""
+  default = "access key"
 }
 
 variable "access_key_is_enabled" {
   type    = bool
-  default = false
+  default = true
 }
+
 
 

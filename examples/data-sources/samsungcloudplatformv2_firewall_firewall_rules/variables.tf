@@ -1,11 +1,12 @@
 variable "firewall_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S FIREWALL_ID"
 }
 
 variable "dst_ip" {
   type    = string
-  default = ""
+  default = "1.1.1.1"
 }
+
 
 

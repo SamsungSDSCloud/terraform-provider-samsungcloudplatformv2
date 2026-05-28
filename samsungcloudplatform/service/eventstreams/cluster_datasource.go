@@ -9,6 +9,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/eventstreams"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -49,7 +50,7 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 						Description: "AccountId",
 						Computed:    true,
 					},
-					common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+					common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 						ElementType: types.StringType,
 						Description: "AllowableIpAddresses",
 						Computed:    true,
@@ -276,9 +277,15 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	allowableIpAddresses := make([]types.String, len(data.AllowableIpAddresses))
-	for i, allowableIpAddress := range data.AllowableIpAddresses {
-		allowableIpAddresses[i] = types.StringValue(allowableIpAddress)
+	var allowableIpAddresses types.Set
+	if len(data.AllowableIpAddresses) == 0 {
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
+	} else {
+		ipAddresses := make([]attr.Value, len(data.AllowableIpAddresses))
+		for i, ipAddress := range data.AllowableIpAddresses {
+			ipAddresses[i] = types.StringValue(ipAddress)
+		}
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var initConfigOption = eventstreams.InitConfigResponse{
@@ -306,8 +313,6 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
 				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
 			})
 		}
 
@@ -330,7 +335,7 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 	var eventstreamsState = eventstreams.ClusterDetail{
 		AccountId:                 types.StringValue(data.AccountId),
 		AllowableIpAddresses:      allowableIpAddresses,
-		DbaasEngine:               types.StringValue(string(data.DbaasEngine)),
+		DbaasEngine:               types.StringValue(data.DbaasEngine),
 		IsCombined:                types.BoolPointerValue(data.IsCombined.Get()),
 		Id:                        types.StringValue(data.Id),
 		InitConfigOption:          initConfigOption,

@@ -1,22 +1,23 @@
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "gslb_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S GSLB_ID"
 }
+
 
 

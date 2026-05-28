@@ -31,22 +31,22 @@ output "volume_output" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform_test_volume"
 }
 
 variable "protocol" {
   type    = string
-  default = ""
+  default = "CIFS"
 }
 
 variable "type_name" {
   type    = string
-  default = ""
+  default = "HDD"
 }
 
 variable "cifs_password" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CIFS_PASSWORD"
 }
 
 variable "file_unit_recovery_enabled" {
@@ -60,14 +60,16 @@ variable "access_rules" {
     object_id   = string
   }))
   default = [{
-    object_id   = ""
-    object_type = ""
+    object_id   = "ENTER YOUR RESOURCE'S OBJECT_ID"
+    object_type = "VM"
   }]
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    test_terraform = "test_terraform_value"
+  }
 }
 ```
 
@@ -92,7 +94,7 @@ variable "tags" {
 
 - `access_rules` (Attributes Set) List of AccessRule (see [below for nested schema](#nestedatt--access_rules))
 - `cifs_password` (String) Cifs Password 
-  - example : 'cifspwd0!!' 
+  - example: YOUR RESOURCE'S CIFS_PASSWORD
   - maxLength: 20  
   - minLength: 6  
   - pattern: `^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$`
@@ -108,7 +110,7 @@ variable "tags" {
 ### Read-Only
 
 - `account_id` (String) Account ID 
-  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c'
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `created_at` (String) Created At 
   - example : '2024-07-30T04:54:33.219373'
 - `encryption_enabled` (Boolean) Volume Encryption Enabled 
@@ -122,7 +124,7 @@ variable "tags" {
   - example : 'none'
 - `state` (String) Volume State
 - `type_id` (String) Volume Type ID 
-  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu'
+  - example: YOUR RESOURCE'S TYPE_ID
 
 <a id="nestedatt--access_rules"></a>
 ### Nested Schema for `access_rules`
@@ -130,6 +132,6 @@ variable "tags" {
 Optional:
 
 - `object_id` (String) Object Id 
-  - example : '43fq3347-02q4-4aa8-ccf9-affe4917bb6f'
+  - example: YOUR RESOURCE'S OBJECT_ID
 - `object_type` (String) Object Type  - example : 'VM' 
   - pattern: `^(VM|BM|GPU|GPU_NODE|ENDPOINT)$`

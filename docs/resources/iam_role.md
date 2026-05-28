@@ -33,17 +33,17 @@ output "role_output" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform-role"
 }
 
 variable "description" {
   type    = string
-  default = ""
+  default = "change test description"
 }
 
 variable "max_session_duration" {
   type    = number
-  default = 0
+  default = 3600
 }
 
 variable "assume_role_policy_document" {
@@ -65,15 +65,18 @@ variable "assume_role_policy_document" {
   nullable = true
   default = {
     statement = [{
-      action     = null
-      condition  = null
-      effect     = ""
-      not_action = null
-      principal  = null
-      resource   = [""]
-      sid        = ""
+      action    = ["sts:AssumeRole"]
+      condition = {}
+      effect    = "Allow"
+      principal = {
+        principal_map = {
+          Account = ["afd580f490394896a6bceabf77683c6b"]
+        }
+      }
+      resource = ["*"]
+      sid      = "VisualEditor0"
     }]
-    version = null
+    version = "2024-07-01"
   }
 }
 
@@ -82,20 +85,19 @@ variable "principals" {
     type  = string,
     value = string
   }))
-  default = [{
-    type  = ""
-    value = ""
-  }]
+  default = null
 }
 
 variable "policy_ids" {
   type    = list(string)
-  default = [""]
+  default = ["ENTER YOUR RESOURCE'S POLICY_IDS"]
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    test_terraform_tag_key = "test_terraform_tag_value"
+  }
 }
 ```
 

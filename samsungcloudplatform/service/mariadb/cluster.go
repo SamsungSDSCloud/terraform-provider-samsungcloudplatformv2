@@ -54,7 +54,7 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 				Description: "Allowed IP addresses list  \n" +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
@@ -473,15 +473,15 @@ func (r *mariadbClusterResource) AsyncPollingTags(ctx context.Context, clusterId
 
 func (r *mariadbClusterResource) MapGetResponseToState(ctx context.Context, resp *scpMariadb.MariadbClusterDetailResponseV1Dot1, plan mariadb.ClusterResource, tagsMap types.Map) (mariadb.ClusterResource, error) {
 
-	var allowableIpAddresses types.List
+	var allowableIpAddresses types.Set
 	if len(resp.AllowableIpAddresses) == 0 {
-		allowableIpAddresses, _ = types.ListValue(types.StringType, []attr.Value{})
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
 	} else {
 		ipAddresses := make([]attr.Value, len(resp.AllowableIpAddresses))
 		for i, ipAddress := range resp.AllowableIpAddresses {
 			ipAddresses[i] = types.StringValue(ipAddress)
 		}
-		allowableIpAddresses, _ = types.ListValue(types.StringType, ipAddresses)
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var backupOption = mariadb.BackupOption{}
@@ -523,8 +523,6 @@ func (r *mariadbClusterResource) MapGetResponseToState(ctx context.Context, resp
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
 				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
 			})
 		}
 
@@ -563,8 +561,7 @@ func (r *mariadbClusterResource) MapGetResponseToState(ctx context.Context, resp
 		Tags:                 tagsMap,
 		Timezone:             types.StringValue(resp.Timezone),
 		VipPublicIpId:        types.StringValue(resp.GetVipPublicIpId()),
-		//VipPublicIpAddress:   types.StringValue(resp.GetVipPublicIpAddress()),
-		VirtualIpAddress: types.StringValue(resp.GetVirtualIpAddress()),
+		VirtualIpAddress:     types.StringValue(resp.GetVirtualIpAddress()),
 	}, nil
 }
 
@@ -831,10 +828,7 @@ func (r *mariadbClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx co
 
 	clusterId := plan.Id.ValueString()
 
-	ipState, _ := databaseUtils.ConvertListtoStringSlice(state.AllowableIpAddresses)
-	ipPlan, _ := databaseUtils.ConvertListtoStringSlice(plan.AllowableIpAddresses)
-
-	addedIPs, removedIps := databaseUtils.CompareIPAddresses(ipState, ipPlan)
+	addedIPs, removedIps := databaseUtils.CompareIPAddresses(state.AllowableIpAddresses, plan.AllowableIpAddresses)
 
 	err := r.client.SetSecurityGroupRules(ctx, clusterId, addedIPs, removedIps)
 	if err != nil {

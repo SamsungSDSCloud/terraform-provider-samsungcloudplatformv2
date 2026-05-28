@@ -34,48 +34,48 @@ output "security_group_rule" {
 
 variable "security_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SECURITY_GROUP_ID"
 }
 
 variable "ethertype" {
   type    = string
-  default = ""
+  default = "IPv4"
 }
 
 variable "protocol" {
   type    = string
-  default = ""
+  default = "TCP"
 }
 
 variable "port_range_min" {
   type    = number
-  default = 0
+  default = 22
 }
 
 variable "port_range_max" {
   type    = number
-  default = 0
+  default = 23
 }
 
 variable "remote_ip_prefix" {
   type    = string
-  default = ""
+  default = "1.1.1.1/30"
 }
 
 variable "remote_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S REMOTE_GROUP_ID"
 }
 
 
 variable "description" {
   type    = string
-  default = ""
+  default = "test description"
 }
 
 variable "direction" {
   type    = string
-  default = ""
+  default = "egress"
 }
 ```
 
@@ -89,7 +89,7 @@ variable "direction" {
 - `ethertype` (String) ethertype 
   - example : IPV4
 - `security_group_id` (String) SecurityGroupId 
-  - example : cff990e6d5ed43d3ab239e4aba0b4c3e
+  - example: YOUR RESOURCE'S SECURITY_GROUP_ID
 
 ### Optional
 
@@ -102,7 +102,7 @@ variable "direction" {
 - `protocol` (String) protocol 
   - example : TCP
 - `remote_group_id` (String) RemoteGroupId 
-  - example : 8a8048af06b048329867e57284347066
+  - example: YOUR RESOURCE'S REMOTE_GROUP_ID
 - `remote_ip_prefix` (String) RemoteIpPrefix 
   - example : 1.1.1.1/32
 

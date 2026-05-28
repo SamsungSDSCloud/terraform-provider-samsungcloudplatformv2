@@ -50,37 +50,37 @@ output "image_output2" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform_test_image"
 }
 
 variable "os_distro" {
   type    = string
-  default = ""
+  default = "ubuntu"
 }
 
 variable "disk_format" {
   type    = string
-  default = ""
+  default = "qcow2"
 }
 
 variable "container_format" {
   type    = string
-  default = ""
+  default = "bare"
 }
 
 variable "min_disk" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "min_ram" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "visibility" {
   type    = string
-  default = ""
+  default = "private"
 }
 
 variable "protected" {
@@ -90,11 +90,11 @@ variable "protected" {
 
 variable "url" {
   type    = string
-  default = ""
+  default = "https://object-store.private.kr-west1.qa2.samsungsdscloud.com/d32cb4b68fa04bbdbb97215376d83e25:jihofobjtest/ubuntu.qcow2"
 }
 variable "instance_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S INSTANCE_ID"
 }
 ```
 

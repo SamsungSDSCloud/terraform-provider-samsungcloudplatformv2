@@ -1,6 +1,7 @@
 variable "loadbalancer_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S LOADBALANCER_ID"
 }
+
 
 

@@ -27,7 +27,7 @@ output "firewall" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -37,7 +37,7 @@ variable "id" {
 ### Required
 
 - `id` (String) Firewall ID 
-  - example : 68db67f78abd405da98a6056a8ee42af
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 

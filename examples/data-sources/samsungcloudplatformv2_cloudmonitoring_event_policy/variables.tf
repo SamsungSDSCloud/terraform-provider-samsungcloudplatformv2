@@ -1,11 +1,12 @@
 variable "XResourceType" {
   type    = string
-  default = ""
+  default = "VM"
 }
 
 variable "EventPolicyId" {
   type    = number
-  default = 0
+  default = 13997
 }
+
 
 

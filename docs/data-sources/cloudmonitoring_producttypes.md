@@ -26,7 +26,7 @@ output "producttypes" {
 
 variable "ProductCategoryCode" {
   type    = string
-  default = ""
+  default = "Compute"
 }
 ```
 

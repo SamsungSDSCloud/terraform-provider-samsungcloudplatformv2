@@ -31,7 +31,7 @@ output "ids" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "page" {
@@ -41,17 +41,17 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -61,7 +61,7 @@ variable "name" {
 ### Optional
 
 - `id` (String) Id 
-  - example : f09708a755e24fceb4e15f7f5c82b0c1
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Name 
   - example : sg_0911
 - `page` (Number) Page 

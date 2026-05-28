@@ -27,7 +27,7 @@ output "log_group" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 

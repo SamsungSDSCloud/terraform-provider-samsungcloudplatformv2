@@ -1,11 +1,12 @@
 variable "transit_gateway_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S TRANSIT_GATEWAY_ID"
 }
 
 variable "product_type" {
   type    = string
-  default = ""
+  default = "TGW_BM"
 }
+
 
 

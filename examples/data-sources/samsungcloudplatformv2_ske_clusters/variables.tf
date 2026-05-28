@@ -1,36 +1,36 @@
 variable "size" {
   type    = number
-  default = 0
+  default = 10000
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "status" {
   type    = list(string)
-  default = [""]
+  default = []
 }
 
 variable "kubernetes_version" {
   type    = list(string)
-  default = [""]
+  default = []
 }
 
 
@@ -38,22 +38,23 @@ variable "kubernetes_version" {
 
 variable "clusters_region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "clusters_filter_name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "clusters_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["test"]
 }
 
 variable "clusters_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
+
 
 

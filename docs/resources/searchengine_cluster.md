@@ -38,18 +38,18 @@ output "cluster_output" {
 }
 
 variable "allowable_ip_addresses" {
-  type    = list(string)
-  default = [""]
+  type    = set(string)
+  default = ["192.168.10.2/32"]
 }
 
 variable "dbaas_engine_version_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID"
 }
 
 variable "is_combined" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "nat_enabled" {
@@ -69,12 +69,12 @@ variable "init_config_option" {
   })
   default = {
     backup_option = {
-      retention_period_day = ""
-      starting_time_hour   = ""
+      retention_period_day = "7"
+      starting_time_hour   = "12"
     }
-    database_port          = 0
-    database_user_name     = ""
-    database_user_password = ""
+    database_port          = 9201
+    database_user_name     = "terraformtest"
+    database_user_password = "ENTER YOUR RESOURCE'S DATABASE_USER_PASSWORD"
   }
 }
 
@@ -93,37 +93,52 @@ variable "instance_groups" {
   }))
   default = [{
     block_storage_groups = [{
-      role_type   = ""
-      size_gb     = 0
-      volume_type = ""
+      role_type   = "OS"
+      size_gb     = 104
+      volume_type = "SSD"
+      }, {
+      role_type   = "DATA"
+      size_gb     = 16
+      volume_type = "SSD"
     }]
     instances = [{
-      role_type = ""
+      role_type = "MASTER_DATA"
     }]
-    role_type        = ""
-    server_type_name = ""
+    role_type        = "MASTER_DATA"
+    server_type_name = "ses1v2m4"
+    }, {
+    block_storage_groups = [{
+      role_type   = "OS"
+      size_gb     = 104
+      volume_type = "SSD"
+    }]
+    instances = [{
+      role_type = "KIBANA"
+    }]
+    role_type        = "KIBANA"
+    server_type_name = "ses1v2m4"
   }]
 }
 
 
 variable "instance_name_prefix" {
   type    = string
-  default = ""
+  default = "searchb"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "searchb"
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "timezone" {
   type    = string
-  default = ""
+  default = "Asia/Seoul"
 }
 
 // OPTION
@@ -135,26 +150,28 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = ""
-    starting_day_of_week   = ""
-    starting_time          = ""
-    use_maintenance_option = false
+    period_hour            = "0.5"
+    starting_day_of_week   = "MON"
+    starting_time          = "0000"
+    use_maintenance_option = true
   }
 }
 
 variable "service_state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    key = "value"
+  }
 }
 
 variable "license" {
   type    = string
-  default = ""
+  default = "{\n   \"license\":{\n      \"uid\":\"f5c002e6-c29d-4dde-bce4-cdb35bf85ab8\",\n      \"type\":\"trial\",\n      \"issue_date_in_millis\":1745193600000,\n      \"expiry_date_in_millis\":1752969599999,\n      \"max_nodes\":3,\n      \"issued_to\":\"S-Core Co., Ltd. (non-production environments)\",\n      \"issuer\":\"API\",\n      \"signature\":\"AAAAAwAAAA2ZzeOwjqKpsuwZQJCbAAABmC9ZN0hjZDBGYnVyRXpCOW5Bb3FjZDAxOWpSbTVoMVZwUzRxVk1PSmkxaktJRVl5MUYvUWh3bHZVUTllbXNPbzBUemtnbWpBbmlWRmRZb25KNFlBR2x0TXc2K2p1Y1VtMG1UQU9TRGZVSGRwaEJGUjE3bXd3LzRqZ05iLzRteWFNekdxRGpIYlFwYkJiNUs0U1hTVlJKNVlXekMrSlVUdFIvV0FNeWdOYnlESDc3MWhlY3hSQmdKSjJ2ZTcvYlBFOHhPQlV3ZHdDQ0tHcG5uOElCaDJ4K1hob29xSG85N0kvTWV3THhlQk9NL01VMFRjNDZpZEVXeUtUMXIyMlIveFpJUkk2WUdveEZaME9XWitGUi9WNTZVQW1FMG1DenhZU0ZmeXlZakVEMjZFT2NvOWxpZGlqVmlHNC8rWVVUYzMwRGVySHpIdURzKzFiRDl4TmM1TUp2VTBOUlJZUlAyV0ZVL2kvVk10L0NsbXNFYVZwT3NSU082dFNNa2prQ0ZsclZ4NTltbU1CVE5lR09Bck93V2J1Y3c9PQAAAQCdy6pBHZq1yaRofO7pDJJrEGmcnsUpa4BmsWywjbOU3zc3zLp6hvVuoWQ8bys6wl+lflToI51p6WinnyGmiFJoSvkNUMquuJMvEza5MlBzu4yb7mZKEUa4hxvz7IjQOltXP7KUXnMa98SrHx9Fkf/N80ZFhGD9t25UBkBgYvKEWTCztmOmNXTX/Sdq+JixfuijiA75EVGWhge7tGc6OpfHBgpZOJIxGOTAIUQiBxWK1ZdBF76CwhEVTbkMiKutvNsbwwo+yWiNGjq0mCUDYZUMXp6T4xk0VLzrmgGhBCqSR2BJzESq1Yk2VmIBv2Sn7JzokbGB3SB7FYQHKArVsinU\",\n      \"start_date_in_millis\":1745193600000\n   }\n}"
 }
 ```
 
@@ -163,10 +180,10 @@ variable "license" {
 
 ### Required
 
-- `allowable_ip_addresses` (List of String) Allowed IP addresses list  
+- `allowable_ip_addresses` (Set of String) Allowed IP addresses list  
   - example: ['192.168.10.1/32']
 - `dbaas_engine_version_id` (String) DBaaS engine version ID 
-  - example: 'b9b9a5547321a65ed980a3dceab2e10b' (Elasticsearch Enterprise 8.15.0)
+  - example: YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID
 - `init_config_option` (Attributes) Init config option (see [below for nested schema](#nestedatt--init_config_option))
 - `instance_groups` (Attributes List) Instance groups (see [below for nested schema](#nestedatt--instance_groups))
 - `instance_name_prefix` (String) Instance name prefix 

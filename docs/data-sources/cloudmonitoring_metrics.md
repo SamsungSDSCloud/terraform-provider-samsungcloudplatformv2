@@ -27,7 +27,7 @@ output "metrics" {
 
 variable "ProductTypeCode" {
   type    = string
-  default = ""
+  default = "VM"
 }
 
 variable "ObjectType" {

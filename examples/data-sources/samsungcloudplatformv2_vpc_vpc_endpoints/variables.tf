@@ -1,51 +1,51 @@
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "resource_type" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "resource_key" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "endpoint_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
@@ -55,6 +55,7 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
+
 

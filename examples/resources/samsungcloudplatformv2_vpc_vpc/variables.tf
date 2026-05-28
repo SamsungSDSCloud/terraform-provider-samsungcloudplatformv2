@@ -1,16 +1,17 @@
 variable "vpc_cidr" {
   type    = string
-  default = ""
+  default = "192.167.0.0/18"
 }
 
 variable "vpc_description" {
   type    = string
-  default = ""
+  default = "test_description"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = "testvp"
 }
+
 
 

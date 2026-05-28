@@ -27,7 +27,7 @@ type ClusterDataSourceDetail struct {
 // Create Cluster의 Request
 type ClusterResource struct {
 	Id                   types.String      `tfsdk:"id"`
-	AllowableIpAddresses types.List        `tfsdk:"allowable_ip_addresses"`
+	AllowableIpAddresses types.Set         `tfsdk:"allowable_ip_addresses"`
 	DbaasEngineVersionId types.String      `tfsdk:"dbaas_engine_version_id"`
 	InitConfigOption     InitConfigOption  `tfsdk:"init_config_option"`
 	InstanceGroups       []InstanceGroup   `tfsdk:"instance_groups"`
@@ -106,7 +106,7 @@ type MaintenanceOption struct {
 
 type ClusterDetail struct {
 	AccountId              types.String      `tfsdk:"account_id"`
-	AllowableIpAddresses   []types.String    `tfsdk:"allowable_ip_addresses"`
+	AllowableIpAddresses   types.Set         `tfsdk:"allowable_ip_addresses"`
 	ConsoleIncluded        types.Bool        `tfsdk:"console_included"`
 	NatEnabled             types.Bool        `tfsdk:"nat_enabled"`
 	DbaasEngine            types.String      `tfsdk:"dbaas_engine"`
@@ -132,7 +132,7 @@ type ClusterDetail struct {
 func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"account_id": types.StringType,
-		"allowable_ip_addresses": types.ListType{
+		"allowable_ip_addresses": types.SetType{
 			ElemType: types.StringType,
 		},
 		"console_included":          types.BoolType,
@@ -233,4 +233,3 @@ type EngineVersion struct {
 	ProductImageType types.String `tfsdk:"product_image_type"`
 	SoftwareVersion  types.String `tfsdk:"software_version"`
 }
-

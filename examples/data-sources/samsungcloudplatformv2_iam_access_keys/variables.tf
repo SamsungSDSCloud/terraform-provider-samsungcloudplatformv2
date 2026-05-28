@@ -1,6 +1,7 @@
 variable "access_key_limit" {
   type    = number
-  default = 0
+  default = 1
 }
+
 
 

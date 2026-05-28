@@ -1,16 +1,18 @@
 variable "policy_name" {
   type    = string
-  default = ""
+  default = "terraform-policy"
 }
 
 variable "policy_description" {
   type    = string
-  default = ""
+  default = "test description"
 }
 
 variable "policy_tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    test_terraform_tag_key = "test_terraform_tag_value"
+  }
 }
 
 variable "policy_version" {
@@ -25,7 +27,18 @@ variable "policy_version" {
       condition  = optional(any),
     }))
   }))
-  default = null
+  default = {
+    policy_document = {
+      statement = [{
+        action   = ["*"]
+        effect   = "Allow"
+        resource = ["*"]
+        sid      = "VisualEditor0"
+      }]
+      version = "2024-07-01"
+    }
+  }
 }
+
 
 

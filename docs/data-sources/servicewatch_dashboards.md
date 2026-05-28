@@ -28,7 +28,7 @@ output "dashboards" {
 
 variable "type" {
   type    = string
-  default = ""
+  default = "Custom"
 }
 
 variable "favorite_enabled" {

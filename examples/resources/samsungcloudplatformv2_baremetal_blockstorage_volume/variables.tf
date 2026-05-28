@@ -1,21 +1,21 @@
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "block_storage_name" {
   type    = string
-  default = ""
+  default = "terraform-bs-01"
 }
 
 variable "disk_type" {
   type    = string
-  default = ""
+  default = "SSD"
 }
 
 variable "size_gb" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "attachments" {
@@ -23,10 +23,7 @@ variable "attachments" {
     object_type = string
     object_id   = string
   }))
-  default = [{
-    object_id   = ""
-    object_type = ""
-  }]
+  default = []
 }
 
 variable "qos" {
@@ -35,25 +32,29 @@ variable "qos" {
     throughput = number
   })
   default = {
-    iops       = 0
-    throughput = 0
+    iops       = 5000
+    throughput = 250
   }
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    no_value = ""
+    tf_key   = "tf_value"
+  }
 }
 
 variable "create_timeouts" {
   type    = string
-  default = ""
+  default = "20m"
 }
 
 variable "delete_timeouts" {
   type    = string
-  default = ""
+  default = "20m"
 }
+
 
 
 

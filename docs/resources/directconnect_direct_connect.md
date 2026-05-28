@@ -30,22 +30,22 @@ output "directconnect_output" {
 
 variable "dcon_name" {
   type    = string
-  default = ""
+  default = "testdcon"
 }
 
 variable "dcon_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S DCON_VPC_ID"
 }
 
 variable "dcon_bandwidth" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "dcon_description" {
   type    = string
-  default = ""
+  default = "description test"
 }
 ```
 
@@ -59,7 +59,7 @@ variable "dcon_description" {
 - `name` (String) Direct Connect Name 
   - example : directConnectName
 - `vpc_id` (String) VPC ID 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 

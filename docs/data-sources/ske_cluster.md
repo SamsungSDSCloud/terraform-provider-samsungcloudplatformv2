@@ -27,7 +27,7 @@ output "cluster" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -37,7 +37,7 @@ variable "id" {
 ### Required
 
 - `id` (String) Cluster ID
-  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -49,7 +49,7 @@ variable "id" {
 Read-Only:
 
 - `account_id` (String) Account ID
-  - example: 617b3d0e90c24a5fa1f65a3824861354
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `cloud_logging_enabled` (Boolean) Cloud Logging Enabled
   - example: true
 - `cluster_namespace` (String) Cluster Namespace
@@ -57,9 +57,9 @@ Read-Only:
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `id` (String) ID
-  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
+  - example: YOUR RESOURCE'S ID
 - `kubernetes_version` (String) Cluster Version
   - example: v1.29.8
 - `managed_security_group` (Attributes) Managed Security Group (see [below for nested schema](#nestedatt--cluster--managed_security_group))
@@ -68,7 +68,7 @@ Read-Only:
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Cluster Name
   - example: sample-cluster
 - `node_count` (Number) Cluster Node Count
@@ -99,7 +99,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Managed Security Group ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Managed Security Group Name
   - example: sample-name
 
@@ -110,7 +110,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Private Endpoint Access Control Resource ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Private Endpoint Access Control Resource Name
   - example: sample-name
 - `type` (String) Private Endpoint Access Control Resource Type
@@ -123,7 +123,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Security Group ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Security Group Name
   - example: sample-name
 
@@ -134,7 +134,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Subnet ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Subnet Name
   - example: sample-name
 
@@ -145,7 +145,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Volume ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Volume Name
   - example: sample-name
 
@@ -156,6 +156,6 @@ Read-Only:
 Read-Only:
 
 - `id` (String) VPC ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) VPC Name
   - example: sample-name

@@ -29,32 +29,32 @@ output "networkLoggingConfigurations" {
 
 variable "limit" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "marker" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "resource_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S RESOURCE_ID"
 }
 
 variable "resource_name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "resource_type" {
   type    = string
-  default = ""
+  default = "FIREWALL"
 }
 ```
 
@@ -77,7 +77,7 @@ variable "resource_type" {
   - maxLength : 64 
   - minLength : 1
 - `resource_id` (String) ResourceId 
-  - example : xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  - example: YOUR RESOURCE'S RESOURCE_ID
 - `resource_name` (String) ResourceName 
   - example : FW_IGW_xxxxxx
 - `sort` (String) Sort 

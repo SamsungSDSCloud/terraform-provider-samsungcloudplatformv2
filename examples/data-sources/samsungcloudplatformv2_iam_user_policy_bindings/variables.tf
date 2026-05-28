@@ -1,36 +1,37 @@
 variable "user_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S USER_ID"
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 5
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "policy_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S POLICY_ID"
 }
 
 variable "policy_name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "policy_type" {
   type    = string
-  default = ""
+  default = null
 }
+
 
 

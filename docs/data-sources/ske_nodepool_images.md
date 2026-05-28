@@ -32,32 +32,32 @@ output "nodepool_images" {
 
 variable "scp_original_image_type" {
   type    = string
-  default = ""
+  default = "k8s"
 }
 
 variable "kubernetes_version" {
   type    = string
-  default = ""
+  default = "v1.34.3"
 }
 
 variable "os" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "size" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "page" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -105,7 +105,7 @@ Read-Only:
 - `end_of_support` (Boolean) Whether this is an EOS (End of Service) image
   - example: false
 - `id` (String) Image ID
-  - example: 10a599e031e749b7b260868f441e862b
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Image name
   - example: ubuntu-22.04-k8s-v1.29.8
 - `os` (String) Image OS

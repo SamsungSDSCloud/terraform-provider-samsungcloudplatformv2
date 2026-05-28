@@ -27,7 +27,7 @@ output "nodepool" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -37,7 +37,7 @@ variable "id" {
 ### Required
 
 - `id` (String) Nodepool ID
-  - example: bdfda539-bd2e-4a5c-9021-ec6d52d1ca79
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -54,7 +54,7 @@ Optional:
 Read-Only:
 
 - `account_id` (String) Account ID
-  - example: 617b3d0e90c24a5fa1f65a3824861354
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `advanced_settings` (Attributes) Node Pool Advanced Settings (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
 - `auto_recovery_enabled` (Boolean) Is Auto Recovery
   - example: true
@@ -64,13 +64,13 @@ Read-Only:
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `current_node_count` (Number) Current Node Count
   - example: 1
 - `desired_node_count` (Number) Desired Node Count
   - example: 2
 - `id` (String) Nodepool ID
-  - example: bdfda539-bd2e-4a5c-9021-ec6d52d1ca79
+  - example: YOUR RESOURCE'S ID
 - `image` (Attributes) Image (see [below for nested schema](#nestedatt--nodepool--image))
 - `keypair` (Attributes) Keypair Name (see [below for nested schema](#nestedatt--nodepool--keypair))
 - `kubernetes_version` (String) Kubernetes Version
@@ -84,11 +84,11 @@ Read-Only:
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Nodepool Name
   - example: sample-nodepool
 - `server_group_id` (String) Server Group ID
-  - example: 2b8d33d5-4de5-40a5-a34c-7e30204133xc
+  - example: YOUR RESOURCE'S SERVER_GROUP_ID
 - `server_type` (Attributes) Server Type (see [below for nested schema](#nestedatt--nodepool--server_type))
 - `status` (String) Node Pool Status
   - example: Running
@@ -136,7 +136,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Cluster ID
-  - example: 70a599e031e749b7b260868f441e862b
+  - example: YOUR RESOURCE'S ID
 
 
 <a id="nestedatt--nodepool--image"></a>
@@ -183,7 +183,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Linked Resource ID
-  - example: res-12345678
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Linked Resource Name
   - example: my-resource
 - `type` (String) Linked Resource Type (fs/obs)
@@ -198,7 +198,7 @@ Read-Only:
 - `description` (String) Server Type Description
   - example: Standard
 - `id` (String) Server Type ID
-  - example: 10a599e031e749b7b260868f441e862b
+  - example: YOUR RESOURCE'S ID
 
 
 <a id="nestedatt--nodepool--taints"></a>
@@ -224,6 +224,6 @@ Read-Only:
 - `encrypt` (Boolean) Volume Type Encrypt
   - example: true
 - `id` (String) Volume Type ID
-  - example: 10a599e031e749b7b260868f441e862b
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Volume Type Name
   - example: SSD

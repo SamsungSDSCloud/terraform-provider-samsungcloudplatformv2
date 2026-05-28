@@ -11,7 +11,9 @@ category:
   loadbalancer_lb_server_groups: LB Server Group
   loadbalancer_loadbalancer: Load Balancer
   loadbalancer_loadbalancers: Load Balancer
-  loadbalancer_loadbalancer_public_nat_ip: Public NAT IP
+  loadbalancer_loadbalancer_public_nat_ip: Load Balancer
+  loadbalancer_loadbalancer_private_nat_ip: Load Balancer
+
 
 
 

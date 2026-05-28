@@ -1,15 +1,16 @@
 variable "igw_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S IGW_VPC_ID"
 }
 
 variable "igw_type" {
   type    = string
-  default = ""
+  default = "IGW"
 }
 
 variable "igw_description" {
   type    = string
-  default = ""
+  default = "igw create test"
 }
+
 

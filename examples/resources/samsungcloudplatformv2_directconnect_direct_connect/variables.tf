@@ -1,20 +1,21 @@
 variable "dcon_name" {
   type    = string
-  default = ""
+  default = "testdcon"
 }
 
 variable "dcon_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S DCON_VPC_ID"
 }
 
 variable "dcon_bandwidth" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "dcon_description" {
   type    = string
-  default = ""
+  default = "description test"
 }
+
 

@@ -30,32 +30,32 @@ output "event_policies" {
 
 variable "ProductResourceId" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S PRODUCTRESOURCEID"
 }
 
 variable "EventState" {
   type    = string
-  default = ""
+  default = "ALL"
 }
 
 variable "QueryStartDt" {
   type    = string
-  default = ""
+  default = "2025-01-01T18:00:00.000Z"
 }
 
 variable "QueryEndDt" {
   type    = string
-  default = ""
+  default = "2025-03-12T23:59:59.000Z"
 }
 
 variable "XResourceType" {
   type    = string
-  default = ""
+  default = "VM"
 }
 
 variable "Size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "Page" {

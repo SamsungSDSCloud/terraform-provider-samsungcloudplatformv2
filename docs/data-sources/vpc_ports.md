@@ -26,7 +26,7 @@ output "ports" {
 
 variable "limit" {
   type    = number
-  default = 0
+  default = 10
 }
 ```
 
@@ -36,11 +36,11 @@ variable "limit" {
 ### Optional
 
 - `attached_resource_id` (String) Attached Resource ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
 - `fixed_ip_address` (String) Fixed IP Address 
   - example : 172.24.4.2
 - `id` (String) Port ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID
 - `limit` (Number) Limit 
   - example : 10 
   - maximum : 10000 
@@ -58,7 +58,7 @@ variable "limit" {
 - `state` (String) State 
   - example : CREATING | ACTIVE | DELETING | ERROR
 - `subnet_id` (String) Subnet ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `subnet_name` (String) Subnet Name 
   - example : subnetName
 

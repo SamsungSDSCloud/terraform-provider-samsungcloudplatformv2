@@ -1,11 +1,12 @@
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "hosted_zone_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S HOSTED_ZONE_ID"
 }
+
 
 

@@ -38,20 +38,17 @@ output "cluster_output" {
 }
 
 variable "allowable_ip_addresses" {
-  type = list(string)
-  #  default = []
-  default = [""]
+  type    = set(string)
+  default = ["192.168.10.1/32", "192.168.10.2/32"]
 }
 
 variable "dbaas_engine_version_id" {
-  type = string
-  #default = "e4dc55b4607f4a42be1baae17af4ccaa" // Valkey
-  default = ""
+  type    = string
+  default = "ENTER YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID" // Redis
 }
 
 variable "ha_enabled" {
-  type = bool
-  #  default = true
+  type    = bool
   default = false
 }
 
@@ -67,12 +64,12 @@ variable "init_config_option" {
   })
   default = {
     backup_option = {
-      retention_period_day = ""
-      starting_time_hour   = ""
+      retention_period_day = null
+      starting_time_hour   = null
     }
-    database_port          = 0
-    database_user_password = ""
-    sentinel_port          = 0
+    database_port          = 6378
+    database_user_password = "ENTER YOUR RESOURCE'S DATABASE_USER_PASSWORD"
+    sentinel_port          = 26378
   }
 }
 
@@ -87,27 +84,29 @@ variable "instance_groups" {
     }))
     instances = list(object({
       role_type = string
-      #      service_ip_address    = string
-      #      public_ip_id          = string
     }))
   }))
   default = [{
     block_storage_groups = [{
-      role_type   = ""
-      size_gb     = 0
-      volume_type = ""
+      role_type   = "OS"
+      size_gb     = 104
+      volume_type = "SSD"
+      }, {
+      role_type   = "DATA"
+      size_gb     = 56
+      volume_type = "SSD"
     }]
     instances = [{
-      role_type = ""
+      role_type = "MASTER"
     }]
-    role_type        = ""
-    server_type_name = ""
+    role_type        = "MASTER"
+    server_type_name = "redis1v1m2"
   }]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = ""
+  default = "terra"
 }
 
 // OPTION
@@ -119,21 +118,20 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = ""
-    starting_day_of_week   = ""
-    starting_time          = ""
+    period_hour            = null
+    starting_day_of_week   = null
+    starting_time          = null
     use_maintenance_option = false
   }
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terrad"
 }
 
 variable "nat_enabled" {
-  type = bool
-  #  default = true
+  type    = bool
   default = false
 }
 
@@ -143,25 +141,25 @@ variable "replica_count" {
 }
 
 variable "subnet_id" {
-  type = string
-  #default = "ce93a65b18164072a856c1c31adc1108"
-  #default = "eb838b2fb1a5405eab29b1341ca912bb"
-  default = ""
+  type    = string
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "timezone" {
   type    = string
-  default = ""
+  default = "Asia/Seoul"
 }
 
 variable "service_state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    key = "value"
+  }
 }
 ```
 
@@ -170,10 +168,10 @@ variable "tags" {
 
 ### Required
 
-- `allowable_ip_addresses` (List of String) Allowed IP addresses list  
+- `allowable_ip_addresses` (Set of String) Allowed IP addresses list  
   - example: ['192.168.10.1/32']
 - `dbaas_engine_version_id` (String) DBaaS engine version ID 
-  - example: 'aef8e9ace6f54207bdf6266d4028cb74' (Redis OSS Sentinel 7.2.6)
+  - example: YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID
 - `ha_enabled` (Boolean) HA availability 
   - example: False
 - `init_config_option` (Attributes) Init config option (see [below for nested schema](#nestedatt--init_config_option))

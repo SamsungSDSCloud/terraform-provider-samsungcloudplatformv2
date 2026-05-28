@@ -36,7 +36,7 @@ output "vpcs_peering" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
@@ -46,7 +46,7 @@ variable "name" {
 
 variable "requester_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S REQUESTER_VPC_ID"
 }
 
 variable "requester_vpc_name" {
@@ -56,7 +56,7 @@ variable "requester_vpc_name" {
 
 variable "approver_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S APPROVER_VPC_ID"
 }
 
 variable "approver_vpc_name" {
@@ -66,12 +66,12 @@ variable "approver_vpc_name" {
 
 variable "account_type" {
   type    = string
-  default = ""
+  default = "SAME"
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "page" {
@@ -81,12 +81,12 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = "ACTIVE"
 }
 ```
 

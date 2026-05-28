@@ -39,37 +39,37 @@ output "cluster_output" {
 
 variable "cluster_cloud_logging_enabled" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "cluster_kubernetes_version" {
   type    = string
-  default = ""
+  default = "v1.31.8"
 }
 
 variable "cluster_name" {
   type    = string
-  default = ""
+  default = "terraform-test"
 }
 
 variable "cluster_security_group_id_list" {
   type    = list(string)
-  default = [""]
+  default = ["852ecca3-7252-44a9-9582-967745ae338c", "09029278-adca-4acf-b959-4eabc3d4baeb"]
 }
 
 variable "cluster_subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CLUSTER_SUBNET_ID"
 }
 
 variable "cluster_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CLUSTER_VPC_ID"
 }
 
 variable "cluster_volume_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CLUSTER_VOLUME_ID"
 }
 
 variable "private_endpoint_access_control_resources" {
@@ -78,16 +78,12 @@ variable "private_endpoint_access_control_resources" {
     name = string
     type = string
   }))
-  default = [{
-    id   = ""
-    name = ""
-    type = ""
-  }]
+  default = []
 }
 
 variable "public_endpoint_access_control_ip" {
   type    = string
-  default = ""
+  default = "123.123.123.123"
 }
 
 variable "service_watch_logging_enabled" {
@@ -116,11 +112,11 @@ variable "service_watch_logging_enabled" {
 - `service_watch_logging_enabled` (Boolean) Service Watch Enabled
   - example: true
 - `subnet_id` (String) Subnet ID
-  - example: 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `volume_id` (String) Volume ID
-  - example: [bfdbabf2-04d9-4e8b-a205-020f8e6da438]
+  - example: ['YOUR RESOURCE'S VOLUME_ID']
 - `vpc_id` (String) VPC ID
-  - example: 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
@@ -142,7 +138,7 @@ variable "service_watch_logging_enabled" {
 Required:
 
 - `id` (String) Private Endpoint Access Control Resource ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Private Endpoint Access Control Resource Name
   - example: sample-name
 - `type` (String) Private Endpoint Access Control Resource Type
@@ -155,7 +151,7 @@ Required:
 Read-Only:
 
 - `account_id` (String) Account ID
-  - example: 617b3d0e90c24a5fa1f65a3824861354
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `cloud_logging_enabled` (Boolean) Cloud Logging Enabled
   - example: true
 - `cluster_namespace` (String) Cluster Namespace
@@ -163,9 +159,9 @@ Read-Only:
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `id` (String) ID
-  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
+  - example: YOUR RESOURCE'S ID
 - `kubernetes_version` (String) Cluster Version
   - example: v1.29.8
 - `managed_security_group` (Attributes) Managed Security Group (see [below for nested schema](#nestedatt--cluster--managed_security_group))
@@ -174,7 +170,7 @@ Read-Only:
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Cluster Name
   - example: sample-cluster
 - `node_count` (Number) Cluster Node Count
@@ -205,7 +201,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) External Resource ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) External Resource name
   - example: sample-name
 
@@ -216,7 +212,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Private Endpoint Access Control Resource ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Private Endpoint Access Control Resource Name
   - example: sample-name
 - `type` (String) Private Endpoint Access Control Resource Type
@@ -229,7 +225,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) External Resource ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) External Resource name
   - example: sample-name
 
@@ -240,7 +236,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) External Resource ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) External Resource name
   - example: sample-name
 
@@ -251,7 +247,7 @@ Read-Only:
 Read-Only:
 
 - `id` (String) External Resource ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) External Resource name
   - example: sample-name
 
@@ -262,6 +258,6 @@ Read-Only:
 Read-Only:
 
 - `id` (String) External Resource ID
-  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f
+  - example: YOUR RESOURCE'S ID
 - `name` (String) External Resource name
   - example: sample-name

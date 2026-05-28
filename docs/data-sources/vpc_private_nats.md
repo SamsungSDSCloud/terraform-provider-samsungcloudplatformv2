@@ -42,7 +42,7 @@ output "privatenats" {
 variable "size" {
   type        = number
   description = "size"
-  default     = 0
+  default     = 5
 }
 
 variable "page" {
@@ -54,49 +54,49 @@ variable "page" {
 variable "sort" {
   type        = string
   description = "sort"
-  default     = ""
+  default     = "created_at:desc"
 }
 
 variable "name" {
   type        = string
   description = "Private NAT Name"
-  default     = ""
+  default     = null
 }
 
 variable "cidr" {
   type        = string
   description = "Private NAT IP range"
-  default     = ""
+  default     = null
 }
 
 variable "vpc_id" {
   type        = string
   description = "VPC Id"
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "service_resource_id" {
   type        = string
   description = "Private NAT connected Service Resource ID"
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S SERVICE_RESOURCE_ID"
 }
 
 variable "service_type" {
   type        = string
   description = "Private NAT connected Service Type"
-  default     = ""
+  default     = null
 }
 
 variable "service_resource_name" {
   type        = string
   description = "Private NAT connected Service Resource Name"
-  default     = ""
+  default     = null
 }
 
 variable "state" {
   type        = string
   description = "Private NAT State"
-  default     = ""
+  default     = null
 }
 ```
 
@@ -113,7 +113,7 @@ variable "state" {
   - example : 0 
   - minimum : 0
 - `service_resource_id` (String) Private NAT connected Service Resource ID 
-  - example : 3f342bf9a557405b997c2cf48c89cbc2
+  - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
 - `service_resource_name` (String) Private NAT connected Service Resource Name 
   - example : Service Resource Name
 - `service_type` (String) Private NAT connected Service Type 
@@ -126,7 +126,7 @@ variable "state" {
 - `state` (String) Private NAT State 
   - example : CREATING | ACTIVE | DELETING | DELETED | ERROR
 - `vpc_id` (String) VPC Id 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
@@ -139,25 +139,25 @@ variable "state" {
 Read-Only:
 
 - `account_id` (String) Account ID 
-  - example : f1e6c81a2b054582878cb9724dc2ce9f
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `cidr` (String) Private NAT IP range 
   - example : 192.167.0.0/24
 - `created_at` (String) Created At 
   - example : 2024-05-17T00:23:17Z
 - `created_by` (String) Created By 
-  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Description 
   - example : PrivateNat Description
 - `id` (String) Private NAT ID 
-  - example : 12f56e27070248a6a240a497e43fbe18
+  - example: YOUR RESOURCE'S ID
 - `modified_at` (String) Modified At 
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By 
-  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Private NAT Name 
   - example : PrivateNatName
 - `service_resource_id` (String) Private NAT connected Service Resource ID 
-  - example : 3f342bf9a557405b997c2cf48c89cbc2
+  - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
 - `service_resource_name` (String) Private NAT connected Service Resource Name 
   - example : PrivateNatName
 - `service_type` (String) Private NAT connected Service Type 

@@ -57,27 +57,27 @@ output "server_output" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform_test_server"
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = "ACTIVE"
 }
 
 variable "image_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S IMAGE_ID"
 }
 
 variable "server_type_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SERVER_TYPE_ID"
 }
 
 variable "keypair_name" {
   type    = string
-  default = ""
+  default = "terraform_test_keypair"
 }
 
 variable "lock" {
@@ -97,45 +97,45 @@ variable "boot_volume" {
     delete_on_termination = bool
   })
   default = {
-    delete_on_termination = false
-    size                  = 0
-    type                  = ""
+    delete_on_termination = true
+    size                  = 16
+    type                  = "SSD"
   }
 }
 
 variable "server_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SERVER_GROUP_ID"
 }
 
 variable "partition_number" {
   type    = number
-  default = 0
+  default = "1"
 }
 
 variable "security_groups" {
   type    = list(string)
-  default = [""]
+  default = []
 }
 
 variable "networks_interface_1_subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S NETWORKS_INTERFACE_1_SUBNET_ID"
 }
 
 variable "extra_volumes_volume_1_size" {
   type    = number
-  default = 0
+  default = 16
 }
 
 variable "extra_volumes_volume_1_type" {
   type    = string
-  default = ""
+  default = "SSD"
 }
 
 variable "extra_volumes_volume_1_delete_on_termination" {
   type    = bool
-  default = false
+  default = true
 }
 ```
 

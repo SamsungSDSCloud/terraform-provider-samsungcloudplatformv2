@@ -44,21 +44,21 @@ variable "cluster_fabric_details" {
     node_pool_id        = string
   })
   default = {
-    cluster_fabric_id   = null
-    cluster_fabric_name = ""
-    node_pool_id        = ""
+    cluster_fabric_id   = "ENTER YOUR RESOURCE'S CLUSTER_FABRIC_ID"
+    cluster_fabric_name = "clusterb300"
+    node_pool_id        = "ENTER YOUR RESOURCE'S NODE_POOL_ID"
   }
 }
 
 variable "gpu_node_name_prefix" {
   type      = string
   ephemeral = true
-  default   = ""
+  default   = "gpu-b300"
 }
 
 variable "image_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S IMAGE_ID"
 }
 
 variable "init_script" {
@@ -73,24 +73,24 @@ variable "lock_enabled" {
 
 variable "os_user_password" {
   type      = string
+  default   = "ENTER YOUR RESOURCE'S OS_USER_PASSWORD"
   ephemeral = true
-  default   = ""
 }
 
 variable "region_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S REGION_ID"
 }
 
 variable "server_type_id" {
   type      = string
+  default   = "ENTER YOUR RESOURCE'S SERVER_TYPE_ID"
   ephemeral = true
-  default   = ""
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 
@@ -99,28 +99,30 @@ variable "server_details" {
     state = string
   }))
   default = [{
-    state = ""
+    state = "RUNNING"
   }]
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    "1stopped" = "delsoon"
+  }
 }
 
 variable "create_timeouts" {
   type    = string
-  default = ""
+  default = "60m"
 }
 
 variable "delete_timeouts" {
   type    = string
-  default = ""
+  default = "40m"
 }
 ```
 
@@ -135,23 +137,23 @@ variable "delete_timeouts" {
   - maxLength(for linux): 24
   - pattern(for linux): ^[a-z][a-z0-9-]{1,22}[a-z0-9]$
 - `image_id` (String) Image ID
-  - example: IMAGE-7XFMaJpLsapKvskFMjCtmm
+  - example: YOUR RESOURCE'S IMAGE_ID
 - `os_user_password` (String) OS user password.
-  - example: P@ssword1!2
+  - example: YOUR RESOURCE'S OS_USER_PASSWORD
   - maxLength: 20
   - minLength: 9
   - pattern: ^[A-Za-z0-9@$!%*#&]+$
 - `region_id` (String) Region ID
-  - example: kr-west1
+  - example: YOUR RESOURCE'S REGION_ID
 - `server_details` (Attributes List) Detailed settings for each server, 2 or more server on creation
   - maxLength: 5
   - minLength: 2 (see [below for nested schema](#nestedatt--server_details))
 - `server_type_id` (String) Server Type ID
-  - example: PRODUCT-0iT9dNiLr4lVoYmjlY2Vgg
+  - example: YOUR RESOURCE'S SERVER_TYPE_ID
 - `subnet_id` (String) Subnet ID
-  - example: ab313c43291e4b678f4bacffe10768ae
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) VPC ID
-  - example: e58348b1bc9148e5af86500fd4ef99ca
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
@@ -169,21 +171,21 @@ variable "delete_timeouts" {
 ### Read-Only
 
 - `account_id` (String) Account ID
-  - example: f5c8e56a4d9b49a8bd89e14758a32d53
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `image_version` (String) Image Version
   - example: RHEL 8.7 for BM
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `os_type` (String) OS type
   - example: WINDOWS
 - `product_type_id` (String) Product type ID
-  - example: f90e8ef54cc2451b825608e9f95f7bcb
+  - example: YOUR RESOURCE'S PRODUCT_TYPE_ID
 - `root_account` (String) Root Account
   - example: root
 - `time_zone` (String) Time Zone
@@ -199,12 +201,12 @@ Required:
   - pattern: ^([a-zA-Z]{1})([a-zA-Z0-9-]{1,13})([a-zA-Z0-9]{1})$
   - example: cluster001
 - `node_pool_id` (String) Node Pool ID
-  - example: POOL001-krw1a
+  - example: YOUR RESOURCE'S NODE_POOL_ID
 
 Optional:
 
 - `cluster_fabric_id` (String) Cluster Fabric ID
- - example: 20c507a036c447cdb3b19468d8ea62ac
+ - example: YOUR RESOURCE'S CLUSTER_FABRIC_ID
 
 
 <a id="nestedatt--server_details"></a>
@@ -220,7 +222,7 @@ Read-Only:
 
 - `gpu_node_name` (String) GPU Node name in format prefix-###.  - example: gpunode-001
 - `id` (String) GPU Node ID
-  - example: 20c507a036c447cdb3b19468d8ea62ac
+  - example: YOUR RESOURCE'S ID
 - `ip_address` (String) subnet IP address
   - example: 192.168.2.4
 - `nat_enabled` (Boolean) Use Public NAT

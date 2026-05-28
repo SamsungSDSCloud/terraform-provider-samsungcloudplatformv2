@@ -1,5 +1,6 @@
 variable "nodepool_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S NODEPOOL_ID"
 }
+
 

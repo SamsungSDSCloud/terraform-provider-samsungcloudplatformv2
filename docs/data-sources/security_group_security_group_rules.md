@@ -34,12 +34,12 @@ output "ids" {
 
 variable "security_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SECURITY_GROUP_ID"
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "page" {
@@ -49,32 +49,32 @@ variable "page" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "remote_ip_prefix" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "remote_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S REMOTE_GROUP_ID"
 }
 
 variable "description" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "direction" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "service" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -84,7 +84,7 @@ variable "service" {
 ### Required
 
 - `security_group_id` (String) SecurityGroupId 
-  - example : 75a49bb9896a40a49c53e0d8b5a57c06
+  - example: YOUR RESOURCE'S SECURITY_GROUP_ID
 
 ### Optional
 
@@ -93,11 +93,11 @@ variable "service" {
 - `direction` (String) Direction 
   - example : ingress
 - `id` (String) Id 
-  - example : e09b390420d247e3b6699b2de1b44316
+  - example: YOUR RESOURCE'S ID
 - `page` (Number) Page 
   - example : 0
 - `remote_group_id` (String) RemoteGroupId 
-  - example : 54aa099f05224ddca958b08945dfb26a
+  - example: YOUR RESOURCE'S REMOTE_GROUP_ID
 - `remote_ip_prefix` (String) RemoteIpPrefix 
   - example : 10.10.10.10/32
 - `service` (String) Service 

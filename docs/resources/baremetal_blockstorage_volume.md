@@ -38,22 +38,22 @@ output "block_storage_output" {
 
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "block_storage_name" {
   type    = string
-  default = ""
+  default = "terraform-bs-01"
 }
 
 variable "disk_type" {
   type    = string
-  default = ""
+  default = "SSD"
 }
 
 variable "size_gb" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "attachments" {
@@ -61,10 +61,7 @@ variable "attachments" {
     object_type = string
     object_id   = string
   }))
-  default = [{
-    object_id   = ""
-    object_type = ""
-  }]
+  default = []
 }
 
 variable "qos" {
@@ -73,24 +70,27 @@ variable "qos" {
     throughput = number
   })
   default = {
-    iops       = 0
-    throughput = 0
+    iops       = 5000
+    throughput = 250
   }
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    no_value = ""
+    tf_key   = "tf_value"
+  }
 }
 
 variable "create_timeouts" {
   type    = string
-  default = ""
+  default = "20m"
 }
 
 variable "delete_timeouts" {
   type    = string
-  default = ""
+  default = "20m"
 }
 ```
 
@@ -129,7 +129,7 @@ variable "delete_timeouts" {
 ### Read-Only
 
 - `id` (String) Volume id. 
-  - example: 8bf55e738d4e44b5a21dbe133a42ecbe
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--attachments"></a>
 ### Nested Schema for `attachments`
@@ -137,7 +137,7 @@ variable "delete_timeouts" {
 Required:
 
 - `object_id` (String) Object id. 
-  - example : 83c3c73d457345e3829ee6d5557c0016
+  - example: YOUR RESOURCE'S OBJECT_ID
 - `object_type` (String) Object type. 
   - example : 'BM' 
   - pattern : 'BM|MNGC'

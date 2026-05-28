@@ -54,7 +54,7 @@ func (r *mysqlClusterResource) Schema(_ context.Context, _ resource.SchemaReques
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 				Description: "Allowed IP addresses list  \n" +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
@@ -226,13 +226,6 @@ func (r *mysqlClusterResource) Schema(_ context.Context, _ resource.SchemaReques
 										Description: "Public IP ID (Required when NatEnabled=True & HaEnabled=False)",
 										Optional:    true,
 									},
-									//common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
-									//	Description: "Public IP address",
-									//	Computed:    true,
-									//	PlanModifiers: []planmodifier.String{
-									//		stringplanmodifier.UseStateForUnknown(),
-									//	},
-									//},
 								},
 							},
 						},
@@ -322,13 +315,6 @@ func (r *mysqlClusterResource) Schema(_ context.Context, _ resource.SchemaReques
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			//common.ToSnakeCase("VipPublicIpAddress"): schema.StringAttribute{
-			//	Description: "Virtual IP address",
-			//	Computed:    true,
-			//	PlanModifiers: []planmodifier.String{
-			//		stringplanmodifier.UseStateForUnknown(),
-			//	},
-			//},
 			common.ToSnakeCase("VirtualIpAddress"): schema.StringAttribute{
 				Description: "Virtual IP address",
 				Optional:    true,
@@ -474,15 +460,15 @@ func (r *mysqlClusterResource) AsyncPollingTags(ctx context.Context, clusterId s
 
 func (r *mysqlClusterResource) MapGetResponseToState(ctx context.Context, resp *scpMysql.MysqlClusterDetailResponseV1Dot1, plan mysql.ClusterResource, tagsMap types.Map) (mysql.ClusterResource, error) {
 
-	var allowableIpAddresses types.List
+	var allowableIpAddresses types.Set
 	if len(resp.AllowableIpAddresses) == 0 {
-		allowableIpAddresses, _ = types.ListValue(types.StringType, []attr.Value{})
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
 	} else {
 		ipAddresses := make([]attr.Value, len(resp.AllowableIpAddresses))
 		for i, ipAddress := range resp.AllowableIpAddresses {
 			ipAddresses[i] = types.StringValue(ipAddress)
 		}
-		allowableIpAddresses, _ = types.ListValue(types.StringType, ipAddresses)
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var backupOption = mysql.BackupOption{}
@@ -524,8 +510,6 @@ func (r *mysqlClusterResource) MapGetResponseToState(ctx context.Context, resp *
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
 				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
 			})
 		}
 
@@ -832,10 +816,7 @@ func (r *mysqlClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx cont
 
 	clusterId := plan.Id.ValueString()
 
-	ipState, _ := databaseUtils.ConvertListtoStringSlice(state.AllowableIpAddresses)
-	ipPlan, _ := databaseUtils.ConvertListtoStringSlice(plan.AllowableIpAddresses)
-
-	addedIPs, removedIps := databaseUtils.CompareIPAddresses(ipState, ipPlan)
+	addedIPs, removedIps := databaseUtils.CompareIPAddresses(state.AllowableIpAddresses, plan.AllowableIpAddresses)
 
 	err := r.client.SetSecurityGroupRules(ctx, clusterId, addedIPs, removedIps)
 	if err != nil {

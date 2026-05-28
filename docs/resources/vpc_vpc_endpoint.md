@@ -35,47 +35,49 @@ output "vpcendpoint_output" {
 
 variable "vpcendpoint_name" {
   type    = string
-  default = ""
+  default = "sample"
 }
 
 variable "vpcendpoint_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPCENDPOINT_VPC_ID"
 }
 
 variable "vpcendpoint_subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPCENDPOINT_SUBNET_ID"
 }
 
 variable "vpcendpoint_resource_type" {
   type    = string
-  default = ""
+  default = "sample-resource-type"
 }
 
 variable "vpcendpoint_resource_resource_key" {
   type    = string
-  default = ""
+  default = "sample-resource-key"
 }
 
 variable "vpcendpoint_resource_resource_info" {
   type    = string
-  default = ""
+  default = "sample-resource-info"
 }
 
 variable "vpcendpoint_endpoint_ip_address" {
   type    = string
-  default = ""
+  default = "sample-endpoint-ip-address"
 }
 
 variable "vpcendpoint_description" {
   type    = string
-  default = ""
+  default = "sample-description"
 }
 
 variable "vpcendpoint_tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    tf_key1 = "tf_val1"
+  }
 }
 ```
 
@@ -102,9 +104,9 @@ variable "vpcendpoint_tags" {
 - `resource_type` (String) VPC Endpoint Resource Type 
   - example : FS | OBS | SCR | DNS
 - `subnet_id` (String) Subnet ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) VPC ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 

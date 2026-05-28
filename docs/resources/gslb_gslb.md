@@ -49,16 +49,31 @@ variable "gslb" {
     }))
   })
   default = {
-    algorithm    = ""
-    description  = null
-    env_usage    = ""
-    health_check = null
-    name         = ""
+    algorithm   = "round_robin"
+    description = "bbb"
+    env_usage   = "PUBLIC"
+    health_check = {
+      health_check_interval      = 10
+      health_check_probe_timeout = 6
+      health_check_user_id       = "ENTER YOUR RESOURCE'S HEALTH_CHECK_USER_ID"
+      health_check_user_password = "ENTER YOUR RESOURCE'S HEALTH_CHECK_USER_PASSWORD"
+      protocol                   = "http"
+      receive_string             = "asdsad11"
+      send_string                = "asdsad2"
+      service_port               = 40
+      timeout                    = 30
+    }
+    name = "terraform.gslb.dev2.samsungsdscloud.com"
     resources = [{
-      description = null
-      destination = null
-      region      = null
-      weight      = null
+      description = "string"
+      destination = "1.1.1.1"
+      region      = "KR-WEST-1"
+      weight      = 40
+      }, {
+      description = "string"
+      destination = "3.3.3.3"
+      region      = "KR-WEST-2"
+      weight      = 50
     }]
   }
 }
@@ -68,7 +83,7 @@ variable "tag" {
     test_terraform_tag_key = string
   })
   default = {
-    test_terraform_tag_key = ""
+    test_terraform_tag_key = "test_terraform_tag_value"
   }
 }
 ```

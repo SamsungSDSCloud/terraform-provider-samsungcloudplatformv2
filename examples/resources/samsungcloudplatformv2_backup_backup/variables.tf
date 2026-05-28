@@ -1,41 +1,41 @@
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraformtestbackup01"
 }
 
 variable "policy_category" {
   type    = string
-  default = ""
+  default = "AGENTLESS"
 }
 
 variable "policy_type" {
   type    = string
-  default = ""
+  default = "VM_IMAGE"
 }
 
 variable "server_uuid" {
   type    = string
-  default = ""
+  default = "a16687f2-3abc-4f40-bb5d-ee79ea21249d"
 }
 
 variable "server_category" {
   type    = string
-  default = ""
+  default = "VIRTUAL_SERVER"
 }
 
 variable "encrypt_enabled" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "retention_period" {
   type    = string
-  default = ""
+  default = "MONTH_1"
 }
 
 variable "schedules" {
@@ -47,17 +47,33 @@ variable "schedules" {
     start_week = string
   }))
   default = [{
-    frequency  = ""
-    start_day  = ""
-    start_time = ""
-    start_week = ""
-    type       = ""
+    frequency  = "DAILY"
+    start_day  = null
+    start_time = "11:00:00"
+    start_week = null
+    type       = "FULL"
+    }, {
+    frequency  = "WEEKLY"
+    start_day  = "THU"
+    start_time = "12:30:00"
+    start_week = null
+    type       = "INCREMENTAL"
+    }, {
+    frequency  = "MONTHLY"
+    start_day  = "FRI"
+    start_time = "13:00:00"
+    start_week = "WEEK_3"
+    type       = "INCREMENTAL"
   }]
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    test_tag_key  = "test_tag_value"
+    test_tag_key2 = "test_tag_value2"
+  }
 }
+
 
 

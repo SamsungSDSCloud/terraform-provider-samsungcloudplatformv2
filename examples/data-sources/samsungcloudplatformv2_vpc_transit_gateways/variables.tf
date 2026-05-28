@@ -1,24 +1,24 @@
 variable "firewall_connection_state" {
   type    = string
-  default = ""
+  default = null
 }
 
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 
@@ -29,13 +29,14 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = "ACTIVE"
 }
+
 
 
 

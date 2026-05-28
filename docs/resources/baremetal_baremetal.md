@@ -42,12 +42,12 @@ output "baremetal_output" {
 
 variable "image_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S IMAGE_ID"
 }
 
 variable "init_script" {
   type    = string
-  default = ""
+  default = "init script"
 }
 
 variable "lock_enabled" {
@@ -57,37 +57,37 @@ variable "lock_enabled" {
 
 variable "os_user_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S OS_USER_ID"
 }
 
 variable "os_user_password" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S OS_USER_PASSWORD"
 }
 
 variable "placement_group_name" {
   type    = string
-  default = ""
+  default = "pg-group"
 }
 
 variable "region_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S REGION_ID"
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "use_placement_group" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "server_details" {
@@ -103,31 +103,34 @@ variable "server_details" {
     state                              = optional(string)
   }))
   default = [{
-    bare_metal_local_subnet_id         = null
-    bare_metal_local_subnet_ip_address = null
-    bare_metal_server_name             = ""
-    ip_address                         = null
+    bare_metal_local_subnet_id         = "ENTER YOUR RESOURCE'S BARE_METAL_LOCAL_SUBNET_ID"
+    bare_metal_local_subnet_ip_address = ""
+    bare_metal_server_name             = "terraform-test01"
+    ip_address                         = "192.168.1.3"
     nat_enabled                        = false
-    public_ip_address_id               = ""
-    server_type_id                     = ""
-    state                              = null
-    use_hyper_threading                = null
+    public_ip_address_id               = "ENTER YOUR RESOURCE'S PUBLIC_IP_ADDRESS_ID"
+    server_type_id                     = "ENTER YOUR RESOURCE'S SERVER_TYPE_ID"
+    state                              = "RUNNING"
+    use_hyper_threading                = true
   }]
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    test_tag_key  = "test_tag_value"
+    test_tag_key2 = "test_tag_value2"
+  }
 }
 
 variable "create_timeouts" {
   type    = string
-  default = ""
+  default = "60m"
 }
 
 variable "delete_timeouts" {
   type    = string
-  default = ""
+  default = "60m"
 }
 ```
 
@@ -137,27 +140,27 @@ variable "delete_timeouts" {
 ### Required
 
 - `image_id` (String) OS image ID
-  - example: IMAGE-7XFMaJpLsapKvskFMjCtmm
+  - example: YOUR RESOURCE'S IMAGE_ID
 - `os_user_id` (String) OS User Id. When linux image value must be 'root'
-  - example: root123
+  - example: YOUR RESOURCE'S OS_USER_ID
   - maxLength: 20
   - minLength: 5
   - pattern: ^[a-z0-9]{5,20}$
 - `os_user_password` (String) OS user password.
-  - example: P@ssword1!2
+  - example: YOUR RESOURCE'S OS_USER_PASSWORD
   - maxLength: 20
   - minLength: 9
   - pattern: ^[A-Za-z0-9@$!%*#&]+$
 - `region_id` (String) Region ID
-  - example: kr-west1
+  - example: YOUR RESOURCE'S REGION_ID
 - `server_details` (Attributes List) Detailed settings for each server
   - example: [{bare_metal_server_name='bm-server', server_type_id='83c3c73d457345e3829ee6d5557c0011', nat_enabled='false'}]
   - maxLength: 5
   - minLength: 1 (see [below for nested schema](#nestedatt--server_details))
 - `subnet_id` (String) Subnet ID
-  - example: ab313c43291e4b678f4bacffe10768ae
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) VPC ID
-  - example: e58348b1bc9148e5af86500fd4ef99ca
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
@@ -181,19 +184,19 @@ variable "delete_timeouts" {
 ### Read-Only
 
 - `account_id` (String) Account ID
-  - example: f5c8e56a4d9b49a8bd89e14758a32d53
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created by
-  - example: ef716e80-1fac-4faa-892d-0132fc7f5583
+  - example: YOUR RESOURCE'S CREATED_BY
 - `image_version` (String) Image version
   - example: RHEL 8.7 for BM
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified by
-  - example: ef716e80-1fac-4faa-892d-0132fc7f5583
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `network_id` (String) Subnet ID
-  - example: ab313c43291e4b678f4bacffe10768ae
+  - example: YOUR RESOURCE'S NETWORK_ID
 - `os_type` (String) OS type
   - example: WINDOWS
 - `root_account` (String) Root Account
@@ -216,18 +219,18 @@ Required:
 - `nat_enabled` (Boolean) Use Public NAT
   - example: true
 - `server_type_id` (String) Server Type ID
-  - example: PRODUCT-0iT9dNiLr4lVoYmjlY2Vgg
+  - example: YOUR RESOURCE'S SERVER_TYPE_ID
 
 Optional:
 
 - `bare_metal_local_subnet_id` (String) local subnet ID
-  - example: 8d0581b1bbde4195a623abbb1b05700d
+  - example: YOUR RESOURCE'S BARE_METAL_LOCAL_SUBNET_ID
 - `bare_metal_local_subnet_ip_address` (String) local subnet IP
   - example: 192.168.3.4
 - `ip_address` (String) subnet IP address
   - example: 192.168.2.4
 - `public_ip_address_id` (String) public IP address id
-  - example: a765a07e8d9b46f4918fd7d5ed004654
+  - example: YOUR RESOURCE'S PUBLIC_IP_ADDRESS_ID
 - `state` (String) Bare Metal Server state
   - example: RUNNING
   - pattern: RUNNING | STOPPED
@@ -237,7 +240,7 @@ Optional:
 Read-Only:
 
 - `id` (String) Bare Metal Server ID
-  - example: 20c507a036c447cdb3b19468d8ea62ac
+  - example: YOUR RESOURCE'S ID
 
 
 <a id="nestedblock--timeouts"></a>

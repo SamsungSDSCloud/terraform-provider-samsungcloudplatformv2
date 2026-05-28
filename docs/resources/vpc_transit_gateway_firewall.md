@@ -31,12 +31,12 @@ output "my_tgw_firewall" {
 
 variable "transit_gateway_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S TRANSIT_GATEWAY_ID"
 }
 
 variable "product_type" {
   type    = string
-  default = ""
+  default = "TGW_BM"
 }
 ```
 
@@ -65,22 +65,22 @@ Read-Only:
 - `created_at` (String) Created At 
   - example : 2024-05-17T00:23:17Z
 - `created_by` (String) Created By 
-  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Transit Gateway Description
   - example : TransitGateway Description
 - `firewall_connection_state` (String) Firewall Connection State
   - enum: ATTACHING | ACTIVE | DETACHING | DELETED | INACTIVE | ERROR
   - example: INACTIVE
 - `firewall_id` (String) Firewall ID
-  - example: bbb93aca123f4bb2b2c0f206f4a86b2b
+  - example: YOUR RESOURCE'S FIREWALL_ID
 - `firewall_ids` (String) Firewall ID list
-  - example: bbb93aca123f4bb2b2c0f206f4a86b2b
+  - example: YOUR RESOURCE'S FIREWALL_IDS
 - `id` (String) Transit Gateway ID
-  - example: fe860e0af0c04dcd8182b84f907f31f4
+  - example: YOUR RESOURCE'S ID
 - `modified_at` (String) Modified At 
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By 
-  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Transit Gateway Name
   - minLength: 3
   - maxLength: 20

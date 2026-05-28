@@ -39,7 +39,7 @@ output "directConnects" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
@@ -49,32 +49,32 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -84,7 +84,7 @@ variable "vpc_name" {
 ### Optional
 
 - `id` (String) Direct Connect ID 
-  - example : fe860e0af0c04dcd8182b84f907f31f4
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Direct Connect Name 
   - example : directConnectName
 - `page` (Number) page 
@@ -98,7 +98,7 @@ variable "vpc_name" {
 - `state` (String) State 
   - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
 - `vpc_id` (String) VPC ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) VPC Name 
   - example : vpcName
 

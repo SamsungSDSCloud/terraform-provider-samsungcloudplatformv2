@@ -27,7 +27,7 @@ output "account_quota" {
 
 variable "account_quota_account_quota_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ACCOUNT_QUOTA_ACCOUNT_QUOTA_ID"
 }
 ```
 
@@ -48,7 +48,7 @@ variable "account_quota_account_quota_id" {
 Read-Only:
 
 - `account_id` (String) Unique identifier for the account
-  - example: 2b7ed60576ce404bbc734266ff1839a5
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `account_name` (String) Name of the account
   - example: Example Account Inc.
 - `adjustable` (Boolean) Flag indicating if additional quota is being requested
@@ -65,7 +65,7 @@ Read-Only:
 - `free_rate` (Number) Free Rate
   - example: 10
 - `id` (String) Account Quota ID
-  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
+  - example: YOUR RESOURCE'S ID
 - `initial_value` (Number) Initial quota value allocated
   - example: 100
 - `max_per_account` (Number) Max per Account Value

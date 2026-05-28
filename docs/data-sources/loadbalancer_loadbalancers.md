@@ -27,37 +27,37 @@ output "loadbalancers" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "service_ip" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 ```
 

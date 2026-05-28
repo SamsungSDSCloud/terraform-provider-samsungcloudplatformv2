@@ -32,15 +32,15 @@ output "subnet_vip_port" {
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 variable "vip_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VIP_ID"
 }
 variable "port_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S PORT_ID"
 }
 ```
 
@@ -50,15 +50,15 @@ variable "port_id" {
 ### Required
 
 - `port_id` (String) Port ID 
-  - example : 35268a9f2eda4cde83b1d85c1f61f67d
+  - example: YOUR RESOURCE'S PORT_ID
 - `subnet_id` (String) Subnet ID 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vip_id` (String) Subnet Vip Id 
-  - example : 0466a9448d9a4411a86055939e451c8f
+  - example: YOUR RESOURCE'S VIP_ID
 
 ### Read-Only
 
 - `id` (String) Connected Port Id 
-  - example : 35268a9f2eda4cde83b1d85c1f61f67d
+  - example: YOUR RESOURCE'S ID
 - `subnet_vip_id` (String) Subnet Vip Id 
-  - example : 0466a9448d9a4411a86055939e451c8f
+  - example: YOUR RESOURCE'S SUBNET_VIP_ID

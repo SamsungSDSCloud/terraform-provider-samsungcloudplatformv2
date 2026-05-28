@@ -31,73 +31,73 @@ output "response" {
 variable "with_count" {
   description = "With count"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "limit" {
   description = "Limit"
   type        = number
-  default     = 0
+  default     = null
 }
 
 variable "marker" {
   description = "Marker"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "sort" {
   description = "Sort"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "account_id" {
   description = "Account Id"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S ACCOUNT_ID"
 }
 
 variable "diagnosis_id" {
   description = "Id of diagnosis"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S DIAGNOSIS_ID"
 }
 
 variable "diagnosis_name" {
   description = "Name of diagnosis"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "csp_type" {
   description = "Type of cloud service provider"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "diagnosis_state" {
   description = "Diagnosis state"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "start_date" {
   description = "Start date"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "end_date" {
   description = "End date"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "user_id" {
   description = "User id"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S USER_ID"
 }
 ```
 

@@ -29,17 +29,17 @@ output "internetgateway_output" {
 
 variable "igw_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S IGW_VPC_ID"
 }
 
 variable "igw_type" {
   type    = string
-  default = ""
+  default = "IGW"
 }
 
 variable "igw_description" {
   type    = string
-  default = ""
+  default = "igw create test"
 }
 ```
 
@@ -51,7 +51,7 @@ variable "igw_description" {
 - `type` (String) Type 
   - example : IGW | GGW | SIGW
 - `vpc_id` (String) VPC ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 

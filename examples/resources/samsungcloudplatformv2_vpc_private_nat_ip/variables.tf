@@ -1,16 +1,17 @@
 variable "private_nat_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S PRIVATE_NAT_ID"
 }
 
 variable "private_nat_ip_ip_address" {
   type    = string
-  default = ""
+  default = "sample-ip-address"
 }
 
 variable "private_nat_ip_description" {
   type    = string
-  default = ""
+  default = "sample-description"
 }
+
 
 

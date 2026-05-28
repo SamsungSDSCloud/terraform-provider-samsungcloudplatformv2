@@ -26,7 +26,7 @@ output "cluster" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -47,7 +47,7 @@ variable "id" {
 Read-Only:
 
 - `account_id` (String) AccountId
-- `allowable_ip_addresses` (List of String) AllowableIpAddresses
+- `allowable_ip_addresses` (Set of String) AllowableIpAddresses
 - `created_at` (String) CreatedAt
 - `created_by` (String) CreatedBy
 - `dbaas_engine` (String) DbaasEngine
@@ -64,7 +64,7 @@ Read-Only:
 - `nat_enabled` (Boolean) NatEnabled
 - `origin_cluster_id` (String) OriginClusterId
 - `product_type` (String) ProductType
-- `replicas` (Attributes List) Replicas (see [below for nested schema](#nestedatt--cluster--replicas))
+- `replicas` (Set of String) Replicas
 - `role_type` (String) RoleType
 - `service_state` (String) ServiceState
 - `software_version` (String) SoftwareVersion
@@ -142,11 +142,3 @@ Read-Only:
 - `starting_day_of_week` (String) StartingDayOfWeek
 - `starting_time` (String) StartingTime
 - `use_maintenance_option` (Boolean) UseMaintenanceOption
-
-
-<a id="nestedatt--cluster--replicas"></a>
-### Nested Schema for `cluster.replicas`
-
-Read-Only:
-
-- `replica` (String) Replica

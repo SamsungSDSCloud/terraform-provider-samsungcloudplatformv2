@@ -1,21 +1,22 @@
 variable "limit" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "marker" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "resource_type" {
   type    = string
-  default = ""
+  default = "FIREWALL"
 }
+
 
 

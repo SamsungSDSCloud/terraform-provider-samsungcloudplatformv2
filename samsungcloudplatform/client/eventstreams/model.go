@@ -28,7 +28,7 @@ type ClusterDataSourceDetail struct {
 type ClusterResource struct {
 	Id                        types.String      `tfsdk:"id"`
 	AkhqEnabled               types.Bool        `tfsdk:"akhq_enabled"`
-	AllowableIpAddresses      types.List        `tfsdk:"allowable_ip_addresses"`
+	AllowableIpAddresses      types.Set         `tfsdk:"allowable_ip_addresses"`
 	DbaasEngineVersionId      types.String      `tfsdk:"dbaas_engine_version_id"`
 	IsCombined                types.Bool        `tfsdk:"is_combined"`
 	InitConfigOption          InitConfigOption  `tfsdk:"init_config_option"`
@@ -108,7 +108,7 @@ type MaintenanceOption struct {
 
 type ClusterDetail struct {
 	AccountId                 types.String       `tfsdk:"account_id"`
-	AllowableIpAddresses      []types.String     `tfsdk:"allowable_ip_addresses"`
+	AllowableIpAddresses      types.Set          `tfsdk:"allowable_ip_addresses"`
 	DbaasEngine               types.String       `tfsdk:"dbaas_engine"`
 	IsCombined                types.Bool         `tfsdk:"is_combined"`
 	Id                        types.String       `tfsdk:"id"`
@@ -133,7 +133,7 @@ type ClusterDetail struct {
 func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"account_id": types.StringType,
-		"allowable_ip_addresses": types.ListType{
+		"allowable_ip_addresses": types.SetType{
 			ElemType: types.StringType,
 		},
 		"dbaas_engine": types.StringType,
@@ -170,7 +170,6 @@ func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 								"role_type":          types.StringType,
 								"service_ip_address": types.StringType,
 								"public_ip_id":       types.StringType,
-								//"public_ip_address":  types.StringType,
 							},
 						},
 					},

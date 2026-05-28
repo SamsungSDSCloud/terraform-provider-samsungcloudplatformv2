@@ -28,12 +28,12 @@ output "publicip_output" {
 
 variable "publicip_description" {
   type    = string
-  default = ""
+  default = "description-by-terrafrom"
 }
 
 variable "publicip_type" {
   type    = string
-  default = ""
+  default = "GGW"
 }
 ```
 

@@ -1,7 +1,7 @@
 variable "size" {
   type        = number
   description = "size"
-  default     = 0
+  default     = 5
 }
 
 variable "page" {
@@ -13,49 +13,50 @@ variable "page" {
 variable "sort" {
   type        = string
   description = "sort"
-  default     = ""
+  default     = "created_at:desc"
 }
 
 variable "name" {
   type        = string
   description = "Private NAT Name"
-  default     = ""
+  default     = null
 }
 
 variable "cidr" {
   type        = string
   description = "Private NAT IP range"
-  default     = ""
+  default     = null
 }
 
 variable "vpc_id" {
   type        = string
   description = "VPC Id"
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "service_resource_id" {
   type        = string
   description = "Private NAT connected Service Resource ID"
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S SERVICE_RESOURCE_ID"
 }
 
 variable "service_type" {
   type        = string
   description = "Private NAT connected Service Type"
-  default     = ""
+  default     = null
 }
 
 variable "service_resource_name" {
   type        = string
   description = "Private NAT connected Service Resource Name"
-  default     = ""
+  default     = null
 }
 
 variable "state" {
   type        = string
   description = "Private NAT State"
-  default     = ""
+  default     = null
 }
+
 
 

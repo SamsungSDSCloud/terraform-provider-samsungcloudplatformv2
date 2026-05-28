@@ -1,11 +1,12 @@
 variable "bucket_name" {
   type    = string
-  default = ""
+  default = "bucket_name"
 }
 
 variable "resource_type" {
   type    = string
-  default = ""
+  default = "NAT"
 }
+
 
 

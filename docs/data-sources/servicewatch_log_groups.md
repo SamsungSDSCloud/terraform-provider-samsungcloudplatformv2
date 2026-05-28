@@ -28,7 +28,7 @@ output "log_groups" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = "test"
 }
 ```
 

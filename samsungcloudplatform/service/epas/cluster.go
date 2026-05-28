@@ -54,7 +54,7 @@ func (r *epasClusterResource) Schema(_ context.Context, _ resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 				Description: "Allowed IP addresses list  \n" +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
@@ -479,15 +479,15 @@ func (r *epasClusterResource) AsyncPollingTags(ctx context.Context, clusterId st
 func (r *epasClusterResource) MapGetResponseToState(ctx context.Context,
 	resp *scpEpas.EpasClusterDetailResponseV1Dot1, plan epas.ClusterResource, tagsMap types.Map) (epas.ClusterResource, error) {
 
-	var allowableIpAddresses types.List
+	var allowableIpAddresses types.Set
 	if len(resp.AllowableIpAddresses) == 0 {
-		allowableIpAddresses, _ = types.ListValue(types.StringType, []attr.Value{})
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
 	} else {
 		ipAddresses := make([]attr.Value, len(resp.AllowableIpAddresses))
 		for i, ipAddress := range resp.AllowableIpAddresses {
 			ipAddresses[i] = types.StringValue(ipAddress)
 		}
-		allowableIpAddresses, _ = types.ListValue(types.StringType, ipAddresses)
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var backupOption = epas.BackupOption{}
@@ -530,8 +530,6 @@ func (r *epasClusterResource) MapGetResponseToState(ctx context.Context,
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
 				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
 			})
 		}
 
@@ -570,8 +568,7 @@ func (r *epasClusterResource) MapGetResponseToState(ctx context.Context,
 		Tags:                 tagsMap,
 		Timezone:             types.StringValue(resp.Timezone),
 		VipPublicIpId:        types.StringValue(resp.GetVipPublicIpId()),
-		//VipPublicIpAddress:   types.StringValue(resp.GetVipPublicIpAddress()),
-		VirtualIpAddress: types.StringValue(resp.GetVirtualIpAddress()),
+		VirtualIpAddress:     types.StringValue(resp.GetVirtualIpAddress()),
 	}, nil
 }
 
@@ -837,10 +834,7 @@ func (r *epasClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx conte
 
 	clusterId := plan.Id.ValueString()
 
-	ipState, _ := databaseUtils.ConvertListtoStringSlice(state.AllowableIpAddresses)
-	ipPlan, _ := databaseUtils.ConvertListtoStringSlice(plan.AllowableIpAddresses)
-
-	addedIPs, removedIps := databaseUtils.CompareIPAddresses(ipState, ipPlan)
+	addedIPs, removedIps := databaseUtils.CompareIPAddresses(state.AllowableIpAddresses, plan.AllowableIpAddresses)
 
 	err := r.client.SetSecurityGroupRules(ctx, clusterId, addedIPs, removedIps)
 	if err != nil {
@@ -858,44 +852,6 @@ func (r *epasClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx conte
 	}
 
 	return nil
-}
-
-func compareIPAddresses(state []types.String, plan []types.String) ([]string, []string) {
-	toStringSlice := func(input []types.String) []string {
-		var result []string
-		for _, item := range input {
-			if !item.IsNull() {
-				result = append(result, item.ValueString())
-			}
-		}
-		return result
-	}
-
-	toSet := func(items []string) map[string]bool {
-		set := make(map[string]bool)
-		for _, item := range items {
-			set[item] = true
-		}
-		return set
-	}
-
-	stateIPSet := toSet(toStringSlice(state))
-	planIPSet := toSet(toStringSlice(plan))
-
-	diff := func(sourceSet map[string]bool, targetSet map[string]bool) []string {
-		var result []string
-		for key := range sourceSet {
-			if !targetSet[key] {
-				result = append(result, key)
-			}
-		}
-		return result
-	}
-
-	addedIPs := diff(planIPSet, stateIPSet)
-	removedIPs := diff(stateIPSet, planIPSet)
-
-	return addedIPs, removedIPs
 }
 
 func (r *epasClusterResource) handlerUpdateInstanceGroups(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {

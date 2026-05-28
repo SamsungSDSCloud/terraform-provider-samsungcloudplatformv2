@@ -37,17 +37,17 @@ output "subnets" {
 
 variable "cidr" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "page" {
@@ -57,32 +57,32 @@ variable "page" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "type" {
   type    = list(string)
-  default = [""]
+  default = null
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -93,7 +93,7 @@ variable "vpc_name" {
 
 - `cidr` (String) Subnet Cidr
 - `id` (String) Subnet ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Subnet Name 
   - example : subnetName
 - `page` (Number) page
@@ -104,7 +104,7 @@ variable "vpc_name" {
 - `type` (List of String) Type 
   - example : ["LOCAL", "GENERAL", "VPC_ENDPOINT"]
 - `vpc_id` (String) VPC ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) VPC Name 
   - example : vpcName
 
@@ -120,21 +120,21 @@ variable "vpc_name" {
 Read-Only:
 
 - `account_id` (String) Account ID
-  - example: f1e6c81a2b054582878cb9724dc2ce9f
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `cidr` (String) Subnet Cidr
   - example: 192.167.1.0/24
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `gateway_ip_address` (String) Gateway IP Address
   - example: 192.167.1.1
 - `id` (String) Subnet Id
-  - example: 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S ID
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Subnet Name
   - maxLength: 20
   - minLength: 3
@@ -143,6 +143,6 @@ Read-Only:
 - `state` (String) - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR"]
 - `type` (String) - enum: ["GENERAL","LOCAL","VPC_ENDPOINT"]
 - `vpc_id` (String) VPC Id
-  - example: 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) VPC Name
   - example: vpcName

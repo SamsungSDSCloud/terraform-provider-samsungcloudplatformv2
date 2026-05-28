@@ -25,7 +25,7 @@ output "snapshot_schedule" {
 
 variable "volume_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VOLUME_ID"
 }
 ```
 
@@ -35,7 +35,7 @@ variable "volume_id" {
 ### Required
 
 - `volume_id` (String) Volume ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S VOLUME_ID
 
 ### Read-Only
 

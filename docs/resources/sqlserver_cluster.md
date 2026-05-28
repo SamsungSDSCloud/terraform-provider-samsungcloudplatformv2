@@ -39,13 +39,13 @@ output "cluster_output" {
 }
 
 variable "allowable_ip_addresses" {
-  type    = list(string)
-  default = [""]
+  type    = set(string)
+  default = ["192.168.10.1/32", "192.168.10.2/32"]
 }
 
 variable "dbaas_engine_version_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID"
 }
 
 variable "nat_enabled" {
@@ -81,21 +81,21 @@ variable "init_config_option" {
   default = {
     audit_enabled = false
     backup_option = {
-      archive_frequency_minute = ""
-      full_backup_day_of_week  = ""
-      retention_period_day     = ""
-      starting_time_hour       = ""
+      archive_frequency_minute = null
+      full_backup_day_of_week  = null
+      retention_period_day     = null
+      starting_time_hour       = null
     }
-    database_collation     = ""
-    database_port          = 0
-    database_service_name  = ""
-    database_user_name     = ""
-    database_user_password = ""
+    database_collation     = "SQL_Latin1_General_CP1_CI_AS"
+    database_port          = 2866
+    database_service_name  = "Sqlserver"
+    database_user_name     = "sqlserver"
+    database_user_password = "ENTER YOUR RESOURCE'S DATABASE_USER_PASSWORD"
     databases = [{
-      database_name = ""
-      drive_letter  = ""
+      database_name = "sqlserver"
+      drive_letter  = "E"
     }]
-    license = ""
+    license = "HMWJ3-KY3J2-NMVD7-KG4JR-X2G8G"
   }
 }
 
@@ -114,36 +114,40 @@ variable "instance_groups" {
   }))
   default = [{
     block_storage_groups = [{
-      role_type   = ""
-      size_gb     = 0
-      volume_type = ""
+      role_type   = "OS"
+      size_gb     = 104
+      volume_type = "SSD"
+      }, {
+      role_type   = "DATA"
+      size_gb     = 16
+      volume_type = "SSD"
     }]
     instances = [{
-      role_type = ""
+      role_type = "ACTIVE"
     }]
-    role_type        = ""
-    server_type_name = ""
+    role_type        = "ACTIVE"
+    server_type_name = "db1v2m8"
   }]
 }
 
 variable "instance_name_prefix" {
   type    = string
-  default = ""
+  default = "sqlserverb"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "sqlserverb"
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "timezone" {
   type    = string
-  default = ""
+  default = "Asia/Seoul"
 }
 
 // OPTION
@@ -155,16 +159,16 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = ""
-    starting_day_of_week   = ""
-    starting_time          = ""
-    use_maintenance_option = false
+    period_hour            = "0.5"
+    starting_day_of_week   = "MON"
+    starting_time          = "0000"
+    use_maintenance_option = true
   }
 }
 
 variable "vip_public_ip_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VIP_PUBLIC_IP_ID"
 }
 
 variable "virtual_ip_address" {
@@ -174,12 +178,14 @@ variable "virtual_ip_address" {
 
 variable "service_state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    key = "value"
+  }
 }
 ```
 
@@ -188,10 +194,10 @@ variable "tags" {
 
 ### Required
 
-- `allowable_ip_addresses` (List of String) Allowed IP addresses list  
+- `allowable_ip_addresses` (Set of String) Allowed IP addresses list  
   - example: ['192.168.10.1/32']
 - `dbaas_engine_version_id` (String) DBaaS engine version ID 
-  - example: 'b15f062f45f54c3fbf28bfa14d87d1b8' (Microsoft SQL Server 2022 Enterprise ENG-KB5048033-x64)
+  - example: YOUR RESOURCE'S DBAAS_ENGINE_VERSION_ID
 - `ha_enabled` (Boolean) HA availability 
   - example: False
 - `init_config_option` (Attributes) Init config option (see [below for nested schema](#nestedatt--init_config_option))

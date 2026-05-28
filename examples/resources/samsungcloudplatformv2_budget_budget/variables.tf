@@ -1,32 +1,37 @@
 variable "budget_name" {
   type    = string
-  default = ""
+  default = "test_budget"
 }
 
 variable "budget_amount" {
   type    = number
-  default = 0
+  default = 5000000
 }
 
 variable "budget_unit" {
   type    = string
-  default = ""
+  default = "MONTHLY"
 }
 
 variable "budget_start_month" {
   type    = string
-  default = ""
+  default = "2025-12"
 }
 
 variable "budget_notifications" {
-  type    = map
-  default = null
+  type = map
+  default = {
+    is_use_notification = false
+  }
 }
 
 variable "budget_prevention" {
-  type    = map
-  default = null
+  type = map
+  default = {
+    is_use_prevention = false
+  }
 }
+
 
 
 

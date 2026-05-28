@@ -26,12 +26,12 @@ output "replication" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "volume_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VOLUME_ID"
 }
 ```
 
@@ -42,7 +42,7 @@ variable "volume_id" {
 
 - `id` (String) ID
 - `volume_id` (String) Volume ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S VOLUME_ID
 
 ### Read-Only
 
@@ -56,7 +56,7 @@ Read-Only:
 - `replication_frequency` (String) Replication Frequency 
   - example : '5min'
 - `replication_id` (String) Replication ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S REPLICATION_ID
 - `replication_policy` (String) Replication Policy 
   - example : 'use'
 - `replication_status` (String) Replication Status 
@@ -64,7 +64,7 @@ Read-Only:
 - `replication_volume_access_level` (String) Target Access Level 
   - example : 'ro'
 - `replication_volume_id` (String) Target Volume ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S REPLICATION_VOLUME_ID
 - `replication_volume_name` (String) Target Volume Name 
   - example : 'my_volume'
 - `replication_volume_region` (String) Target Volume Region 
@@ -72,7 +72,7 @@ Read-Only:
 - `source_volume_access_level` (String) Source Access Level 
   - example : 'ro'
 - `source_volume_id` (String) Source Volume ID 
-  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438'
+  - example: YOUR RESOURCE'S SOURCE_VOLUME_ID
 - `source_volume_name` (String) Source Volume Name 
   - example : 'my_volume'
 - `source_volume_region` (String) Source Volume Region 

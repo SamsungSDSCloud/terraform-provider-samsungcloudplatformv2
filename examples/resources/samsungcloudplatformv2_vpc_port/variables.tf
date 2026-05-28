@@ -1,21 +1,21 @@
 variable "port_name" {
   type    = string
-  default = ""
+  default = "testport"
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "port_description" {
   type    = string
-  default = ""
+  default = "test_description_sg"
 }
 
 variable "port_fixed_ip_address" {
   type    = string
-  default = ""
+  default = "192.168.0.13"
 }
 
 variable "security_groups" {
@@ -23,7 +23,8 @@ variable "security_groups" {
     id = string
   }))
   default = [{
-    id = ""
+    id = "ENTER YOUR RESOURCE'S ID"
   }]
 }
+
 

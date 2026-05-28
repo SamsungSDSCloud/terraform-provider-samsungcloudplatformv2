@@ -28,11 +28,11 @@ output "firewall_rule" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 variable "firewall_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S FIREWALL_ID"
 }
 ```
 
@@ -42,9 +42,9 @@ variable "firewall_id" {
 ### Required
 
 - `firewall_id` (String) Firewall Id 
-  - example : 68db67f78abd405da98a6056a8ee42af
+  - example: YOUR RESOURCE'S FIREWALL_ID
 - `id` (String) Firewall Rule ID 
-  - example : fd5aa79d25a84f52b02a954c125aa8d9
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 

@@ -21,7 +21,7 @@ Vpn tunnel
 - `phase1` (Attributes) (see [below for nested schema](#nestedatt--phase1))
 - `phase2` (Attributes) (see [below for nested schema](#nestedatt--phase2))
 - `vpn_gateway_id` (String) VpnGatewayId
-  - example : b156740b6335468d8354eb9ef8eddf5a
+  - example: YOUR RESOURCE'S VPN_GATEWAY_ID
 
 ### Optional
 
@@ -34,7 +34,7 @@ Vpn tunnel
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
-  - example : 0e3dffc50eb247a1adf4f2e5c82c4f99
+  - example: YOUR RESOURCE'S ID
 - `vpn_tunnel` (Attributes) Vpn tunnel (see [below for nested schema](#nestedatt--vpn_tunnel))
 
 <a id="nestedatt--phase1"></a>

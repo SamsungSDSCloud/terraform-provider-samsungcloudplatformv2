@@ -26,7 +26,7 @@ output "gpunode" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -40,19 +40,19 @@ variable "id" {
 ### Read-Only
 
 - `account_id` (String) Account ID
-  - example: f5c8e56a4d9b49a8bd89e14758a32d53
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `cluster_fabric_id` (String) Cluster Fabric ID
-  - example: 20c507a036c447cdb3b19468d8ea62ac
+  - example: YOUR RESOURCE'S CLUSTER_FABRIC_ID
 - `cluster_fabric_name` (String) Cluster Fabric name
   - example: cluster001
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `gpu_node_name` (String) GPU Node name
   - example: gpu-node-001
 - `image_id` (String) Image ID
-  - example: IMAGE-7XFMaJpLsapKvskFMjCtmm
+  - example: YOUR RESOURCE'S IMAGE_ID
 - `image_version` (String) Image version
   - example: RHEL 8.7 for BM
 - `init_script` (String) Init script
@@ -62,11 +62,11 @@ variable "id" {
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `network_id` (String) Network ID
-  - example: ab313c43291e4b678f4bacffe10768ae
+  - example: YOUR RESOURCE'S NETWORK_ID
 - `node_pool_id` (String) Node Pool ID
-  - example: POOL001-krw1a
+  - example: YOUR RESOURCE'S NODE_POOL_ID
 - `os_type` (String) OS type
   - example: WINDOWS
 - `pfs_ip` (List of String) PFS IP list
@@ -78,9 +78,9 @@ variable "id" {
 - `policy_use_nat` (Boolean) Policy use NAT
   - example: true
 - `product_type_id` (String) Product type ID
-  - example: f90e8ef54cc2451b825608e9f95f7bcb
+  - example: YOUR RESOURCE'S PRODUCT_TYPE_ID
 - `region_id` (String) Region ID
-  - example: kr-west1
+  - example: YOUR RESOURCE'S REGION_ID
 - `root_account` (String) Root Account
   - example: rootaccount
 - `server_type` (String) Server type
@@ -90,4 +90,4 @@ variable "id" {
 - `time_zone` (String) Time Zone
   - example: Asia/Seoul
 - `vpc_id` (String) VPC ID
-  - example: e58348b1bc9148e5af86500fd4ef99ca
+  - example: YOUR RESOURCE'S VPC_ID

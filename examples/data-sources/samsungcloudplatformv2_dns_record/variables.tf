@@ -1,11 +1,12 @@
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "hosted_zone_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S HOSTED_ZONE_ID"
 }
+
 
 

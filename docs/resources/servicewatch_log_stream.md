@@ -26,12 +26,12 @@ output "log_stream" {
 
 variable "log_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S LOG_GROUP_ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "stream01"
 }
 ```
 

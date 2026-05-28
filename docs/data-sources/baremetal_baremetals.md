@@ -35,22 +35,22 @@ output "ids" {
 
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
 
 variable "server_name" {
   type    = string
-  default = ""
+  default = "create-test"
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "ip" {
@@ -60,12 +60,12 @@ variable "ip" {
 
 variable "baremetals_filter_name" {
   type    = string
-  default = ""
+  default = "server_name"
 }
 
 variable "baremetals_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["test"]
 }
 
 variable "baremetals_filter_use_regex" {
@@ -87,7 +87,7 @@ variable "baremetals_filter_use_regex" {
 - `state` (String) Bare Metal Server state
   - example: RUNNING
 - `vpc_id` (String) VPC ID
-  - example: e58348b1bc9148e5af86500fd4ef99ca
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 

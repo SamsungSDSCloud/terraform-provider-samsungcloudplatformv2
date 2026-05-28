@@ -34,32 +34,34 @@ output "private_nat_output" {
 
 variable "private_nat_cidr" {
   type    = string
-  default = ""
+  default = "192.167.0.0/24"
 }
 
 variable "private_nat_name" {
   type    = string
-  default = ""
+  default = "sdsv-test-01"
 }
 
 variable "private_nat_service_resource_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S PRIVATE_NAT_SERVICE_RESOURCE_ID"
 }
 
 variable "private_nat_service_type" {
   type    = string
-  default = ""
+  default = "TRANSIT_GATEWAY"
 }
 
 variable "private_nat_description" {
   type    = string
-  default = ""
+  default = "description upda"
 }
 
 variable "private_nat_tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    tags1 = "tag_me"
+  }
 }
 ```
 
@@ -73,7 +75,7 @@ variable "private_nat_tags" {
 - `name` (String) Private NAT Name 
   - example : PrivateNatName
 - `service_resource_id` (String) Private NAT connected Service Resource ID 
-  - example : 3f342bf9a557405b997c2cf48c89cbc2
+  - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
 - `service_type` (String) Private NAT connected Service Type 
   - example : DIRECT_CONNECT
 
@@ -88,7 +90,7 @@ variable "private_nat_tags" {
 ### Read-Only
 
 - `id` (String) Private NAT ID 
-  - example : 12f56e27070248a6a240a497e43fbe18
+  - example: YOUR RESOURCE'S ID
 - `private_nat` (Attributes) Private NAT details (see [below for nested schema](#nestedatt--private_nat))
 
 <a id="nestedatt--private_nat"></a>
@@ -97,25 +99,25 @@ variable "private_nat_tags" {
 Read-Only:
 
 - `account_id` (String) Account ID 
-  - example : f1e6c81a2b054582878cb9724dc2ce9f
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `cidr` (String) Private NAT IP range 
   - example : 192.167.0.0/24
 - `created_at` (String) Created At 
   - example : 2024-05-17T00:23:17Z
 - `created_by` (String) Created By 
-  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Description 
   - example : PrivateNat Description
 - `id` (String) Private NAT ID 
-  - example : 12f56e27070248a6a240a497e43fbe18
+  - example: YOUR RESOURCE'S ID
 - `modified_at` (String) Modified At 
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By 
-  - example : 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Private NAT Name 
   - example : PrivateNatName
 - `service_resource_id` (String) Private NAT connected Service Resource ID 
-  - example : 3f342bf9a557405b997c2cf48c89cbc2
+  - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
 - `service_resource_name` (String) Private NAT connected Service Resource Name 
   - example : PrivateNatName
 - `service_type` (String) Private NAT connected Service Type 

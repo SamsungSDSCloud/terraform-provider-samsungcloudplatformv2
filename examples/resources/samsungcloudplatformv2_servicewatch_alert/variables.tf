@@ -1,81 +1,82 @@
 variable "alert_name" {
   type    = string
-  default = ""
+  default = "tf_alert_test_01"
 }
 
 variable "alert_description" {
   type    = string
-  default = ""
+  default = "Kubernetes Alert for Terraform."
 }
 
 variable "alert_type" {
   type    = string
-  default = ""
+  default = "METRIC_ALERT"
 }
 
 variable "alert_activated_yn" {
   type    = string
-  default = ""
+  default = "Y"
 }
 
 variable "namespace_name" {
   type    = string
-  default = ""
+  default = "Kubernetes Engine"
 }
 
 variable "metric_name" {
   type    = string
-  default = ""
+  default = "namespace_number_of_running_pods"
 }
 
 variable "dimension_key_1" {
   type    = string
-  default = ""
+  default = "resource_id"
 }
 
 variable "dimension_value_1" {
   type    = string
-  default = ""
+  default = "7dcc310f6d3841cd82480cf0f1654bba"
 }
 
 variable "dimension_key_2" {
   type    = string
-  default = ""
+  default = "namespace"
 }
 
 variable "dimension_value_2" {
   type    = string
-  default = ""
+  default = "kube-system"
 }
 
 variable "period" {
   type    = number
-  default = 0
+  default = 300
 }
 
 variable "statistic_type" {
   type    = string
-  default = ""
+  default = "SUM"
 }
 
 variable "level" {
   type    = string
-  default = ""
+  default = "MIDDLE"
 }
 
 variable "operator" {
   type    = string
-  default = ""
+  default = "GTE"
 }
 
 variable "threshold" {
   type    = number
-  default = 0
+  default = 3
 }
 
 variable "missing_data_option" {
   type    = string
-  default = ""
+  default = "MISSING"
 }
+
 
 

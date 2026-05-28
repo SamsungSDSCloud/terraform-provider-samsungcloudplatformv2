@@ -34,19 +34,19 @@ output "subnet_vip" {
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 variable "vip_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VIP_ID"
 }
 variable "nat_type" {
   type    = string
-  default = ""
+  default = "PUBLIC"
 }
 variable "publicip_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S PUBLICIP_ID"
 }
 ```
 
@@ -58,15 +58,15 @@ variable "publicip_id" {
 - `nat_type` (String) NAT Type 
   - example : PUBLIC
 - `publicip_id` (String) Publicip ID 
-  - example : 12f56e27070248a6a240a497e43fbe18
+  - example: YOUR RESOURCE'S PUBLICIP_ID
 - `subnet_id` (String) Subnet ID 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vip_id` (String) Subnet Vip Id 
-  - example : 0466a9448d9a4411a86055939e451c8f
+  - example: YOUR RESOURCE'S VIP_ID
 
 ### Read-Only
 
 - `id` (String) Static Nat Id 
-  - example : 0009e49548154745948e9722adefbf40
+  - example: YOUR RESOURCE'S ID
 - `state` (String) Static Nat State 
   - example : ACTIVE

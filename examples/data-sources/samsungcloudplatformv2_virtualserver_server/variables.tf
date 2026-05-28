@@ -1,55 +1,56 @@
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "ip" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = "ACTIVE"
 }
 
 variable "product_category" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "server_type_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SERVER_TYPE_ID"
 }
 
 variable "auto_scaling_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S AUTO_SCALING_GROUP_ID"
 }
 
 variable "server_filter_name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "server_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["test"]
 }
 
 variable "server_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
+
 

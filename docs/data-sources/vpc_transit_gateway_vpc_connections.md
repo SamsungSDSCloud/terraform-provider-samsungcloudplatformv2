@@ -34,7 +34,7 @@ output "vpctransitgateway" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 
@@ -45,33 +45,33 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 
 variable "transit_gateway_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S TRANSIT_GATEWAY_ID"
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = "ACTIVE"
 }
 ```
 

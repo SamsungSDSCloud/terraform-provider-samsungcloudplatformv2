@@ -39,52 +39,52 @@ output "image" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "scp_image_type" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "scp_original_image_type" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "os_distro" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "status" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "visibility" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "image_filter_name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "image_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["test"]
 }
 
 variable "image_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
 ```
 

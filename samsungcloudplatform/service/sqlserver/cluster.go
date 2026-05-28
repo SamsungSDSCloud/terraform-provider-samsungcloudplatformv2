@@ -15,6 +15,7 @@ import (
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	scpSqlserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/sqlserver/1.0"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -53,7 +54,7 @@ func (r *sqlserverClusterResource) Schema(_ context.Context, _ resource.SchemaRe
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 				Description: "Allowed IP addresses list  \n" +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
@@ -503,9 +504,15 @@ func (r *sqlserverClusterResource) AsyncPollingTags(ctx context.Context, cluster
 func (r *sqlserverClusterResource) MapGetResponseToState(ctx context.Context,
 	resp *scpSqlserver.SqlserverClusterDetailResponse, plan sqlserver.ClusterResource, tagsMap types.Map) (sqlserver.ClusterResource, error) {
 
-	allowableIpAddresses := make([]types.String, len(resp.AllowableIpAddresses))
-	for i, allowableIpAddress := range resp.AllowableIpAddresses {
-		allowableIpAddresses[i] = types.StringValue(allowableIpAddress)
+	var allowableIpAddresses types.Set
+	if len(resp.AllowableIpAddresses) == 0 {
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
+	} else {
+		ipAddresses := make([]attr.Value, len(resp.AllowableIpAddresses))
+		for i, ipAddress := range resp.AllowableIpAddresses {
+			ipAddresses[i] = types.StringValue(ipAddress)
+		}
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var backupOption = sqlserver.BackupOption{}
@@ -864,10 +871,7 @@ func (r *sqlserverClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx 
 
 	clusterId := plan.Id.ValueString()
 
-	ipState := state.AllowableIpAddresses
-	ipPlan := plan.AllowableIpAddresses
-
-	addedIPs, removedIps := compareIPAddresses(ipState, ipPlan)
+	addedIPs, removedIps := databaseUtils.CompareIPAddresses(state.AllowableIpAddresses, plan.AllowableIpAddresses)
 
 	err := r.client.SetSecurityGroupRules(ctx, clusterId, addedIPs, removedIps)
 	if err != nil {
@@ -885,44 +889,6 @@ func (r *sqlserverClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx 
 	}
 
 	return nil
-}
-
-func compareIPAddresses(state []types.String, plan []types.String) ([]string, []string) {
-	toStringSlice := func(input []types.String) []string {
-		var result []string
-		for _, item := range input {
-			if !item.IsNull() {
-				result = append(result, item.ValueString())
-			}
-		}
-		return result
-	}
-
-	toSet := func(items []string) map[string]bool {
-		set := make(map[string]bool)
-		for _, item := range items {
-			set[item] = true
-		}
-		return set
-	}
-
-	stateIPSet := toSet(toStringSlice(state))
-	planIPSet := toSet(toStringSlice(plan))
-
-	diff := func(sourceSet map[string]bool, targetSet map[string]bool) []string {
-		var result []string
-		for key := range sourceSet {
-			if !targetSet[key] {
-				result = append(result, key)
-			}
-		}
-		return result
-	}
-
-	addedIPs := diff(planIPSet, stateIPSet)
-	removedIPs := diff(stateIPSet, planIPSet)
-
-	return addedIPs, removedIPs
 }
 
 func (r *sqlserverClusterResource) handlerUpdateInstanceGroups(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {

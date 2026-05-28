@@ -45,52 +45,52 @@ output "vpcendpoints" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "resource_type" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "resource_key" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "endpoint_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "state" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
@@ -100,7 +100,7 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -112,7 +112,7 @@ variable "sort" {
 - `endpoint_ip_address` (String) VPC Endpoint IP Address 
   - example : 1.1.1.1
 - `id` (String) VPC Endpoint ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID
 - `name` (String) VPC Endpoint Name 
   - example : vpcName
 - `page` (Number) Page 
@@ -131,9 +131,9 @@ variable "sort" {
 - `state` (String) State 
   - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
 - `subnet_id` (String) Subnet ID 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) VPC ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) VPC Name 
   - example : vpcName
 

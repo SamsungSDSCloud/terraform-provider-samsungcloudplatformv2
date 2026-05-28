@@ -1,42 +1,43 @@
 variable "account_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ACCOUNT_ID"
 }
 
 variable "contract_type" {
   type    = string
-  default = ""
+  default = "03"
 }
 
 variable "os_type" {
   type    = string
-  default = ""
+  default = "WINDOWS"
 }
 
 variable "server_type" {
   type    = string
-  default = ""
+  default = "s1v16m128"
 }
 
 variable "service_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SERVICE_ID"
 }
 
 variable "service_name" {
   type    = string
-  default = ""
+  default = "Virtual Server"
 }
 
 variable "action" {
-  type = string
+  type    = string
+  default = "EXTEND_APPLY"
 
-  default = ""
 }
 
 variable "region" {
   type    = string
-  default = ""
+  default = "kr-west1"
 }
+
 
 

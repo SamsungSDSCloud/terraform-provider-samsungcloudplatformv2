@@ -32,17 +32,17 @@ output "vpcs" {
 
 variable "cidr" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "page" {
@@ -52,18 +52,18 @@ variable "page" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 5
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "state" {
-  type = string
+  type    = string
+  default = null
 
-  default = ""
 }
 ```
 
@@ -75,7 +75,7 @@ variable "state" {
 - `cidr` (String) VPC CIDR 
   - example : 192.167.0.0/18
 - `id` (String) VPC ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID
 - `name` (String) VPC Name 
   - example : vpcName
 - `page` (Number) page
@@ -96,23 +96,23 @@ variable "state" {
 Read-Only:
 
 - `account_id` (String) Account ID
-  - example: f1e6c81a2b054582878cb9724dc2ce9f
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `cidr_count` (Number) Cidr Count
   - example: 20
 - `cidrs` (Attributes List) (see [below for nested schema](#nestedatt--vpcs--cidrs))
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Description
   - maxLength: 50
   - example: vpcDescription
 - `id` (String) VPC Id
-  - example: 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) VPC Name
   - maxLength: 20
   - minLength: 3
@@ -130,6 +130,6 @@ Read-Only:
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S CREATED_BY
 - `id` (String) Cidr ID
-  - example: 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID

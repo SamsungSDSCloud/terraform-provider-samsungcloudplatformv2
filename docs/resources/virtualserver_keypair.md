@@ -30,7 +30,7 @@ output "keypair_output" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform_test_keypair"
 }
 ```
 

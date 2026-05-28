@@ -42,7 +42,7 @@ output "natgateways" {
 variable "size" {
   type        = number
   description = "Size"
-  default     = 0
+  default     = 20
 }
 
 variable "page" {
@@ -54,49 +54,49 @@ variable "page" {
 variable "sort" {
   type        = string
   description = "Sort"
-  default     = ""
+  default     = "created_at:desc"
 }
 
 variable "name" {
   type        = string
   description = "NAT Gateway Name"
-  default     = ""
+  default     = null
 }
 
 variable "vpc_id" {
   type        = string
   description = "VPC ID"
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "vpc_name" {
   type        = string
   description = "VPC Name"
-  default     = ""
+  default     = null
 }
 
 variable "subnet_id" {
   type        = string
   description = "Subnet ID"
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "subnet_name" {
   type        = string
   description = "Subnet Name"
-  default     = ""
+  default     = null
 }
 
 variable "nat_gateway_ip_address" {
   type        = string
   description = "NAT Gateway IP Address"
-  default     = ""
+  default     = null
 }
 
 variable "state" {
   type        = string
   description = "NAT Gateway State"
-  default     = ""
+  default     = null
 }
 ```
 
@@ -118,11 +118,11 @@ variable "state" {
 - `state` (String) NAT Gateway State 
   - example : CREATING | ACTIVE | DELETING | DELETED | ERROR
 - `subnet_id` (String) Subnet ID 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `subnet_name` (String) Subnet Name 
   - example : subnetName
 - `vpc_id` (String) VPC ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) VPC Name 
   - example : vpcName
 

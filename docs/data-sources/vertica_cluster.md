@@ -26,7 +26,7 @@ output "cluster" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -47,7 +47,7 @@ variable "id" {
 Read-Only:
 
 - `account_id` (String) AccountId
-- `allowable_ip_addresses` (List of String) AllowableIpAddresses
+- `allowable_ip_addresses` (Set of String) AllowableIpAddresses
 - `console_included` (Boolean) ConsoleIncluded
 - `created_at` (String) CreatedAt
 - `created_by` (String) CreatedBy

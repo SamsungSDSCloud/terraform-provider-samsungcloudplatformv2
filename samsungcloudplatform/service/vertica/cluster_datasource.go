@@ -3,14 +3,16 @@ package vertica
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vertica"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 var (
@@ -48,7 +50,7 @@ func (d *verticaClusterDataSource) Schema(_ context.Context, _ datasource.Schema
 						Description: "AccountId",
 						Computed:    true,
 					},
-					common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+					common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 						ElementType: types.StringType,
 						Description: "AllowableIpAddresses",
 						Computed:    true,
@@ -187,14 +189,6 @@ func (d *verticaClusterDataSource) Schema(_ context.Context, _ datasource.Schema
 												Description: "PublicIpId",
 												Computed:    true,
 											},
-											//common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
-											//	Description: "PublicIpAddress",
-											//	Computed:    true,
-											//},
-											//common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-											//	Description: "ServiceState",
-											//	Computed:    true,
-											//},
 										},
 									},
 								},
@@ -309,9 +303,15 @@ func (d *verticaClusterDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	allowableIpAddresses := make([]types.String, len(data.AllowableIpAddresses))
-	for i, allowableIpAddress := range data.AllowableIpAddresses {
-		allowableIpAddresses[i] = types.StringValue(allowableIpAddress)
+	var allowableIpAddresses types.Set
+	if len(data.AllowableIpAddresses) == 0 {
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
+	} else {
+		ipAddresses := make([]attr.Value, len(data.AllowableIpAddresses))
+		for i, ipAddress := range data.AllowableIpAddresses {
+			ipAddresses[i] = types.StringValue(ipAddress)
+		}
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var BackupOption = vertica.BackupOption{}
@@ -352,8 +352,6 @@ func (d *verticaClusterDataSource) Read(ctx context.Context, req datasource.Read
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
 				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
 			})
 		}
 

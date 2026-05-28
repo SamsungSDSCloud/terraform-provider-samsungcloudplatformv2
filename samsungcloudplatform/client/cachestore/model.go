@@ -27,7 +27,7 @@ type ClusterDataSourceDetail struct {
 // Create Cluster의 Request
 type ClusterResource struct {
 	Id                   types.String      `tfsdk:"id"`
-	AllowableIpAddresses types.List        `tfsdk:"allowable_ip_addresses"`
+	AllowableIpAddresses types.Set         `tfsdk:"allowable_ip_addresses"`
 	DbaasEngineVersionId types.String      `tfsdk:"dbaas_engine_version_id"`
 	HaEnabled            types.Bool        `tfsdk:"ha_enabled"`
 	InitConfigOption     InitConfigOption  `tfsdk:"init_config_option"`
@@ -104,7 +104,7 @@ type MaintenanceOption struct {
 
 type ClusterDetail struct {
 	AccountId              types.String      `tfsdk:"account_id"`
-	AllowableIpAddresses   []types.String    `tfsdk:"allowable_ip_addresses"`
+	AllowableIpAddresses   types.Set         `tfsdk:"allowable_ip_addresses"`
 	DbaasEngine            types.String      `tfsdk:"dbaas_engine"`
 	DbaasEngineVersionName types.String      `tfsdk:"dbaas_engine_version_name"`
 	HaEnabled              types.Bool        `tfsdk:"ha_enabled"`
@@ -131,7 +131,7 @@ type ClusterDetail struct {
 func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"account_id": types.StringType,
-		"allowable_ip_addresses": types.ListType{
+		"allowable_ip_addresses": types.SetType{
 			ElemType: types.StringType,
 		},
 		"dbaas_engine":              types.StringType,

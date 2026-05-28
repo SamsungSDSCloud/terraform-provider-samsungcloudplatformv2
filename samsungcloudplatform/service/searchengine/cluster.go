@@ -54,7 +54,7 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 				Description: "Allowed IP addresses list  \n" +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
@@ -196,13 +196,6 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 										Description: "Public IP ID (Required when NatEnabled=True)",
 										Optional:    true,
 									},
-									//common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
-									//	Description: "Public IP address",
-									//	Computed:    true,
-									//	PlanModifiers: []planmodifier.String{
-									//		stringplanmodifier.UseStateForUnknown(),
-									//	},
-									//},
 								},
 							},
 						},
@@ -431,25 +424,15 @@ func (r *searchengineClusterResource) AsyncPollingTags(ctx context.Context, clus
 func (r *searchengineClusterResource) MapGetResponseToState(ctx context.Context,
 	resp *scpSearchengine.SearchEngineClusterDetailResponse, plan searchengine.ClusterResource, tagsMap types.Map) (searchengine.ClusterResource, error) {
 
-	//var allowableIpAddresses []types.String
-	//
-	//if len(resp.AllowableIpAddresses) == 0 {
-	//	allowableIpAddresses = []types.String{}
-	//} else {
-	//	allowableIpAddresses = make([]types.String, len(resp.AllowableIpAddresses))
-	//	for i, allowableIpAddress := range resp.AllowableIpAddresses {
-	//		allowableIpAddresses[i] = types.StringValue(allowableIpAddress)
-	//	}
-	//}
-	var allowableIpAddresses types.List
+	var allowableIpAddresses types.Set
 	if len(resp.AllowableIpAddresses) == 0 {
-		allowableIpAddresses, _ = types.ListValue(types.StringType, []attr.Value{})
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
 	} else {
 		ipAddresses := make([]attr.Value, len(resp.AllowableIpAddresses))
 		for i, ipAddress := range resp.AllowableIpAddresses {
 			ipAddresses[i] = types.StringValue(ipAddress)
 		}
-		allowableIpAddresses, _ = types.ListValue(types.StringType, ipAddresses)
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var backupOption = searchengine.BackupOption{}
@@ -487,8 +470,6 @@ func (r *searchengineClusterResource) MapGetResponseToState(ctx context.Context,
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
 				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
 			})
 		}
 
@@ -790,10 +771,7 @@ func (r *searchengineClusterResource) handlerUpdateClusterAllowableIpAddresses(c
 
 	clusterId := plan.Id.ValueString()
 
-	ipState, _ := databaseUtils.ConvertListtoStringSlice(state.AllowableIpAddresses)
-	ipPlan, _ := databaseUtils.ConvertListtoStringSlice(plan.AllowableIpAddresses)
-
-	addedIPs, removedIps := databaseUtils.CompareIPAddresses(ipState, ipPlan)
+	addedIPs, removedIps := databaseUtils.CompareIPAddresses(state.AllowableIpAddresses, plan.AllowableIpAddresses)
 
 	err := r.client.SetSecurityGroupRules(ctx, clusterId, addedIPs, removedIps)
 	if err != nil {

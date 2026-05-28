@@ -1,41 +1,42 @@
 variable "XResourceType" {
   type    = string
-  default = ""
+  default = "PostgreSQL"
 }
 variable "IgnoreInvalid" {
   type    = string
-  default = ""
+  default = "Y"
 }
 variable "QueryEndDt" {
   type    = string
-  default = ""
+  default = "2025-06-19T07:55:39.569Z"
 }
 variable "QueryStartDt" {
   type    = string
-  default = ""
+  default = "2025-06-19T07:25:39.569Z"
 }
 variable "MetricKey" {
   type    = string
-  default = ""
+  default = "postgresql.status.pid"
 }
 variable "ProductResourceId" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S PRODUCTRESOURCEID"
 }
 variable "ObjectList" {
   type    = list(string)
-  default = [""]
+  default = null
 }
 variable "ObjectType" {
   type    = string
-  default = ""
+  default = null
 }
 variable "StatisticsTypeList" {
   type    = list(string)
-  default = [""]
+  default = null
 }
 variable "StatisticsPeriod" {
   type    = number
-  default = 0
+  default = null
 }
+
 

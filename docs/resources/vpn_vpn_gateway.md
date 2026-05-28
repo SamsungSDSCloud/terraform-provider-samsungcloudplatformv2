@@ -19,13 +19,13 @@ Vpn gateway
 - `ip_address` (String) Ip Address
   - example : 123.0.0.1
 - `ip_id` (String) Identifier of the IP
-  - example : fcde872f75c145a0893d656cc698f13e
+  - example: YOUR RESOURCE'S IP_ID
 - `ip_type` (String) Type of IP
   - example : PUBLIC
 - `name` (String) Name
   - example : ExampleVpnGW1
 - `vpc_id` (String) Identifier of the VPC
-  - example : ceb44ea5ecb34a49b16495f9a63b0718
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
@@ -38,7 +38,7 @@ Vpn gateway
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
-  - example : b156740b6335468d8354eb9ef8eddf5a
+  - example: YOUR RESOURCE'S ID
 - `vpn_gateway` (Attributes) Vpn gateway (see [below for nested schema](#nestedatt--vpn_gateway))
 
 <a id="nestedatt--vpn_gateway"></a>

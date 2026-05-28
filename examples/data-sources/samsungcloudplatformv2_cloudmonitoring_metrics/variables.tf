@@ -1,10 +1,11 @@
 variable "ProductTypeCode" {
   type    = string
-  default = ""
+  default = "VM"
 }
 
 variable "ObjectType" {
   type    = string
   default = ""
 }
+
 

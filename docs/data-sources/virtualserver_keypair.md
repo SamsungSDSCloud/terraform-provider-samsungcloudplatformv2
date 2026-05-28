@@ -32,22 +32,22 @@ output "keypair" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform_test_keypair"
 }
 
 variable "keypair_filter_name" {
   type    = string
-  default = ""
+  default = "name"
 }
 
 variable "keypair_filter_values" {
   type    = list(string)
-  default = [""]
+  default = ["test"]
 }
 
 variable "keypair_filter_use_regex" {
   type    = bool
-  default = false
+  default = true
 }
 ```
 

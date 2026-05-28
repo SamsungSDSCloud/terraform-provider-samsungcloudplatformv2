@@ -31,7 +31,7 @@ output "ids" {
 
 variable "cluster_fabric_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CLUSTER_FABRIC_ID"
 }
 
 variable "cluster_fabric_name" {
@@ -51,12 +51,12 @@ variable "ip" {
 
 variable "state" {
   type    = string
-  default = ""
+  default = "RUNNING"
 }
 
 variable "vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 ```
 
@@ -66,7 +66,7 @@ variable "vpc_id" {
 ### Optional
 
 - `cluster_fabric_id` (String) Cluster Fabric ID
-  - example: 20c507a036c447cdb3b19468d8ea62ac
+  - example: YOUR RESOURCE'S CLUSTER_FABRIC_ID
 - `cluster_fabric_name` (String) Cluster Fabric name
   - example: cluster001
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
@@ -77,7 +77,7 @@ variable "vpc_id" {
 - `state` (String) GPU Node state
   - example: RUNNING
 - `vpc_id` (String) VPC ID
-  - example: e58348b1bc9148e5af86500fd4ef99ca
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 

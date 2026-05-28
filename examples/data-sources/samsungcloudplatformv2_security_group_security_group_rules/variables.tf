@@ -1,11 +1,11 @@
 variable "security_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SECURITY_GROUP_ID"
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "page" {
@@ -15,31 +15,32 @@ variable "page" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "remote_ip_prefix" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "remote_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S REMOTE_GROUP_ID"
 }
 
 variable "description" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "direction" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "service" {
   type    = string
-  default = ""
+  default = null
 }
+
 

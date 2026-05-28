@@ -39,49 +39,49 @@ output "result" {
 variable "account_id" {
   description = "account Id"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S ACCOUNT_ID"
 }
 
 variable "csp_type" {
   description = "Type of cloud service provider"
   type        = string
-  default     = ""
+  default     = "SCP"
 }
 
 variable "diagnosis_account_id" {
   description = "Id of diagnosis"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S DIAGNOSIS_ACCOUNT_ID"
 }
 
 variable "diagnosis_check_type" {
   description = "Check type of diagnosis"
   type        = string
-  default     = ""
+  default     = "BP"
 }
 
 variable "diagnosis_id" {
   description = "Id of diagnosis"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S DIAGNOSIS_ID"
 }
 
 variable "diagnosis_name" {
   description = "Name of diagnosis"
   type        = string
-  default     = ""
+  default     = "gdcv-test-123"
 }
 
 variable "diagnosis_type" {
   description = "diagnosis Type"
   type        = string
-  default     = ""
+  default     = "Console"
 }
 
 variable "plan_type" {
   description = "plan Type"
   type        = string
-  default     = ""
+  default     = "STANDARD"
 }
 
 variable "auth_key_request" {
@@ -93,10 +93,8 @@ variable "auth_key_request" {
     auth_key_id         = string
   })
   default = {
-    auth_key_created_at = null
-    auth_key_expired_at = null
-    auth_key_id         = ""
-    diagnosis_id        = ""
+    auth_key_id  = "ENTER YOUR RESOURCE'S AUTH_KEY_ID"
+    diagnosis_id = "ENTER YOUR RESOURCE'S DIAGNOSIS_ID"
   }
 }
 
@@ -111,19 +109,21 @@ variable "schedule_request" {
     use_diagnosis_check_type_ssi = string
   })
   default = {
-    diagnosis_id                 = ""
-    diagnosis_start_time_pattern = ""
-    frequency_type               = ""
-    frequency_value              = ""
-    use_diagnosis_check_type_bp  = ""
-    use_diagnosis_check_type_ssi = ""
+    diagnosis_id                 = "ENTER YOUR RESOURCE'S DIAGNOSIS_ID"
+    diagnosis_start_time_pattern = "00:00"
+    frequency_type               = "week"
+    frequency_value              = "monday"
+    use_diagnosis_check_type_bp  = "y"
+    use_diagnosis_check_type_ssi = "n"
   }
 }
 
 variable "tags" {
   description = "Tags for the resource"
   type        = map(string)
-  default     = null
+  default = {
+    tag1 = "tag1"
+  }
 }
 ```
 

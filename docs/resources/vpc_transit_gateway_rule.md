@@ -31,27 +31,27 @@ output "tgw_routingrule_output" {
 
 variable "routing_rule_transit_gateway_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ROUTING_RULE_TRANSIT_GATEWAY_ID"
 }
 
 variable "routing_rule_description" {
   type    = string
-  default = ""
+  default = "description VPC"
 }
 
 variable "routing_rule_destination_type" {
   type    = string
-  default = ""
+  default = "VPC"
 }
 
 variable "routing_rule_destination_cidr" {
   type    = string
-  default = ""
+  default = "1.1.0.0/17"
 }
 
 variable "routing_rule_tgw_connection_vpc_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ROUTING_RULE_TGW_CONNECTION_VPC_ID"
 }
 ```
 
@@ -65,9 +65,9 @@ variable "routing_rule_tgw_connection_vpc_id" {
 - `destination_type` (String) Destination Type 
   - example : VPC | TGW
 - `tgw_connection_vpc_id` (String) Tgw Connection Vpc ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S TGW_CONNECTION_VPC_ID
 - `transit_gateway_id` (String) Transit Gateway Id ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
 
 ### Optional
 

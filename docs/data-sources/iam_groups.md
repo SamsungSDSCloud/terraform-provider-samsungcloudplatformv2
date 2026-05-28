@@ -29,22 +29,22 @@ output "groups" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 5
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 

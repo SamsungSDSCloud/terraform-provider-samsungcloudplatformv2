@@ -38,12 +38,12 @@ output "subnet_vips" {
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
@@ -53,17 +53,17 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "virtual_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "public_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -73,7 +73,7 @@ variable "public_ip_address" {
 ### Required
 
 - `subnet_id` (String) Subnet Id 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S SUBNET_ID
 
 ### Optional
 

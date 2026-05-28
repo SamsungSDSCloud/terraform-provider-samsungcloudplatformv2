@@ -28,12 +28,12 @@ output "privatenatips" {
 
 variable "private_nat_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S PRIVATE_NAT_ID"
 }
 
 variable "private_nat_ips_size" {
   type    = number
-  default = 0
+  default = 20
 }
 ```
 
@@ -43,20 +43,20 @@ variable "private_nat_ips_size" {
 ### Optional
 
 - `attached_resource_id` (String) Attached Resource Id 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
 - `attached_resource_name` (String) Attached Resource Name 
   - example : attachedResourceName
 - `attached_resource_type` (String) Attached Resource Type 
   - example : VM | BM
 - `id` (String) Private NAT IP ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID
 - `ip_address` (String) IP address 
   - example : 192.168.10.0
 - `page` (Number) Page 
   - example : 0 
   - minimum : 0
 - `private_nat_id` (String) Private NAT ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S PRIVATE_NAT_ID
 - `size` (Number) Size 
   - example : 20 
   - minimum : 0

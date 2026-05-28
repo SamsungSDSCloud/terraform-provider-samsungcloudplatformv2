@@ -1,14 +1,15 @@
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 variable "virtual_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 variable "description" {
   type    = string
-  default = ""
+  default = null
 }
+
 
 

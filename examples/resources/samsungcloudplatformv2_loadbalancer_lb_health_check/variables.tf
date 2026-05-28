@@ -16,20 +16,23 @@ variable "lb_health_check_http" {
     tags                  = map(string)
   })
   default = {
-    description           = ""
-    health_check_count    = ""
-    health_check_interval = ""
-    health_check_port     = ""
-    health_check_timeout  = ""
-    health_check_url      = ""
-    http_method           = ""
-    name                  = ""
-    protocol              = ""
-    request_data          = ""
-    response_code         = ""
-    subnet_id             = ""
-    tags                  = null
-    vpc_id                = ""
+    description           = "123456789012345678901234567890123456789012345678902"
+    health_check_count    = "5"
+    health_check_interval = "30"
+    health_check_port     = "100"
+    health_check_timeout  = "20"
+    health_check_url      = "/test-terraform"
+    http_method           = "POST"
+    name                  = "test-terraform-http"
+    protocol              = "HTTP"
+    request_data          = "username=test&password=123456789"
+    response_code         = "200"
+    subnet_id             = "ENTER YOUR RESOURCE'S SUBNET_ID"
+    tags = {
+      key  = "value"
+      key1 = "value1"
+    }
+    vpc_id = "ENTER YOUR RESOURCE'S VPC_ID"
   }
 }
 
@@ -51,20 +54,23 @@ variable "lb_health_check_https" {
     tags                  = map(string)
   })
   default = {
-    description           = ""
-    health_check_count    = ""
-    health_check_interval = ""
-    health_check_port     = ""
-    health_check_timeout  = ""
-    health_check_url      = ""
-    http_method           = ""
-    name                  = ""
-    protocol              = ""
-    request_data          = ""
-    response_code         = ""
-    subnet_id             = ""
-    tags                  = null
-    vpc_id                = ""
+    description           = "123456789012345678901234567890123456789012345678902"
+    health_check_count    = "5"
+    health_check_interval = "30"
+    health_check_port     = null
+    health_check_timeout  = "20"
+    health_check_url      = "/test-terraform"
+    http_method           = "POST"
+    name                  = "test-terraform-http"
+    protocol              = "HTTPS"
+    request_data          = "username=test&password=123456789"
+    response_code         = "200"
+    subnet_id             = "ENTER YOUR RESOURCE'S SUBNET_ID"
+    tags = {
+      key  = "value"
+      key1 = "value1"
+    }
+    vpc_id = "ENTER YOUR RESOURCE'S VPC_ID"
   }
 }
 
@@ -82,16 +88,19 @@ variable "lb_health_check_tcp" {
     tags                  = map(string)
   })
   default = {
-    description           = ""
-    health_check_count    = ""
-    health_check_interval = ""
-    health_check_port     = ""
-    health_check_timeout  = ""
-    name                  = ""
-    protocol              = ""
-    subnet_id             = ""
-    tags                  = null
-    vpc_id                = ""
+    description           = "123456789012345678901234567890123456789012345678902"
+    health_check_count    = "5"
+    health_check_interval = "30"
+    health_check_port     = "100"
+    health_check_timeout  = "20"
+    name                  = "test-terraform-tcp"
+    protocol              = "TCP"
+    subnet_id             = "ENTER YOUR RESOURCE'S SUBNET_ID"
+    tags = {
+      key  = "value"
+      key1 = "value1"
+    }
+    vpc_id = "ENTER YOUR RESOURCE'S VPC_ID"
   }
 }
 
@@ -109,16 +118,17 @@ variable "lb_health_check_modify" {
     description           = string
   })
   default = {
-    description           = ""
-    health_check_count    = ""
-    health_check_interval = ""
-    health_check_port     = ""
-    health_check_timeout  = ""
-    health_check_url      = ""
-    http_method           = ""
-    protocol              = ""
-    request_data          = ""
-    response_code         = ""
+    description           = "this is a test"
+    health_check_count    = "7"
+    health_check_interval = "20"
+    health_check_port     = "200"
+    health_check_timeout  = "10"
+    health_check_url      = null
+    http_method           = null
+    protocol              = "TCP"
+    request_data          = null
+    response_code         = null
   }
 }
+
 

@@ -1,11 +1,11 @@
 variable "volume_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VOLUME_ID"
 }
 
 variable "snapshot_retention_count" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "snapshot_schedule" {
@@ -15,9 +15,10 @@ variable "snapshot_schedule" {
     hour        = string
   })
   default = {
-    day_of_week = ""
-    frequency   = ""
-    hour        = ""
+    day_of_week = null
+    frequency   = "DAILY"
+    hour        = "10"
   }
 }
+
 

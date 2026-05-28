@@ -1,6 +1,6 @@
 variable "size" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "page" {
@@ -10,18 +10,19 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = null
 }
+
 
 
 

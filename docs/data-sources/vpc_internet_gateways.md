@@ -40,7 +40,7 @@ output "internetGateways" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 10
 }
 
 variable "page" {
@@ -50,43 +50,43 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "id" {
   description = "Filter by Internet Gateway ID"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S ID"
 }
 
 variable "name" {
   description = "Filter by Internet Gateway name"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "type" {
   description = "Filter by Internet Gateway type"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "state" {
   description = "Filter by Internet Gateway state"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "vpc_id" {
   description = "Filter by VPC ID"
   type        = string
-  default     = ""
+  default     = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
 variable "vpc_name" {
   description = "Filter by VPC name"
   type        = string
-  default     = ""
+  default     = null
 }
 ```
 
@@ -96,7 +96,7 @@ variable "vpc_name" {
 ### Optional
 
 - `id` (String) Internet Gateway ID 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Internet Gateway Name 
   - example : IGW_VPCname
 - `page` (Number) Page 
@@ -112,7 +112,7 @@ variable "vpc_name" {
 - `type` (String) Internet Gateway Type 
   - example : IGW | GGW | SIGW
 - `vpc_id` (String) VPC ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) VPC Name 
   - example : vpcName
 

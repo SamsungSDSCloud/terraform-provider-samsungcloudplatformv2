@@ -1,10 +1,11 @@
 variable "EventId" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S EVENTID"
 }
 
 variable "XResourceType" {
   type    = string
-  default = ""
+  default = "VM"
 }
+
 

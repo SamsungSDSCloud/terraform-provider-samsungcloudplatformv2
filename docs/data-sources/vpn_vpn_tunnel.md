@@ -27,7 +27,7 @@ output "vpn_tunnel" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -48,19 +48,19 @@ variable "id" {
 Read-Only:
 
 - `account_id` (String) AccountId 
-  - example: 0e3dffc50eb247a1adf4f2e5c82c4f99
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `created_at` (String) CreatedAt 
  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) CreatedBy 
- - example : 90dddfc2b1e04edba54ba2b41539a9ac
+ - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Description 
  - example : Example Description for VPN Tunnel
 - `id` (String) Id 
- - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
+ - example: YOUR RESOURCE'S ID
 - `modified_at` (String) ModifiedAt 
  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) ModifiedBy 
- - example : 90dddfc2b1e04edba54ba2b41539a9ac
+ - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Name 
  - example: ExampleVpnTunnel1
 - `phase1` (Attributes) Phase1 (see [below for nested schema](#nestedatt--vpn_tunnel--phase1))
@@ -70,11 +70,11 @@ Read-Only:
 - `status` (String) Status 
  - example : DOWN
 - `vpc_id` (String) VpcId
- - example: ceb44ea5ecb34a49b16495f9a63b0718
+ - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) VpcName 
  - example: ExampleVPC1
 - `vpn_gateway_id` (String) VpnGatewayId 
-- example: b156740b6335468d8354eb9ef8eddf5a
+- example: YOUR RESOURCE'S VPN_GATEWAY_ID
 - `vpn_gateway_ip_address` (String) VpnGatewayIpAddress 
  - example: 123.0.0.1
 - `vpn_gateway_name` (String) VpnGatewayName 

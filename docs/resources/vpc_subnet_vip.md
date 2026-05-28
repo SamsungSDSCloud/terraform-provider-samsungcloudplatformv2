@@ -29,15 +29,15 @@ output "subnet_vip" {
 
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 variable "virtual_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 variable "description" {
   type    = string
-  default = ""
+  default = null
 }
 ```
 
@@ -47,7 +47,7 @@ variable "description" {
 ### Required
 
 - `subnet_id` (String) Subnet Id 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S SUBNET_ID
 
 ### Optional
 

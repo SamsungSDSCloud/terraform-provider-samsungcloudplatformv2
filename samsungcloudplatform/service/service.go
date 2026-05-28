@@ -23,7 +23,6 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/multinodegpucluster"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/mysql"
 	network_logging "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/network-logging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/organization"
 	billing "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/plannedcompute"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/postgresql"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/quota"
@@ -53,19 +52,6 @@ var ResourceConstructors = []func() resource.Resource{
 	iam.NewIamRolePolicyBindingsResource,
 	iam.NewIamUserResource,
 	iam.NewIamUserPolicyBindingsResource,
-
-	// Organization
-	organization.NewOrganizationResource,
-	organization.NewOrganizationUnitResource,
-	organization.NewAccountResource,
-	organization.NewAccountMoveResource,
-	organization.NewAccountRemoveResource,
-	organization.NewInvitationResource,
-	organization.NewInvitationAcceptResource,
-	organization.NewInvitationDeclineResource,
-	organization.NewInvitationCancelResource,
-	organization.NewDelegationPolicyResource,
-	organization.NewServiceControlPolicyResource,
 
 	resourcemanager.NewResourceManagerResourceGroupResource,
 	ske.NewSkeClusterResource,
@@ -193,20 +179,6 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	iam.NewIamUserDataSource,
 	iam.NewIamUserDataSources,
 	iam.NewIamUserPolicyBindingDataSources,
-
-	// Organization
-	organization.NewOrganizationDataSource,
-	organization.NewOrganizationDataSources,
-	organization.NewOrganizationUnitDataSource,
-	organization.NewOrganizationUnitsDataSource,
-	organization.NewOrganizationUnitParentsDataSource,
-	organization.NewAccountDataSource,
-	organization.NewAccountListDataSource,
-	organization.NewAccountInvitationsDataSource,
-	organization.NewOrganizationInvitationsDataSource,
-	organization.NewDelegationPolicyDataSource,
-	organization.NewServiceControlPolicyDataSource,
-	organization.NewServiceControlPoliciesDataSource,
 
 	resourcemanager.NewResourceManagerTagDataSource,
 	resourcemanager.NewResourceManagerResourceTagDataSource,

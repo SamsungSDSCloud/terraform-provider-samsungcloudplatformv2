@@ -26,7 +26,7 @@ output "security_group" {
 
 variable "id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ID"
 }
 ```
 
@@ -36,7 +36,7 @@ variable "id" {
 ### Required
 
 - `id` (String) Id 
-  - example : f09708a755e24fceb4e15f7f5c82b0c1
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 

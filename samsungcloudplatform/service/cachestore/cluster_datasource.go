@@ -3,14 +3,16 @@ package cachestore
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/cachestore"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 var (
@@ -48,7 +50,7 @@ func (d *cachestoreClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 						Description: "AccountId",
 						Computed:    true,
 					},
-					common.ToSnakeCase("AllowableIpAddresses"): schema.ListAttribute{
+					common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
 						ElementType: types.StringType,
 						Description: "AllowableIpAddresses",
 						Computed:    true,
@@ -297,9 +299,15 @@ func (d *cachestoreClusterDataSource) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	allowableIpAddresses := make([]types.String, len(data.AllowableIpAddresses))
-	for i, allowableIpAddress := range data.AllowableIpAddresses {
-		allowableIpAddresses[i] = types.StringValue(allowableIpAddress)
+	var allowableIpAddresses types.Set
+	if len(data.AllowableIpAddresses) == 0 {
+		allowableIpAddresses, _ = types.SetValue(types.StringType, []attr.Value{})
+	} else {
+		ipAddresses := make([]attr.Value, len(data.AllowableIpAddresses))
+		for i, ipAddress := range data.AllowableIpAddresses {
+			ipAddresses[i] = types.StringValue(ipAddress)
+		}
+		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
 	var BackupOption = cachestore.BackupOption{}
@@ -337,7 +345,6 @@ func (d *cachestoreClusterDataSource) Read(ctx context.Context, req datasource.R
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
 				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
 			})
 		}
 
@@ -370,7 +377,7 @@ func (d *cachestoreClusterDataSource) Read(ctx context.Context, req datasource.R
 		MaintenanceOption:      MaintenanceOption,
 		Name:                   types.StringValue(data.Name),
 		NatEnabled:             types.BoolPointerValue(data.NatEnabled),
-		ProductImageType:       types.StringValue(string(data.ProductImageType)),
+		ProductImageType:       types.StringValue(data.ProductImageType),
 		ProductType:            types.StringValue(string(data.ProductType)),
 		RoleType:               types.StringPointerValue((*string)(data.RoleType.Get())),
 		ServiceState:           types.StringValue(string(data.ServiceState)),

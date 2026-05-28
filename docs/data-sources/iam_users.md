@@ -33,37 +33,37 @@ output "users" {
 
 variable "size" {
   type    = number
-  default = 0
+  default = 5
 }
 
 variable "page" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "email" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "user_name" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "type" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "account_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S ACCOUNT_ID"
 }
 ```
 

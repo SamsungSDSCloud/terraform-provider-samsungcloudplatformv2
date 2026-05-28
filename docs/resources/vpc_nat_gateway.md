@@ -29,17 +29,17 @@ output "natgateway_output" {
 
 variable "natgateway_subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S NATGATEWAY_SUBNET_ID"
 }
 
 variable "natgateway_publicip_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S NATGATEWAY_PUBLICIP_ID"
 }
 
 variable "natgateway_description" {
   type    = string
-  default = ""
+  default = "description-by-terrafrom"
 }
 ```
 
@@ -49,9 +49,9 @@ variable "natgateway_description" {
 ### Required
 
 - `publicip_id` (String) Public IP ID 
-  - example : 023c57b14f11483689338d085e061492
+  - example: YOUR RESOURCE'S PUBLICIP_ID
 - `subnet_id` (String) Subnet ID 
-  - example : 607e0938521643b5b4b266f343fae693
+  - example: YOUR RESOURCE'S SUBNET_ID
 
 ### Optional
 

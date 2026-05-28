@@ -30,22 +30,22 @@ output "uplink_output" {
 
 variable "description" {
   type    = string
-  default = ""
+  default = "TGW cidr one of vpc"
 }
 
 variable "destination_cidr" {
   type    = string
-  default = ""
+  default = "1.1.0.0/17"
 }
 
 variable "destination_type" {
   type    = string
-  default = ""
+  default = "TGW"
 }
 
 variable "transit_gateway_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S TRANSIT_GATEWAY_ID"
 }
 ```
 
@@ -58,7 +58,7 @@ variable "transit_gateway_id" {
   - example: 192.167.5.0/24
 - `destination_type` (String) - enum: ["TGW","ON_PREMISE"]
 - `transit_gateway_id` (String) Transit Gateway ID
-  - example: fe860e0af0c04dcd8182b84f907f31f4
+  - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
 
 ### Optional
 
@@ -81,5 +81,5 @@ Read-Only:
   - example: 192.167.5.0/24
 - `destination_type` (String) - enum: ["TGW","ON_PREMISE"]
 - `id` (String) Routing Rule ID
-  - example: 43772aff4539403d9ba74bf1fdaa00c8
+  - example: YOUR RESOURCE'S ID
 - `state` (String) - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR"]

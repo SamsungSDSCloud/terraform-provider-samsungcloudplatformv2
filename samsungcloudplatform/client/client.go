@@ -28,7 +28,6 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/multinodegpucluster"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/mysql"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/networklogging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/organization"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/postgresql"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/quota"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/resourcemanager"
@@ -111,7 +110,6 @@ type SCPClient struct {
 	Budget          *budget.Client
 	LoggingAudit    *loggingaudit.Client
 	Quota           *quota.Client
-	Organization    *organization.Client
 
 	// LoadBalancer
 	LoadBalancer *loadbalancer.Client
@@ -191,7 +189,6 @@ var AllowSDKDefaultVersion = map[string][]string{
 	budget.ServiceType:          {"v1.0"},
 	loggingaudit.ServiceType:    {"v1.1"},
 	quota.ServiceType:           {"v1.4"},
-	organization.ServiceType:    {"v1.2"},
 
 	// LoadBalancer
 	loadbalancer.ServiceType: {"v1.3"},
@@ -309,7 +306,6 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 		Billing:         billing.NewClient((NewDefaultConfig(providerConfig, billing.ServiceType))),
 		Budget:          budget.NewClient((NewDefaultConfig(providerConfig, budget.ServiceType))),
 		Quota:           quota.NewClient(NewDefaultConfig(providerConfig, quota.ServiceType)),
-		Organization:    organization.NewClient(NewDefaultConfig(providerConfig, organization.ServiceType)),
 
 		// LoadBalancer
 		LoadBalancer: loadbalancer.NewClient(NewDefaultConfig(providerConfig, loadbalancer.ServiceType)),

@@ -31,12 +31,12 @@ output "server_group_output" {
 
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform_test_server_group"
 }
 
 variable "policy" {
   type    = string
-  default = ""
+  default = "affinity"
 }
 ```
 

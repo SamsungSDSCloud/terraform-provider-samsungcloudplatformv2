@@ -28,12 +28,12 @@ output "ids" {
 
 variable "firewall_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S FIREWALL_ID"
 }
 
 variable "dst_ip" {
   type    = string
-  default = ""
+  default = "1.1.1.1"
 }
 ```
 
@@ -43,7 +43,7 @@ variable "dst_ip" {
 ### Required
 
 - `firewall_id` (String) Firewall Id 
-  - example : 68db67f78abd405da98a6056a8ee42af
+  - example: YOUR RESOURCE'S FIREWALL_ID
 
 ### Optional
 

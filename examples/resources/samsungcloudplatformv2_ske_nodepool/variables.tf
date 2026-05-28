@@ -1,26 +1,26 @@
 variable "name" {
   type    = string
-  default = ""
+  default = "terraform-test-2"
 }
 
 variable "cluster_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S CLUSTER_ID"
 }
 
 variable "desired_node_count" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "image_os" {
   type    = string
-  default = ""
+  default = "ubuntu"
 }
 
 variable "image_os_version" {
   type    = string
-  default = ""
+  default = "22.04"
 }
 
 variable "is_auto_recovery" {
@@ -35,37 +35,37 @@ variable "is_auto_scale" {
 
 variable "keypair_name" {
   type    = string
-  default = ""
+  default = "keypair-gook"
 }
 
 variable "kubernetes_version" {
   type    = string
-  default = ""
+  default = "v1.34.3"
 }
 
 variable "max_node_count" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "min_node_count" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "server_type_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SERVER_TYPE_ID"
 }
 
 variable "volume_type_name" {
   type    = string
-  default = ""
+  default = "SSD"
 }
 
 variable "volume_size" {
   type    = number
-  default = 0
+  default = 104
 }
 
 variable "labels" {
@@ -74,8 +74,17 @@ variable "labels" {
     value = string
   }))
   default = [{
-    key   = ""
-    value = ""
+    key   = "test1"
+    value = "test1"
+    }, {
+    key   = "test2"
+    value = "test2"
+    }, {
+    key   = "test3"
+    value = "test3"
+    }, {
+    key   = "test4"
+    value = "test4"
   }]
 }
 
@@ -86,15 +95,19 @@ variable "taints" {
     value  = string
   }))
   default = [{
-    effect = ""
-    key    = ""
-    value  = ""
+    effect = "NoSchedule"
+    key    = "test1"
+    value  = "test1"
+    }, {
+    effect = "NoSchedule"
+    key    = "test2"
+    value  = "test2"
   }]
 }
 
 variable "server_group_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SERVER_GROUP_ID"
 }
 
 variable "advanced_settings" {
@@ -109,12 +122,12 @@ variable "advanced_settings" {
   })
   default = {
     allowed_unsafe_sysctls  = ""
-    container_log_max_files = 0
-    container_log_max_size  = 0
-    image_gc_high_threshold = 0
-    image_gc_low_threshold  = 0
-    max_pods                = 0
-    pod_max_pids            = 0
+    container_log_max_files = 5
+    container_log_max_size  = 10
+    image_gc_high_threshold = 85
+    image_gc_low_threshold  = 80
+    max_pods                = 110
+    pod_max_pids            = 4096
   }
 }
 
@@ -125,25 +138,22 @@ variable "linked_resources" {
     name = string
     type = string
   }))
-  default = [{
-    id   = ""
-    name = ""
-    type = ""
-  }]
+  default = []
 }
 
 variable "volume_max_iops" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "volume_max_throughput" {
   type    = number
-  default = 0
+  default = null
 }
 
 variable "scp_gpu_driver" {
   type    = string
-  default = ""
+  default = null
 }
+
 

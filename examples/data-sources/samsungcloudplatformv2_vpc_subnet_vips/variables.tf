@@ -1,11 +1,11 @@
 variable "subnet_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
 }
 
 variable "size" {
   type    = number
-  default = 0
+  default = 20
 }
 
 variable "page" {
@@ -15,17 +15,18 @@ variable "page" {
 
 variable "sort" {
   type    = string
-  default = ""
+  default = "created_at:desc"
 }
 
 variable "virtual_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "public_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
+
 
 

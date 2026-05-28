@@ -29,17 +29,17 @@ output "vpc_output" {
 
 variable "vpc_cidr" {
   type    = string
-  default = ""
+  default = "192.167.0.0/18"
 }
 
 variable "vpc_description" {
   type    = string
-  default = ""
+  default = "test_description"
 }
 
 variable "vpc_name" {
   type    = string
-  default = ""
+  default = "testvp"
 }
 ```
 
@@ -78,23 +78,23 @@ variable "vpc_name" {
 Read-Only:
 
 - `account_id` (String) Account ID
-  - example: f1e6c81a2b054582878cb9724dc2ce9f
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `cidr_count` (Number) Cidr Count
   - example: 20
 - `cidrs` (Attributes List) (see [below for nested schema](#nestedatt--vpc--cidrs))
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Description
   - maxLength: 50
   - example: vpcDescription
 - `id` (String) VPC Id
-  - example: 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By
-  - example: 90dddfc2b1e04edba54ba2b41539a9ac
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) VPC Name
   - maxLength: 20
   - minLength: 3
@@ -112,6 +112,6 @@ Read-Only:
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
-  - example: 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S CREATED_BY
 - `id` (String) Cidr ID
-  - example: 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S ID

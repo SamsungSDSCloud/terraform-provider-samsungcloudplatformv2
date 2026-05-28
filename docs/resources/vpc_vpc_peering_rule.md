@@ -32,17 +32,17 @@ output "vpcpeeringrule_output" {
 
 variable "vpc_peering_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPC_PEERING_ID"
 }
 
 variable "destination_cidr" {
   type    = string
-  default = ""
+  default = "1.1.1.0/28"
 }
 
 variable "destination_vpc_type" {
   type    = string
-  default = ""
+  default = "REQUESTER_VPC"
 }
 
 

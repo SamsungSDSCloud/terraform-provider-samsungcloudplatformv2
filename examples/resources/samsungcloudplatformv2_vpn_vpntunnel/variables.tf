@@ -1,11 +1,11 @@
 variable "description" {
   type    = string
-  default = ""
+  default = "update 0912test123"
 }
 
 variable "name" {
   type    = string
-  default = ""
+  default = "test1509257"
 }
 
 variable "phase1" {
@@ -19,13 +19,13 @@ variable "phase1" {
     pre_shared_key               = string
   })
   default = {
-    dpd_retry_interval           = 0
-    ike_version                  = 0
-    peer_gateway_ip              = ""
-    phase1_diffie_hellman_groups = [0]
-    phase1_encryptions           = [""]
-    phase1_life_time             = 0
-    pre_shared_key               = ""
+    dpd_retry_interval           = 60
+    ike_version                  = 1
+    peer_gateway_ip              = "192.169.1.6"
+    phase1_diffie_hellman_groups = [20, 21]
+    phase1_encryptions           = ["des-sha1"]
+    phase1_life_time             = 86400
+    pre_shared_key               = "test1234578"
   }
 }
 
@@ -38,21 +38,24 @@ variable "phase2" {
     remote_subnets               = list(string)
   })
   default = {
-    perfect_forward_secrecy      = ""
-    phase2_diffie_hellman_groups = [0]
-    phase2_encryptions           = [""]
-    phase2_life_time             = 0
-    remote_subnets               = [""]
+    perfect_forward_secrecy      = "ENABLE"
+    phase2_diffie_hellman_groups = [20, 21]
+    phase2_encryptions           = ["des-sha1"]
+    phase2_life_time             = 43200
+    remote_subnets               = ["5.6.0.0/22", "5.7.0.0/24"]
   }
 }
 
 variable "tags" {
-  type    = map(string)
-  default = null
+  type = map(string)
+  default = {
+    key1 = "222 updated"
+  }
 }
 
 variable "vpn_gateway_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S VPN_GATEWAY_ID"
 }
+
 

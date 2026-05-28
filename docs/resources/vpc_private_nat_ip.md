@@ -29,17 +29,17 @@ output "private_nat_ip_output" {
 
 variable "private_nat_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S PRIVATE_NAT_ID"
 }
 
 variable "private_nat_ip_ip_address" {
   type    = string
-  default = ""
+  default = "sample-ip-address"
 }
 
 variable "private_nat_ip_description" {
   type    = string
-  default = ""
+  default = "sample-description"
 }
 ```
 
@@ -51,7 +51,7 @@ variable "private_nat_ip_description" {
 - `ip_address` (String) IP address 
   - example : 192.168.10.0
 - `private_nat_id` (String) Private NAT ID 
-  - example : 7df8abb4912e4709b1cb237daccca7a8
+  - example: YOUR RESOURCE'S PRIVATE_NAT_ID
 
 ### Optional
 

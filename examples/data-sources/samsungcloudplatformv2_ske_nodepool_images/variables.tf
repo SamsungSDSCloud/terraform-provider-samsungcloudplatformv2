@@ -1,30 +1,31 @@
 variable "scp_original_image_type" {
   type    = string
-  default = ""
+  default = "k8s"
 }
 
 variable "kubernetes_version" {
   type    = string
-  default = ""
+  default = "v1.34.3"
 }
 
 variable "os" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "size" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "page" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "sort" {
   type    = string
-  default = ""
+  default = null
 }
+
 

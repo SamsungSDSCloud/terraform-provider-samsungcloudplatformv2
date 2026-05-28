@@ -2,6 +2,7 @@ package sqlserver
 
 import (
 	"context"
+
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/sqlserver/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -59,8 +60,13 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 
 	// AllowableIpAddresses
 	var allowableIpAddresses []string
-	for _, allowableIpAddress := range request.AllowableIpAddresses {
-		allowableIpAddresses = append(allowableIpAddresses, allowableIpAddress.ValueString())
+	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown() {
+		allowableIpAddresses = []string{}
+	} else {
+		for _, elem := range request.AllowableIpAddresses.Elements() {
+			strVal := elem.(types.String)
+			allowableIpAddresses = append(allowableIpAddresses, strVal.ValueString())
+		}
 	}
 
 	// InitConfigOption

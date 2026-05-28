@@ -25,7 +25,7 @@ output "nodepoolnodes" {
 
 variable "nodepool_id" {
   type    = string
-  default = ""
+  default = "ENTER YOUR RESOURCE'S NODEPOOL_ID"
 }
 ```
 
@@ -35,7 +35,7 @@ variable "nodepool_id" {
 ### Required
 
 - `nodepool_id` (String) Nodepool ID
-  - example: 9b618b5b-5508-4836-b014-d2d3fb438c28
+  - example: YOUR RESOURCE'S NODEPOOL_ID
 
 ### Read-Only
 

@@ -55,68 +55,68 @@ output "dashboard" {
 
 variable "dashboard_name" {
   type    = string
-  default = ""
+  default = "tf_test_01"
 }
 
 variable "height" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "width" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "order" {
   type    = number
-  default = 0
+  default = 1
 }
 
 
 variable "period" {
   type    = number
-  default = 0
+  default = 300
 }
 
 variable "statistic_type" {
   type    = string
-  default = ""
+  default = "AVG"
 }
 
 variable "title" {
   type    = string
-  default = ""
+  default = "Virtual Server | CPU Usage"
 }
 
 variable "metric_name" {
   type    = string
-  default = ""
+  default = "CPU Usage"
 }
 
 variable "namespace_name" {
   type    = string
-  default = ""
+  default = "Virtual Server"
 }
 
 variable "display_name" {
   type    = string
-  default = ""
+  default = "Virtual Server | CPU Usage"
 }
 
 variable "dimension_key" {
   type    = string
-  default = ""
+  default = "resource_id"
 }
 
 variable "dimension_value" {
   type    = string
-  default = ""
+  default = "d5b49100-e3e3-4d10-b2e9-9da68aed7747"
 }
 
 variable "color" {
   type    = string
-  default = ""
+  default = "#ff7f0e"
 }
 ```
 
