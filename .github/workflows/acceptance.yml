@@ -1,21 +1,17 @@
 name: Acceptance Tests (Scheduled)
-
 on:
   schedule:
     - cron: '0 15 * * *'
   workflow_dispatch:
-
 concurrency:
   group: acctest-${{ github.workflow }}
   cancel-in-progress: false
-
 permissions:
   contents: read
-
 jobs:
   acceptance:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 630
     concurrency:
       group: acctest-region-${{ matrix.region }}
       cancel-in-progress: false
@@ -27,28 +23,51 @@ jobs:
     env:
       TF_ACC: '1'
       SCP_TF_DEFAULT_REGION: ${{ matrix.region }}
-      SCP_TF_AUTH_URL: https://iam.samsungsdscloud.com/v1
+      SCP_TF_AUTH_URL: https://iam.e.samsungsdscloud.com/v1
       SCP_TF_ACCESS_KEY: ${{ secrets.SCP_TF_ACCESS_KEY }}
       SCP_TF_SECRET_KEY: ${{ secrets.SCP_TF_SECRET_KEY }}
+      GOPRIVATE: github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2
+      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      GOFLAGS: -mod=mod
     steps:
       - uses: actions/checkout@v6
+      - name: Unshallow
+        run: git fetch --prune --unshallow
       - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
-
+      - name: Config Access Token
+        run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: '1.11.*'
           terraform_wrapper: false
-
+      - name: Write SCP config files for sweeper
+        env:
+          SCP_TF_ACCESS_KEY: ${{ secrets.SCP_TF_ACCESS_KEY }}
+          SCP_TF_SECRET_KEY: ${{ secrets.SCP_TF_SECRET_KEY }}
+        run: |
+          mkdir -p "$HOME/.scpconf"
+          chmod 700 "$HOME/.scpconf"
+          umask 077
+          cat > "$HOME/.scpconf/credentials.json" <<EOF
+          {
+            "access-key": "${SCP_TF_ACCESS_KEY}",
+            "secret-key": "${SCP_TF_SECRET_KEY}"
+          }
+          EOF
+          cat > "$HOME/.scpconf/config.json" <<EOF
+          {
+            "auth-url": "${SCP_TF_AUTH_URL}",
+            "default-region": "${SCP_TF_DEFAULT_REGION}"
+          }
+          EOF
       - name: Sweep before tests
-        run: go test ./... -v -sweep=${{ matrix.region }} -timeout 600m
+        run: go test ./samsungcloudplatform/service... -v -sweep=${{ matrix.region }} -timeout 600m
         continue-on-error: true
-
       - name: Run acceptance tests
-        run: go test -v -cover -timeout 600m ./...
-
+        run: go test -v -cover -timeout 600m ./samsungcloudplatform/service...
       - name: Sweep after tests
         if: always()
-        run: go test ./... -v -sweep=${{ matrix.region }} -timeout 600m
+        run: go test ./samsungcloudplatform/service... -v -sweep=${{ matrix.region }} -timeout 600m
         continue-on-error: true
