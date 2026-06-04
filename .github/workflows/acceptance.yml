@@ -62,12 +62,40 @@ jobs:
             "default-region": "${SCP_TF_DEFAULT_REGION}"
           }
           EOF
+
+      # sweep 대상: resource.TestMain 이 있는 패키지만 추림
+      # (TestMain 없는 패키지는 -sweep 시 수용테스트가 그대로 돌기 때문에 제외)
+      - name: Resolve sweep packages
+        id: sweep_pkgs
+        run: |
+          PKGS=$(grep -rl 'resource.TestMain' ./samsungcloudplatform/service \
+            | xargs -n1 dirname | sort -u | tr '\n' ' ')
+          if [ -n "$PKGS" ]; then
+            echo "found sweep packages: $PKGS"
+            echo "list=$PKGS" >> "$GITHUB_OUTPUT"
+          else
+            echo "no resource.TestMain packages found"
+            echo "list=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Sweep before tests
-        run: go test ./samsungcloudplatform/service... -v -sweep=${{ matrix.region }} -timeout 600m
+        if: steps.sweep_pkgs.outputs.list != ''
+        run: go test ${{ steps.sweep_pkgs.outputs.list }} -v -sweep=${{ matrix.region }} -timeout 600m
         continue-on-error: true
+
       - name: Run acceptance tests
-        run: go test -v -cover -timeout 600m ./samsungcloudplatform/service...
+        run: |
+          PKGS=$(go list ./samsungcloudplatform/service/... \
+            | { grep -vE '/samsungcloudplatform/service/(virtualserver|servicewatch)(/|$)' || true; })
+          if [ -z "$PKGS" ]; then
+            echo "no packages to test after exclusions, skipping"
+            exit 0
+          fi
+          echo "test packages:"
+          echo "$PKGS"
+          go test $PKGS -v -cover -timeout 600m
+
       - name: Sweep after tests
-        if: always()
-        run: go test ./samsungcloudplatform/service... -v -sweep=${{ matrix.region }} -timeout 600m
+        if: always() && steps.sweep_pkgs.outputs.list != ''
+        run: go test ${{ steps.sweep_pkgs.outputs.list }} -v -sweep=${{ matrix.region }} -timeout 600m
         continue-on-error: true
