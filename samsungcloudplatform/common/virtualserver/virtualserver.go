@@ -95,12 +95,31 @@ func AsyncRequestPollingWithState[T any](ctx context.Context, resourceId string,
 	ticker := time.NewTicker(internal)
 	defer ticker.Stop()
 
+	const maxConsecutiveErrors = 3
+	consecutiveErrors := 0
+
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		resource, err := getFunc(resourceId)
 		if err != nil {
-			return zero, fmt.Errorf("attempt %d/%d failed: %w",
-				attempt, maxAttempts, err)
+			consecutiveErrors++
+			if consecutiveErrors >= maxConsecutiveErrors {
+				return zero, fmt.Errorf("consecutive errors (%d) exceeded limit (%d), last error at attempt %d/%d: %w",
+					consecutiveErrors, maxConsecutiveErrors, attempt, maxAttempts, err)
+			}
+			// Reset error count on next successful attempt, but continue polling
+			if attempt < maxAttempts {
+				select {
+				case <-ticker.C:
+					continue
+				case <-ctx.Done():
+					return zero, fmt.Errorf("polling canceled: %w", ctx.Err())
+				}
+			}
+			continue
 		}
+
+		// Reset consecutive error count on successful request
+		consecutiveErrors = 0
 
 		currentState, err := getField(resource, stateField)
 		if err != nil {

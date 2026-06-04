@@ -2,7 +2,6 @@ package loadbalancer
 
 import (
 	"context"
-	"encoding/json"
 
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
@@ -462,24 +461,30 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 		}
 	}
 
-	sniCertificateList := make([]loadbalancer.SniCertificate, len(lbListener.SniCertificate))
-	for i, sniCertificate := range lbListener.SniCertificate {
-		sniCertificateList[i] = loadbalancer.SniCertificate{
-			SniCertId:  *loadbalancer.NewNullableString(sniCertificate.SniCertId.ValueStringPointer()),
-			DomainName: *loadbalancer.NewNullableString(sniCertificate.DomainName.ValueStringPointer()),
+	var sniCertificateList []loadbalancer.SniCertificate
+	if lbListener.SniCertificate != nil {
+		sniCertificateList = make([]loadbalancer.SniCertificate, len(lbListener.SniCertificate))
+		for i, sniCertificate := range lbListener.SniCertificate {
+			sniCertificateList[i] = loadbalancer.SniCertificate{
+				SniCertId:  *loadbalancer.NewNullableString(sniCertificate.SniCertId.ValueStringPointer()),
+				DomainName: *loadbalancer.NewNullableString(sniCertificate.DomainName.ValueStringPointer()),
+			}
 		}
 	}
 
-	urlHandlerInterfaces := make([]interface{}, len(lbListener.UrlHandler))
-	for i, urlHandler := range lbListener.UrlHandler {
-		urlHandlerInterfaces[i] = struct {
-			UrlPattern    loadbalancer.NullableString `json:"url_pattern"`
-			ServerGroupId loadbalancer.NullableString `json:"server_group_id"`
-			Seq           loadbalancer.NullableInt32  `json:"seq"`
-		}{
-			*loadbalancer.NewNullableString(urlHandler.UrlPattern.ValueStringPointer()),
-			*loadbalancer.NewNullableString(urlHandler.ServerGroupId.ValueStringPointer()),
-			*loadbalancer.NewNullableInt32(urlHandler.Seq.ValueInt32Pointer()),
+	var urlHandlerInterfaces []interface{}
+	if lbListener.UrlHandler != nil {
+		urlHandlerInterfaces = make([]interface{}, len(lbListener.UrlHandler))
+		for i, urlHandler := range lbListener.UrlHandler {
+			urlHandlerInterfaces[i] = struct {
+				UrlPattern    loadbalancer.NullableString `json:"url_pattern"`
+				ServerGroupId loadbalancer.NullableString `json:"server_group_id"`
+				Seq           loadbalancer.NullableInt32  `json:"seq"`
+			}{
+				*loadbalancer.NewNullableString(urlHandler.UrlPattern.ValueStringPointer()),
+				*loadbalancer.NewNullableString(urlHandler.ServerGroupId.ValueStringPointer()),
+				*loadbalancer.NewNullableInt32(urlHandler.Seq.ValueInt32Pointer()),
+			}
 		}
 	}
 
@@ -581,8 +586,9 @@ func (client *Client) UpdateLbListener(ctx context.Context, lbListenerId string,
 		lbListenerElement.Listener.IdleTimeout.Unset()
 	}
 
-	test, err := json.Marshal(lbListenerElement)
-	print(test)
+	// debug
+	// test, err := json.Marshal(lbListenerElement)
+	// print(test)
 
 	req = req.LbListenerSetRequestV1Dot3(lbListenerElement)
 

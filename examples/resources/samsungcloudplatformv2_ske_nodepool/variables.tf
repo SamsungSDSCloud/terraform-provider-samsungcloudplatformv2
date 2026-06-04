@@ -1,6 +1,6 @@
 variable "name" {
   type    = string
-  default = "terraform-test-2"
+  default = "tf-test1"
 }
 
 variable "cluster_id" {
@@ -10,7 +10,7 @@ variable "cluster_id" {
 
 variable "desired_node_count" {
   type    = number
-  default = 1
+  default = 2
 }
 
 variable "image_os" {
@@ -35,12 +35,12 @@ variable "is_auto_scale" {
 
 variable "keypair_name" {
   type    = string
-  default = "keypair-gook"
+  default = "gook"
 }
 
 variable "kubernetes_version" {
   type    = string
-  default = "v1.34.3"
+  default = "v1.33.5"
 }
 
 variable "max_node_count" {
@@ -76,15 +76,6 @@ variable "labels" {
   default = [{
     key   = "test1"
     value = "test1"
-    }, {
-    key   = "test2"
-    value = "test2"
-    }, {
-    key   = "test3"
-    value = "test3"
-    }, {
-    key   = "test4"
-    value = "test4"
   }]
 }
 
@@ -98,10 +89,6 @@ variable "taints" {
     effect = "NoSchedule"
     key    = "test1"
     value  = "test1"
-    }, {
-    effect = "NoSchedule"
-    key    = "test2"
-    value  = "test2"
   }]
 }
 
@@ -138,7 +125,11 @@ variable "linked_resources" {
     name = string
     type = string
   }))
-  default = []
+  default = [{
+    id   = "ENTER YOUR RESOURCE'S ID"
+    name = "ssdtest_l_9r76"
+    type = "fs"
+  }]
 }
 
 variable "volume_max_iops" {

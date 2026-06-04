@@ -24,6 +24,19 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "lbmember" {
 #   lb_server_group_id = "22"
 # }
 
+# resource "samsungcloudplatformv2_loadbalancer_lb_member" "lbmember" {
+#   lb_server_group_id = "68d9e7ab66604f5190f85f8aefb4d037"
+# 
+#   lb_member_create = {
+#     name         = "manual-ip-member"
+#     object_type  = "MANUAL"
+#     member_ip    = "10.0.1.50"
+#     member_port  = 8080
+#     member_weight = 1
+#     member_state = "ENABLE"
+#   }
+# }
+
 output "lb_member" {
   value = samsungcloudplatformv2_loadbalancer_lb_member.lbmember
 }
@@ -75,7 +88,7 @@ variable "lb_member_modify" {
 
 ### Optional
 
-- `lb_member_create` (Attributes) Create Lb Member. (see [below for nested schema](#nestedatt--lb_member_create))
+- `lb_member_create` (Attributes) Create Lb Member. Use this block to specify the member configuration. For VM/BM modes, provide `object_id` with the instance ID. For MANUAL mode (IP-based), provide `member_ip` directly and omit `object_id`. (see [below for nested schema](#nestedatt--lb_member_create))
 
 ### Read-Only
 
@@ -85,15 +98,18 @@ variable "lb_member_modify" {
 <a id="nestedatt--lb_member_create"></a>
 ### Nested Schema for `lb_member_create`
 
+Required:
+
+- `member_ip` (String) The IP address of the member. Required for all modes. For `VM`/`BM` modes, this is typically the private IP of the instance. For `MANUAL` mode, specify the target IP directly.
+- `member_port` (Number) The protocol port number of the member (1-65535). Required.
+- `name` (String) The name of the member. Required.
+
 Optional:
 
-- `member_ip` (String) MemberIp
-- `member_port` (Number) MemberPort
-- `member_state` (String) MemberState
-- `member_weight` (Number) MemberWeight
-- `name` (String) Name
-- `object_id` (String) ObjectId
-- `object_type` (String) ObjectType
+- `member_state` (String) The initial state of the member. Valid values: `ENABLE` (accepts traffic), `DISABLE` (does not accept traffic). Defaults to `ENABLE` if not specified.
+- `member_weight` (Number) The weight of the member for load balancing (1-100). Higher values receive more traffic. Defaults to 1 if not specified.
+- `object_id` (String) The ID of the backend object (VM instance, BM server, etc.). Required when `object_type` is `VM` or `BM`. Omit when `object_type` is `MANUAL`.
+- `object_type` (String) The type of backend object. Valid values: `VM` (virtual machine), `BM` (bare metal server), `MANUAL` (IP-based/manual member), `MNGC` (managed container). Defaults to `VM` if not specified. For `VM` or `BM`, `object_id` is required. For `MANUAL`, `member_ip` is required and `object_id` should be omitted.
 
 
 <a id="nestedatt--lb_member"></a>

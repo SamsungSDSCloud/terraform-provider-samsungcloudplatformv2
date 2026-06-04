@@ -349,6 +349,18 @@ func (r *virtualServerServerResource) AsyncPollingNetworkInterface(ctx context.C
 			return fmt.Errorf("attempt %d/%d failed: %w", attempt, maxAttempts, err)
 		}
 
+		if len(resp.Interfaces) == 0 {
+			if attempt < maxAttempts {
+				select {
+				case <-ticker.C:
+					continue
+				case <-ctx.Done():
+					return fmt.Errorf("polling canceled: %w", ctx.Err())
+				}
+			}
+			continue
+		}
+
 		if requestType == "NatCreate" {
 			staticNat, natExist := resp.Interfaces[0].GetStaticNatOk()
 			if natExist {
@@ -386,10 +398,10 @@ func (r *virtualServerServerResource) AsyncPollingNetworkInterface(ctx context.C
 }
 
 func (r *virtualServerServerResource) AsyncPollingQosUpdate(ctx context.Context, volumeId string, desiredIops, desiredThroughput int32) error {
-	ticker := time.NewTicker(3 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 60; i++ {
 		vol, err := r.client.GetVolume(ctx, volumeId)
 		if err != nil {
 			return fmt.Errorf("failed to get volume during polling: %w", err)
@@ -754,10 +766,15 @@ func (r *virtualServerServerResource) processNetworks(
 			staticNatId = &staticNat.Id
 		}
 
+		var fixedIp string
+		if len(itf.FixedIps) > 0 {
+			fixedIp = itf.FixedIps[0].IpAddress
+		}
+
 		network := virtualserver.ServerResourceNetwork{
 			SubnetId:    types.StringValue(itf.SubnetId),
 			PortId:      types.StringValue(itf.PortId),
-			FixedIp:     types.StringValue(itf.FixedIps[0].IpAddress),
+			FixedIp:     types.StringValue(fixedIp),
 			PublicIpId:  types.StringPointerValue(publicIpId),
 			StaticNatId: types.StringPointerValue(staticNatId),
 			IsDefault:   types.BoolValue(itf.IsDefault),
@@ -1472,6 +1489,14 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		resp.Diagnostics.AddError(
 			"Error creating server",
 			"Could not create server, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+
+	if len(data.Servers) == 0 {
+		resp.Diagnostics.AddError(
+			"Error creating server",
+			"CreateServer returned empty Servers list",
 		)
 		return
 	}

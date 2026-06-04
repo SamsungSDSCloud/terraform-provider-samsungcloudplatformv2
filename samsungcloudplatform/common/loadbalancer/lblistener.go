@@ -22,22 +22,31 @@ func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponseV1Dot3) loadbal
 		}
 	}
 
-	sniCertificateList := make([]loadbalancer.SniCertificateDataSource, len(resp.Listener.SniCertificate))
-	for i, sniCertificate := range resp.Listener.SniCertificate {
-		sniCertificateList[i] = loadbalancer.SniCertificateDataSource{
-			SniCertId:  types.StringValue(sniCertificate.GetSniCertId()),
-			DomainName: types.StringValue(sniCertificate.GetDomainName()),
-			NotAfterDt: ToNullableTimeString(sniCertificate.NotAfterDt),
+	var sniCertificateList []loadbalancer.SniCertificateDataSource
+	if resp.Listener.SniCertificate != nil {
+		sniCertificateList = make([]loadbalancer.SniCertificateDataSource, len(resp.Listener.SniCertificate))
+		for i, sniCertificate := range resp.Listener.SniCertificate {
+			sniCertificateList[i] = loadbalancer.SniCertificateDataSource{
+				SniCertId:  types.StringValue(sniCertificate.GetSniCertId()),
+				DomainName: types.StringValue(sniCertificate.GetDomainName()),
+				NotAfterDt: ToNullableTimeString(sniCertificate.NotAfterDt),
+			}
 		}
 	}
 
 	var urlHandlers []loadbalancer.UrlHandler
 
 	for _, urlHandlerInterface := range resp.Listener.UrlHandler {
-		urlHandlerMap, _ := urlHandlerInterface.(map[string]interface{})
-		urlPattern, _ := urlHandlerMap["url_pattern"].(string)
-		serverGroupId, _ := urlHandlerMap["server_group_id"].(string)
-		seq, _ := urlHandlerMap["seq"].(float64)
+		urlHandlerMap, ok := urlHandlerInterface.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		urlPattern, okUrl := urlHandlerMap["url_pattern"].(string)
+		serverGroupId, okSg := urlHandlerMap["server_group_id"].(string)
+		seq, okSeq := urlHandlerMap["seq"].(float64)
+		if !okUrl || !okSg || !okSeq {
+			continue
+		}
 		urlHandlers = append(urlHandlers, loadbalancer.UrlHandler{
 			UrlPattern:    types.StringValue(urlPattern),
 			ServerGroupId: types.StringValue(serverGroupId),
@@ -63,7 +72,7 @@ func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponseV1Dot3) loadbal
 		CreatedBy:           types.StringValue(resp.Listener.CreatedBy),
 		CreatedAt:           types.StringValue(resp.Listener.CreatedAt.Format(time.RFC3339)),
 		Description:         virtualserverutil.ToNullableStringValue(resp.Listener.Description.Get()),
-		InsertClientIp:      types.BoolValue(resp.Listener.InsertClientIp.IsSet()),
+		InsertClientIp:      ToNullableBoolValue(resp.Listener.InsertClientIp.Get()),
 		Name:                types.StringValue(resp.Listener.Name),
 		Persistence:         virtualserverutil.ToNullableStringValue(resp.Listener.Persistence.Get()),
 		Protocol:            types.StringValue(string(resp.Listener.Protocol)),

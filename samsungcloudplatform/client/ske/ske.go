@@ -282,6 +282,17 @@ func (client *Client) UpdateNodepoolTaints(ctx context.Context, nodepoolId strin
 	return resp, err
 }
 
+func (client *Client) UpdateNodepoolLinkedResources(ctx context.Context, nodepoolId string, request NodepoolResource) (*scpske.AsyncResponse, error) {
+	req := client.sdkClient.SkeV1NodepoolsApiAPI.SetNodepoolLinkedResources(ctx, nodepoolId)
+
+	req = req.NodepoolLinkedResourcesSetRequest(scpske.NodepoolLinkedResourcesSetRequest{
+		LinkedResources: convertLinkedResources(request.LinkedResources),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 func (client *Client) UpgradeNodepool(ctx context.Context, request NodepoolResource) (*scpske.AsyncResponse, error) {
 	reqV1Dot4 := scpske.NewNodepoolUpgradeSetRequestV1Dot4WithDefaults()
 	reqV1Dot4.SetOsVersion(request.ImageOsVersion.ValueString())

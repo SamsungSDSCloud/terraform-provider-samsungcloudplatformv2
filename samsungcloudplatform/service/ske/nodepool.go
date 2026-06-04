@@ -3,10 +3,11 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"reflect"
 	"regexp"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
@@ -51,10 +52,8 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 				Attributes: map[string]schema.Attribute{
 					"allowed_unsafe_sysctls": schema.StringAttribute{
 						Optional:            true,
-						Computed:            true,
 						Description:         "Node Pool Allowed unsafe sysctls\n  - example: kernel.msg*,net.ipv4.route.min_pmtu",
 						MarkdownDescription: "Node Pool Allowed unsafe sysctls\n  - example: kernel.msg*,net.ipv4.route.min_pmtu",
-						Default:             stringdefault.StaticString(""),
 					},
 					"container_log_max_files": schema.Int32Attribute{
 						Required:            true,
@@ -106,7 +105,6 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 					},
 				},
 				Optional:            true,
-				Computed:            true,
 				Description:         "Node Pool Advanced Settings",
 				MarkdownDescription: "Node Pool Advanced Settings",
 			},
@@ -181,7 +179,6 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 					},
 				},
 				Optional:            true,
-				Computed:            true,
 				Description:         "Node Pool Labels",
 				MarkdownDescription: "Node Pool Labels",
 			},
@@ -206,7 +203,6 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 					},
 				},
 				Optional: true,
-				Computed: true,
 			},
 			"max_node_count": schema.Int32Attribute{
 				Optional:            true,
@@ -580,7 +576,6 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 					},
 				},
 				Optional:            true,
-				Computed:            true,
 				Description:         "Node Pool Taints",
 				MarkdownDescription: "Node Pool Taints",
 			},
@@ -788,6 +783,18 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 
 		if !reflect.DeepEqual(plan.Taints, state.Taints) {
 			_, err := r.client.UpdateNodepoolTaints(ctx, plan.Id.ValueString(), plan)
+			if err != nil {
+				detail := client.GetDetailFromError(err)
+				resp.Diagnostics.AddError(
+					"Error Updating Nodepool Taints",
+					"Could not update nodepool taints, unexpected error: "+err.Error()+"\nReason: "+detail,
+				)
+				return
+			}
+		}
+
+		if !reflect.DeepEqual(plan.LinkedResources, state.LinkedResources) {
+			_, err := r.client.UpdateNodepoolLinkedResources(ctx, plan.Id.ValueString(), plan)
 			if err != nil {
 				detail := client.GetDetailFromError(err)
 				resp.Diagnostics.AddError(

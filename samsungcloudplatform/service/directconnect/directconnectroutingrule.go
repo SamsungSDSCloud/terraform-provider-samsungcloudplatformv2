@@ -242,6 +242,12 @@ func (r *directConnectRoutingRuleResource) Read(ctx context.Context, req resourc
 		return
 	}
 
+	// No data return from List API <=> Detail data not found
+	if len(data.RoutingRules) == 0 {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
 	routingRuleModel := createRoutingRuleModel(&data.RoutingRules[0])
 
 	routingRuleObjectValue, diags := types.ObjectValueFrom(ctx, routingRuleModel.AttributeTypes(), routingRuleModel)
@@ -295,7 +301,7 @@ func createRoutingRuleModel(data *scpdirectconnect.RoutingRule) directconnect.Ro
 		AccountId:               types.StringValue(data.AccountId),
 		OwnerId:                 types.StringValue(data.OwnerId),
 		OwnerType:               types.StringValue(string(data.OwnerType)),
-		DestinationType:         types.StringValue(string(data.OwnerType)),
+		DestinationType:         types.StringValue(string(data.DestinationType)),
 		DestinationCidr:         types.StringValue(data.DestinationCidr),
 		DestinationResourceId:   types.StringPointerValue(data.DestinationResourceId.Get()),
 		DestinationResourceName: types.StringPointerValue(data.DestinationResourceName.Get()),

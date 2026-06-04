@@ -30,9 +30,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource               = &GpunodeResource{}
-	_ resource.ResourceWithConfigure  = &GpunodeResource{}
-	_ resource.ResourceWithModifyPlan = &GpunodeResource{}
+	_ resource.Resource                = &GpunodeResource{}
+	_ resource.ResourceWithConfigure   = &GpunodeResource{}
+	_ resource.ResourceWithModifyPlan  = &GpunodeResource{}
+	_ resource.ResourceWithImportState = &GpunodeResource{}
 )
 
 // NewGpunodeResource is a helper function to simplify the provider implementation.
@@ -425,6 +426,13 @@ func (multinodegpuclusterRS *GpunodeResource) Create(ctx context.Context, req re
 	space := regexp.MustCompile(`\s+`)
 	ids := space.ReplaceAllString(asyncResponse.ResourceId, "")
 	idList := strings.Split(ids, ",")
+	if len(idList) == 0 {
+		resp.Diagnostics.AddError(
+			"Error creating GPU Node",
+			"Error in creating : GPU Node was not created.",
+		)
+		return
+	}
 
 	for _, id := range idList {
 		err = waitForGpuNodeStatus(ctx, multinodegpuclusterRS.client, id, []string{common.CreatingState}, []string{common.RunningState})
@@ -437,7 +445,6 @@ func (multinodegpuclusterRS *GpunodeResource) Create(ctx context.Context, req re
 			return
 		}
 	}
-
 	gpunodeId := idList[0]
 
 	err = setGpuNodeCommonInfo(ctx, multinodegpuclusterRS, gpunodeId, &plan)
@@ -494,6 +501,10 @@ func (multinodegpuclusterRS *GpunodeResource) Read(ctx context.Context, req reso
 	var serversState []multinodegpuclusterClient.ServerDetailsValue
 	state.ServerDetails.ElementsAs(ctx, &serversState, false)
 
+	if len(serversState) == 0 {
+		resp.State.RemoveResource(ctx)
+		return
+	}
 	gpunodeId := serversState[0].Id.ValueString()
 
 	err := setGpuNodeCommonInfo(ctx, multinodegpuclusterRS, gpunodeId, &state)
@@ -623,6 +634,13 @@ func (multinodegpuclusterRS *GpunodeResource) Update(ctx context.Context, req re
 	}
 
 	// Refesh data
+	if len(planServerDetails) == 0 {
+		resp.Diagnostics.AddError(
+			"Error Refresh GPU Node",
+			"Could not refresh Plan Server Details",
+		)
+		return
+	}
 	gpunodeId := planServerDetails[0].Id.ValueString()
 
 	err := setGpuNodeCommonInfo(ctx, multinodegpuclusterRS, gpunodeId, &plan)

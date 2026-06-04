@@ -136,10 +136,10 @@ func (r *virtualServerVolumeResource) Configure(_ context.Context, req resource.
 }
 
 func (r *virtualServerVolumeResource) AsyncPollingQosUpdate(ctx context.Context, volumeId string, desiredIops, desiredThroughput int32) error {
-	ticker := time.NewTicker(3 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 60; i++ {
 		vol, err := r.client.GetVolume(ctx, volumeId)
 		if err != nil {
 			return fmt.Errorf("failed to get volume during polling: %w", err)

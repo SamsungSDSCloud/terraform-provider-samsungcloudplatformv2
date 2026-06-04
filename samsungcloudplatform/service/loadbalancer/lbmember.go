@@ -3,25 +3,31 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/baremetal"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
 	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &loadbalancerLbMemberResource{}
-	_ resource.ResourceWithConfigure = &loadbalancerLbMemberResource{}
+	_ resource.Resource               = &loadbalancerLbMemberResource{}
+	_ resource.ResourceWithConfigure  = &loadbalancerLbMemberResource{}
+	_ resource.ResourceWithModifyPlan = &loadbalancerLbMemberResource{}
 )
 
 // NewLoadBalancerLbMemberResource is a helper function to simplify the provider implementation.
@@ -124,40 +130,118 @@ func (r *loadbalancerLbMemberResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			common.ToSnakeCase("LbMemberCreate"): schema.SingleNestedAttribute{
-				Description: "Create Lb Member.",
+				Description: "Create Lb Member. Use this block to specify the member configuration. For VM/BM modes, provide `object_id` with the instance ID. For MANUAL mode (IP-based), provide `member_ip` directly and omit `object_id`.",
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("ObjectId"): schema.StringAttribute{
-						Description: "ObjectId",
+						Description: "The ID of the backend object (VM instance, BM server, etc.). Required when `object_type` is `VM` or `BM`. Omit when `object_type` is `MANUAL`.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-						Description: "ObjectType",
+						Description: "The type of backend object. Valid values: `VM` (virtual machine), `BM` (bare metal server), `MANUAL` (IP-based/manual member), `MNGC` (managed container). Defaults to `VM` if not specified. For `VM` or `BM`, `object_id` is required. For `MANUAL`, `member_ip` is required and `object_id` should be omitted.",
 						Optional:    true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("VM", "BM", "MANUAL", "MNGC"),
+						},
 					},
 					common.ToSnakeCase("MemberPort"): schema.Int32Attribute{
-						Description: "MemberPort",
-						Optional:    true,
+						Description: "The protocol port number of the member (1-65535). Required.",
+						Required:    true,
+						Validators: []validator.Int32{
+							int32validator.Between(1, 65535),
+						},
 					},
 					common.ToSnakeCase("MemberIp"): schema.StringAttribute{
-						Description: "MemberIp",
-						Optional:    true,
+						Description: "The IP address of the member. Required for all modes. For `VM`/`BM` modes, this is typically the private IP of the instance. For `MANUAL` mode, specify the target IP directly.",
+						Required:    true,
+						Validators: []validator.String{
+							baremetalcommon.IpStringValidator{},
+						},
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the member. Required.",
+						Required:    true,
+						Validators: []validator.String{
+							stringvalidator.LengthBetween(1, 63),
+							stringvalidator.RegexMatches(regexp.MustCompile(`^[a-zA-Z0-9\s\-_\.]*$`), "Member Name"),
+						},
 					},
 					common.ToSnakeCase("MemberWeight"): schema.Int32Attribute{
-						Description: "MemberWeight",
+						Description: "The weight of the member for load balancing (1-100). Higher values receive more traffic. Defaults to 1 if not specified.",
 						Optional:    true,
+						Validators: []validator.Int32{
+							int32validator.Between(1, 1000),
+						},
 					},
 					common.ToSnakeCase("MemberState"): schema.StringAttribute{
-						Description: "MemberState",
+						Description: "The initial state of the member. Valid values: `ENABLE` (accepts traffic), `DISABLE` (does not accept traffic). Defaults to `ENABLE` if not specified.",
 						Optional:    true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("ENABLE", "DISABLE"),
+						},
 					},
 				},
 			},
 		},
+	}
+}
+
+// ModifyPlan validates cross-field constraints for lb_member_create.
+func (r *loadbalancerLbMemberResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan loadbalancer.LbMembersResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Skip validation during import (Id is known)
+	if !plan.Id.IsUnknown() {
+		return
+	}
+
+	lbMemberCreate := plan.LbMemberCreate
+
+	// Skip if the create block was not provided (all fields null/unknown)
+	if lbMemberCreate.Name.IsNull() && lbMemberCreate.ObjectType.IsNull() {
+		return
+	}
+
+	objType := lbMemberCreate.ObjectType.ValueString()
+	objId := lbMemberCreate.ObjectId
+	memberIp := lbMemberCreate.MemberIp
+
+	// VM / BM / MNGC modes require object_id
+	if objType == "VM" || objType == "BM" || objType == "MNGC" {
+		if objId.IsNull() || objId.ValueString() == "" {
+			resp.Diagnostics.AddError(
+				"Missing object_id",
+				fmt.Sprintf(
+					"`object_id` is required when `object_type` is `%s`. Provide the ID of the backend instance.",
+					objType,
+				),
+			)
+		}
+	}
+
+	// MANUAL mode requires member_ip and should not have object_id
+	if objType == "MANUAL" {
+		if memberIp.IsNull() || memberIp.ValueString() == "" {
+			resp.Diagnostics.AddError(
+				"Missing member_ip",
+				"`member_ip` is required when `object_type` is `MANUAL`. Provide the target IP address.",
+			)
+		}
+		if !objId.IsNull() && objId.ValueString() != "" {
+			resp.Diagnostics.AddError(
+				"Unnecessary object_id",
+				"`object_id` is not used when `object_type` is `MANUAL`. It should be ignored.",
+			)
+		}
 	}
 }
 
@@ -276,7 +360,7 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 		CreatedAt:       types.StringValue(lbMember.CreatedAt.Format(time.RFC3339)),
 	}
 
-	lbMemberOjbectValue, diags := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	lbMemberOjbectValue, _ := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
 	state.LbMember = lbMemberOjbectValue
 
 	// Set refreshed state
@@ -310,11 +394,11 @@ func (r *loadbalancerLbMemberResource) Update(ctx context.Context, req resource.
 
 	lbMemberModel := updateLbMemberModel(data)
 
-	lbMemberObjectValue, diags := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	lbMemberObjectValue, _ := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
 	state.LbMember = lbMemberObjectValue
 
 	// Set refreshed state
-	diags = resp.State.Set(ctx, state)
+	resp.State.Set(ctx, state)
 
 	err = waitForMemberStatus(ctx, r.client, data.Member.Get().LbServerGroupId, data.Member.Get().Id, []string{}, []string{"ACTIVE"})
 	if err != nil {

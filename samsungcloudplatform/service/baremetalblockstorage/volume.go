@@ -216,6 +216,14 @@ func (r *baremetalBlockStorageVolume) ModifyPlan(ctx context.Context, request re
 		response.Diagnostics.AddError("Could not change region",
 			"Could not change region.\nIf you want to change, create a new resource.")
 	}
+	if plan.DiskType.ValueString() == "HDD" && !plan.QoS.IsNull() {
+		response.Diagnostics.AddError("Could not set QoS to HDD",
+			"If the disk type is HDD, QoS settings cannot be configured.")
+	}
+	if plan.DiskType.ValueString() == "SSD" && plan.QoS.IsNull() {
+		response.Diagnostics.AddError("Missing QoS Configuration",
+			"When the disk type is SSD, QoS configuration is required.\n")
+	}
 }
 
 func (r *baremetalBlockStorageVolume) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
@@ -393,8 +401,18 @@ func (r *baremetalBlockStorageVolume) Update(ctx context.Context, request resour
 		}
 	}
 
-	stateIops, stateThroughput := r.getIopsAndThroughputFrom(state.QoS)
-	planIops, planThroughput := r.getIopsAndThroughputFrom(plan.QoS)
+	stateIops, stateThroughput, err := r.getIopsAndThroughputFrom(state.QoS)
+	if err != nil && !state.QoS.IsNull() {
+		response.Diagnostics.AddError("Error updating Block Storage(BM)",
+			"Could not parse state QoS values: "+err.Error())
+		return
+	}
+	planIops, planThroughput, err := r.getIopsAndThroughputFrom(plan.QoS)
+	if err != nil && !plan.QoS.IsNull() {
+		response.Diagnostics.AddError("Error updating Block Storage(BM)",
+			"Could not parse plan QoS values: "+err.Error())
+		return
+	}
 	if stateIops != planIops || stateThroughput != planThroughput {
 		_, _, err := r.client.UpdateBlockStorageQoS(ctx, plan.Id.ValueString(), planIops, planThroughput)
 		if err != nil {
@@ -511,9 +529,22 @@ func (r *baremetalBlockStorageVolume) waitForBlockStorageState(ctx context.Conte
 	})
 }
 
-func (r *baremetalBlockStorageVolume) getIopsAndThroughputFrom(qos types.Object) (int32, int32) {
+func (r *baremetalBlockStorageVolume) getIopsAndThroughputFrom(qos types.Object) (int32, int32, error) {
+	if qos.IsNull() {
+		return 0, 0, fmt.Errorf("qos is null")
+	}
+	if qos.IsUnknown() {
+		return 0, 0, fmt.Errorf("qos is unknown")
+	}
+
 	attributes := qos.Attributes()
-	iops, _ := strconv.ParseInt(attributes["iops"].String(), 10, 32)
-	throughput, _ := strconv.ParseInt(attributes["throughput"].String(), 10, 32)
-	return int32(iops), int32(throughput)
+	iops, err := strconv.ParseInt(attributes["iops"].String(), 10, 32)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse iops value %q: %w", attributes["iops"].String(), err)
+	}
+	throughput, err := strconv.ParseInt(attributes["throughput"].String(), 10, 32)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse throughput value %q: %w", attributes["throughput"].String(), err)
+	}
+	return int32(iops), int32(throughput), nil
 }

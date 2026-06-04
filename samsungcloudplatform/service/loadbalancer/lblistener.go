@@ -3,16 +3,19 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
 	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -257,6 +260,9 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
 						Description: "Protocol",
 						Optional:    true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("HTTP", "HTTPS", "TCP", "UDP", "TLS", "TCP_PROXY"),
+						},
 					},
 					common.ToSnakeCase("ResponseTimeout"): schema.Int32Attribute{
 						Description: "ResponseTimeout",
@@ -416,6 +422,11 @@ func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	if err := validateLbListenerCreate(ctx, r.client, plan.LbListenerCreate); err != nil {
+		resp.Diagnostics.AddError("Error creating LB Listener", err.Error())
+		return
+	}
+
 	// Create new Lb Listener
 	data, err := r.client.CreateLbListener(ctx, plan)
 	if err != nil {
@@ -436,10 +447,27 @@ func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resourc
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+
+	// Wait for active state
+	err = waitForLBListenerStatus(ctx, r.client, data.Listener.Id, []string{}, []string{"ACTIVE"})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating Lb Listener",
+			"Error waiting for Lb Listener to become active: "+err.Error(),
+		)
 		return
 	}
+
+	// use read function to fetch latest data
+	readReq := resource.ReadRequest{
+		State: resp.State,
+	}
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, readReq, readResp)
+
+	resp.State = readResp.State
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -483,6 +511,11 @@ func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resourc
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := validateLbListenerCreate(ctx, r.client, state.LbListenerCreate); err != nil {
+		resp.Diagnostics.AddError("Error updating LB Listener", err.Error())
 		return
 	}
 
@@ -539,4 +572,56 @@ func (r *loadbalancerLbListenerResource) Delete(ctx context.Context, req resourc
 		)
 		return
 	}
+}
+
+func validateServerGroup(ctx context.Context, lbClient *loadbalancer.Client, serverGroupId string) error {
+	serverGroup, err := lbClient.GetLbServerGroup(ctx, serverGroupId)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		return fmt.Errorf("LBServer Group ID is not valid, unexpected error: %s\nReason: %s", err.Error(), detail)
+	}
+
+	if serverGroup.LbServerGroup.State != "ACTIVE" {
+		return fmt.Errorf("LB Server Group with ID %s is not in ACTIVE state", serverGroupId)
+	}
+	return nil
+}
+
+func validateLbListenerCreate(ctx context.Context, lbClient *loadbalancer.Client, create loadbalancer.LbListenerCreate) error {
+	protocol := strings.ToUpper(create.Protocol.ValueString())
+	layer4Protocols := map[string]bool{"TCP": true, "UDP": true, "TLS": true, "TCP_PROXY": true}
+	if layer4Protocols[protocol] && len(create.UrlHandler) > 0 {
+		return fmt.Errorf("URL Handler is not supported for %s protocol", protocol)
+	}
+
+	if !create.ServerGroupId.IsNull() {
+		if err := validateServerGroup(ctx, lbClient, create.ServerGroupId.ValueString()); err != nil {
+			return err
+		}
+	}
+
+	for _, v := range create.UrlHandler {
+		if !v.Seq.IsNull() && v.Seq.ValueInt32() == 0 {
+			if v.UrlPattern.ValueString() != "default" {
+				return fmt.Errorf("URL Handler with seq 0 must have url_pattern set to 'default'")
+			}
+		}
+
+		if !v.ServerGroupId.IsNull() {
+			if err := validateServerGroup(ctx, lbClient, v.ServerGroupId.ValueString()); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func waitForLBListenerStatus(ctx context.Context, loadbalancerClient *loadbalancer.Client, id string, pendingStates []string, targetStates []string) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, err := loadbalancerClient.GetLbListener(ctx, id)
+		if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.Listener.State), nil
+	})
 }

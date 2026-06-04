@@ -204,6 +204,12 @@ func (r vpcTgwVpcConnectionResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
+	// No data return from List API <=> Detail data not found
+	if len(data.TransitGatewayVpcConnections) == 0 {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
 	vpcconnectionModel := createTgwVpcConnectionModel(&data.TransitGatewayVpcConnections[0])
 
 	vpcconnectionObjectValue, diags := types.ObjectValueFrom(ctx, vpcconnectionModel.AttributeTypes(), vpcconnectionModel)

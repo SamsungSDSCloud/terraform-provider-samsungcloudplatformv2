@@ -2,7 +2,7 @@ module github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3
 
 go 1.25.0
 
-require github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3 v3.3.1
+require github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3 v3.3.2
 
 
 require (
