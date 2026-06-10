@@ -22,6 +22,7 @@ jobs:
           - kr-west-1
     env:
       TF_ACC: '1'
+      TF_LOG: DEBUG
       SCP_TF_DEFAULT_REGION: ${{ matrix.region }}
       SCP_TF_AUTH_URL: https://iam.e.samsungsdscloud.com/v1
       SCP_TF_ACCESS_KEY: ${{ secrets.SCP_TF_ACCESS_KEY }}
