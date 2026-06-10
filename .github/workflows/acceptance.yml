@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         region:
-          - kr-west-1
+          - kr-west1
     env:
       TF_ACC: '1'
       TF_LOG: DEBUG
