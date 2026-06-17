@@ -2,12 +2,18 @@
 page_title: "samsungcloudplatformv2_virtualserver_server Resource - samsungcloudplatformv2"
 subcategory: Virtual Server
 description: |-
-  Server
+  Virtual Server resource.
+  GPU Server Creation Guide:
+  GPU Server can only use GPU images (images with scp_image_type of gpu_standard, 'gpu_custom').GPU Server types, refer to SCP documentation for available options in your environment.
 ---
 
 # samsungcloudplatformv2_virtualserver_server (Resource)
 
-Server
+Virtual Server resource.
+
+**GPU Server Creation Guide:**
+- GPU Server can only use GPU images (images with `scp_image_type` of `gpu_standard`, 'gpu_custom').
+- GPU Server types, refer to SCP documentation for available options in your environment.
 
 ## Example Usage
 
@@ -144,59 +150,87 @@ variable "extra_volumes_volume_1_delete_on_termination" {
 
 ### Required
 
-- `boot_volume` (Attributes) Boot Volume (see [below for nested schema](#nestedatt--boot_volume))
-- `keypair_name` (String) Keypair name
-- `name` (String) Name
-- `networks` (Attributes Map) Networks (see [below for nested schema](#nestedatt--networks))
-- `server_type_id` (String) Server type ID
+- `boot_volume` (Attributes) Boot volume settings. Defines the root disk where OS is installed. (see [below for nested schema](#nestedatt--boot_volume))
+- `keypair_name` (String) Keypair name. Specifies the keypair for SSH access.
+  - example: my-keypair
+- `name` (String) Server name.
+  - example: my-server
+  - minLength: 1
+  - maxLength: 63
+  - pattern: ^[a-zA-Z0-9-_ ]*$
+- `networks` (Attributes Map) Network settings. Defines network interfaces to attach to the server.
+  - example: {"network-1": {"subnet_id": "ab313c43291e4b678f4bacffe10768ae"}} (see [below for nested schema](#nestedatt--networks))
+- `server_type_id` (String) Server type ID. Determines CPU, memory, and other server specifications.
+  - example: YOUR RESOURCE'S SERVER_TYPE_ID
 
 ### Optional
 
-- `extra_volumes` (Attributes Map) Extra Volumes (see [below for nested schema](#nestedatt--extra_volumes))
-- `image_id` (String) Image ID
-- `lock` (Boolean) Lock
-- `metadata` (Map of String) Metadata
-- `partition_number` (Number) Partition Number
-- `product_category` (String) Product category
-- `product_offering` (String) Product offering
-- `security_groups` (List of String) Security groups
-- `server_group_id` (String) Server group ID
-- `state` (String) State
+- `extra_volumes` (Attributes Map) Extra volume settings. Defines additional volumes to attach besides boot volume. (see [below for nested schema](#nestedatt--extra_volumes))
+- `image_id` (String) Image ID. Specifies the OS image to use.
+  - example: YOUR RESOURCE'S IMAGE_ID
+  - note: For GPU Server, only GPU standard images (scp_image_type=gpu_standard, gpu_custom) can be used.
+- `lock` (Boolean) Lock status. When locked, most user operations are blocked.
+  - example: false
+- `metadata` (Map of String) Metadata. Specifies key-value pairs to store on the server.
+  - example: {"key": "value"}
+- `partition_number` (Number) Partition number. Only used when server group type is partition.
+  - example: 1
+- `product_category` (String) Product category.
+  - example: compute
+  - Available values: compute, container
+- `product_offering` (String) Product offering. Determines the server type.
+  - example: virtual_server
+  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm
+- `security_groups` (List of String) Security group ID list.
+  - example: ["c09c3f05-03d9-443f-b27a-40e0f973c75f"]
+- `server_group_id` (String) Server group ID. Places the server in a specific server group.
+  - example: YOUR RESOURCE'S SERVER_GROUP_ID
+- `state` (String) Server state.
+  - example: ACTIVE
+  - Available values: ACTIVE, SHUTOFF
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
-- `user_data` (String) User data
+- `user_data` (String) User data script. Base64-encoded script to run on server startup.
+  - example: IyEvYmluL2Jhc2gKL2Jpbi9zdQplY2hvICJJIGFtIGluIHlvdSEiCg==
+  - maxLength: 65535 bytes
 
 ### Read-Only
 
-- `account_id` (String) Account ID
-- `auto_scaling_group_id` (String) Auto scaling group ID
-- `created_at` (String) Created at
-- `created_by` (String) Created by
-- `disk_config` (String) Disk config
-- `id` (String) Identifier of the resource.
-- `launch_configuration_id` (String) Launch Configuration ID
-- `modified_at` (String) Modified at
-- `planned_compute_os_type` (String) Planned compute os type
-- `vpc_id` (String) Vpc ID
+- `account_id` (String) Account ID.
+- `auto_scaling_group_id` (String) Auto Scaling Group ID. Only has value for servers created by Auto Scaling Group.
+- `created_at` (String) Creation timestamp.
+- `created_by` (String) Creator ID.
+- `disk_config` (String) Disk configuration mode.
+- `id` (String) Resource ID.
+- `launch_configuration_id` (String) Launch Configuration ID. Only has value for servers created by Auto Scaling Group.
+- `modified_at` (String) Modification timestamp.
+- `planned_compute_os_type` (String) Planned compute OS type.
+- `vpc_id` (String) VPC ID.
 
 <a id="nestedatt--boot_volume"></a>
 ### Nested Schema for `boot_volume`
 
 Required:
 
-- `size` (Number) Size
+- `size` (Number) Volume size (GiB). Must be a multiple of 8.
+  - example: 104
+  - minimum: 8
 
 Optional:
 
-- `delete_on_termination` (Boolean) Delete on termination
-- `max_iops` (Number) The number of distinct read or write operations a volume can process in a single second.
-- `max_throughput` (Number) The actual amount of data (volume) transferred to or from the storage device per second.
-- `type` (String) Type
+- `delete_on_termination` (Boolean) Whether to delete volume when server is terminated.
+  - example: true
+- `max_iops` (Number) Maximum IOPS. Number of read/write operations per second.
+  - example: 10000
+- `max_throughput` (Number) Maximum throughput (MB/s). Amount of data transferred per second.
+  - example: 500
+- `type` (String) Volume type. Defaults to SSD if not specified.
+  - example: SSD
 
 Read-Only:
 
-- `id` (String) ID
+- `id` (String) Volume ID.
 
 
 <a id="nestedatt--networks"></a>
@@ -204,15 +238,19 @@ Read-Only:
 
 Optional:
 
-- `fixed_ip` (String) Fixed IP
-- `port_id` (String) Port ID
-- `public_ip_id` (String) Public IP ID
-- `subnet_id` (String) Subnet ID
+- `fixed_ip` (String) Fixed IP address.
+  - example: 192.168.1.100
+- `port_id` (String) Port ID.
+  - example: YOUR RESOURCE'S PORT_ID
+- `public_ip_id` (String) Public IP ID.
+  - example: YOUR RESOURCE'S PUBLIC_IP_ID
+- `subnet_id` (String) Subnet ID.
+  - example: YOUR RESOURCE'S SUBNET_ID
 
 Read-Only:
 
-- `is_default` (Boolean) Indicates whether this is the default port.
-- `static_nat_id` (String) Static NAT ID
+- `is_default` (Boolean) Whether this is the default port.
+- `static_nat_id` (String) Static NAT ID.
 
 
 <a id="nestedatt--extra_volumes"></a>
@@ -220,15 +258,21 @@ Read-Only:
 
 Required:
 
-- `size` (Number) Size
+- `size` (Number) Volume size (GiB). Must be a multiple of 8.
+  - example: 104
+  - minimum: 8
 
 Optional:
 
-- `delete_on_termination` (Boolean) Delete on termination
-- `max_iops` (Number) The number of distinct read or write operations a volume can process in a single second.
-- `max_throughput` (Number) The actual amount of data (volume) transferred to or from the storage device per second.
-- `type` (String) Type
+- `delete_on_termination` (Boolean) Whether to delete volume when server is terminated.
+  - example: true
+- `max_iops` (Number) Maximum IOPS. Number of read/write operations per second.
+  - example: 10000
+- `max_throughput` (Number) Maximum throughput (MB/s). Amount of data transferred per second.
+  - example: 500
+- `type` (String) Volume type. Defaults to SSD_Provisioned if not specified.
+  - example: SSD
 
 Read-Only:
 
-- `id` (String) ID
+- `id` (String) Volume ID.

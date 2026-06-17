@@ -69,10 +69,10 @@ type SnapshotScheduleDataSource struct {
 }
 
 type SnapshotScheduleResource struct {
-	VolumeId               types.String     `tfsdk:"volume_id"`
-	SnapshotPolicyEnabled  types.Bool       `tfsdk:"snapshot_policy_enabled"`
-	SnapshotRetentionCount types.Int32      `tfsdk:"snapshot_retention_count"`
-	SnapshotSchedule       SnapshotSchedule `tfsdk:"snapshot_schedule"`
+	VolumeId               types.String      `tfsdk:"volume_id"`
+	SnapshotPolicyEnabled  types.Bool        `tfsdk:"snapshot_policy_enabled"`
+	SnapshotRetentionCount types.Int32       `tfsdk:"snapshot_retention_count"`
+	SnapshotSchedule       *SnapshotSchedule `tfsdk:"snapshot_schedule"`
 }
 
 type SnapshotSchedule struct {

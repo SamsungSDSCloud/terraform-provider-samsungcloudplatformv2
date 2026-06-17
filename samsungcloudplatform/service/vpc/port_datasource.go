@@ -3,17 +3,18 @@ package vpc
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -42,10 +43,10 @@ func (d *vpcPortDataSource) Metadata(_ context.Context, req datasource.MetadataR
 // Schema defines the schema for the data source.
 func (d *vpcPortDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of subnet.",
+		Description: "list of port.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
+				Description: "Number of items returned per page.\n" +
 					"  - example : 10 \n" +
 					"  - maximum : 10000 \n" +
 					"  - minimum : 1",
@@ -55,7 +56,7 @@ func (d *vpcPortDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				},
 			},
 			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
+				Description: "Pagination Start ID.\n" +
 					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
 					"  - maxLength : 64 \n" +
 					"  - minLength : 1",
@@ -65,47 +66,47 @@ func (d *vpcPortDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. \n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Port ID \n" +
+				Description: "The unique identifier of the port.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Port Name \n" +
+				Description: "The name of the port.\n" +
 					"  - example : portName",
 				Optional: true,
 			},
 			common.ToSnakeCase("SubnetName"): schema.StringAttribute{
-				Description: "Subnet Name \n" +
+				Description: "The name of the subnet that the port belongs to\n" +
 					"  - example : subnetName",
 				Optional: true,
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID \n" +
+				Description: "The identifier of the subnet that the port belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
-				Description: "Attached Resource ID \n" +
+				Description: "The identifier of the resource that this port is attached to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("FixedIpAddress"): schema.StringAttribute{
-				Description: "Fixed IP Address \n" +
+				Description: "The fixed IP address assigned to the port. \n" +
 					"  - example : 172.24.4.2",
 				Optional: true,
 			},
 			common.ToSnakeCase("MacAddress"): schema.StringAttribute{
-				Description: "MAC Address \n" +
+				Description: "The MAC address of the port.\n" +
 					"  - example : fa:16:3e:f7:32:c0",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State \n" +
+				Description: "The current lifecycle state of the port. \n" +
 					"  - example : CREATING | ACTIVE | DELETING | ERROR",
 				Optional: true,
 			},
@@ -115,64 +116,79 @@ func (d *vpcPortDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
+							Description: "The unique identifier of the port.\n" +
+								"  - example : 023c57b1-4f11-4836-8933-8d085e061492",
+							Computed: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Computed:    true,
+							Description: "The name of the port.\n" +
+								"  - example : portName",
+							Computed: true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Computed:    true,
+							Description: "The identifier of the account that owns the port.\n" +
+								"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+							Computed: true,
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-							Description: "SubnetId",
-							Computed:    true,
+							Description: "The identifier of the subnet that the port belongs to.\n" +
+								"  - example : 023c57b14f11483689338d085e061492",
+							Computed: true,
 						},
 						common.ToSnakeCase("SubnetName"): schema.StringAttribute{
-							Description: "SubnetName",
-							Computed:    true,
+							Description: "The name of the subnet that the port belongs to.\n" +
+								"  - example : subnetName",
+							Computed: true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "VpcId",
-							Computed:    true,
+							Description: "The identifier of the VPC that the port belongs to.\n" +
+								"  - example : 071bc63b767444c9afaab1c972d302d5",
+							Computed: true,
 						},
 						common.ToSnakeCase("VpcName"): schema.StringAttribute{
-							Description: "VpcName",
-							Computed:    true,
+							Description: "The name of the VPC that the port belongs to.\n" +
+								"  - example : vpcName",
+							Computed: true,
 						},
 						common.ToSnakeCase("FixedIpAddress"): schema.StringAttribute{
-							Description: "FixedIpAddress",
-							Computed:    true,
+							Description: "The fixed IP address assigned to the port.\n" +
+								"  - example : 192.168.1.100",
+							Computed: true,
 						},
 						common.ToSnakeCase("MacAddress"): schema.StringAttribute{
-							Description: "MacAddress",
-							Computed:    true,
+							Description: "The MAC address of the port.\n" +
+								"  - example : fa:16:3e:00:00:01",
+							Computed: true,
 						},
 						common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
-							Description: "AttachedResourceId",
-							Computed:    true,
+							Description: "The identifier of the resource that this port is attached to.\n" +
+								"  - example : 9387e8f51de04a03994de8a9c3524935",
+							Computed: true,
 						},
 						common.ToSnakeCase("AttachedResourceType"): schema.StringAttribute{
-							Description: "AttachedResourceType",
-							Computed:    true,
+							Description: "The type of the resource that this port is attached to.\n" +
+								"  - example : VM",
+							Computed: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Computed:    true,
+							Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
+								"  - example : Port Description",
+							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Computed:    true,
+							Description: "The current lifecycle state of the port.\n" +
+								"  - example : ACTIVE",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
+							Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 					},
 				},

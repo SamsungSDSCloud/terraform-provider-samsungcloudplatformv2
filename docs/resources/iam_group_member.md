@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_iam_group_member Resource - samsungcloudplatformv2"
 subcategory: Group
 description: |-
-  Group Member
+  List of members belonging to the group.
 ---
 
 # samsungcloudplatformv2_iam_group_member (Resource)
 
-Group Member
+List of members belonging to the group.
 
 ## Example Usage
 
@@ -42,12 +42,15 @@ variable "user_id" {
 
 ### Optional
 
-- `group_id` (String) Group ID
-- `user_id` (String) User ID
+- `group_id` (String) Unique identifier of the group to add the member to.
+  - example: YOUR RESOURCE'S GROUP_ID
+- `user_id` (String) Unique identifier of the user to add as a member.
+  - example: YOUR RESOURCE'S USER_ID
 
 ### Read-Only
 
-- `group_member` (Attributes) Group member (see [below for nested schema](#nestedatt--group_member))
+- `group_member` (Attributes) Detailed information about the group member.
+  - example : '{created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, creator_email: -, user_id: f39c460fade34fecb05ede8f904b24b7, user_name: -, ...}' (see [below for nested schema](#nestedatt--group_member))
 
 <a id="nestedatt--group_member"></a>
 ### Nested Schema for `group_member`
@@ -55,20 +58,32 @@ variable "user_id" {
 Optional:
 
 - `creator_created_at` (String) 생성 일시
+  - example : '2024-01-01T00:00:00Z'
 - `user_created_at` (String) 생성 일시
+  - example : '2024-01-01T00:00:00Z'
 
 Read-Only:
 
 - `created_at` (String) 생성 일시
+  - example : '2024-01-01T00:00:00Z'
 - `created_by` (String) 생성자
+  - example: YOUR RESOURCE'S CREATED_BY
 - `creator_email` (String) 생성자 Email
+  - example : 'admin@example.com'
 - `creator_last_login_at` (String) 생성자 마지막 로그인 일시
+  - example : '2024-01-01T00:00:00Z'
 - `creator_name` (String) 생성자 성, 이름
-- `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--group_member--groups))
-- `user_email` (String) User Email
-- `user_id` (String) User ID
+  - example : 'Admin User'
+- `groups` (Attributes List) List of groups the user belongs to.
+  - example : '[{id: grp-1234567890abcdef, name: MyGroup}]' (see [below for nested schema](#nestedatt--group_member--groups))
+- `user_email` (String) Email address of the user who is a member of the group.
+  - example : 'user@example.com'
+- `user_id` (String) Unique identifier of the user who is a member of the group.
+  - example: YOUR RESOURCE'S USER_ID
 - `user_last_login_at` (String) User 마지막 로그인 일시
+  - example : '2024-01-01T00:00:00Z'
 - `user_name` (String) User 성, 이름
+  - example : 'John Doe'
 
 <a id="nestedatt--group_member--groups"></a>
 ### Nested Schema for `group_member.groups`
@@ -76,4 +91,6 @@ Read-Only:
 Read-Only:
 
 - `id` (String) Group ID
+  - example: YOUR RESOURCE'S ID
 - `name` (String) Group Name
+  - example : 'MyGroup'

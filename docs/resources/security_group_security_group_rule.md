@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_security_group_security_group_rule Resource - samsungcloudplatformv2"
 subcategory: Security Group Rule
 description: |-
-  Security group rule
+  Manages security group rules to filter network traffic.
 ---
 
 # samsungcloudplatformv2_security_group_security_group_rule (Resource)
 
-Security group rule
+Manages security group rules to filter network traffic.
 
 ## Example Usage
 
@@ -84,50 +84,75 @@ variable "direction" {
 
 ### Required
 
-- `direction` (String) Direction 
-  - example : ingress
-- `ethertype` (String) ethertype 
-  - example : IPV4
-- `security_group_id` (String) SecurityGroupId 
+- `direction` (String) The direction of the traffic the rule applies to.
+  - example: ingress
+  - valid: ingress, egress
+- `ethertype` (String) The Ethernet protocol type the rule applies to.
+  - example: IPv4
+  - valid: IPv4
+- `security_group_id` (String) The identifier of the security group that the resource belongs to.
   - example: YOUR RESOURCE'S SECURITY_GROUP_ID
 
 ### Optional
 
-- `description` (String) Description 
-  - example : securityGroupRuleDescription
-- `port_range_max` (Number) portRangeMax 
-  - example : 22
-- `port_range_min` (Number) portRangeMin 
-  - example : 22
-- `protocol` (String) protocol 
-  - example : TCP
-- `remote_group_id` (String) RemoteGroupId 
+- `description` (String) A brief explanation or note about this resource.
+  - example: Security group for web tier
+  - constraints: maxLength: 255
+- `port_range_max` (Number) The maximum port number of the rule's port range.
+  - example: 443
+  - valid: 1-65535. For ICMP and IP Protocol, None.
+  - constraints: None
+- `port_range_min` (Number) The minimum port number of the rule's port range.
+  - example: 22
+  - valid: 1-65535. For ICMP, 0-255. For IP Protocol, None.
+  - constraints: None
+- `protocol` (String) The network protocol the rule applies to.
+  - example: TCP
+  - valid: None/TCP/UDP/ICMP/1-254(IP Protocol Number)
+- `remote_group_id` (String) The identifier of the remote security group the rule applies to.
   - example: YOUR RESOURCE'S REMOTE_GROUP_ID
-- `remote_ip_prefix` (String) RemoteIpPrefix 
-  - example : 1.1.1.1/32
+- `remote_ip_prefix` (String) The remote IP address range the rule applies to in CIDR notation.
+  - example: 10.0.0.0/24
+  - valid: IPv4 CIDR
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
-- `security_group_rule` (Attributes) Security group rule (see [below for nested schema](#nestedatt--security_group_rule))
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `security_group_rule` (Attributes) Security Group Rule Object (see [below for nested schema](#nestedatt--security_group_rule))
 
 <a id="nestedatt--security_group_rule"></a>
 ### Nested Schema for `security_group_rule`
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `description` (String) Description
-- `direction` (String) Direction
-- `ethertype` (String) ethertype
-- `id` (String) Id
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `port_range_max` (Number) portRangeMax
-- `port_range_min` (Number) portRangeMin
-- `protocol` (String) protocol
-- `remote_group_id` (String) RemoteGroupId
-- `remote_group_name` (String) RemoteGroupName
-- `remote_ip_prefix` (String) RemoteIpPrefix
-- `security_group_id` (String) SecurityGroupId
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example: 2025-01-15T10:30:00Z
+- `created_by` (String) The user ID that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) A brief explanation or note about this resource.
+  - example: Security group for web tier
+- `direction` (String) The direction of the traffic the rule applies to.
+  - example: ingress
+- `ethertype` (String) The Ethernet protocol type the rule applies to.
+  - example: IPv4
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example: 2025-06-01T14:22:00Z
+- `modified_by` (String) The user ID that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `port_range_max` (Number) The maximum port number of the rule's port range.
+  - example: 10
+- `port_range_min` (Number) The minimum port number of the rule's port range.
+  - example: 5
+- `protocol` (String) The network protocol the rule applies to.
+  - example: TCP
+- `remote_group_id` (String) The identifier of the remote security group the rule applies to.
+  - example: YOUR RESOURCE'S REMOTE_GROUP_ID
+- `remote_group_name` (String) The name of the remote security group the rule applies to.
+  - example: sg-db-prod
+- `remote_ip_prefix` (String) The remote IP address range the rule applies to in CIDR notation.
+  - example: 10.0.0.0/24
+- `security_group_id` (String) The identifier of the security group that the resource belongs to.
+  - example: YOUR RESOURCE'S SECURITY_GROUP_ID

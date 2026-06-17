@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/certificatemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpcertificatemanager "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/certificatemanager/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/certificatemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpcertificatemanager "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/certificatemanager/1.1"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -20,8 +21,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &certificateManagerResource{}
-	_ resource.ResourceWithConfigure = &certificateManagerResource{}
+	_ resource.Resource                = &certificateManagerResource{}
+	_ resource.ResourceWithConfigure   = &certificateManagerResource{}
+	_ resource.ResourceWithImportState = &certificateManagerResource{}
 )
 
 func NewCertificateManagerResource() resource.Resource {
@@ -34,6 +36,11 @@ type certificateManagerResource struct {
 }
 
 func (r *certificateManagerResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+	// This is a no-op implementation
+	response.Diagnostics.AddError(
+		"Update not supported",
+		"This resource does not support in-place updates.",
+	)
 }
 
 // Metadata returns the data source type name.
@@ -44,7 +51,7 @@ func (r *certificateManagerResource) Metadata(_ context.Context, req resource.Me
 // Schema defines the schema for the data source.
 func (r *certificateManagerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "certificate manager",
+		Description: "Certificate manager detail",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
@@ -55,80 +62,80 @@ func (r *certificateManagerResource) Schema(_ context.Context, _ resource.Schema
 				},
 			},
 			common.ToSnakeCase("CertBody"): schema.StringAttribute{
-				Description: "Certificate body\n" +
-					"  - Example: encoded certificate body data",
+				Description: "Certificate body.\n" +
+					"  - example : 'encoded certificate body data'",
 				Required: true,
 			},
 			common.ToSnakeCase("CertChain"): schema.StringAttribute{
-				Description: "Certificate chain\n" +
-					"  - Example: encoded certificate chain data",
+				Description: "Certificate chain.\n" +
+					"  - example : 'encoded certificate chain data'",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Certificate Name\n" +
-					"  - Example: test-certificate",
+				Description: "Certificate Name.\n" +
+					"  - example : 'test-certificate'",
 				Required: true,
 			},
 			common.ToSnakeCase("PrivateKey"): schema.StringAttribute{
-				Description: "Private key\n" +
-					"  - Example: encoded private key data",
+				Description: "Encoded private key data.\n" +
+					"  - example : '<encoded private_key data>'",
 				Required: true,
 			},
 			common.ToSnakeCase("Recipients"): schema.ListAttribute{
-				Description: "Recipients\n" +
-					"  - Example: [{\"region\":\"\",\"user_id\":\"sdaFDQSDADZ2488e195c0e97d9b9eb\",\"user_name\":\"kildong.hong\"}]",
+				Description: "List of recipients.\n" +
+					"  - example : [{\"region\":\"\",\"user_id\":\"sdaFDQSDADZ2488e195c0e97d9b9eb\",\"user_name\":\"kildong.hong\"}]",
 				ElementType: types.MapType{
 					ElemType: types.StringType,
 				},
 				Optional: true,
 			},
 			common.ToSnakeCase("region"): schema.StringAttribute{
-				Description: "Name of region\n" +
-					"  - Example: west1",
+				Description: "Name of region.\n" +
+					"  - example : 'west1'",
 				Required: true,
 			},
 			common.ToSnakeCase("Timezone"): schema.StringAttribute{
-				Description: "Timezone\n" +
-					"  - Example: Asia/Seoul",
+				Description: "Timezone indentifier.\n" +
+					"  - example : 'Asia/Seoul'",
 				Required: true,
 			},
 			common.ToSnakeCase("Certificate"): schema.SingleNestedAttribute{
-				Description: "Certificate",
+				Description: "Certificate detail",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CertKind"): schema.StringAttribute{
-						Description: "Certificate type\n" +
-							"  - Example: PRD",
+						Description: "Certificate type.\n" +
+							"  - example : 'PRD'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Cn"): schema.StringAttribute{
-						Description: "Certificate Common Name\n" +
-							"  - Example: test.go.kr",
+						Description: "Certificate Common Name.\n" +
+							"  - example : 'test.go.kr'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID\n" +
-							"  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+						Description: "Certificate ID.\n" +
+							"  - example : '0fdd87aab8cb46f59b7c1f81ed03fb3e'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Certificate Name\n" +
-							"  - Example: test-certificate",
+						Description: "Certificate Name.\n" +
+							"  - example : 'test-certificate'",
 						Computed: true,
 					},
 					common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-						Description: "Certificate Expire Date\n" +
-							"  - Example: 2026-02-07T18:07:59",
+						Description: "Certificate Expire Date.\n" +
+							"  - example : '2026-02-07T18:07:59'",
 						Computed: true,
 					},
 					common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
-						Description: "Certificate Start Date\n" +
-							"  - Example: 2025-02-08T18:07:00",
+						Description: "Certificate Start Date.\n" +
+							"  - example : '2025-02-08T18:07:00'",
 						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "Certificate State\n" +
-							"  - Example: VALID\n",
+						Description: "Certificate State.\n" +
+							"  - example : 'VALID'",
 						Computed: true,
 					},
 				},
@@ -176,18 +183,26 @@ func (r *certificateManagerResource) Create(ctx context.Context, req resource.Cr
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error creating certificate manager",
+			"An error occurred while creating certificate manager. No response",
+		)
+		return
+	}
+
 	plan.Id = types.StringValue(data.Certificate.Id)
 	vgModel := certificatemanager.Certificate{
 		Id:          types.StringValue(data.Certificate.Id),
 		Name:        types.StringValue(data.Certificate.Name),
-		CertKind:    types.StringValue(*data.Certificate.CertKind),
+		CertKind:    types.StringPointerValue(data.Certificate.CertKind),
 		Cn:          types.StringValue(data.Certificate.Cn),
 		NotBeforeDt: types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339)),
 		NotAfterDt:  types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339)),
 		State:       types.StringValue(data.Certificate.State),
 	}
 
-	certificateObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	certificateObjectValue, _ := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
 	plan.Certificate = certificateObjectValue
 
 	diags = resp.State.Set(ctx, plan)
@@ -216,6 +231,10 @@ func (r *certificateManagerResource) Read(ctx context.Context, req resource.Read
 	// Get refreshed order value from port
 	data, err := r.client.GetCertificateManager(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading certificate manager",
@@ -226,7 +245,7 @@ func (r *certificateManagerResource) Read(ctx context.Context, req resource.Read
 
 	vgModel := createCertificateManagerModel(data)
 
-	vgObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	vgObjectValue, _ := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
 	state.Certificate = vgObjectValue
 
 	// Set refreshed state
@@ -270,7 +289,7 @@ func createCertificateManagerModel(data *scpcertificatemanager.CertificateDetail
 	return certificatemanager.Certificate{
 		Id:          types.StringValue(data.Certificate.Id),
 		Name:        types.StringValue(data.Certificate.Name),
-		CertKind:    types.StringValue(*data.Certificate.CertKind),
+		CertKind:    types.StringPointerValue(data.Certificate.CertKind),
 		Cn:          types.StringValue(data.Certificate.Cn),
 		NotBeforeDt: types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339)),
 		NotAfterDt:  types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339)),
@@ -285,5 +304,10 @@ func waitForCertificateManagerStatus(ctx context.Context, certificateManagerClie
 			return nil, "", err
 		}
 		return info, string(info.Certificate.State), nil
-	})
+	}, -1, -1, -1, -1)
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *certificateManagerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

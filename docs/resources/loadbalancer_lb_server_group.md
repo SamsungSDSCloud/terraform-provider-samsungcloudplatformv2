@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_server_group Resource - samsungcloudplatformv2"
 subcategory: LB Server Group
 description: |-
-  Lb Server Group.
+  LB Server Group resource for managing server pools.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_server_group (Resource)
 
-Lb Server Group.
+LB Server Group resource for managing server pools.
 
 ## Example Usage
 
@@ -68,28 +68,41 @@ variable "lb_server_group_modify" {
 
 ### Optional
 
-- `lb_server_group_create` (Attributes) Create Lb Server Group. (see [below for nested schema](#nestedatt--lb_server_group_create))
+- `lb_server_group_create` (Attributes) Parameters for creating a new LB Server Group. (see [below for nested schema](#nestedatt--lb_server_group_create))
 
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
-- `lb_server_group` (Attributes) A detail of Lb Server Group. (see [below for nested schema](#nestedatt--lb_server_group))
+  - example: YOUR RESOURCE'S ID
+- `lb_server_group` (Attributes) Details of the LB Server Group. (see [below for nested schema](#nestedatt--lb_server_group))
 
 <a id="nestedatt--lb_server_group_create"></a>
 ### Nested Schema for `lb_server_group_create`
 
 Optional:
 
-- `description` (String) Description
-- `lb_health_check_id` (String) LbHealthCheckId
-- `lb_method` (String) LbMethod
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `subnet_id` (String) SubnetId
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : LB Server Group for web servers
+  - maxLength : 255
+- `lb_health_check_id` (String) The LB Health Check ID.
+  - example: YOUR RESOURCE'S LB_HEALTH_CHECK_ID
+- `lb_method` (String) The load balancing method.
+  - example : ROUND_ROBIN
+  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION
+- `name` (String) The name of the LB Server Group.
+  - example : ServerGroup01
+  - minLength : 1
+  - maxLength : 63
+- `protocol` (String) The protocol for the server group.
+  - example : TCP
+  - pattern : TCP | UDP
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
-- `vpc_id` (String) VpcId
+- `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 
 <a id="nestedatt--lb_server_group"></a>
@@ -97,21 +110,42 @@ Optional:
 
 Optional:
 
-- `lb_health_check_id` (String) LbHealthCheckId
+- `lb_health_check_id` (String) The LB Health Check ID.
+  - example: YOUR RESOURCE'S LB_HEALTH_CHECK_ID
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `description` (String) Description
-- `lb_method` (String) LbMethod
-- `lb_name` (String) LbName
-- `loadbalancer_id` (String) LoadbalancerId
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : LB Server Group for web servers
+  - maxLength : 255
+- `lb_method` (String) The load balancing method.
+  - example : ROUND_ROBIN
+  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION
+- `lb_name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the server group.
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the LB Server Group.
+  - example : ServerGroup01
+  - minLength : 1
+  - maxLength : 63
+- `protocol` (String) The protocol for the server group.
+  - example : TCP
+  - pattern : TCP | UDP
+- `state` (String) The current state of the LB Server Group.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID

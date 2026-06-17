@@ -41,26 +41,31 @@ variable "id" {
 
 ### Read-Only
 
-- `nodepool` (Attributes) (see [below for nested schema](#nestedatt--nodepool))
+- `nodepool` (Attributes) Nodepool
+ - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_nodepool#nested-schema-for-nodepool (see [below for nested schema](#nestedatt--nodepool))
 
 <a id="nestedatt--nodepool"></a>
 ### Nested Schema for `nodepool`
 
 Optional:
 
-- `volume_max_iops` (Number)
-- `volume_max_throughput` (Number)
+- `volume_max_iops` (Number) Volume Max iops
+  - example: 5000
+- `volume_max_throughput` (Number) Volume Type Name
+  - example: 250
 
 Read-Only:
 
 - `account_id` (String) Account ID
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `advanced_settings` (Attributes) Node Pool Advanced Settings (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
+- `advanced_settings` (Attributes) Node Pool Advanced Settings
+  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'} (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
 - `auto_recovery_enabled` (Boolean) Is Auto Recovery
   - example: true
 - `auto_scale_enabled` (Boolean) Is Auto Scale
   - example: true
-- `cluster` (Attributes) Cluster (see [below for nested schema](#nestedatt--nodepool--cluster))
+- `cluster` (Attributes) Cluster
+  - example: {id='70a599e031e749b7b260868f441e862b'} (see [below for nested schema](#nestedatt--nodepool--cluster))
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created By
@@ -71,11 +76,14 @@ Read-Only:
   - example: 2
 - `id` (String) Nodepool ID
   - example: YOUR RESOURCE'S ID
-- `image` (Attributes) Image (see [below for nested schema](#nestedatt--nodepool--image))
-- `keypair` (Attributes) Keypair Name (see [below for nested schema](#nestedatt--nodepool--keypair))
+- `image` (Attributes) Image
+  - example: {custom_image_name='res-12345678', os='my-resource', os_version='fs', scp_gpu_driver='ND_535.183.06'} (see [below for nested schema](#nestedatt--nodepool--image))
+- `keypair` (Attributes) Keypair Name
+  - example: {name='test_keypair'} (see [below for nested schema](#nestedatt--nodepool--keypair))
 - `kubernetes_version` (String) Kubernetes Version
   - example: v1.29.8
-- `labels` (Attributes List) Node Pool Labels (see [below for nested schema](#nestedatt--nodepool--labels))
+- `labels` (Attributes List) Node Pool Labels
+  - example: {key='test', value='test'} (see [below for nested schema](#nestedatt--nodepool--labels))
 - `linked_resources` (Attributes List) (see [below for nested schema](#nestedatt--nodepool--linked_resources))
 - `max_node_count` (Number) Max Node Count
   - example: 5
@@ -90,8 +98,9 @@ Read-Only:
 - `server_group_id` (String) Server Group ID
   - example: YOUR RESOURCE'S SERVER_GROUP_ID
 - `server_type` (Attributes) Server Type (see [below for nested schema](#nestedatt--nodepool--server_type))
-- `status` (String) Node Pool Status
-  - example: Running
+- `status` (String) Nodepool Status
+  - pattern: RUNNING|CREATING|SCALINGUP|SCALINGDOWN|DELETING
+  - example: RUNNING
 - `taints` (Attributes List) Node Pool Taints (see [below for nested schema](#nestedatt--nodepool--taints))
 - `volume_size` (Number) Volume Size
   - example: 104
@@ -187,6 +196,7 @@ Read-Only:
 - `name` (String) Linked Resource Name
   - example: my-resource
 - `type` (String) Linked Resource Type (fs/obs)
+  - pattern: fs|obs
   - example: fs
 
 
@@ -207,6 +217,7 @@ Read-Only:
 Read-Only:
 
 - `effect` (String) - enum: ["NoSchedule","NoExecute","PreferNoSchedule"]
+  - example: NoSchedule
 - `key` (String) Node Pool Taint Key
   - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$
   - example: example.com/my-app
@@ -226,4 +237,5 @@ Read-Only:
 - `id` (String) Volume Type ID
   - example: YOUR RESOURCE'S ID
 - `name` (String) Volume Type Name
+  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned
   - example: SSD

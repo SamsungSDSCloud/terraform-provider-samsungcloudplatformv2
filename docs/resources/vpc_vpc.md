@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_vpc Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  vpc
+  Resource of vpc
 ---
 
 # samsungcloudplatformv2_vpc_vpc (Resource)
 
-vpc
+Resource of vpc
 
 ## Example Usage
 
@@ -48,11 +48,11 @@ variable "vpc_name" {
 
 ### Required
 
-- `cidr` (String) VPC CIDR
+- `cidr` (String) The IP address range of the network in CIDR notation.
   - example : 192.167.0.0/18
   - maxMask : /24
   - minMask : /16
-- `name` (String) VPC Name 
+- `name` (String) The name of the vpc.
   - example : vpcName
   - maxLength : 20
   - minLength : 3
@@ -60,7 +60,7 @@ variable "vpc_name" {
 
 ### Optional
 
-- `description` (String) Description
+- `description` (String) Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.
   - example : VPC description
   - maxLength : 50
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
@@ -69,49 +69,52 @@ variable "vpc_name" {
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
-- `vpc` (Attributes) Vpc (see [below for nested schema](#nestedatt--vpc))
+- `id` (String) The unique identifier of the vpc.
+  - example: YOUR RESOURCE'S ID
+- `vpc` (Attributes) Detail information about Vpc. (see [below for nested schema](#nestedatt--vpc))
 
 <a id="nestedatt--vpc"></a>
 ### Nested Schema for `vpc`
 
 Read-Only:
 
-- `account_id` (String) Account ID
+- `account_id` (String) The identifier of the account that owns the vpc.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `cidr_count` (Number) Cidr Count
+- `cidr_count` (Number) The number of CIDR blocks associated with the vpc.
   - example: 20
 - `cidrs` (Attributes List) (see [below for nested schema](#nestedatt--vpc--cidrs))
-- `created_at` (String) Created At
+- `created_at` (String) The timestamp when the vpc was created in ISO 8601 format.
   - example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created By
+- `created_by` (String) The user id that created the vpc.
   - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Description
-  - maxLength: 50
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the vpc.
   - example: vpcDescription
-- `id` (String) VPC Id
+  - maxLength: 50
+- `id` (String) The unique identifier of the vpc.
   - example: YOUR RESOURCE'S ID
-- `modified_at` (String) Modified At
+- `modified_at` (String) The timestamp when the vpc was last modified in ISO 8601 format.
   - example: 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified By
+- `modified_by` (String) The user id that last modified the vpc.
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) VPC Name
+- `name` (String) The name of the vpc.
   - maxLength: 20
   - minLength: 3
   - pattern: `^[a-zA-Z0-9-]*$`
   - example: vpcName
-- `state` (String) - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
+- `state` (String) The current lifecycle state of the vpc.
+  - enum: ["ACTIVE","ERROR"]
+  - example : ACTIVE
 
 <a id="nestedatt--vpc--cidrs"></a>
 ### Nested Schema for `vpc.cidrs`
 
 Read-Only:
 
-- `cidr` (String) VPC Cidr
+- `cidr` (String) The IP address range of the network in CIDR notation.
   - example: 192.167.0.0/18
-- `created_at` (String) Created At
+- `created_at` (String) The timestamp when the vpc was created in ISO 8601 format.
   - example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created By
+- `created_by` (String) The user id that created the vpc.
   - example: YOUR RESOURCE'S CREATED_BY
-- `id` (String) Cidr ID
+- `id` (String) The unique identifier of the vpc.
   - example: YOUR RESOURCE'S ID

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_iam_policy Data Source - samsungcloudplatformv2"
 subcategory: Policy
 description: |-
-  Show Policy
+  Show IAM Policy
 ---
 
 # samsungcloudplatformv2_iam_policy (Data Source)
 
-Show Policy
+Show IAM Policy
 
 ## Example Usage
 
@@ -35,11 +35,12 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Policy ID
+- `id` (String) Unique identifier of the policy to retrieve.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `policy` (Attributes) A detail of Policy (see [below for nested schema](#nestedatt--policy))
+- `policy` (Attributes) Detailed information about the policy. (see [below for nested schema](#nestedatt--policy))
 
 <a id="nestedatt--policy"></a>
 ### Nested Schema for `policy`
@@ -50,70 +51,109 @@ Optional:
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `creator_email` (String) Creator Email
-- `creator_name` (String) Creator Name
-- `default_version_id` (String) Default Version ID
-- `description` (String) Description
-- `domain_name` (String) Domain Name
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `modifier_email` (String) Modifier Email
-- `modifier_name` (String) Modifier Name
-- `policy_category` (String) Policy Category
-- `policy_name` (String) Policy Name
-- `policy_type` (String) Policy Type
-- `resource_type` (String) Resource Type
-- `service_name` (String) Service Name
-- `service_type` (String) Service Type
-- `srn` (String) SRN
-- `state` (String) State
+- `account_id` (String) Account ID that owns the policy.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) Timestamp when the policy was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the policy.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `creator_email` (String) Email of the policy creator.
+  - example : 'user@example.com'
+- `creator_name` (String) Name of the policy creator.
+  - example : 'John Doe'
+- `default_version_id` (String) Default version ID of the policy.
+  - example: YOUR RESOURCE'S DEFAULT_VERSION_ID
+- `description` (String) Human-readable description of the policy.
+  - example : 'My policy description'
+- `domain_name` (String) Domain name associated with the policy.
+  - example : 'scp'
+- `id` (String) Unique identifier of the policy.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Timestamp when the policy was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the policy.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `modifier_email` (String) Email of the user who last modified the policy.
+  - example : 'user@example.com'
+- `modifier_name` (String) Name of the user who last modified the policy.
+  - example : 'John Doe'
+- `policy_category` (String) Category of the policy.
+  - example : 'IDENTITY_BASED' | 'RESOURCE_BASED'
+- `policy_name` (String) Name of the policy.
+  - example : 'PolicyName'
+- `policy_type` (String) Type of policy.
+  - example : 'USER_DEFINED' | 'SYSTEM_MANAGED'
+- `resource_type` (String) Type of resource the policy applies to.
+  - example : 'policy'
+- `service_name` (String) Name of the service.
+  - example : 'Identity Access Management'
+- `service_type` (String) Type of service.
+  - example : 'iam'
+- `srn` (String) Service Resource Name (SRN).
+  - example : 'srn:e:::::iam:policy/policy-12345678'
+- `state` (String) Current state of the policy.
+  - example : 'ACTIVE'
 
 <a id="nestedatt--policy--policy_versions"></a>
 ### Nested Schema for `policy.policy_versions`
 
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
+- `created_at` (String) Timestamp when the policy version was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the policy version.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Unique identifier of the policy version.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Timestamp when the policy version was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the policy version.
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `policy_document` (Attributes) Policy Document (see [below for nested schema](#nestedatt--policy--policy_versions--policy_document))
-- `policy_id` (String) Policy ID
-- `policy_version_name` (String) Policy Version Name
+- `policy_id` (String) Unique identifier of the policy.
+  - example: YOUR RESOURCE'S POLICY_ID
+- `policy_version_name` (String) Name of the policy version.
+  - example : 'POLICY_VERSION_1'
 
 <a id="nestedatt--policy--policy_versions--policy_document"></a>
 ### Nested Schema for `policy.policy_versions.policy_document`
 
 Read-Only:
 
-- `statement` (Attributes List) Statement (see [below for nested schema](#nestedatt--policy--policy_versions--policy_document--statement))
-- `version` (String) Policy Version
+- `statement` (Attributes List) Statement - list of permission statements in the policy.
+  - example : [{'Sid': 'Stmt1', 'Effect': 'Allow', 'Action': [...], 'Resource': '*'}] (see [below for nested schema](#nestedatt--policy--policy_versions--policy_document--statement))
+- `version` (String) Policy Version.
+  - example : '2024-07-01'
 
 <a id="nestedatt--policy--policy_versions--policy_document--statement"></a>
 ### Nested Schema for `policy.policy_versions.policy_document.statement`
 
 Optional:
 
-- `action` (List of String) Action
-- `condition` (Map of Map of List of String)
-- `not_action` (List of String) Not Action
-- `principal` (Attributes) Principal (see [below for nested schema](#nestedatt--policy--policy_versions--policy_document--statement--principal))
-- `resource` (List of String) Resource
+- `condition` (Map of Map of List of String) Condition for the policy statement. Specifies constraints on when the policy applies.
+  - example : {"aws:PrincipalTag/department": ["engineering"]}
+- `principal` (Attributes) Principal - the entity (user, group, or service) that the policy statement applies to.
+  - example : {'Service': ['ec2.amazonaws.com']} (see [below for nested schema](#nestedatt--policy--policy_versions--policy_document--statement--principal))
 
 Read-Only:
 
-- `effect` (String) Effect
-- `sid` (String) SID
+- `action` (List of String) List of actions allowed by this statement.
+  - example : ['iam:CreateRole']
+- `effect` (String) Effect of the statement (Allow or Deny).
+  - example : 'Allow'
+- `not_action` (List of String) List of actions that are not allowed by this statement.
+  - example : ['iam:DeleteRole']
+- `resource` (List of String) Resources that the policy statement applies to.
+  - example : ['*']
+- `sid` (String) Statement ID (SID) - unique identifier for the policy statement.
+  - example : 'Sid1'
 
 <a id="nestedatt--policy--policy_versions--policy_document--statement--principal"></a>
 ### Nested Schema for `policy.policy_versions.policy_document.statement.principal`
 
 Optional:
 
-- `principal_map` (Map of List of String)
-- `principal_string` (String)
+- `principal_map` (Map of List of String) Principal as a map. Specifies multiple principals using key-value pairs.
+  - example : {"AWS": ["arn:aws:iam::123456789012:root"]}
+- `principal_string` (String) Principal as a string. Specifies the IAM user, role, or account that the policy applies to.
+  - example : 'arn:aws:iam::123456789012:user/admin'

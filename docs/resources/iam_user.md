@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_iam_user Resource - samsungcloudplatformv2"
 subcategory: User
 description: |-
-  User.
+  Manages an IAM User.
 ---
 
 # samsungcloudplatformv2_iam_user (Resource)
 
-User.
+Manages an IAM User.
 
 ## Example Usage
 
@@ -86,136 +86,217 @@ variable "password_reuse_count" {
 
 ### Optional
 
-- `account_id` (String) Account ID
-- `description` (String) Description
-- `group_ids` (List of String) Group IDs
-- `password` (String) Password
-- `password_reuse_count` (Number) Password Reuse Count
-- `policy_ids` (List of String) Policy IDs
+- `account_id` (String) Account ID to create the user in.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `description` (String) Human-readable description of the user.
+  - example : 'My user description'
+- `group_ids` (List of String) List of group IDs to add the user to.
+  - example: YOUR RESOURCE'S GROUP_IDS
+- `password` (String) Password for the user.
+  - example: YOUR RESOURCE'S PASSWORD
+- `password_reuse_count` (Number) Number of previous passwords that cannot be reused.
+  - example : 3
+  - min: 0, max: 10
+- `policy_ids` (List of String) List of policy IDs to attach to the user.
+  - example: YOUR RESOURCE'S POLICY_IDS
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
-- `temporary_password` (Boolean) Temporary Password
-- `user_name` (String) User Name
+- `temporary_password` (Boolean) Whether the password is temporary and needs to be changed.
+  - example : true
+- `user_name` (String) Unique username for the user.
+  - example : 'john.doe'
+  - maxLength: 64
 
 ### Read-Only
 
-- `user` (Attributes) A detail of User. (see [below for nested schema](#nestedatt--user))
-- `user_id` (String) User ID
+- `user` (Attributes) A detail of User.
+  - example : '{account_id: 123456789012, company_name: Samsung SDS, created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, ...}' (see [below for nested schema](#nestedatt--user))
+- `user_id` (String) Unique identifier of the user.
+  - example: YOUR RESOURCE'S USER_ID
 
 <a id="nestedatt--user"></a>
 ### Nested Schema for `user`
 
 Optional:
 
-- `company_name` (String) Company Name
-- `console_url` (String) Console URL
-- `first_name` (String) First Name
-- `last_login_at` (String) Last Login At
-- `last_name` (String) Last Name
-- `password` (String) Password
-- `policies` (Attributes List) Policies (see [below for nested schema](#nestedatt--user--policies))
+- `company_name` (String) Company name of the user.
+  - example : 'Samsung SDS'
+- `console_url` (String) URL to access the console.
+  - example : 'https://console.example.com'
+- `first_name` (String) First name of the user.
+  - example : 'John'
+- `last_login_at` (String) Timestamp when the user last logged in.
+  - example : '2024-01-01T00:00:00Z'
+- `last_name` (String) Last name of the user.
+  - example : 'Doe'
+- `password` (String) Password for the user account.
+  - example: YOUR RESOURCE'S PASSWORD
+- `policies` (Attributes List) List of policies attached to the role.
+  - example : '[{account_id: 123456789012, created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, default_version_id: pol-1234567890abcdef, ...}]' (see [below for nested schema](#nestedatt--user--policies))
 
 Read-Only:
 
-- `access_keys` (Attributes List) Access Keys (see [below for nested schema](#nestedatt--user--access_keys))
-- `account_id` (String) Account ID
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `description` (String) Description
-- `dst_offset` (String) Dst Offset
-- `email` (String) Email
-- `email_authenticated` (Boolean) Email Authenticated
-- `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--user--groups))
-- `id` (String) ID
-- `last_password_update_at` (String) Last Password Update At
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `name` (String) Name
-- `password_reuse_count` (Number) Password Reuse Count
-- `phone_authenticated` (Boolean) Phone Authenticated
-- `timezone` (String) Timezone
-- `type` (String) Type
-- `tz_id` (String) TZ ID
-- `user_name` (String) User Name
-- `utc_offset` (String) UTC Offset
+- `access_keys` (Attributes List) List of access keys associated with the user.
+  - example : '[{access_key: ak-example-access-key-id, created_at: 2024-05-17T00:23:17Z, expiration_timestamp: 9999-12-31T23:59:59Z, id: 12345678-1234-1234-1234-1234567890ab, is_enabled: true}]' (see [below for nested schema](#nestedatt--user--access_keys))
+- `account_id` (String) Account ID associated with the user.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) Timestamp when the user was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the user.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Human-readable description of the user.
+  - example : 'My user description'
+- `dst_offset` (String) Daylight saving time offset.
+  - example : '+09:00'
+- `email` (String) Email address.
+  - example : 'user@example.com'
+- `email_authenticated` (Boolean) Whether email is authenticated.
+  - example : true
+- `groups` (Attributes List) List of groups the user belongs to.
+  - example : '[{id: grp-1234567890abcdef, name: MyGroup}]' (see [below for nested schema](#nestedatt--user--groups))
+- `id` (String) Unique identifier of the user.
+  - example: YOUR RESOURCE'S ID
+- `last_password_update_at` (String) Timestamp when the password was last updated.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_at` (String) Timestamp when the user was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the user.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) Display name of the user.
+  - example : 'John Doe'
+- `password_reuse_count` (Number) Number of previous passwords that cannot be reused.
+  - example : 3
+- `phone_authenticated` (Boolean) Whether the phone number has been authenticated.
+  - example : true
+- `timezone` (String) User's timezone setting.
+  - example : 'Asia/Seoul'
+- `type` (String) Type of user.
+  - example : 'IAM'
+- `tz_id` (String) Timezone ID.
+  - example: YOUR RESOURCE'S TZ_ID
+- `user_name` (String) Unique username of the user.
+  - example : 'john.doe'
+- `utc_offset` (String) User's UTC offset from UTC time.
+  - example : '+09:00'
 
 <a id="nestedatt--user--policies"></a>
 ### Nested Schema for `user.policies`
 
 Optional:
 
-- `account_id` (String) Account ID
-- `policy_versions` (Attributes List) Policy Versions (see [below for nested schema](#nestedatt--user--policies--policy_versions))
+- `account_id` (String) Account ID associated with the policy.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `policy_versions` (Attributes List) List of versions associated with the policy.
+  - example : '[{created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, id: ver-1234567890abcdef, modified_at: 2024-05-17T00:23:17Z, modified_by: ef50cdc207f05f6fb8f20219f229ed1f, ...}]' (see [below for nested schema](#nestedatt--user--policies--policy_versions))
 
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `creator_email` (String) Creator Email
-- `creator_name` (String) Creator Name
-- `default_version_id` (String) Default Version ID
-- `description` (String) Description
-- `domain_name` (String) Domain Name
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `modifier_email` (String) Modifier Email
-- `modifier_name` (String) Modifier Name
-- `policy_category` (String) Policy Category
-- `policy_name` (String) Policy Name
-- `policy_type` (String) Policy Type
-- `resource_type` (String) Resource Type
-- `service_name` (String) Service Name
-- `service_type` (String) Service Type
-- `srn` (String) SRN
-- `state` (String) State
+- `created_at` (String) Timestamp when the policy was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the policy.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `creator_email` (String) Email address of the policy creator.
+  - example : 'creator@example.com'
+- `creator_name` (String) Name of the policy creator.
+  - example : 'Creator Name'
+- `default_version_id` (String) Default version ID of the policy.
+  - example: YOUR RESOURCE'S DEFAULT_VERSION_ID
+- `description` (String) Description of the policy.
+  - example : 'My policy description'
+- `domain_name` (String) Domain name associated with the policy.
+  - example : 'scp'
+- `id` (String) Unique identifier of the policy.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Timestamp when the policy was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the policy.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `modifier_email` (String) Email address of the user who last modified the policy.
+  - example : 'modifier@example.com'
+- `modifier_name` (String) Name of the user who last modified the policy.
+  - example : 'Modifier Name'
+- `policy_category` (String) Category of the policy.
+  - example : 'IDENTITY_BASED'
+- `policy_name` (String) Name of the policy.
+  - example : 'MyPolicy'
+- `policy_type` (String) Type of the policy.
+  - example : 'USER_DEFINED'
+- `resource_type` (String) Type of resource the policy applies to.
+  - example : 'policy'
+- `service_name` (String) Name of the service the policy is associated with.
+  - example : 'Identity Access Management'
+- `service_type` (String) Type of service the policy is associated with.
+  - example : 'iam'
+- `srn` (String) Service Resource Name (SRN) - Unique identifier for the user in the SCP system.
+  - example : 'srn:e:::::iam:policy/policy-12345678'
+- `state` (String) Current state of the user (e.g., ACTIVE, INACTIVE).
+  - example : 'ACTIVE'
 
 <a id="nestedatt--user--policies--policy_versions"></a>
 ### Nested Schema for `user.policies.policy_versions`
 
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `policy_document` (Attributes) Policy Document (see [below for nested schema](#nestedatt--user--policies--policy_versions--policy_document))
-- `policy_id` (String) Policy ID
-- `policy_version_name` (String) Policy Version Name
+- `created_at` (String) Timestamp when the policy version was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the policy version.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Unique identifier of the policy version.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Timestamp when the policy version was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the policy version.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `policy_document` (Attributes) The policy document containing permission definitions for this policy version.
+  - example : '{statement: [{action: [iam:CreateRole], effect: Allow, resource: [*], ...}], version: 2024-07-01}' (see [below for nested schema](#nestedatt--user--policies--policy_versions--policy_document))
+- `policy_id` (String) Unique identifier of the policy.
+  - example: YOUR RESOURCE'S POLICY_ID
+- `policy_version_name` (String) Name of the policy version.
+  - example : 'POLICY_VERSION_1'
 
 <a id="nestedatt--user--policies--policy_versions--policy_document"></a>
 ### Nested Schema for `user.policies.policy_versions.policy_document`
 
 Read-Only:
 
-- `statement` (Attributes List) Statement (see [below for nested schema](#nestedatt--user--policies--policy_versions--policy_document--statement))
+- `statement` (Attributes List) List of policy statements that define the permissions granted or denied.
+  - example : '[{action: [iam:CreateRole], effect: Allow, resource: [*], sid: Stmt1, ...}]' (see [below for nested schema](#nestedatt--user--policies--policy_versions--policy_document--statement))
 - `version` (String) Policy Version
+  - example : '2024-07-01'
 
 <a id="nestedatt--user--policies--policy_versions--policy_document--statement"></a>
 ### Nested Schema for `user.policies.policy_versions.policy_document.statement`
 
 Optional:
 
-- `action` (List of String) Action
-- `condition` (Map of Map of List of String)
-- `not_action` (List of String) Not Action
-- `principal` (Attributes) Principal (see [below for nested schema](#nestedatt--user--policies--policy_versions--policy_document--statement--principal))
-- `resource` (List of String) Resource
+- `action` (List of String) List of actions allowed by this statement (e.g., iam:CreateRole, iam:ListUsers).
+  - example : ['iam:CreateRole']
+- `condition` (Map of Map of List of String) Conditions that must be met for the policy statement to take effect.
+  - example : {'StringEquals': {'aws:PrincipalTag/department': ['IT']}}
+- `not_action` (List of String) List of actions that are explicitly excluded from this statement.
+  - example : ['iam:DeleteRole']
+- `principal` (Attributes) Principal - The entity (user, service, or account) that the policy statement applies to.
+  - example : '{principal_string: 123456789012, principal_map: {AWS: [arn:aws:iam::123456789012:root]}}' (see [below for nested schema](#nestedatt--user--policies--policy_versions--policy_document--statement--principal))
+- `resource` (List of String) List of resources (ARNs or wildcards) that the statement applies to.
+  - example : ['*']
 
 Read-Only:
 
-- `effect` (String) Effect
-- `sid` (String) SID
+- `effect` (String) Effect of the statement - either Allow or Deny.
+  - example : 'Allow'
+- `sid` (String) Statement ID (SID) - unique identifier for this policy statement.
+  - example : 'Stmt1'
 
 <a id="nestedatt--user--policies--policy_versions--policy_document--statement--principal"></a>
 ### Nested Schema for `user.policies.policy_versions.policy_document.statement.principal`
 
 Optional:
 
-- `principal_map` (Map of List of String)
-- `principal_string` (String)
+- `principal_map` (Map of List of String) Principal as a map - supports multiple principal types (e.g., AWS, Federated, etc.).
+  - example : {'AWS': ['arn:aws:iam::123456789012:root']}
+- `principal_string` (String) Principal as a string value (e.g., AWS account ID or IAM user ARN).
+  - example : '123456789012'
 
 
 
@@ -227,11 +308,16 @@ Optional:
 
 Read-Only:
 
-- `access_key` (String) Access Key
-- `created_at` (String) Created At
-- `expiration_timestamp` (String) Expiration Timestmap
-- `id` (String) ID
-- `is_enabled` (Boolean) Is Enabled
+- `access_key` (String) The access key string value.
+  - example : 'ak-example-access-key-id'
+- `created_at` (String) Timestamp when the access key was created.
+  - example : '2024-01-01T00:00:00Z'
+- `expiration_timestamp` (String) Timestamp when the access key expires.
+  - example : '2024-01-02T00:00:00Z'
+- `id` (String) Unique identifier of the access key.
+  - example: YOUR RESOURCE'S ID
+- `is_enabled` (Boolean) Whether the access key is enabled/active.
+  - example : true
 
 
 <a id="nestedatt--user--groups"></a>
@@ -239,5 +325,7 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) Group ID
-- `name` (String) Group Name
+- `id` (String) Unique identifier of the group.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Display name of the group.
+  - example : 'MyGroup'

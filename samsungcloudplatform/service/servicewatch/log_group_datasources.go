@@ -3,10 +3,10 @@ package servicewatch
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -44,11 +44,15 @@ func (d *serviceWatchLogGroupDataSources) Schema(_ context.Context, _ datasource
 		Description: "Log Group Data Sources",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Ids"): schema.StringAttribute{
-				Description: "List of Log group IDs",
+				Description: "List of Log group IDs.\n" +
+					" - example : bce52822147744b4afe0187164caa2e8\n",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Log group name (between 3 and 512 characters)",
+				Description: "The name of log group.\n" +
+					" - example : testlg01\n" +
+					" - minLength: 3\n" +
+					" - maxLength: 512\n",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(3, 512),
@@ -56,53 +60,65 @@ func (d *serviceWatchLogGroupDataSources) Schema(_ context.Context, _ datasource
 			},
 			common.ToSnakeCase("RetentionPeriods"): schema.ListAttribute{
 				ElementType: types.Int32Type,
-				Description: "List of Log group retention periods",
+				Description: "List of Log group retention periods.\n" +
+					" - example : [365]\n",
 				Optional:    true,
 			},
 			common.ToSnakeCase("LogGroups"): schema.ListNestedAttribute{
-				Description: "List of Log groups",
+				Description: "List of Log groups.\n" +
+					" - example : [{\"id\": \"bce52822147744b4afe0187164caa2e8\", \"name\": \"testlg01\"}]\n",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Log group ID",
+							Description: "The unique identifier of the log group.\n" +
+								" - example : bce52822147744b4afe0187164caa2e8\n",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Log group name",
+							Description: "The name of log group.\n" +
+								" - example : testlg01\n",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "Account ID",
+							Description: "The unique identifier of the account.\n" +
+								" - example : 1bcf39b344ac41cbaf0466ff0d2bebad\n",
 							Computed:    true,
 						},
 						common.ToSnakeCase("RetentionPeriod"): schema.Int32Attribute{
-							Description: "Log group retention period",
+							Description: "Log group retention period.\n" +
+								" - example : 365\n",
 							Computed:    true,
 						},
 						common.ToSnakeCase("RetentionPeriodName"): schema.StringAttribute{
-							Description: "Log group retention period name",
+							Description: "Log group retention period name.\n" +
+								" - example : 1 year\n",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Status"): schema.StringAttribute{
-							Description: "Log group status\n" +
-								"Allowed values: ACTIVE, DELETING, DELETED",
+							Description: "Log group status.\n" +
+								"Allowed values: ACTIVE, DELETING, DELETED.\n" +
+								" - example : ACTIVE\n",
 							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "Created date time",
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								" - example : 2024-05-17T00:23:17Z\n",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "Creator ID",
+							Description: "The user id that created the resource.\n" +
+								" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "Modified date time",
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								" - example : 2024-05-17T00:23:17Z\n",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "Modifier ID",
+							Description: "The user id that last modified the resource.\n" +
+								" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
 							Computed:    true,
 						},
 					},

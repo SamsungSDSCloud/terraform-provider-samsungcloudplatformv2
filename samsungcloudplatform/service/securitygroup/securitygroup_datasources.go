@@ -3,10 +3,10 @@ package securitygroup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/securitygroup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -39,47 +39,53 @@ func (d *networkSecurityGroupDataSources) Metadata(_ context.Context, req dataso
 
 // Schema defines the schema for the data source.
 func (d *networkSecurityGroupDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "List of security group",
-		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page \n" +
-					"  - example : 0",
-				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.AtLeast(0),
+		resp.Schema = schema.Schema{
+			Description: "List of security groups",
+			Attributes: map[string]schema.Attribute{
+				common.ToSnakeCase("Page"): schema.Int32Attribute{
+					Description: "The page number for pagination.\n" +
+						"  - example: 1\n" +
+						"  - constraints: min: 1",
+					Optional: true,
+					Validators: []validator.Int32{
+						int32validator.AtLeast(0),
+					},
+				},
+				common.ToSnakeCase("Size"): schema.Int32Attribute{
+					Description: "The number of items per page.\n" +
+						"  - example: 20\n" +
+						"  - constraints: min: 1",
+					Optional: true,
+					Validators: []validator.Int32{
+						int32validator.AtLeast(0),
+					},
+				},
+				common.ToSnakeCase("Sort"): schema.StringAttribute{
+					Description: "The sorting criteria.\n" +
+						"  - example: created_at:desc\n" +
+						"  - valid: field_name:asc or field_name:desc",
+					Optional: true,
+				},
+				common.ToSnakeCase("Name"): schema.StringAttribute{
+					Description: "The name of the Security Group.\n" +
+						"  - example: sg-web-prod\n" +
+						"  - valid: All characters except 'default'\n" +
+						"  - constraints: minLength: 1, maxLength: 255, duplicates allowed",
+					Optional: true,
+				},
+				common.ToSnakeCase("Id"): schema.StringAttribute{
+					Description: "The unique identifier of the resource.\n" +
+						"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+					Optional: true,
+				},
+				common.ToSnakeCase("Ids"): schema.ListAttribute{
+					ElementType: types.StringType,
+					Computed:    true,
+					Description: "The list of Security Group identifiers.\n" +
+						"  - example: [sg-aaa111, sg-bbb222, sg-ccc333]",
 				},
 			},
-			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size \n" +
-					"  - example : 20",
-				Optional: true,
-				Validators: []validator.Int32{
-					int32validator.AtLeast(0),
-				},
-			},
-			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
-					"  - example : created_at:desc",
-				Optional: true,
-			},
-			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name \n" +
-					"  - example : sg_0911",
-				Optional: true,
-			},
-			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id \n" +
-					"  - example : f09708a755e24fceb4e15f7f5c82b0c1",
-				Optional: true,
-			},
-			common.ToSnakeCase("Ids"): schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				Description: "Security group Id List",
-			},
-		},
-	}
+		}
 }
 
 // Configure adds the provider configured client to the data source.

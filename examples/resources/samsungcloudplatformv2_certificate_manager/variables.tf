@@ -33,7 +33,7 @@ variable "recipients" {
   default = [{
     region    = "Asia/Seoul"
     user_id   = "ENTER YOUR RESOURCE'S USER_ID"
-    user_name = "rk.dthung1@partner.samsung.com"
+    user_name = "userA@samsung.com"
   }]
 }
 

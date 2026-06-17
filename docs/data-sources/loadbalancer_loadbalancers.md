@@ -66,38 +66,38 @@ variable "vpc_id" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `service_ip` (String) ServiceIp
-- `size` (Number) Size
-- `sort` (String) Sort
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `name` (String) The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `page` (Number) The page number.
+- `service_ip` (String) The service IP address.
+- `size` (Number) The number of items per page.
+- `sort` (String) The sort order.
+- `subnet_id` (String) The subnet ID where the resource is located.
+- `vpc_id` (String) The VPC ID where the resource is located.
 
 ### Read-Only
 
-- `loadbalancers` (Attributes List) A list of Loadbalancers. (see [below for nested schema](#nestedatt--loadbalancers))
+- `loadbalancers` (Attributes List) List of LoadBalancers. (see [below for nested schema](#nestedatt--loadbalancers))
 
 <a id="nestedatt--loadbalancers"></a>
 ### Nested Schema for `loadbalancers`
 
 Optional:
 
-- `firewall_id` (String) FirewallId
-- `id` (String) Id
-- `layer_type` (String) LayerType
-- `listener_count` (Number) ListenerCount
-- `name` (String) Name
-- `public_nat_enabled` (Boolean) PublicNatEnabled
-- `service_ip` (String) ServiceIp
-- `source_nat_ip` (String) SourceNatIp
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `firewall_id` (String) The firewall ID.
+- `id` (String) The unique identifier of the LoadBalancer.
+- `layer_type` (String) The layer type of the Load Balancer (L4, L7).
+- `listener_count` (Number) The number of listeners.
+- `name` (String) The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `public_nat_enabled` (Boolean) Whether public NAT is enabled.
+- `service_ip` (String) The service IP address.
+- `source_nat_ip` (String) The source NAT IP address.
+- `state` (String) The current state of the Load Balancer (CREATING, ACTIVE, DELETING, ERROR).
+- `subnet_id` (String) The subnet ID where the resource is located.
+- `vpc_id` (String) The VPC ID where the resource is located.
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

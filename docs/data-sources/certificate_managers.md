@@ -76,34 +76,43 @@ variable "state" {
 
 ### Optional
 
-- `cn` (String) Cn
-- `id` (String) id
-- `is_mine` (Boolean) IsMine
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size (between 1 and 10000)
-- `sort` (String) Sort
-- `state` (List of String) state
+- `cn` (String) Certificate Common Name.
+  - example : 'test.go.kr'
+- `id` (String) Certificate manager id.
+  - example: YOUR RESOURCE'S ID
+- `is_mine` (Boolean) My Certificate Manager.
+  - example : true
+- `name` (String) Certificate manager name.
+  - example : 'test-manager'
+- `page` (Number) Page number for pagination.
+  - example : 1
+- `size` (Number) Maximum number of items to return per page.
+  - example : 20
+- `sort` (String) Sort results as 'field:asc' or 'field:desc'.
+  - example : 'created_at:desc'
+- `state` (List of String) Filter by certificate state.
+  - example : 'VALID'
 
 ### Read-Only
 
-- `certificates` (Attributes List) A list certificates. (see [below for nested schema](#nestedatt--certificates))
+- `certificates` (Attributes List) List of certificates. (see [below for nested schema](#nestedatt--certificates))
 
 <a id="nestedatt--certificates"></a>
 ### Nested Schema for `certificates`
 
 Read-Only:
 
-- `cert_kind` (String) Certificate type
-  - Example: PRD
-- `cn` (String) Certificate Common Name
-  - Example: test.go.kr
-- `id` (String) Certificate ID
-- `name` (String) Certificate Name
-  - Example: test-certificate
-- `not_after_dt` (String) Certificate Expire Date
-  - Example: 2026-02-07T18:07:59
-- `not_before_dt` (String) Certificate Start Date
-  - Example: 2025-02-08T18:07:00
-- `state` (String) Certificate State
-  - Example: VALID
+- `cert_kind` (String) Certificate type.
+  - example : 'PRD'
+- `cn` (String) Certificate Common Name.
+  - example : 'test.go.kr'
+- `id` (String) Certificate ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Certificate Name.
+  - example : 'test-certificate'
+- `not_after_dt` (String) Certificate Expire Date.
+  - example : '2026-02-07T18:07:59'
+- `not_before_dt` (String) Certificate Start Date.
+  - example : '2025-02-08T18:07:00'
+- `state` (String) Certificate State.
+  - example : 'VALID'

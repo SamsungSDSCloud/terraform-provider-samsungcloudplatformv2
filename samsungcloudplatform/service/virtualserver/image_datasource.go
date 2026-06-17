@@ -3,12 +3,13 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,155 +36,208 @@ func (d *virtualServerImageDataSource) Metadata(_ context.Context, req datasourc
 
 func (d *virtualServerImageDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Image.",
+		Description: "Retrieves image information.\n\n" +
+			"**GPU Image:**\n" +
+			"- For GPU Server, use images with `scp_image_type` of `gpu_standard` or `gpu_custom`.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "ID",
-				Optional:    true,
+				Description:         "Image ID.\n  - example: 70a599e0-31e7-49b7-b260-868f441e862b",
+				MarkdownDescription: "Image ID.\n  - example: 70a599e0-31e7-49b7-b260-868f441e862b",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ScpImageType"): schema.StringAttribute{
-				Description: "SCP Image type",
-				Optional:    true,
+				Description: "SCP image type.\n" +
+					"  - example: standard\n" +
+					"  - Available values: standard, custom, gpu_standard, gpu_custom",
+				MarkdownDescription: "SCP image type.\n" +
+					"  - example: standard\n" +
+					"  - Available values: standard, custom, gpu_standard, gpu_custom",
+				Optional: true,
 			},
 			common.ToSnakeCase("ScpOriginalImageType"): schema.StringAttribute{
-				Description: "SCP Original Image type",
-				Optional:    true,
+				Description:         "SCP original image type.\n  - example: standard",
+				MarkdownDescription: "SCP original image type.\n  - example: standard",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description:         "Image name.\n  - example: ubuntu-22.04",
+				MarkdownDescription: "Image name.\n  - example: ubuntu-22.04",
+				Optional:            true,
 			},
 			common.ToSnakeCase("OsDistro"): schema.StringAttribute{
-				Description: "OS Distro",
-				Optional:    true,
+				Description: "OS distribution.\n" +
+					"  - example: ubuntu\n" +
+					"  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle",
+				MarkdownDescription: "OS distribution.\n" +
+					"  - example: ubuntu\n" +
+					"  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle",
+				Optional: true,
 			},
 			common.ToSnakeCase("Status"): schema.StringAttribute{
-				Description: "Status",
-				Optional:    true,
+				Description: "Image status.\n" +
+					"  - example: active\n",
+				MarkdownDescription: "Image status.\n" +
+					"  - example: active\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Visibility"): schema.StringAttribute{
-				Description: "Visibility",
-				Optional:    true,
+				Description: "Image visibility.\n" +
+					"  - example: private\n" +
+					"  - Available values: shared, private",
+				MarkdownDescription: "Image visibility.\n" +
+					"  - example: private\n" +
+					"  - Available values: shared, private",
+				Optional: true,
 			},
 			common.ToSnakeCase("Image"): schema.SingleNestedAttribute{
-				Description: "Image.",
-				Computed:    true,
+				Description:         "Image details.",
+				MarkdownDescription: "Image details.",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Volumes"): schema.StringAttribute{
-						Description: "Volumes",
-						Computed:    true,
+						Description:         "Volume information.",
+						MarkdownDescription: "Volume information.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Checksum"): schema.StringAttribute{
-						Description: "Checksum",
-						Computed:    true,
+						Description:         "MD5 checksum of image data for integrity verification.",
+						MarkdownDescription: "MD5 checksum of image data for integrity verification.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ContainerFormat"): schema.StringAttribute{
-						Description: "Container format",
-						Computed:    true,
+						Description:         "Container format.",
+						MarkdownDescription: "Container format.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("DiskFormat"): schema.StringAttribute{
-						Description: "Disk format",
-						Computed:    true,
+						Description:         "Disk format.",
+						MarkdownDescription: "Disk format.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("File"): schema.StringAttribute{
-						Description: "File",
-						Computed:    true,
+						Description:         "Image file URL.",
+						MarkdownDescription: "Image file URL.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID",
-						Computed:    true,
+						Description:         "Image ID.",
+						MarkdownDescription: "Image ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("MinDisk"): schema.Int32Attribute{
-						Description: "Min disk",
-						Computed:    true,
+						Description:         "Minimum disk size (GB).",
+						MarkdownDescription: "Minimum disk size (GB).",
+						Computed:            true,
 					},
 					common.ToSnakeCase("MinRam"): schema.Int32Attribute{
-						Description: "Min ram",
-						Computed:    true,
+						Description:         "Minimum RAM size (MB).",
+						MarkdownDescription: "Minimum RAM size (MB).",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description:         "Image name.",
+						MarkdownDescription: "Image name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OsDistro"): schema.StringAttribute{
-						Description: "OS Distro",
-						Computed:    true,
+						Description:         "OS distribution.",
+						MarkdownDescription: "OS distribution.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OsHashAlgo"): schema.StringAttribute{
-						Description: "OS Hash algo",
-						Computed:    true,
+						Description:         "Hash algorithm for image integrity verification.",
+						MarkdownDescription: "Hash algorithm for image integrity verification.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OsHashValue"): schema.StringAttribute{
-						Description: "OS Hash value",
-						Computed:    true,
+						Description:         "Hash value of image binary.",
+						MarkdownDescription: "Hash value of image binary.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OsHidden"): schema.BoolAttribute{
-						Description: "OS hidden",
-						Computed:    true,
+						Description:         "Hidden flag.",
+						MarkdownDescription: "Hidden flag.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Owner"): schema.StringAttribute{
-						Description: "Owner",
-						Computed:    true,
+						Description:         "Owner account ID.",
+						MarkdownDescription: "Owner account ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OwnerAccountName"): schema.StringAttribute{
-						Description: "Owner account name",
-						Computed:    true,
+						Description:         "Owner account name.",
+						MarkdownDescription: "Owner account name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OwnerUserName"): schema.StringAttribute{
-						Description: "Owner user name",
-						Computed:    true,
+						Description:         "Owner user name.",
+						MarkdownDescription: "Owner user name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Protected"): schema.BoolAttribute{
-						Description: "Protected",
-						Computed:    true,
+						Description:         "Deletion protection flag. When set to true, image deletion is prevented.",
+						MarkdownDescription: "Deletion protection flag. When set to true, image deletion is prevented.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("RootDeviceName"): schema.StringAttribute{
-						Description: "Root device name",
-						Computed:    true,
+						Description:         "Root device name.",
+						MarkdownDescription: "Root device name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ScpImageType"): schema.StringAttribute{
-						Description: "SCP Image type",
-						Computed:    true,
+						Description:         "SCP image type.",
+						MarkdownDescription: "SCP image type.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ScpK8sVersion"): schema.StringAttribute{
-						Description: "SCP K8s version",
-						Computed:    true,
+						Description:         "Kubernetes version. Only available for K8S images.",
+						MarkdownDescription: "Kubernetes version. Only available for K8S images.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ScpOriginalImageType"): schema.StringAttribute{
-						Description: "SCP original Image type",
-						Computed:    true,
+						Description:         "Original image type.",
+						MarkdownDescription: "Original image type.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ScpOsVersion"): schema.StringAttribute{
-						Description: "SCP OS version",
-						Computed:    true,
+						Description:         "OS version.",
+						MarkdownDescription: "OS version.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Size"): schema.Int64Attribute{
-						Description: "Size",
-						Computed:    true,
+						Description:         "Image size (bytes).",
+						MarkdownDescription: "Image size (bytes).",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Computed:    true,
+						Description:         "Image status.",
+						MarkdownDescription: "Image status.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("VirtualSize"): schema.Int64Attribute{
-						Description: "Virtual size",
-						Computed:    true,
+						Description:         "Virtual disk size (bytes).",
+						MarkdownDescription: "Virtual disk size (bytes).",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Visibility"): schema.StringAttribute{
-						Description: "Visibility",
-						Computed:    true,
+						Description:         "Image visibility.",
+						MarkdownDescription: "Image visibility.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Url"): schema.StringAttribute{
-						Description: "Url",
-						Computed:    true,
+						Description:         "Image URL.",
+						MarkdownDescription: "Image URL.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created at",
-						Computed:    true,
+						Description:         "Created at.",
+						MarkdownDescription: "Created at.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("UpdatedAt"): schema.StringAttribute{
-						Description: "Updated at",
-						Computed:    true,
+						Description:         "Updated at.",
+						MarkdownDescription: "Updated at.",
+						Computed:            true,
 					},
 				},
 			},

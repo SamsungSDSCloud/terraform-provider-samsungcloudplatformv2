@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,33 +40,33 @@ func (r *VPCSubnetVipPortResource) Metadata(_ context.Context, req resource.Meta
 // Schema defines the schema for the resource.
 func (r *VPCSubnetVipPortResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "VPC Subnet VIP Port",
+		Description: "Resource of VPC Subnet VIP's Port",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID \n" +
+				Description: "The identifier of the subnet that the subnet vip port belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
 			},
 			common.ToSnakeCase("VipId"): schema.StringAttribute{
-				Description: "Subnet Vip Id \n" +
+				Description: "The identifier of the subnet vip.\n" +
 					"  - example : 0466a9448d9a4411a86055939e451c8f",
 				Required: true,
 			},
 			common.ToSnakeCase("PortId"): schema.StringAttribute{
-				Description: "Port ID \n" +
+				Description: "The identifier of the port.\n" +
 					"  - example : 35268a9f2eda4cde83b1d85c1f61f67d",
 				Required: true,
 			},
 
 			// Output
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Connected Port Id \n" +
+				Description: "The unique identifier of the connected port.\n" +
 					"  - example : 35268a9f2eda4cde83b1d85c1f61f67d",
 				Computed: true,
 			},
 			common.ToSnakeCase("SubnetVipId"): schema.StringAttribute{
-				Description: "Subnet Vip Id \n" +
+				Description: "The unique identifier of the subnet vip.\n" +
 					"  - example : 0466a9448d9a4411a86055939e451c8f",
 				Computed: true,
 			},

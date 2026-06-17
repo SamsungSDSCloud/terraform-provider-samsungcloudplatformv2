@@ -1,7 +1,7 @@
 package baremetal
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -133,7 +133,6 @@ func (v ServerDetails) AttributeTypes() map[string]attr.Type {
 }
 
 type PublicNatInfoValue struct {
-	NatId       types.String `tfsdk:"nat_id"`
 	NatIp       types.String `tfsdk:"nat_ip"`
 	NatIpId     types.String `tfsdk:"nat_ip_id"`
 	State       types.String `tfsdk:"state"`
@@ -142,7 +141,6 @@ type PublicNatInfoValue struct {
 
 func (v PublicNatInfoValue) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"nat_id":        types.StringType,
 		"nat_ip":        types.StringType,
 		"nat_ip_id":     types.StringType,
 		"state":         types.StringType,

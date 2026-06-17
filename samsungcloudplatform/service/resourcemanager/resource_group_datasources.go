@@ -3,13 +3,14 @@ package resourcemanager
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/region"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -49,23 +50,26 @@ func (d *resourceManagerResourceGroupDataSources) Schema(_ context.Context, _ da
 			"region": region.DataSourceSchema(),
 			"tags":   tag.DataSourceSchema(),
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id (between 1 and 64 characters)",
-				Optional:    true,
+				Description:         "The unique identifier of the resource group.",
+				MarkdownDescription: "The unique identifier of the resource group.\n\nExample: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`",
+				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 64),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name (between 1 and 256 characters)",
-				Optional:    true,
+				Description:         "The name of the resource group.",
+				MarkdownDescription: "The name of the resource group.\n\nExample: `example-rg`",
+				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 256),
 				},
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
-				ElementType: types.StringType,
-				Description: "ID List",
-				Computed:    true,
+				ElementType:         types.StringType,
+				Description:         "The unique identifier's list of the resource group.",
+				MarkdownDescription: "The unique identifier's list of the resource group.\n\nExample: `[e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67, 70636f984e564b3c9e54e74a53f9318d]`",
+				Computed:            true,
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -104,10 +108,6 @@ func (d *resourceManagerResourceGroupDataSources) Read(ctx context.Context, req 
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	if !state.Region.IsNull() {
-		d.client.Config.Region = state.Region.ValueString()
 	}
 
 	ids, err := GetResourceGroups(d.clients, state.Id, state.Name, state.Filter, state.Tags.Elements(), "id")

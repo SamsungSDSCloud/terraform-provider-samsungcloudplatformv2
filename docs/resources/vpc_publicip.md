@@ -42,13 +42,13 @@ variable "publicip_type" {
 
 ### Required
 
-- `type` (String) Type 
+- `type` (String) The type of the public ip.
   - example : IGW | GGW | SIGW
 
 ### Optional
 
-- `description` (String) Description
-  - example : Public IP description
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Public IP Description
   - maxLength : 50
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -56,7 +56,8 @@ variable "publicip_type" {
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
+- `id` (String) The unique identifier of the public ip.
+  - example: YOUR RESOURCE'S ID
 - `publicip` (Attributes) Publicip (see [below for nested schema](#nestedatt--publicip))
 
 <a id="nestedatt--publicip"></a>
@@ -64,16 +65,29 @@ variable "publicip_type" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `attached_resource_id` (String) AttachedResourceId
-- `attached_resource_name` (String) AttachedResourceName
-- `attached_resource_type` (String) AttachedResourceType
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `ip_address` (String) IpAddress
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `state` (String) State
-- `type` (String) Type
+- `account_id` (String) The identifier of the account that owns the public ip.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `attached_resource_id` (String) The identifier of the resource that this public ip is attached to.
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
+- `attached_resource_name` (String) The name of the resource that this public ip is attached to.
+  - example : my-server
+- `attached_resource_type` (String) The type of the resource that this public ip is attached to.
+  - example : VM
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Public IP Description
+- `id` (String) The unique identifier of the public ip.
+  - example: YOUR RESOURCE'S ID
+- `ip_address` (String) The IP address assigned to the resource.
+  - example : 203.0.113.10
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `state` (String) The current lifecycle state of the public ip.
+  - example : ACTIVE
+- `type` (String) The type of the public ip.
+  - example : IGW

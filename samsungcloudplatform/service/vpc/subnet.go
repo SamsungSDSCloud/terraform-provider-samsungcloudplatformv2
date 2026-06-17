@@ -8,11 +8,11 @@ import (
 
 	"regexp"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -49,56 +49,68 @@ func (r *vpcSubnetResource) Metadata(_ context.Context, req resource.MetadataReq
 // Schema defines the schema for the data source.
 func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "subnet",
+		Description: "VPC Subnet resource.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("AllocationPools"): schema.ListNestedAttribute{
-				Description: "Allocation Pools \n" +
-					"  - example : [{ \"start\": \"10.0.0.2\", \"end\": \"10.0.0.254\" }]",
-				MarkdownDescription: "Allocation Pools \n" +
-					"  - example : [{ \"start\": \"10.0.0.2\", \"end\": \"10.0.0.254\" }]",
+				Description: "The ranges of IP addresses available for allocation within the subnet.\n" +
+					"  - example : [{ \"start\": \"192.168.0.3\", \"end\": \"192.168.0.254\" }]",
+				MarkdownDescription: "The ranges of IP addresses available for allocation within the subnet.\n" +
+					"  - example : [{ \"start\": \"192.168.0.3\", \"end\": \"192.168.0.254\" }]",
 				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("end"): schema.StringAttribute{
-							Description: "End",
-							Required:    true,
+							Description: "The end IP address of the allocation range.\n" +
+								"  - example : 192.168.0.1",
+							Required: true,
 						},
 						common.ToSnakeCase("start"): schema.StringAttribute{
-							Description: "Start",
-							Required:    true,
+							Description: "The start IP address of the allocation range.\n" +
+								"  - example : 192.168.0.1",
+							Required: true,
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description:         "AccountId",
-				MarkdownDescription: "AccountId",
-				Computed:            true,
+				Description: "The identifier of the account that owns the subnet.\n" +
+					"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+				MarkdownDescription: "The identifier of the account that owns the subnet.\n" +
+					"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+				Computed: true,
 			},
 			common.ToSnakeCase("Cidr"): schema.StringAttribute{
-				Description: "Suabnet CIDR\n" +
-					"  - example : 192.167.1.0/24 \n" +
+				Description: "The IP address range of the subnet in CIDR notation.\n" +
+					"  - example : 192.168.0.0/24 \n" +
 					"  - maxMask : /28\n" +
 					"  - minMask : /16",
-				MarkdownDescription: "Suabnet CIDR\n" +
-					"  - example : 192.167.1.0/24 \n" +
+				MarkdownDescription: "The IP address range of the subnet in CIDR notation.\n" +
+					"  - example : 192.168.0.0/24 \n" +
 					"  - maxMask : /28\n" +
 					"  - minMask : /16",
 				Required: true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description:         "CreatedAt",
-				MarkdownDescription: "CreatedAt",
-				Computed:            true,
+				Description: "The timestamp when the subnet was created in ISO 8601 format.\n" +
+					"  - example: 2024-05-17T00:23:17Z",
+				MarkdownDescription: "The timestamp when the subnet was created in ISO 8601 format.\n" +
+					"  - example: 2024-05-17T00:23:17Z",
+				Computed: true,
 			},
 			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description:         "CreatedBy",
-				MarkdownDescription: "CreatedBy",
-				Computed:            true,
+				Description: "The user id that created the resource.\n" +
+					"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+				MarkdownDescription: "The user id that created the resource.\n" +
+					"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+				Computed: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description:         "Description\n  - maxLength: 50\n  - example: Subnet Description",
-				MarkdownDescription: "Description\n  - maxLength: 50\n  - example: Subnet Description",
+				Description: "Enter a brief explanation or note about this subnet. This help identify the purpose or usage of the subnet.\n" +
+					"  - maxLength: 50\n" +
+					"  - example: Subnet Description",
+				MarkdownDescription: "Enter a brief explanation or note about this subnet. This help identify the purpose or usage of the subnet.\n" +
+					"  - maxLength: 50\n" +
+					"  - example: Subnet Description",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(50),
 				},
@@ -107,68 +119,82 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Default:  stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("dhcp_ip_address"): schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
-				Description:         "DHCP automatically assigned IP\n  - example: 192.167.1.2",
-				MarkdownDescription: "DHCP automatically assigned IP\n  - example: 192.167.1.2",
+				Computed: true,
+				Optional: true,
+				Description: "The IP address automatically assigned by DHCP.\n" +
+					"  - example: 192.168.0.2",
+				MarkdownDescription: "The IP address automatically assigned by DHCP.\n" +
+					"  - example: 192.168.0.2",
 			},
-			common.ToSnakeCase("DnsNameservers"): schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
-				Description:         "DNS Name Servers\n  - example: [\"1.1.1.1\", \"2.2.2.2\"]",
-				MarkdownDescription: "DNS Name Servers\n  - example: [\"1.1.1.1\", \"2.2.2.2\"]",
+			common.ToSnakeCase("DnsNameservers"): schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				Description: "The list of DNS name server addresses for the subnet.\n" +
+					"  - example: [\"1.1.1.1\", \"2.2.2.2\"]",
+				MarkdownDescription: "The list of DNS name server addresses for the subnet.\n" +
+					"  - example: [\"1.1.1.1\", \"2.2.2.2\"]",
 			},
 			common.ToSnakeCase("GatewayIpAddress"): schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Description:         "Gateway IP Address\n  - example: 192.167.1.1",
-				MarkdownDescription: "Gateway IP Address\n  - example: 192.167.1.1",
+				Optional: true,
+				Computed: true,
+				Description: "The gateway IP address of the subnet.\n" +
+					"  - example: 192.168.0.1",
+				MarkdownDescription: "The gateway IP address of the subnet.\n" +
+					"  - example: 192.168.0.1",
 			},
 			common.ToSnakeCase("HostRoutes"): schema.ListNestedAttribute{
-				Description: "HostRoutes \n" +
-					"  - example : [{ \"destination\": \"192.168.24.0/24\", \"nexthop\": \"192.168.20.5\" }]",
-				MarkdownDescription: "HostRoutes \n" +
-					"  - example : [{ \"destination\": \"192.168.24.0/24\", \"nexthop\": \"192.168.20.5\" }]",
+				Description: "The static host routes configured for the subnet.\n" +
+					"  - example : [{ \"destination\": \"192.168.24.0/24\", \"nexthop\": \"192.168.0.5\" }]",
+				MarkdownDescription: "The static host routes configured for the subnet.\n" +
+					"  - example : [{ \"destination\": \"192.168.24.0/24\", \"nexthop\": \"192.168.0.5\" }]",
 				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Destination"): schema.StringAttribute{
-							Description: "Destination",
-							Required:    true,
+							Description: "the target IP address range (CIDR) for which the route should be applied\n" +
+								"  - example : 192.168.0.1",
+							Required: true,
 						},
 						common.ToSnakeCase("Nexthop"): schema.StringAttribute{
-							Description: "Nexthop",
-							Required:    true,
+							Description: "The IP address of the next router/VM that the traffic should be sent to in order to reach the destination\n" +
+								"  - example : 192.168.0.1",
+							Required: true,
 						},
 					},
 				},
 			},
 			"id": schema.StringAttribute{
-				Description:         "Identifier of the resource.",
-				MarkdownDescription: "Identifier of the resource.",
-				Computed:            true,
+				Description: "The unique identifier of the subnet.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				MarkdownDescription: "The unique identifier of the subnet.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-				Description:         "ModifiedAt",
-				MarkdownDescription: "ModifiedAt",
-				Computed:            true,
+				Description: "The timestamp when the subnet was last modified in ISO 8601 format.\n" +
+					"  - example: 2024-05-17T00:23:17Z",
+				MarkdownDescription: "The timestamp when the subnet was last modified in ISO 8601 format.\n" +
+					"  - example: 2024-05-17T00:23:17Z",
+				Computed: true,
 			},
 			common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-				Description:         "ModifiedBy",
-				MarkdownDescription: "ModifiedBy",
-				Computed:            true,
+				Description: "The user id that last modified the resource.\n" +
+					"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+				MarkdownDescription: "The user id that last modified the resource.\n" +
+					"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+				Computed: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Subnet Name \n" +
+				Description: "The name of the subnet.\n" +
 					"  - example : subnetName\n" +
 					"  - maxLength : 20\n" +
 					"  - minLength : 3\n" +
 					"  - pattern : ^[a-zA-Z0-9-]+$",
-				MarkdownDescription: "Subnet Name \n" +
+				MarkdownDescription: "The name of the subnet.\n" +
 					"  - example : subnetName\n" +
 					"  - maxLength : 20\n" +
 					"  - minLength : 3\n" +
@@ -180,29 +206,33 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Required: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description:         "State",
-				MarkdownDescription: "State",
-				Computed:            true,
+				Description: "The current lifecycle state of the subnet.\n" +
+					"  - example : ACTIVE",
+				MarkdownDescription: "The current lifecycle state of the subnet.\n" +
+					"  - example : ACTIVE",
+				Computed: true,
 			},
 			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Subnet Type \n" +
+				Description: "The type of the subnet.\n" +
 					"  - example : GENERAL | LOCAL | VPC_ENDPOINT",
-				MarkdownDescription: "Subnet Type \n" +
+				MarkdownDescription: "The type of the subnet.\n" +
 					"  - example : GENERAL | LOCAL | VPC_ENDPOINT",
 				Required: true,
 			},
 			common.ToSnakeCase("VpcID"): schema.StringAttribute{
-				Description: "VPC ID \n" +
+				Description: "The identifier of the VPC that the subnet belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
-				MarkdownDescription: "VPC ID \n" +
+				MarkdownDescription: "The identifier of the VPC that the subnet belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
 			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description:         "VpcName",
-				MarkdownDescription: "VpcName",
-				Computed:            true,
+				Description: "The name of the VPC that the subnet belongs to.\n" +
+					"  - example : VpcName",
+				MarkdownDescription: "The name of the VPC that the subnet belongs to.\n" +
+					"  - example : VpcName",
+				Computed: true,
 			},
 		},
 	}
@@ -230,7 +260,7 @@ func (r *vpcSubnetResource) Configure(_ context.Context, req resource.ConfigureR
 	r.clients = inst.Client
 }
 
-// Create creates the resource and sets the initial Terraform state.
+// Create creates the subnet and sets the initial Terraform state.
 func (r *vpcSubnetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan vpc.SubnetResource
@@ -310,6 +340,10 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 	state.ModifiedBy = types.StringValue(subnet.ModifiedBy)
 	state.DhcpIpAddress = types.StringPointerValue(subnet.DhcpIpAddress.Get())
 
+	dnsNameservers, _ := types.SetValueFrom(ctx, types.StringType, subnet.GetDnsNameservers())
+
+	state.DnsNameservers = dnsNameservers
+
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -317,7 +351,7 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 }
 
-// Update updates the resource and sets the updated Terraform state on success.
+// Update updates the subnet and sets the updated Terraform state on success.
 func (r *vpcSubnetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
 	var state vpc.SubnetResource
@@ -349,7 +383,7 @@ func (r *vpcSubnetResource) Update(ctx context.Context, req resource.UpdateReque
 	resp.State = readResp.State
 }
 
-// Delete deletes the resource and removes the Terraform state on success.
+// Delete deletes the subnet and removes the Terraform state on success.
 func (r *vpcSubnetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
 	var state vpc.SubnetResource
@@ -387,5 +421,5 @@ func waitForSubnetStatus(ctx context.Context, vpcClient *vpc.Client, id string, 
 			return nil, "", err
 		}
 		return info, string(info.Subnet.State), nil
-	})
+	}, -1, -1, -1, -1)
 }

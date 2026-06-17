@@ -3,8 +3,8 @@ package baremetalblockstorage
 import (
 	"context"
 	"fmt"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	baremetalblockstorage1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/baremetal-blockstorage/1.3"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	baremetalblockstorage1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/baremetal-blockstorage/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"strconv"

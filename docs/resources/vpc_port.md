@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_port Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  port
+  Port
 ---
 
 # samsungcloudplatformv2_vpc_port (Resource)
 
-port
+Port
 
 ## Example Usage
 
@@ -64,40 +64,52 @@ variable "security_groups" {
 
 ### Required
 
-- `name` (String) Port Name 
+- `name` (String) The name of the port.
   - example : portName
   - maxLength : 20
   - minLength : 3
   - pattern : ^[a-zA-Z0-9-]+$
-- `subnet_id` (String) Subnet ID 
+- `subnet_id` (String) The identifier of the subnet that the port belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
 
 ### Optional
 
-- `description` (String) Description
-  - example : Port description
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Port Description
   - maxLength : 50
-- `fixed_ip_address` (String) Fixed IP Address 
+- `fixed_ip_address` (String) The fixed IP address assigned to the port.
   - example : 172.24.4.2
-- `security_groups` (Attributes List) Security groups (see [below for nested schema](#nestedatt--security_groups))
+- `security_groups` (Attributes List) The list of security groups associated with the port. (see [below for nested schema](#nestedatt--security_groups))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `account_id` (String) AccountId
-- `attached_resource_id` (String) AttachedResourceId
-- `attached_resource_type` (String) AttachedResAttachedResourceType
-- `created_at` (String) CreatedAt
-- `id` (String) Identifier of the resource.
-- `mac_address` (String) MacAddress
-- `modified_at` (String) ModifiedAt
-- `state` (String) State
-- `subnet_name` (String) SubnetName
+- `account_id` (String) The identifier of the account that owns the port.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `attached_resource_id` (String) The identifier of the resource that this port is attached to.
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
+- `attached_resource_type` (String) The type of the resource that this port is attached to.
+  - example : VM
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `id` (String) The unique identifier of the port.
+  - example: YOUR RESOURCE'S ID
+- `mac_address` (String) The MAC address of the port.
+  - example : fa:16:3e:5c:9b:7a
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `state` (String) The current lifecycle state of the port.
+  - example : ACTIVE
+- `subnet_name` (String) The name of the subnet that the port belongs to.
+  - example : subnetName
 - `virtual_ip_addresses` (List of String) Virtual IP Addresses
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+  - example : ["192.168.1.100"]
+- `vpc_id` (String) The identifier of the VPC that the port belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the port belongs to.
+  - example : vpcName
 
 <a id="nestedatt--security_groups"></a>
 ### Nested Schema for `security_groups`

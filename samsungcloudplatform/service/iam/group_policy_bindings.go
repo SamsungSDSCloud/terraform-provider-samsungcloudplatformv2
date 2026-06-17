@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -15,8 +17,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &iamGroupPolicyBindingsResource{}
-	_ resource.ResourceWithConfigure = &iamGroupPolicyBindingsResource{}
+	_ resource.Resource                = &iamGroupPolicyBindingsResource{}
+	_ resource.ResourceWithConfigure   = &iamGroupPolicyBindingsResource{}
+	_ resource.ResourceWithImportState = &iamGroupPolicyBindingsResource{}
 )
 
 func NewIamGroupPolicyBindingsResource() resource.Resource {
@@ -56,174 +59,174 @@ func (r *iamGroupPolicyBindingsResource) Configure(_ context.Context, req resour
 
 func (r *iamGroupPolicyBindingsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Group Policy",
+		Description: "Manages IAM Group Policy Bindings.",
 		Attributes: map[string]schema.Attribute{
 			"group_id": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Group ID",
-				MarkdownDescription: "Group ID",
+				Optional: true,
+				Description: "ID of the group to bind policies to.\n" +
+					"  - example : 'group-12345678'",
 			},
 			"policy_ids": schema.ListAttribute{
-				Optional:            true,
-				Description:         "Policy IDs",
-				MarkdownDescription: "Policy IDs",
-				ElementType:         types.StringType,
+				Optional: true,
+				Description: "List of policy IDs to bind to the group.\n" +
+					"  - example : ['policy-12345678', 'policy-87654321']",
+				ElementType: types.StringType,
 			},
 			"group_policy_bindings": schema.ListNestedAttribute{
-				Computed:            true,
-				Description:         "Group Policy Bindings",
-				MarkdownDescription: "Group Policy Bindings",
+				Computed: true,
+				Description: "List of policy bindings attached to the group.\n" +
+					"  - example : '[{account_id: 123456789012, created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, ...}]'",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"account_id": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Account ID",
-							MarkdownDescription: "Account ID",
+							Description:         "Account ID of the account that owns the policy binding.\n  - example : '123456789012'",
+							MarkdownDescription: "Account ID of the account that owns the policy binding.\n  - example : '123456789012'",
 						},
 						"created_at": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Created At",
-							MarkdownDescription: "Created At",
+							Description:         "Timestamp when the policy binding was created.\n  - example : '2024-01-01T00:00:00Z'",
+							MarkdownDescription: "Timestamp when the policy binding was created.\n  - example : '2024-01-01T00:00:00Z'",
 						},
 						"created_by": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Created By",
-							MarkdownDescription: "Created By",
+							Description:         "User who created the policy binding.\n  - example : 'user@example.com'",
+							MarkdownDescription: "User who created the policy binding.\n  - example : 'user@example.com'",
 						},
 						"creator_email": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Creator Email",
-							MarkdownDescription: "Creator Email",
+							Description:         "Email address of the user who created the policy binding.\n  - example : 'user@example.com'",
+							MarkdownDescription: "Email address of the user who created the policy binding.\n  - example : 'user@example.com'",
 						},
 						"creator_name": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Creator Name",
-							MarkdownDescription: "Creator Name",
+							Description:         "Name of the user who created the policy binding.\n  - example : 'John Doe'",
+							MarkdownDescription: "Name of the user who created the policy binding.\n  - example : 'John Doe'",
 						},
 						"default_version_id": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Default Version ID",
-							MarkdownDescription: "Default Version ID",
+							Description:         "Default version ID of the policy.\n  - example : 'pol-1234567890abcdef'",
+							MarkdownDescription: "Default version ID of the policy.\n  - example : 'pol-1234567890abcdef'",
 						},
 						"description": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Description",
-							MarkdownDescription: "Description",
+							Description:         "Human-readable description of the policy binding.\n  - example : 'My policy description'",
+							MarkdownDescription: "Human-readable description of the policy binding.\n  - example : 'My policy description'",
 						},
 						"domain_name": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Domain Name",
-							MarkdownDescription: "Domain Name",
+							Description:         "Domain name associated with the policy binding.\n  - example : 'scp'",
+							MarkdownDescription: "Domain name associated with the policy binding.\n  - example : 'scp'",
 						},
 						"id": schema.StringAttribute{
 							Computed:            true,
-							Description:         "ID",
-							MarkdownDescription: "ID",
+							Description:         "Unique identifier of the policy binding.\n  - example : 'pol-1234567890abcdef'",
+							MarkdownDescription: "Unique identifier of the policy binding.\n  - example : 'pol-1234567890abcdef'",
 						},
 						"modified_at": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Modified At",
-							MarkdownDescription: "Modified At",
+							Description:         "Timestamp when the policy binding was last modified.\n  - example : '2024-01-01T00:00:00Z'",
+							MarkdownDescription: "Timestamp when the policy binding was last modified.\n  - example : '2024-01-01T00:00:00Z'",
 						},
 						"modified_by": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Modified By",
-							MarkdownDescription: "Modified By",
+							Description:         "User who last modified the policy binding.\n  - example : 'user@example.com'",
+							MarkdownDescription: "User who last modified the policy binding.\n  - example : 'user@example.com'",
 						},
 						"modifier_email": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Modifier Email",
-							MarkdownDescription: "Modifier Email",
+							Description:         "Email address of the user who last modified the policy binding.\n  - example : 'user@example.com'",
+							MarkdownDescription: "Email address of the user who last modified the policy binding.\n  - example : 'user@example.com'",
 						},
 						"modifier_name": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Modifier Name",
-							MarkdownDescription: "Modifier Name",
+							Description:         "Name of the user who last modified the policy binding.\n  - example : 'John Doe'",
+							MarkdownDescription: "Name of the user who last modified the policy binding.\n  - example : 'John Doe'",
 						},
 						"policy_category": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Policy Category",
-							MarkdownDescription: "Policy Category",
+							Description:         "Category of the policy (e.g., IDENTITY_BASED or RESOURCE_BASED).\n  - example : 'IDENTITY_BASED' | 'RESOURCE_BASED'",
+							MarkdownDescription: "Category of the policy (e.g., IDENTITY_BASED or RESOURCE_BASED).\n  - example : 'IDENTITY_BASED' | 'RESOURCE_BASED'",
 						},
 						"policy_name": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Policy Name",
-							MarkdownDescription: "Policy Name",
+							Description:         "Name of the policy.\n  - example : 'MyPolicy'",
+							MarkdownDescription: "Name of the policy.\n  - example : 'MyPolicy'",
 						},
 						"policy_type": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Policy Type",
-							MarkdownDescription: "Policy Type",
+							Description:         "Type of the policy (e.g., USER_DEFINED or SYSTEM_MANAGED).\n  - example : 'USER_DEFINED' | 'SYSTEM_MANAGED'",
+							MarkdownDescription: "Type of the policy (e.g., USER_DEFINED or SYSTEM_MANAGED).\n  - example : 'USER_DEFINED' | 'SYSTEM_MANAGED'",
 						},
 						"policy_versions": schema.ListNestedAttribute{
-							Optional:            true,
-							Description:         "Policy Versions",
-							MarkdownDescription: "Policy Versions",
+							Optional: true,
+							Description: "List of versions of the policy.\n" +
+								"  - example : '[{created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, id: pol-1234567890abcdef, modified_at: 2024-05-17T00:23:17Z, modified_by: ef50cdc207f05f6fb8f20219f229ed1f}]'",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"created_at": schema.StringAttribute{
 										Computed:            true,
-										Description:         "Created At",
-										MarkdownDescription: "Created At",
+										Description:         "Timestamp when the policy version was created.\n  - example : '2024-01-01T00:00:00Z'",
+										MarkdownDescription: "Timestamp when the policy version was created.\n  - example : '2024-01-01T00:00:00Z'",
 									},
 									"created_by": schema.StringAttribute{
 										Computed:            true,
-										Description:         "Created By",
-										MarkdownDescription: "Created By",
+										Description:         "User who created the policy version.\n  - example : 'user@example.com'",
+										MarkdownDescription: "User who created the policy version.\n  - example : 'user@example.com'",
 									},
 									"id": schema.StringAttribute{
 										Computed:            true,
-										Description:         "ID",
-										MarkdownDescription: "ID",
+										Description:         "Unique identifier of the policy version.\n  - example : 'pol-1234567890abcdef'",
+										MarkdownDescription: "Unique identifier of the policy version.\n  - example : 'pol-1234567890abcdef'",
 									},
 									"modified_at": schema.StringAttribute{
 										Computed:            true,
-										Description:         "Modified At",
-										MarkdownDescription: "Modified At",
+										Description:         "Timestamp when the policy version was last modified.\n  - example : '2024-01-01T00:00:00Z'",
+										MarkdownDescription: "Timestamp when the policy version was last modified.\n  - example : '2024-01-01T00:00:00Z'",
 									},
 									"modified_by": schema.StringAttribute{
 										Computed:            true,
-										Description:         "Modified By",
-										MarkdownDescription: "Modified By",
+										Description:         "User who last modified the policy version.\n  - example : 'user@example.com'",
+										MarkdownDescription: "User who last modified the policy version.\n  - example : 'user@example.com'",
 									},
 									"policy_document": schema.SingleNestedAttribute{
-										Computed:            true,
-										Description:         "Policy Document",
-										MarkdownDescription: "Policy Document",
+										Computed: true,
+										Description: "The policy document containing permission definitions for the policy version.\n" +
+											"  - example : '{statement: [{action: [iam:CreateRole], effect: Allow, resource: [*], ...}]}'",
 										Attributes: map[string]schema.Attribute{
 											"statement": schema.ListNestedAttribute{
-												Computed:            true,
-												Description:         "Statement",
-												MarkdownDescription: "Statement",
+												Computed: true,
+												Description: "List of policy statements that define the permissions granted or denied.\n" +
+													"  - example : '[{action: [iam:CreateRole], effect: Allow, resource: [*], ...}]'",
 												NestedObject: schema.NestedAttributeObject{
 													Attributes: map[string]schema.Attribute{
 														"action": schema.ListAttribute{
 															Optional:            true,
-															Description:         "Action",
-															MarkdownDescription: "Action",
+															Description:         "Actions permitted by the policy statement (e.g., iam:CreateRole, iam:ListUsers).\n  - example : ['iam:CreateRole']",
+															MarkdownDescription: "Actions permitted by the policy statement (e.g., iam:CreateRole, iam:ListUsers).\n  - example : ['iam:CreateRole']",
 															ElementType:         types.StringType,
 														},
 														"not_action": schema.ListAttribute{
 															Optional:            true,
-															Description:         "Not Action",
-															MarkdownDescription: "Not Action",
+															Description:         "Actions explicitly excluded from the policy statement.\n  - example : ['iam:DeleteRole']",
+															MarkdownDescription: "Actions explicitly excluded from the policy statement.\n  - example : ['iam:DeleteRole']",
 															ElementType:         types.StringType,
 														},
 														"effect": schema.StringAttribute{
 															Computed:            true,
-															Description:         "Effect",
-															MarkdownDescription: "Effect",
+															Description:         "Effect of the policy statement - either Allow or Deny.\n  - example : 'Allow'",
+															MarkdownDescription: "Effect of the policy statement - either Allow or Deny.\n  - example : 'Allow'",
 														},
 														"resource": schema.ListAttribute{
 															Optional:            true,
-															Description:         "Resource",
-															MarkdownDescription: "Resource",
+															Description:         "Resources that the policy statement applies to (ARNs or wildcards).\n  - example : ['*']",
+															MarkdownDescription: "Resources that the policy statement applies to (ARNs or wildcards).\n  - example : ['*']",
 															ElementType:         types.StringType,
 														},
 														"sid": schema.StringAttribute{
 															Computed:            true,
-															Description:         "SID",
-															MarkdownDescription: "SID",
+															Description:         "Statement ID - unique identifier for this policy statement.\n  - example : 'Sid1'",
+															MarkdownDescription: "Statement ID - unique identifier for this policy statement.\n  - example : 'Sid1'",
 														},
 														"condition": schema.MapAttribute{
 															ElementType: types.MapType{
@@ -231,21 +234,26 @@ func (r *iamGroupPolicyBindingsResource) Schema(_ context.Context, _ resource.Sc
 																	ElemType: types.StringType,
 																},
 															},
-															Optional: true,
+															Optional:    true,
+															Description: "Conditions that must be met for the policy statement to take effect.\n  - example : {'StringEquals': {'aws:PrincipalTag/department': ['IT']}}",
 														},
 														"principal": schema.SingleNestedAttribute{
-															Optional:            true,
-															Description:         "Principal",
-															MarkdownDescription: "Principal",
+															Optional: true,
+															Description: "Principal - The entity (user, service, or account) that the policy statement applies to.\n" +
+																"  - example : '{principal_string: 123456789012, principal_map: {AWS: [arn:aws:iam::123456789012:root]}}'",
 															Attributes: map[string]schema.Attribute{
 																"principal_string": schema.StringAttribute{
-																	Optional: true,
+																	Optional:            true,
+																	Description:         "Principal as a string value (e.g., AWS account ID or IAM user ARN).\n  - example : '123456789012'",
+																	MarkdownDescription: "Principal as a string value (e.g., AWS account ID or IAM user ARN).\n  - example : '123456789012'",
 																},
 																"principal_map": schema.MapAttribute{
 																	Optional: true,
 																	ElementType: types.ListType{
 																		ElemType: types.StringType,
 																	},
+																	Description:         "Principal as a map - supports multiple principal types (e.g., AWS, Federated, etc.).\n  - example : {'AWS': ['arn:aws:iam::123456789012:root']}",
+																	MarkdownDescription: "Principal as a map - supports multiple principal types (e.g., AWS, Federated, etc.).\n  - example : {'AWS': ['arn:aws:iam::123456789012:root']}",
 																},
 															},
 														},
@@ -254,49 +262,49 @@ func (r *iamGroupPolicyBindingsResource) Schema(_ context.Context, _ resource.Sc
 											},
 											"version": schema.StringAttribute{
 												Computed:            true,
-												Description:         "Policy Version",
-												MarkdownDescription: "Policy Version",
+												Description:         "Policy Version\n  - example : '2024-07-01'",
+												MarkdownDescription: "Policy Version\n  - example : '2024-07-01'",
 											},
 										},
 									},
 
 									"policy_id": schema.StringAttribute{
 										Computed:            true,
-										Description:         "Policy ID",
-										MarkdownDescription: "Policy ID",
+										Description:         "Unique identifier of the policy.\n  - example : 'pol-1234567890abcdef'",
+										MarkdownDescription: "Unique identifier of the policy.\n  - example : 'pol-1234567890abcdef'",
 									},
 									"policy_version_name": schema.StringAttribute{
 										Computed:            true,
-										Description:         "Policy Version Name",
-										MarkdownDescription: "Policy Version Name",
+										Description:         "Name of the policy version.\n  - example : 'POLICY_VERSION_1'",
+										MarkdownDescription: "Name of the policy version.\n  - example : 'POLICY_VERSION_1'",
 									},
 								},
 							},
 						},
 						"resource_type": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Resource Type",
-							MarkdownDescription: "Resource Type",
+							Description:         "Type of resource the policy applies to.\n  - example : 'policy'",
+							MarkdownDescription: "Type of resource the policy applies to.\n  - example : 'policy'",
 						},
 						"service_name": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Service Name",
-							MarkdownDescription: "Service Name",
+							Description:         "Name of the service the policy is associated with.\n  - example : 'Identity Access Management'",
+							MarkdownDescription: "Name of the service the policy is associated with.\n  - example : 'Identity Access Management'",
 						},
 						"service_type": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Service Type",
-							MarkdownDescription: "Service Type",
+							Description:         "Type of service the policy is associated with.\n  - example : 'iam'",
+							MarkdownDescription: "Type of service the policy is associated with.\n  - example : 'iam'",
 						},
 						"srn": schema.StringAttribute{
 							Computed:            true,
-							Description:         "SRN",
-							MarkdownDescription: "SRN",
+							Description:         "Samsung Resource Name (SRN) - Unique identifier for the policy binding in the SCP system.\n  - example : 'srn:e:::::iam:policy/policy-12345678'",
+							MarkdownDescription: "Samsung Resource Name (SRN) - Unique identifier for the policy binding in the SCP system.\n  - example : 'srn:e:::::iam:policy/policy-12345678'",
 						},
 						"state": schema.StringAttribute{
 							Computed:            true,
-							Description:         "State",
-							MarkdownDescription: "State",
+							Description:         "Current state of the policy binding (e.g., ACTIVE, INACTIVE).\n  - example : 'ACTIVE'",
+							MarkdownDescription: "Current state of the policy binding (e.g., ACTIVE, INACTIVE).\n  - example : 'ACTIVE'",
 						},
 					},
 				},
@@ -306,6 +314,13 @@ func (r *iamGroupPolicyBindingsResource) Schema(_ context.Context, _ resource.Sc
 
 }
 
+func (r *iamGroupPolicyBindingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("group_id"), req, resp)
+}
+
+// Create implements resource.Resource.
+// No polling is needed because the AddGroupPolicyBindings API call is synchronous
+// and returns the created policy bindings directly in the response.
 func (r *iamGroupPolicyBindingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan iam.GroupPolicyBindingsResource
 	diags := req.Plan.Get(ctx, &plan)
@@ -424,6 +439,10 @@ func (r *iamGroupPolicyBindingsResource) Read(ctx context.Context, req resource.
 
 	data, err := r.client.GetGroupPolicyBindings(ctx, state.GroupId.ValueString(), iam.GroupPolicyBindingsDataResource{Size: basetypes.NewInt32Value(20)})
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Unable to Read Group Policies",
 			err.Error(),

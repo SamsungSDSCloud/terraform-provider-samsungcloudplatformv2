@@ -132,52 +132,58 @@ variable "tags" {
 
 ### Required
 
-- `account_id` (String) Account Id
-  - Example: 0e3dffc50eb247a1adf4f2e5c82c4f99
+- `account_id` (String) Account Identifier.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `auth_key_request` (Attributes) Auth key request (see [below for nested schema](#nestedatt--auth_key_request))
-- `csp_type` (String) Type of cloud service provider
-  - Example: SCP
-- `diagnosis_account_id` (String) Id of diagnosis
-  - Example: 0e3dffc50eb247a1adf4f2e5c82c4f99
-- `diagnosis_check_type` (String) Check type of diagnosis
-  - Example: BP
-- `diagnosis_id` (String) Id of diagnosis
-  - Example: DIA-943731CB8E3045C289BAECAEC3532097
-- `diagnosis_name` (String) Name of diagnosis
-  - Example: Sample Diagnosis Name
-- `diagnosis_type` (String) Diagnosis Type
-  - Example: Console
-- `plan_type` (String) Plan
-  - Example: STANDARD
+- `csp_type` (String) Type of cloud service provider.
+  - example : 'SCP'
+  - enum : SCP | AWS | Azure
+- `diagnosis_account_id` (String) Account Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ACCOUNT_ID
+- `diagnosis_check_type` (String) Check type of diagnosis.
+  - example : 'BP'
+  - enum : BP | SSI
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
+- `diagnosis_name` (String) Name of diagnosis.
+  - example : 'Sample Diagnosis Name'
+  - pattern : `^[a-zA-Z0-9-_]+$`
+- `diagnosis_type` (String) Config inspection type.
+  - example : 'Console'
+- `plan_type` (String) Billing plan for the inspection.
+  - example : 'STANDARD'
+  - enum : STANDARD | MONTHLY
 
 ### Optional
 
-- `schedule_request` (Attributes) Schedule request (see [below for nested schema](#nestedatt--schedule_request))
+- `schedule_request` (Attributes) Schedule request. (see [below for nested schema](#nestedatt--schedule_request))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `created_diagnosis_id` (String) Id of created diagnosis
-- `result` (Boolean) Result
+- `created_diagnosis_id` (String) Id of created diagnosis.
+  - example: YOUR RESOURCE'S CREATED_DIAGNOSIS_ID
+- `result` (Boolean) Result of diagnosis request (true, false).
+  - example : true
 
 <a id="nestedatt--auth_key_request"></a>
 ### Nested Schema for `auth_key_request`
 
 Required:
 
-- `auth_key_id` (String) Auth key ID
-  - Example: 9b72a9856e494e67afc69atd3631fe38
+- `auth_key_id` (String) Id of auth key.
+  - example: YOUR RESOURCE'S AUTH_KEY_ID
 
 Optional:
 
-- `auth_key_created_at` (String) Auth key created at
-  - Example: 2022-01-01 12:00:00
-- `auth_key_expired_at` (String) Auth key expired at
-  - Example: 2023-01-01 12:00:00
-- `diagnosis_id` (String) Diagnosis ID
-  - Example: DIA-943731CB8E3045C289BAECAEC3532097
+- `auth_key_created_at` (String) Created date of authkey.
+  - example : '2022-01-01 12:00:00'
+- `auth_key_expired_at` (String) Expired date of authkey.
+  - example : '2023-01-01 12:00:00'
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
 
 
 <a id="nestedatt--schedule_request"></a>
@@ -185,15 +191,15 @@ Optional:
 
 Required:
 
-- `diagnosis_id` (String) Diagnosis ID
-  - Example: DIA-943731CB8E3045C289BAECAEC3532097
-- `diagnosis_start_time_pattern` (String) Diagnosis start time pattern
-  - Example: 08:00
-- `frequency_type` (String) Frequency type
-  - Example: MONTH
-- `frequency_value` (String) Frequency value
-  - Example:1
-- `use_diagnosis_check_type_bp` (String) Use diagnosis check type BP
-  - Example: y
-- `use_diagnosis_check_type_ssi` (String) Use diagnosis check type SSI
-  - Example: y
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
+- `diagnosis_start_time_pattern` (String) Start time (5-minute increments, 00 to 23 hours, 00 to 55 minutes).
+  - example : '08:00'
+- `frequency_type` (String) Schedule type (monthly, weekly, daily).
+  - example : 'MONTH'
+- `frequency_value` (String) Schedule value (01~31, MONDAY~SUNDAY, everyDay).
+  - example : 1
+- `use_diagnosis_check_type_bp` (String) Checklist Best Practice Use.
+  - example : 'y'
+- `use_diagnosis_check_type_ssi` (String) Checklist SSI usage.
+  - example : 'y'

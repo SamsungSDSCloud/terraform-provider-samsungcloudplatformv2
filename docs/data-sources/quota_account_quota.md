@@ -53,35 +53,31 @@ Read-Only:
   - example: Example Account Inc.
 - `adjustable` (Boolean) Flag indicating if additional quota is being requested
   - example: true
-- `applied_value` (Number)
-- `approval` (Boolean) Approval
-  - example: false
+- `applied_value` (Number) Modified quota value after changes
+  - example: 200
+- `approval` (Boolean) Approval Required - example: false
 - `class_value` (String) Value associated with the request class
   - example: global
 - `created_at` (String) Created At
   - example: 2024-05-17T00:23:17Z
 - `description` (String) Detailed description of the quota item
   - example: Maximum disk size for virtual servers in the account
-- `free_rate` (Number) Free Rate
-  - example: 10
+- `free_rate` (Number) Scale-down free rate  - example: 10
 - `id` (String) Account Quota ID
   - example: YOUR RESOURCE'S ID
 - `initial_value` (Number) Initial quota value allocated
   - example: 100
 - `max_per_account` (Number) Max per Account Value
-  - maximum: 9.99999999e+08
+  - maximum: 999999999
   - minimum: 1
   - example: 1000
 - `modified_at` (String) Modified At
   - example: 2024-05-17T00:23:17Z
 - `quota_item` (String) Specific quota item within the resource
   - example: QUOTA.REQUEST.COUNT
-- `reduction` (Boolean) Reduction
-  - example: false
-- `request` (Boolean) Request 
-  - example: false
-- `request_class` (String) Request Class
-  - example: Account
+- `reduction` (Boolean) Auto-reduction policy  - example: false
+- `request` (Boolean) Request status  - example: false
+- `request_class` (String) Request class for quota item - example: Account
 - `resource_type` (String) Type of the resource (e.g., Virtual Server, Storage)
   - example: Virtual Server Disk
 - `service` (String) Name of the service to which quota applies

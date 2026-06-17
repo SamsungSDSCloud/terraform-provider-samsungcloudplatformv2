@@ -1,8 +1,3 @@
-variable "region" {
-  type    = string
-  default = "kr-west1"
-}
-
 variable "server_name" {
   type    = string
   default = ""

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_health_check Resource - samsungcloudplatformv2"
 subcategory: LB Health Check
 description: |-
-  Lb Health Check.
+  LB Health Check resource for monitoring server health.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_health_check (Resource)
 
-Lb Health Check.
+LB Health Check resource for monitoring server health.
 
 ## Example Usage
 
@@ -162,34 +162,68 @@ variable "lb_health_check_modify" {
 
 ### Optional
 
-- `lb_health_check_create` (Attributes) Create Lb Health Check. (see [below for nested schema](#nestedatt--lb_health_check_create))
+- `lb_health_check_create` (Attributes) Parameters for creating a new LB Health Check. (see [below for nested schema](#nestedatt--lb_health_check_create))
 
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
-- `lb_health_check` (Attributes) A detail of Lb Health Check. (see [below for nested schema](#nestedatt--lb_health_check))
+  - example: YOUR RESOURCE'S ID
+- `lb_health_check` (Attributes) Details of the LB Health Check. (see [below for nested schema](#nestedatt--lb_health_check))
 
 <a id="nestedatt--lb_health_check_create"></a>
 ### Nested Schema for `lb_health_check_create`
 
 Optional:
 
-- `description` (String) Description
-- `health_check_count` (Number) HealthCheckCount
-- `health_check_interval` (Number) HealthCheckInterval
-- `health_check_port` (Number) HealthCheckPort
-- `health_check_timeout` (Number) HealthCheckTimeout
-- `health_check_url` (String) HealthCheckUrl
-- `http_method` (String) HttpMethod
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `request_data` (String) RequestData
-- `response_code` (String) ResponseCode
-- `subnet_id` (String) SubnetId
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : this is an lb server group
+  - maxLength : 255
+- `health_check_count` (Number) The number of consecutive health check failures before marking as unhealthy.
+  - example : 3
+  - minimum : 1
+  - maximum : 10
+- `health_check_interval` (Number) The interval between health checks in seconds.
+  - example : 5
+  - minimum : 1
+  - maximum : 180
+- `health_check_port` (Number) The port number used for health checks.
+  - example : 80
+  - minimum : 1
+  - maximum : 65534
+- `health_check_timeout` (Number) The timeout for health check responses in seconds. Must be less than or equal to the interval.
+  - example : 5
+  - minimum : 1
+  - maximum : 180
+- `health_check_url` (String) The URL path for HTTP health checks.
+  - example : /test
+  - minLength : 1
+  - maxLength : 50
+  - pattern : ^/[A-Za-z0-9/._?&=-]*$
+- `http_method` (String) The HTTP method used for health checks.
+  - example : GET
+  - pattern : GET | POST
+- `name` (String) The name of the LB Health Check.
+  - example : ServerGroup01
+  - minLength : 3
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9][-a-zA-Z0-9_]*[a-zA-Z0-9]$
+- `protocol` (String) The protocol used for the health check.
+  - example : TCP
+  - pattern : TCP | HTTP | HTTPS
+- `request_data` (String) The request data sent during health checks.
+  - example : username=admin&password=1234
+  - maxLength : 255
+- `response_code` (String) The expected HTTP response code for health checks.
+  - example : 200
+  - minimum : 200
+  - maximum : 599
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
-- `vpc_id` (String) VpcId
+- `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 
 <a id="nestedatt--lb_health_check"></a>
@@ -197,26 +231,68 @@ Optional:
 
 Optional:
 
-- `account_id` (String) AccountId
-- `description` (String) Description
-- `health_check_count` (Number) HealthCheckCount
-- `health_check_interval` (Number) HealthCheckInterval
-- `health_check_port` (Number) HealthCheckPort
-- `health_check_timeout` (Number) HealthCheckTimeout
-- `health_check_type` (String) HealthCheckType
-- `health_check_url` (String) HealthCheckUrl
-- `http_method` (String) HttpMethod
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `request_data` (String) RequestData
-- `response_code` (String) ResponseCode
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : this is an lb server group
+  - maxLength : 255
+- `health_check_count` (Number) The number of consecutive health check failures before marking as unhealthy.
+  - example : 3
+  - minimum : 1
+  - maximum : 10
+- `health_check_interval` (Number) The interval between health checks in seconds.
+  - example : 5
+  - minimum : 1
+  - maximum : 180
+- `health_check_port` (Number) The port number used for health checks.
+  - example : 80
+  - minimum : 1
+  - maximum : 65534
+- `health_check_timeout` (Number) The timeout for health check responses in seconds. Must be less than or equal to the interval.
+  - example : 5
+  - minimum : 1
+  - maximum : 180
+- `health_check_type` (String) The type of health check.
+  - example : DEFAULT
+  - pattern : DEFAULT | CUSTOM
+- `health_check_url` (String) The URL path for HTTP health checks.
+  - example : /test
+  - minLength : 1
+  - maxLength : 50
+  - pattern : ^/[A-Za-z0-9/._?&=-]*$
+- `http_method` (String) The HTTP method used for health checks.
+  - example : GET
+  - pattern : GET | POST
+- `name` (String) The name of the LB Health Check.
+  - example : ServerGroup01
+  - minLength : 3
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9][-a-zA-Z0-9_]*[a-zA-Z0-9]$
+- `protocol` (String) The protocol used for the health check.
+  - example : TCP
+  - pattern : TCP | HTTP | HTTPS
+- `request_data` (String) The request data sent during health checks.
+  - example : username=admin&password=1234
+  - maxLength : 255
+- `response_code` (String) The expected HTTP response code for health checks.
+  - example : 200
+  - minimum : 200
+  - maximum : 599
+- `state` (String) The current state of the Health Check.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

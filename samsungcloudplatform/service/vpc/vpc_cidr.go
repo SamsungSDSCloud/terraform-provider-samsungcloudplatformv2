@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpcV1Dot2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	vpcV1Dot2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,48 +40,54 @@ func (r *VpcCidrResource) Metadata(_ context.Context, req resource.MetadataReque
 // Schema defines the schema for the resource.
 func (r *VpcCidrResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "VPC CIDR",
+		Description: "CIDR blocks that can be used in a VPC",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
+				Description: "The identifier of the VPC that the resource belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
 			},
 			common.ToSnakeCase("Cidr"): schema.StringAttribute{
-				Description: "CIDR \n" +
+				Description: "The IP address range of the vpc in CIDR notation.\n" +
 					"  - example : 192.168.0.0/24",
 				Required: true,
 			},
 
 			// Output
 			common.ToSnakeCase("Vpc"): schema.SingleNestedAttribute{
-				Description: "VPC detail after adding CIDR",
+				Description: "VPC detail information.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "VPC ID",
-						Computed:    true,
+						Description: "The unique identifier of the vpc.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the vpc.\n" +
+							"  - example : vpcName",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.\n" +
+							"  - example : vpcDescription",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID",
-						Computed:    true,
+						Description: "The identifier of the account that owns the vpc.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current lifecycle state of the vpc.\n" +
+							"  - example : ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("CidrCount"): schema.Int32Attribute{
-						Description: "CIDR Count",
-						Computed:    true,
+						Description: "The number of CIDR blocks associated with the vpc.\n" +
+							"  - example : 20",
+						Computed: true,
 					},
 					common.ToSnakeCase("Cidrs"): schema.ListNestedAttribute{
 						Description: "CIDRs",
@@ -89,39 +95,47 @@ func (r *VpcCidrResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "CIDR ID",
-									Computed:    true,
+									Description: "The unique identifier of the cidr.\n" +
+										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
 								},
 								common.ToSnakeCase("Cidr"): schema.StringAttribute{
-									Description: "CIDR",
-									Computed:    true,
+									Description: "The IP address range of the vpc in CIDR notation.\n" +
+										"  - example : 192.167.0.0/18",
+									Computed: true,
 								},
 								common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-									Description: "Created At",
-									Computed:    true,
+									Description: "The timestamp when the vpc was created in ISO 8601 format.\n" +
+										"  - example: 2024-05-17T00:23:17Z",
+									Computed: true,
 								},
 								common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-									Description: "Created By",
-									Computed:    true,
+									Description: "The user id that vpc the cidr.\n" +
+										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By",
-						Computed:    true,
+						Description: "The user id that created the vpc.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At",
-						Computed:    true,
+						Description: "The timestamp when the vpc was last modified in ISO 8601 format.\n" +
+							"  - example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By",
-						Computed:    true,
+						Description: "The user id that modified the vpc.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 				},
 			},

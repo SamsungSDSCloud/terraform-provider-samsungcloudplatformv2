@@ -3,10 +3,10 @@ package quota
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/quota"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/quota"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -140,12 +140,13 @@ func AccountQuotaDataSourceSchema() schema.Schema {
 						MarkdownDescription: "Flag indicating if additional quota is being requested\n  - example: true",
 					},
 					"applied_value": schema.Int64Attribute{
-						Computed: true,
+						Computed:    true,
+						Description: "Modified quota value after changes\n  - example: 200",
 					},
 					"approval": schema.BoolAttribute{
 						Computed:            true,
-						Description:         "Approval\n  - example: false",
-						MarkdownDescription: "Approval\n  - example: false",
+						Description:         "Approval Required  - example: false",
+						MarkdownDescription: "Approval Required - example: false",
 					},
 					"class_value": schema.StringAttribute{
 						Computed:            true,
@@ -164,8 +165,8 @@ func AccountQuotaDataSourceSchema() schema.Schema {
 					},
 					"free_rate": schema.Int64Attribute{
 						Computed:            true,
-						Description:         "Free Rate\n  - example: 10",
-						MarkdownDescription: "Free Rate\n  - example: 10",
+						Description:         "Scale-down free rate  - example: 10",
+						MarkdownDescription: "Scale-down free rate  - example: 10",
 					},
 					"id": schema.StringAttribute{
 						Computed:            true,
@@ -179,8 +180,8 @@ func AccountQuotaDataSourceSchema() schema.Schema {
 					},
 					"max_per_account": schema.Int64Attribute{
 						Computed:            true,
-						Description:         "Max per Account Value\n  - maximum: 9.99999999e+08\n  - minimum: 1\n  - example: 1000",
-						MarkdownDescription: "Max per Account Value\n  - maximum: 9.99999999e+08\n  - minimum: 1\n  - example: 1000",
+						Description:         "Max per Account Value\n  - maximum: 999999999\n  - minimum: 1\n  - example: 1000",
+						MarkdownDescription: "Max per Account Value\n  - maximum: 999999999\n  - minimum: 1\n  - example: 1000",
 					},
 					"modified_at": schema.StringAttribute{
 						Computed:            true,
@@ -194,18 +195,18 @@ func AccountQuotaDataSourceSchema() schema.Schema {
 					},
 					"reduction": schema.BoolAttribute{
 						Computed:            true,
-						Description:         "Reduction\n  - example: false",
-						MarkdownDescription: "Reduction\n  - example: false",
+						Description:         "Auto-reduction policy  - example: false",
+						MarkdownDescription: "Auto-reduction policy  - example: false",
 					},
 					"request": schema.BoolAttribute{
 						Computed:            true,
-						Description:         "Request \n  - example: false",
-						MarkdownDescription: "Request \n  - example: false",
+						Description:         "Request status  - example: false",
+						MarkdownDescription: "Request status  - example: false",
 					},
 					"request_class": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Request Class\n  - example: Account",
-						MarkdownDescription: "Request Class\n  - example: Account",
+						Description:         "Request class for quota item  - example: Account",
+						MarkdownDescription: "Request class for quota item - example: Account",
 					},
 					"resource_type": schema.StringAttribute{
 						Computed:            true,

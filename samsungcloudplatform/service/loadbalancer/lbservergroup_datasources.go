@@ -3,11 +3,11 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,85 +43,85 @@ func (d *loadbalancerLbServerGroupDataSources) Schema(_ context.Context, _ datas
 		Description: "Get List of Lb Server Groups.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
+				Description: "The number of items per page.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
+				Description: "The page number.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
+				Description: "The sort order.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
+				Description: "The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Protocol"): schema.ListAttribute{
-				Description: "Protocol",
+				Description: "The protocol used for the listener (e.g., TCP, HTTP, HTTPS).",
 				Optional:    true,
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VpcId",
+				Description: "The VPC ID where the resource is located.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "SubnetId",
+				Description: "The subnet ID where the resource is located.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("LbServerGroups"): schema.ListNestedAttribute{
-				Description: "A list of Lb Server Groups.",
+				Description: "List of LB Server Groups.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
+							Description: "The unique identifier of the LB Server Group.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
+							Description: "The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
 							Optional:    true,
 						},
 						common.ToSnakeCase("Protocol"): schema.StringAttribute{
-							Description: "Protocol",
+							Description: "The protocol for the server group (TCP, UDP).",
 							Optional:    true,
 						},
 						common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-							Description: "LoadbalancerId",
+							Description: "The LoadBalancer ID associated with the server group.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("LbName"): schema.StringAttribute{
-							Description: "LbName",
+							Description: "The name of the LoadBalancer.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
+							Description: "The current state of the LB Server Group (CREATING, ACTIVE, DELETING, ERROR, EDITING).",
 							Optional:    true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "VpcId",
+							Description: "The VPC ID where the resource is located.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("LbServerGroupMemberCount"): schema.Int32Attribute{
-							Description: "LbServerGroupMemberCount",
+							Description: "The number of members in the LB Server Group.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "created at",
+							Description: "The timestamp when the resource was created, in ISO 8601 format.",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "created by",
+							Description: "The user id that created the resource.",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "modified at",
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "modified by",
+							Description: "The user id that last modified the resource.",
 							Computed:    true,
 						},
 					},

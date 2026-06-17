@@ -16,13 +16,36 @@ list of trail.
 
 ### Optional
 
-- `bucket_name` (String) BucketName
-- `page` (Number) Page
-- `resource_type` (String) ResourceName
-- `size` (Number) Size
-- `sort` (String) Sort
-- `state` (String) State
-- `trail_name` (String) TrailName
+- `bucket_name` (String) The name of the s3 bucket.
+
+Example: `example-bucket`
+- `iam_role_id` (String) This is the role id (IAM) to use when integrating with ServiceWatch.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `log_group_name` (String) This is the log group name to use when integrating with ServiceWatch.
+
+Example: test-log-group
+- `page` (Number) A Number of page.
+
+Example: `1`
+- `resource_type` (String) A list of resource types associated with the group.
+
+Example: `["virtual-server"]`
+- `service_watch_yn` (String) Whether to integrate that trail with ServiceWatch.
+
+Example: `Y` | `N`
+- `size` (Number) A Number of results displayed per page.
+
+Example: `15`
+- `sort` (String) Sorts the query results.
+
+Example: `createdAt:desc`
+- `state` (String) State of the trail.
+
+Example: `ACTIVE | STOPPED`
+- `trail_name` (String) The name of the trail.
+
+Example: `example-trail`
 
 ### Read-Only
 
@@ -33,34 +56,105 @@ list of trail.
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `account_name` (String) AccountName
-- `bucket_name` (String) BucketName
-- `bucket_region` (String) BucketRegion
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `created_user_id` (String) CreatedUserId
-- `del_yn` (String) DelYn
-- `id` (String) Id
-- `log_archive_account_id` (String) LogArchiveAccountId
-- `log_type_total_yn` (String) LogTypeTotalYn
-- `log_verification_yn` (String) LogVerificationYn
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `organization_trail_yn` (String) OrganizationTrailYn
-- `region_names` (List of String) RegionNames
-- `region_total_yn` (String) RegionTotalYn
-- `resource_type_total_yn` (String) ResourceTypeTotalYn
-- `state` (String) State
-- `target_log_types` (List of String) TargetLogTypes
-- `target_resource_types` (List of String) TargetResourceTypes
-- `target_users` (List of String) TargetUsers
-- `trail_batch_end_at` (String) TrailBatchEndAt
-- `trail_batch_first_start_at` (String) TrailBatchFirstStartAt
-- `trail_batch_last_state` (String) TrailBatchLastState
-- `trail_batch_start_at` (String) TrailBatchStartAt
-- `trail_batch_success_at` (String) TrailBatchSuccessAt
-- `trail_description` (String) TrailDescription
-- `trail_name` (String) TrailName
-- `trail_save_type` (String) TrailSaveType
-- `user_total_yn` (String) UserTotalYn
+- `account_id` (String) The unique identifier of the account.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `account_name` (String) The name of the account.
+
+Example: `example-account`
+- `bucket_name` (String) The name of the s3 bucket.
+
+Example: `example-bucket`
+- `bucket_region` (String) The region where the S3 bucket is located.
+
+Example: `kr-west1`
+- `created_at` (String) The creation timestamp of the resource group.
+
+Example: `2023-10-27T10:00:00Z`
+- `created_by` (String) The user ID of the creator.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `created_user_id` (String) The user's email of the creator.
+
+Example: `test@samsung.com`
+- `del_yn` (String) Whether to delete Trail.
+
+Example: `Y` | `N`
+- `iam_role_id` (String) This is the role id (IAM) to use when integrating with ServiceWatch.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `id` (String) The unique identifier of the trail.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `log_archive_account_id` (String) The Organization's administrative account ID.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `log_group_name` (String) This is the log group name to use when integrating with ServiceWatch.
+
+Example: test-log-group
+- `log_type_total_yn` (String) Whether to collect logs of all resource types.
+
+Example: `Y` | `N`
+- `log_verification_yn` (String) Whether to validate collected logs.
+
+Example: `Y` | `N`
+- `modified_at` (String) The modification timestamp of the resource group.
+
+Example: `2023-10-27T10:00:00Z`
+- `modified_by` (String) The user ID of the modifier.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `organization_trail_yn` (String) Whether Trail collection is performed for sub-accounts of the organization account.
+
+Example: `Y` | `N`
+- `region_names` (List of String) List of region to be collected via trail.
+
+Example: [`kr-west1`, `kr-east1`]
+- `region_total_yn` (String) Whether to collect logs of all region.
+
+Example: `Y` | `N`
+- `resource_type_total_yn` (String) Whether to collect logs of all resource types.
+
+Example: `Y` | `N`
+- `service_watch_yn` (String) Whether to integrate that trail with ServiceWatch.
+
+Example: `Y` | `N`
+- `state` (String) State of the trail.
+
+Example: `ACTIVE | STOPPED`
+- `target_log_types` (List of String) The type of the collected log.
+
+Example: `AUDIT` | `EVENT`
+- `target_resource_types` (List of String) The target to collect logs of resource types.
+
+Example: [`virtual-server`, `vpc`]
+- `target_users` (List of String) The target to collect logs of user id.
+
+Example: [`e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`, `e4b2c3f8a1f94b6b9f1e8c2dca4f5b67`]
+- `trail_batch_end_at` (String) End date and time of the 'trail' collection scheduler.
+
+Example: `2023-10-27T10:00:00Z`
+- `trail_batch_first_start_at` (String) Start date at first and time of the 'trail' collection scheduler.
+
+Example: `2023-10-27T10:00:00Z`
+- `trail_batch_last_state` (String) The results of 'Trail' data collection schedule execution.
+
+Example: `SUCCESS` | `FAILED`
+- `trail_batch_start_at` (String) Start date and time of the 'trail' collection scheduler.
+
+Example: `2023-10-27T10:00:00Z`
+- `trail_batch_success_at` (String) Succeed date and time of the 'trail' collection scheduler.
+
+Example: `2023-10-27T10:00:00Z`
+- `trail_description` (String) The description of the trail.
+
+Example: `a description of the trail`
+- `trail_name` (String) The name of the trail.
+
+Example: `example-trail`
+- `trail_save_type` (String) The save type of the trail.
+
+Example: `JSON` | `CSV`
+- `user_total_yn` (String) Whether to set the trail collection target to all users.
+
+Example: `Y` | `N`

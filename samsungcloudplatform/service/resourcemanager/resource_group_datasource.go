@@ -3,19 +3,20 @@ package resourcemanager
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/region"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -49,74 +50,90 @@ func (d *resourceManagerResourceGroupDataSource) Schema(_ context.Context, _ dat
 			"region": region.DataSourceSchema(),
 			"tags":   tag.DataSourceSchema(),
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Optional:    true,
+				Description:         "The unique identifier of the resource group.",
+				MarkdownDescription: "The unique identifier of the resource group.\n\nExample: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name (between 1 and 256 characters)",
-				Optional:    true,
+				Description:         "The name of the resource group.",
+				MarkdownDescription: "The name of the resource group.\n\nExample: `example-rg`",
+				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 256),
 				},
 			},
 			common.ToSnakeCase("ResourceGroup"): schema.SingleNestedAttribute{
-				Description: "Resource Group",
-				Computed:    true,
+				Description:         "The detailed information of the resource group.",
+				MarkdownDescription: "The detailed information of the resource group.\n\nExample: See nested attributes below.",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					"tags": tag.DataSourceSchema(),
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description:         "Creation timestamp.",
+						MarkdownDescription: "The creation timestamp of the resource group.\n\nExample: `2023-10-27T10:00:00Z`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description:         "Creator identifier.",
+						MarkdownDescription: "The user ID of the creator.\n\nExample: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description:         "Description of the resource group.",
+						MarkdownDescription: "Description of the resource group.\n\nExample: `My resource group`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description:         "Identifier of the resource group.",
+						MarkdownDescription: "The unique identifier of the resource group.\n\nExample: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description:         "Modification timestamp.",
+						MarkdownDescription: "The modification timestamp of the resource group.\n\nExample: `2023-10-27T10:00:00Z`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description:         "Modifier identifier.",
+						MarkdownDescription: "The user ID of the modifier.\n\nExample: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description:         "Name of the resource group.",
+						MarkdownDescription: "The name of the resource group.\n\nExample: `example-rg`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Region"): schema.StringAttribute{
-						Description: "Region",
-						Computed:    true,
+						Description:         "Region code.",
+						MarkdownDescription: "The region code where the resource group is located.\n\nExample: `kr-west1`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Srn"): schema.StringAttribute{
-						Description: "Srn",
-						Computed:    true,
+						Description:         "System Resource Name.",
+						MarkdownDescription: "The System Resource Name (SRN) of the resource group.\n\nExample: `srn:s::13d97ad943ca452481d624f78391df13:kr-west1::resourcemanager:resource-group/70636f984e564b3c9e54e74a53f9318d`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ResourceTypes"): schema.ListAttribute{
-						ElementType: types.StringType,
-						Description: "ResourceTypes",
-						Computed:    true,
+						ElementType:         types.StringType,
+						Description:         "List of resource types.",
+						MarkdownDescription: "A list of resource types associated with the group.\n\nExample: `[\"virtual-server\"]`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("GroupDefinitionTags"): schema.ListNestedAttribute{
-						Description: "A list of tag.",
-						Computed:    true,
+						Description:         "List of group definition tags.",
+						MarkdownDescription: "A list of key-value pairs representing group definition tags.\n\nExample: `[{Key: Environment, Value: Production}]`",
+						Computed:            true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Key"): schema.StringAttribute{
-									Description: "Key",
-									Computed:    true,
+									Description:         "Tag key.",
+									MarkdownDescription: "The key of the tag.\n\nExample: `Environment`",
+									Computed:            true,
 								},
 								common.ToSnakeCase("Value"): schema.StringAttribute{
-									Description: "Value",
-									Computed:    true,
+									Description:         "Tag value.",
+									MarkdownDescription: "The value of the tag.\n\nExample: `Production`",
+									Computed:            true,
 								},
 							},
 						},
@@ -160,10 +177,6 @@ func (d *resourceManagerResourceGroupDataSource) Read(ctx context.Context, req d
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	if !state.Region.IsNull() {
-		d.client.Config.Region = state.Region.ValueString()
 	}
 
 	ids, err := GetResourceGroups(d.clients, state.Id, state.Name, state.Filter, state.Tags.Elements(), "id")

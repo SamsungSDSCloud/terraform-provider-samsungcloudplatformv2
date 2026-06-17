@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_dns_record Data Source - samsungcloudplatformv2"
 subcategory: DNS
 description: |-
-  show record.
+  Provides details about a specific DNS record.
 ---
 
 # samsungcloudplatformv2_dns_record (Data Source)
 
-show record.
+Provides details about a specific DNS record.
 
 ## Example Usage
 
@@ -41,40 +41,57 @@ variable "hosted_zone_id" {
 
 ### Optional
 
-- `hosted_zone_id` (String) HostedZoneId
-- `id` (String) Id
+- `hosted_zone_id` (String) ID for the zone that contains this record
+  - example: YOUR RESOURCE'S HOSTED_ZONE_ID
+- `id` (String) The unique identifier of the DNS record.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `record_detail` (Attributes) A detail of Record. (see [below for nested schema](#nestedatt--record_detail))
+- `record_detail` (Attributes) Detailed information about the DNS record. (see [below for nested schema](#nestedatt--record_detail))
 
 <a id="nestedatt--record_detail"></a>
 ### Nested Schema for `record_detail`
 
 Optional:
 
-- `action` (String) Action
-- `created_at` (String) CreatedAt
-- `description` (String) Description
-- `id` (String) Id
-- `name` (String) Name
-- `project_id` (String) ProjectId
-- `records` (List of String) Records
-- `status` (String) Status
-- `ttl` (Number) Ttl
-- `type` (String) Type
-- `updated_at` (String) UpdatedAt
-- `version` (Number) Version
-- `zone_id` (String) ZoneId
-- `zone_name` (String) ZoneName
+- `action` (String) The action performed on the DNS record.
+  - example : NONE
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `id` (String) The unique identifier of the DNS record.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) The name of the DNS record.
+  - example : test.app
+- `project_id` (String) The project identifier associated with the DNS record.
+  - example: YOUR RESOURCE'S PROJECT_ID
+- `records` (List of String) A list of data for this record
+  - example : ["12.34.45.67"]
+- `status` (String) The current status of the DNS record.
+  - example : ACTIVE
+- `ttl` (Number) The Time-To-Live (TTL) value in seconds for the DNS record.
+  - example : 3600
+- `type` (String) The type of the DNS record (e.g., A, AAAA, CNAME, MX, TXT, SPF).
+  - example : A
+- `updated_at` (String) The timestamp when the resource was last updated, in ISO 8601 format.
+  - example : 2026-02-09T08:00:40Z
+- `version` (Number) The version of the DNS record.
+  - example : 1
+- `zone_id` (String) ID for the zone that contains this record
+  - example: YOUR RESOURCE'S ZONE_ID
+- `zone_name` (String) The name of the zone that contains this record
+  - example : my-zone.com
 
 Read-Only:
 
-- `links` (Attributes) Links (see [below for nested schema](#nestedatt--record_detail--links))
+- `links` (Attributes) The links related to the DNS record. (see [below for nested schema](#nestedatt--record_detail--links))
 
 <a id="nestedatt--record_detail--links"></a>
 ### Nested Schema for `record_detail.links`
 
 Optional:
 
-- `self` (String) Self
+- `self` (String) The self-referential link of the DNS record.
+  - example : https://api.samsungsdscloud.com/dns/v1/records/3432012nfdksdf03ktrld9234lgfg

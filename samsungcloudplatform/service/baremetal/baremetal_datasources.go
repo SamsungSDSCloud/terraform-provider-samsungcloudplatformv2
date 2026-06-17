@@ -3,11 +3,12 @@ package baremetal
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetal"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -69,14 +70,14 @@ func BaremetalDataSourcesSchema() schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"ids": schema.ListAttribute{
 				Computed:            true,
-				Description:         "Bare Metal Server ID List",
-				MarkdownDescription: "Bare Metal Server ID List",
+				Description:         "Bare Metal Server ID List\n  - example: ['83c3c73d457345e3829ee6d5557c0027','83c3c73d457345e3829ee6d5557c0025']",
+				MarkdownDescription: "Bare Metal Server ID List\n  - example: ['83c3c73d457345e3829ee6d5557c0027','83c3c73d457345e3829ee6d5557c0025']",
 				ElementType:         types.StringType,
 			},
 			"policy_ip": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Policy IP\n  - example: 192.168.0.1",
-				MarkdownDescription: "Policy IP\n  - example: 192.168.0.1",
+				Description:         "Baremetal Server IP\n  - example: 192.168.0.1",
+				MarkdownDescription: "Baremetal Server IP\n  - example: 192.168.0.1",
 			},
 			"server_name": schema.StringAttribute{
 				Optional:            true,

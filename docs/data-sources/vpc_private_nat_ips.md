@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_private_nat_ips Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  list of private nat ips.
+  List of private Nat ips.
 ---
 
 # samsungcloudplatformv2_vpc_private_nat_ips (Data Source)
 
-list of private nat ips.
+List of private Nat ips.
 
 ## Example Usage
 
@@ -42,28 +42,28 @@ variable "private_nat_ips_size" {
 
 ### Optional
 
-- `attached_resource_id` (String) Attached Resource Id 
+- `attached_resource_id` (String) The identifier of the resource that this private Nat ip is attached to.
   - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
-- `attached_resource_name` (String) Attached Resource Name 
+- `attached_resource_name` (String) The name of the resource that this private Nat ip is attached to.
   - example : attachedResourceName
-- `attached_resource_type` (String) Attached Resource Type 
+- `attached_resource_type` (String) The type of the resource that this private Nat ip is attached to.
   - example : VM | BM
-- `id` (String) Private NAT IP ID 
+- `id` (String) The unique identifier of the private Nat ip.
   - example: YOUR RESOURCE'S ID
-- `ip_address` (String) IP address 
+- `ip_address` (String) The IP address assigned to the private Nat.
   - example : 192.168.10.0
-- `page` (Number) Page 
+- `page` (Number) The page number for pagination. 
   - example : 0 
   - minimum : 0
-- `private_nat_id` (String) Private NAT ID 
+- `private_nat_id` (String) The identifier of the private NAT that the private Nat ip belongs to.
   - example: YOUR RESOURCE'S PRIVATE_NAT_ID
-- `size` (Number) Size 
+- `size` (Number) The number of items per page. 
   - example : 20 
   - minimum : 0
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. 
   - example : created_at:desc
-- `state` (String) State 
-  - example : ATTACHED | RESERVED
+- `state` (String) The current lifecycle state of the private Nat ip.
+   - example : ATTACHED | RESERVED
 
 ### Read-Only
 
@@ -74,16 +74,29 @@ variable "private_nat_ips_size" {
 
 Read-Only:
 
-- `attached_resource_id` (String) AttachedResourceId
-- `attached_resource_name` (String) AttachedResourceName
-- `attached_resource_type` (String) AttachedResourceType
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `ip_address` (String) IpAddress
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `private_nat_id` (String) PrivateNatId
-- `private_nat_name` (String) PrivateNatName
-- `state` (String) State
+- `attached_resource_id` (String) The identifier of the resource that this private Nat ip is attached to.
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
+- `attached_resource_name` (String) The name of the resource that this private Nat ip is attached to.
+  - example : resourceName
+- `attached_resource_type` (String) The type of the resource that this private Nat ip is attached to.
+  - example : VM | BM
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : resourceDescription
+- `id` (String) The unique identifier of the private Nat ip.
+  - example: YOUR RESOURCE'S ID
+- `ip_address` (String) The IP address assigned to the private Nat.
+  - example : 192.167.0.5
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `private_nat_id` (String) The identifier of the private NAT that the private Nat ip belongs to.
+  - example: YOUR RESOURCE'S PRIVATE_NAT_ID
+- `private_nat_name` (String) The name of the private NAT that the private NAT ip belongs to.
+  - example : privatenatName
+- `state` (String) The current lifecycle state of the private Nat ip.
+  - example : ACTIVE

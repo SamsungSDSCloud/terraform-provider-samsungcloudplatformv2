@@ -6,12 +6,12 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/servicewatch/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -52,154 +52,184 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 		Description: "Alert Resource",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("LastUpdated"): schema.StringAttribute{
-				Description: "Timestamp of the last Terraform update of the Resource Group",
-				Computed:    true,
+				Description: "Timestamp of the last Terraform update of the Resource Group.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Alert ID",
-				Computed:    true,
+				Description: "Alert ID.\n" +
+					" - example : 0ad6da92-634a-4f8c-932e-9d650599ab1e\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Alert name",
-				Required:    true,
+				Description: "Alert name.\n" +
+					" - example : Alert Test\n" +
+					" - minLength: 3\n" +
+					" - maxLength: 100\n",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(3, 100),
 				},
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Alert type",
-				Required:    true,
+				Description: "Alert type - METRIC_ALERT, SERVICE_ALERT, COMPOSITE_ALERT.\n" +
+					" - example : METRIC_ALERT\n",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(AlertTypeMetric, AlertTypeService, AlertTypeComposite),
 				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Alert description",
-				Optional:    true,
+				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+					" - example : Description for Alert Test\n" +
+					" - maxLength: 1000\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("ActivatedYn"): schema.StringAttribute{
-				Description: "Whether the Alert is activated or not",
-				Computed:    true,
-				Optional:    true,
+				Description: "Whether the Alert is activated or not.\n" +
+					" - example : Y\n",
+				Computed: true,
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(YnYes, YnNo),
 				},
 			},
 			common.ToSnakeCase("Level"): schema.StringAttribute{
-				Description: "Alert level - HIGH, MIDDLE, LOW",
-				Required:    true,
+				Description: "Alert level - HIGH, MIDDLE, LOW.\n" +
+					" - example : HIGH\n",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(AlertLevelHigh, AlertLevelMiddle, AlertLevelLow),
 				},
 			},
 			common.ToSnakeCase("NamespaceId"): schema.StringAttribute{
-				Description: "Namespace ID",
-				Computed:    true,
+				Description: "The unique identifier of the namespace.\n" +
+					" - example : 1d9d05af5c624f2cb80a45f2c911e2f4\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
-				Description: "Namespace name",
-				Required:    true,
+				Description: "The name of the namespace.\n" +
+					" - example : Virtual Server\n",
+				Required: true,
 			},
 			common.ToSnakeCase("MetricId"): schema.StringAttribute{
-				Description: "Sharing type",
-				Computed:    true,
+				Description: "The unique identifier of the metric.\n" +
+					" - example : f13aab3b88c341b2bc73f8925a0e8cc5\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("MetricName"): schema.StringAttribute{
-				Description: "Metric name",
-				Required:    true,
+				Description: "The name of the metric.\n" +
+					" - example : CPU Usage\n",
+				Required: true,
 			},
 			common.ToSnakeCase("Dimensions"): schema.ListNestedAttribute{
-				Description: "List of dimension",
-				Optional:    true,
-				Computed:    true,
+				Description: "List of dimensions.\n" +
+					" - example : [{\"key\": \"instance_id\", \"value\": \"i-12345678\"}]\n",
+				Optional: true,
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Key"): schema.StringAttribute{
-							Description: "Dimension key",
-							Required:    true,
+							Description: "Dimension key.\n" +
+								" - example : instance_id\n",
+							Required: true,
 						},
 						common.ToSnakeCase("Value"): schema.StringAttribute{
-							Description: "Dimension value",
-							Required:    true,
+							Description: "Dimension value.\n" +
+								" - example : i-12345678\n",
+							Required: true,
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("Period"): schema.Int32Attribute{
-				Description: "Period (seconds)",
-				Required:    true,
+				Description: "Period (seconds).\n" +
+					" - example : 300\n",
+				Required: true,
 			},
 			common.ToSnakeCase("Statistic"): schema.StringAttribute{
-				Description: "Statistic - SUM, AVG, MAX, MIN",
-				Required:    true,
+				Description: "Statistic - SUM, AVG, MAX, MIN.\n" +
+					" - example : AVG\n",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(StatSum, StatAvg, StatMax, StatMin),
 				},
 			},
 			common.ToSnakeCase("EvaluationCount"): schema.Int32Attribute{
-				Description: "Evaluation count for the Alert condition",
-				Optional:    true,
-				Computed:    true,
+				Description: "Evaluation count for the Alert condition.\n" +
+					" - example : 3\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("Threshold"): schema.Float32Attribute{
-				Description: "Threshold for the Alert condition (except from RANGE operator)",
-				Optional:    true,
-				Computed:    true,
+				Description: "Threshold for the Alert condition (except for RANGE operator).\n" +
+					" - example : 80.0\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("UpperBound"): schema.Float32Attribute{
-				Description: "Upper bound for the Alert range operator",
-				Optional:    true,
-				Computed:    true,
+				Description: "Upper bound for the Alert range operator.\n" +
+					" - example : 90.0\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("LowerBound"): schema.Float32Attribute{
-				Description: "Lower bound for the Alert range operator",
-				Optional:    true,
-				Computed:    true,
+				Description: "Lower bound for the Alert range operator.\n" +
+					" - example : 80.0\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("Operator"): schema.StringAttribute{
-				Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE",
-				Required:    true,
+				Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE.\n" +
+					" - example : RANGE\n",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(OpEQ, OpNotEQ, OpGT, OpGTE, OpLT, OpLTE, OpRange),
 				},
 			},
 			common.ToSnakeCase("ViolationCount"): schema.Int32Attribute{
-				Description: "Violation count for the Alert condition",
-				Optional:    true,
-				Computed:    true,
+				Description: "Violation count for the Alert condition.\n" +
+					" - example : 2\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("MissingDataOption"): schema.StringAttribute{
-				Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE",
-				Required:    true,
+				Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE.\n" +
+					" - example : BREACHING\n",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(MissingDataMissing, MissingDataBreaching, MissingDataNotBreaching, MissingDataIgnore),
 				},
 			},
 			common.ToSnakeCase("RecipientIds"): schema.ListAttribute{
-				Description: "List of user IDs",
+				Description: "List of user IDs.\n" +
+					" - example : [\"90dddfc2b1e04edba54ba2b41539a9ac\"]\n",
 				Optional:    true,
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created date time",
-				Computed:    true,
+				Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description: "Creator ID",
-				Computed:    true,
+				Description: "The user id that created the resource.\n" +
+					" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-
-				Description: "Modified date time",
-				Computed:    true,
+				Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-				Description: "Modifier ID",
-				Computed:    true,
+				Description: "The user id that last modified the resource.\n" +
+					" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+				Computed: true,
 			},
 		},
 	}

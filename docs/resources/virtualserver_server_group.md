@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_server_group Resource - samsungcloudplatformv2"
 subcategory: Server Group
 description: |-
-  Server
+  Creates a server group for managing virtual server placement policies.
 ---
 
 # samsungcloudplatformv2_virtualserver_server_group (Resource)
 
-Server
+Creates a server group for managing virtual server placement policies.
 
 ## Example Usage
 
@@ -45,8 +45,14 @@ variable "policy" {
 
 ### Required
 
-- `name` (String) Name
-- `policy` (String) Policy
+- `name` (String) Server group name.
+  - example: my-server-group
+  - minLength: 1
+  - maxLength: 255
+- `policy` (String) Server group policy for server placement.
+  - example: affinity
+  - Available values: affinity, anti-affinity, partition
+  - note: affinity places servers on the same host; anti-affinity places servers on different hosts
 
 ### Optional
 
@@ -56,8 +62,8 @@ variable "policy" {
 
 ### Read-Only
 
-- `account_id` (String) Account ID
-- `id` (String) Identifier of the resource.
-- `members` (List of String) Members
-- `partition_size` (Number) Partition Size
-- `user_id` (String) User ID
+- `account_id` (String) Account ID.
+- `id` (String) Resource ID.
+- `members` (List of String) List of member server IDs in this group.
+- `partition_size` (Number) Partition size for anti-affinity groups.
+- `user_id` (String) User ID.

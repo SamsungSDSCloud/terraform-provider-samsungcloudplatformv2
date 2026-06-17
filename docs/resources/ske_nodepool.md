@@ -204,14 +204,17 @@ variable "scp_gpu_driver" {
 - `cluster_id` (String) Cluster ID
   - example: YOUR RESOURCE'S CLUSTER_ID
 - `image_os` (String) Image OS
+  - pattern: ubuntu|rhel
   - example: ubuntu
 - `image_os_version` (String) Image OS Version
+  - pattern(for ubuntu): 22.04
+  - pattern(for rhel): 8.10|9.4 
   - example: 22.04
 - `is_auto_recovery` (Boolean) Is Auto Recovery
   - example: true
 - `is_auto_scale` (Boolean) Is Auto Scale
   - example: true
-- `keypair_name` (String) Keypair Name
+- `keypair_name` (String) Keypair Name for create node
   - example: test_keypair
 - `kubernetes_version` (String) Kubernetes Version
   - example: v1.29.8
@@ -225,32 +228,43 @@ variable "scp_gpu_driver" {
 - `volume_size` (Number) Volume Size
   - example: 104
 - `volume_type_name` (String) Volume Type Name
+  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned
   - example: SSD
 
 ### Optional
 
-- `advanced_settings` (Attributes) Node Pool Advanced Settings (see [below for nested schema](#nestedatt--advanced_settings))
+- `advanced_settings` (Attributes) Node Pool Advanced Settings
+  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'} (see [below for nested schema](#nestedatt--advanced_settings))
 - `custom_image_id` (String) Custom Image ID
   - example: YOUR RESOURCE'S CUSTOM_IMAGE_ID
 - `desired_node_count` (Number) Desired node count (is_auto_scale = false)
   - example: 2
-- `labels` (Attributes List) Node Pool Labels (see [below for nested schema](#nestedatt--labels))
-- `linked_resources` (Attributes List) (see [below for nested schema](#nestedatt--linked_resources))
+- `labels` (Attributes List) Node Pool Labels
+  - example: {key='test', value='test'} (see [below for nested schema](#nestedatt--labels))
+- `linked_resources` (Attributes List) Linked Resources
+  - example: {id='res-12345678', name='my-resource', type='fs'} (see [below for nested schema](#nestedatt--linked_resources))
 - `max_node_count` (Number) Maximum node count (is_auto_scale = true)
   - example: 5
 - `min_node_count` (Number) Minimum node count (is_auto_scale = true)
   - example: 1
-- `scp_gpu_driver` (String)
+- `scp_gpu_driver` (String) Gpu Driver Version For Ubuntu
+  - pattern: 535.183.06
+  - example: 535.183.06
 - `server_group_id` (String) Server Group ID
   - example: YOUR RESOURCE'S SERVER_GROUP_ID
-- `taints` (Attributes List) Node Pool Taints (see [below for nested schema](#nestedatt--taints))
-- `volume_max_iops` (Number)
-- `volume_max_throughput` (Number)
+- `taints` (Attributes List) Node Pool Taints
+  - example: {effect='NoSchedule', key='example.com/my-app', value='bar'} (see [below for nested schema](#nestedatt--taints))
+- `volume_max_iops` (Number) Volume Max iops
+  - example: 5000
+- `volume_max_throughput` (Number) Volume Type Name
+  - example: 250
 
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
-- `nodepool` (Attributes) (see [below for nested schema](#nestedatt--nodepool))
+ - example: YOUR RESOURCE'S ID
+- `nodepool` (Attributes) Nodepool
+ - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_nodepool#nested-schema-for-nodepool (see [below for nested schema](#nestedatt--nodepool))
 
 <a id="nestedatt--advanced_settings"></a>
 ### Nested Schema for `advanced_settings`
@@ -315,6 +329,7 @@ Required:
 - `name` (String) Linked Resource Name
   - example: my-resource
 - `type` (String) Linked Resource Type (fs/obs)
+  - pattern: fs|obs
   - example: fs
 
 
@@ -339,11 +354,21 @@ Optional:
 <a id="nestedatt--nodepool"></a>
 ### Nested Schema for `nodepool`
 
+Optional:
+
+- `labels` (Attributes List) Node Pool Labels
+  - example: {key='test', value='test'} (see [below for nested schema](#nestedatt--nodepool--labels))
+- `linked_resources` (Attributes List) Linked Resources
+  - example: {id='res-12345678', name='my-resource', type='fs'} (see [below for nested schema](#nestedatt--nodepool--linked_resources))
+- `taints` (Attributes List) Node Pool Taints
+  - example: {effect='NoSchedule', key='example.com/my-app', value='bar'} (see [below for nested schema](#nestedatt--nodepool--taints))
+
 Read-Only:
 
 - `account_id` (String) Account ID
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `advanced_settings` (Attributes) Node Pool Advanced Settings (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
+- `advanced_settings` (Attributes) Node Pool Advanced Settings
+  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'} (see [below for nested schema](#nestedatt--nodepool--advanced_settings))
 - `auto_recovery_enabled` (Boolean) Is Auto Recovery
   - example: true
 - `auto_scale_enabled` (Boolean) Is Auto Scale
@@ -359,12 +384,12 @@ Read-Only:
   - example: 2
 - `id` (String) Nodepool ID
   - example: YOUR RESOURCE'S ID
-- `image` (Attributes) Image (see [below for nested schema](#nestedatt--nodepool--image))
-- `keypair` (Attributes) Keypair Name (see [below for nested schema](#nestedatt--nodepool--keypair))
+- `image` (Attributes) Image
+  - example: {custom_image_name='res-12345678', os='my-resource', os_version='fs', scp_gpu_driver='ND_535.183.06'} (see [below for nested schema](#nestedatt--nodepool--image))
+- `keypair` (Attributes) Keypair Name
+  - example: {name='test_keypair'} (see [below for nested schema](#nestedatt--nodepool--keypair))
 - `kubernetes_version` (String) Kubernetes Version
   - example: v1.29.8
-- `labels` (Attributes List) Node Pool Labels (see [below for nested schema](#nestedatt--nodepool--labels))
-- `linked_resources` (Attributes List) (see [below for nested schema](#nestedatt--nodepool--linked_resources))
 - `max_node_count` (Number) Max Node Count
   - example: 5
 - `min_node_count` (Number) Min Node Count
@@ -378,14 +403,60 @@ Read-Only:
 - `server_group_id` (String) Server Group ID
   - example: YOUR RESOURCE'S SERVER_GROUP_ID
 - `server_type` (Attributes) Server Type (see [below for nested schema](#nestedatt--nodepool--server_type))
-- `status` (String) Node Pool Status
-  - example: Running
-- `taints` (Attributes List) Node Pool Taints (see [below for nested schema](#nestedatt--nodepool--taints))
+- `status` (String) Nodepool Status
+  - pattern: RUNNING|CREATING|SCALINGUP|SCALINGDOWN|DELETING
+  - example: RUNNING
 - `volume_max_iops` (Number)
 - `volume_max_throughput` (Number)
 - `volume_size` (Number) Volume Size
   - example: 104
 - `volume_type` (Attributes) Volume Type (see [below for nested schema](#nestedatt--nodepool--volume_type))
+
+<a id="nestedatt--nodepool--labels"></a>
+### Nested Schema for `nodepool.labels`
+
+Optional:
+
+- `key` (String) Node Pool Label Key
+  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$
+  - example: example.com/my-app
+- `value` (String) Node Pool Label Value
+  - maxLength: 63
+  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+  - example: bar
+
+
+<a id="nestedatt--nodepool--linked_resources"></a>
+### Nested Schema for `nodepool.linked_resources`
+
+Optional:
+
+- `id` (String) Linked Resource ID
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Linked Resource Name
+  - example: my-resource
+- `type` (String) Linked Resource Type (fs/obs)
+  - example: fs
+
+
+<a id="nestedatt--nodepool--taints"></a>
+### Nested Schema for `nodepool.taints`
+
+Optional:
+
+- `effect` (String) - enum: ["NoSchedule","NoExecute","PreferNoSchedule"]
+  - example: NoSchedule
+- `key` (String) Node Pool Taint Key
+  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$
+  - example: example.com/my-app
+
+Read-Only:
+
+- `value` (String) Node Pool Taint Value
+  - maxLength: 63
+  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+  - example: bar
+
 
 <a id="nestedatt--nodepool--advanced_settings"></a>
 ### Nested Schema for `nodepool.advanced_settings`
@@ -452,33 +523,6 @@ Read-Only:
   - example: test_keypair
 
 
-<a id="nestedatt--nodepool--labels"></a>
-### Nested Schema for `nodepool.labels`
-
-Read-Only:
-
-- `key` (String) Node Pool Label Key
-  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$
-  - example: example.com/my-app
-- `value` (String) Node Pool Label Value
-  - maxLength: 63
-  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
-  - example: bar
-
-
-<a id="nestedatt--nodepool--linked_resources"></a>
-### Nested Schema for `nodepool.linked_resources`
-
-Read-Only:
-
-- `id` (String) Linked Resource ID
-  - example: YOUR RESOURCE'S ID
-- `name` (String) Linked Resource Name
-  - example: my-resource
-- `type` (String) Linked Resource Type (fs/obs)
-  - example: fs
-
-
 <a id="nestedatt--nodepool--server_type"></a>
 ### Nested Schema for `nodepool.server_type`
 
@@ -488,21 +532,6 @@ Read-Only:
   - example: Standard
 - `id` (String) Server Type ID
   - example: YOUR RESOURCE'S ID
-
-
-<a id="nestedatt--nodepool--taints"></a>
-### Nested Schema for `nodepool.taints`
-
-Read-Only:
-
-- `effect` (String) - enum: ["NoSchedule","NoExecute","PreferNoSchedule"]
-- `key` (String) Node Pool Taint Key
-  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$
-  - example: example.com/my-app
-- `value` (String) Node Pool Taint Value
-  - maxLength: 63
-  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
-  - example: bar
 
 
 <a id="nestedatt--nodepool--volume_type"></a>
@@ -515,4 +544,5 @@ Read-Only:
 - `id` (String) Volume Type ID
   - example: YOUR RESOURCE'S ID
 - `name` (String) Volume Type Name
+  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned
   - example: SSD

@@ -84,7 +84,6 @@ variable "region" {
 - `action` (String) Action
 - `contract_type` (String) ContractType
 - `os_type` (String) OsType
-- `region` (String) Region
 - `server_type` (String) ServerType
 - `service_id` (String) ServiceId
 - `service_name` (String) ServiceName

@@ -66,13 +66,25 @@ variable "vpn_gateway_name" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
-- `vpn_gateway_id` (String) VpnGatewayId
-- `vpn_gateway_name` (String) VpnGatewayName
+- `name` (String) The name of the resource.
+  - example: vpnGWProd
+  - valid: English letters and numbers only
+  - constraints: minLength: 1, maxLength: 20
+- `page` (Number) The page number for pagination.
+  - example: 1
+  - constraints: min: 1
+- `size` (Number) The number of items per page.
+  - example: 20
+  - constraints: min: 1
+- `sort` (String) The sorting criteria.
+  - example: created_at:desc
+  - valid: field_name:asc or field_name:desc.
+- `vpn_gateway_id` (String) The identifier of the VPN gateway that the resource belongs to.
+  - example: YOUR RESOURCE'S VPN_GATEWAY_ID
+- `vpn_gateway_name` (String) The name of the VPN gateway that the resource belongs to.
+  - example: vpnGWProd
 
 ### Read-Only
 
-- `ids` (List of String) Vpn Tunnel Id List
+- `ids` (List of String) Vpn Tunnel Id List.
+  - example: ['YOUR RESOURCE'S IDS']

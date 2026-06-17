@@ -6,13 +6,14 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/virtualserver/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -48,67 +49,99 @@ func (r *virtualServerVolumeResource) Metadata(_ context.Context, req resource.M
 // Schema defines the schema for the data source.
 func (r *virtualServerVolumeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "volume",
+		Description:         "Creates a volume.",
+		MarkdownDescription: "Creates a block storage volume for virtual servers.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Resource ID.",
+				MarkdownDescription: "Resource ID.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "Volume name.\n" +
+					"  - example: my-volume\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				MarkdownDescription: "Volume name.\n" +
+					"  - example: my-volume\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				Optional: true,
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Required:    true,
+				Description:         "Volume size (GiB). Must be a multiple of 8.",
+				MarkdownDescription: "Volume size (GiB). Must be a multiple of 8.\n  - example: 104\n  - minimum: 8",
+				Required:            true,
 			},
 			common.ToSnakeCase("UserId"): schema.StringAttribute{
-				Description: "UserId",
-				Computed:    true,
+				Description:         "User ID.",
+				MarkdownDescription: "User ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("VolumeType"): schema.StringAttribute{
-				Description: "VolumeType",
-				Optional:    true,
-				Computed:    true,
+				Description: "Volume type.\n" +
+					"  - example: ssd\n" +
+					"  - Available values: ssd_provisioned, ssd, hdd",
+				MarkdownDescription: "Volume type.\n" +
+					"  - example: ssd\n" +
+					"  - Available values: ssd_provisioned, ssd, hdd",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("Encrypted"): schema.BoolAttribute{
-				Description: "Encrypted",
-				Computed:    true,
+				Description:         "Encryption flag.",
+				MarkdownDescription: "Whether the volume is encrypted.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Bootable"): schema.BoolAttribute{
-				Description: "Bootable",
-				Computed:    true,
+				Description:         "Bootable flag.",
+				MarkdownDescription: "Whether the volume is bootable.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Multiattach"): schema.BoolAttribute{
-				Description: "Multiattach",
-				Computed:    true,
+				Description:         "Multi-attach flag.",
+				MarkdownDescription: "Whether the volume can be attached to multiple servers.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Computed:    true,
+				Description:         "Volume state.",
+				MarkdownDescription: "Volume state.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Servers"): schema.ListNestedAttribute{
-				Description: "Servers",
-				Optional:    true,
+				Description:         "List of attached servers.",
+				MarkdownDescription: "List of attached servers.",
+				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Optional:    true,
+							Description:         "Server ID.",
+							MarkdownDescription: "Server ID.\n  - example: 97e6b22c-9a41-4378-9ca5-22df7457a32f",
+							Optional:            true,
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
-				Description: "The number of distinct read or write operations a volume can process in a single second.",
-				Optional:    true,
+				Description: "Maximum IOPS per second.\n" +
+					"  - example: 10000\n" +
+					"  - note: Number of read/write operations a volume can process per second",
+				MarkdownDescription: "Maximum IOPS per second.\n" +
+					"  - example: 10000\n" +
+					"  - note: Number of read/write operations a volume can process per second",
+				Optional: true,
 			},
 			common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
-				Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
-				Optional:    true,
+				Description: "Maximum throughput per second (MB/s).\n" +
+					"  - example: 500\n" +
+					"  - note: Actual amount of data transferred to/from storage device per second",
+				MarkdownDescription: "Maximum throughput per second (MB/s).\n" +
+					"  - example: 500\n" +
+					"  - note: Actual amount of data transferred to/from storage device per second",
+				Optional: true,
 			},
 			"tags": tag.ResourceSchema(),
 		},
@@ -508,4 +541,12 @@ func diff(a []virtualserver.VolumeServer, b []virtualserver.VolumeServer) []stri
 	}
 
 	return result
+}
+
+func (r *virtualServerVolumeResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

@@ -3,8 +3,8 @@ package sqlserver
 import (
 	"context"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/sqlserver/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/sqlserver/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

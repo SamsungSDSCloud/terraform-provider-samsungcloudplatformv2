@@ -3,13 +3,12 @@ package backup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/backup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	backuputil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/backup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/backup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	backuputil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/backup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,14 +38,15 @@ func (d *backupBackupDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 	resp.Schema = schema.Schema{
 		Description: "Show Backup.",
 		Attributes: map[string]schema.Attribute{
-			"region": region.DataSourceSchema(),
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "ID",
-				Optional:    true,
+				Description: "ID" +
+					"  - example: 'b9261af7ab4a48fd9f1b7c46608767f2'",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Backup name",
-				Optional:    true,
+				Description: "Backup name" +
+					"  - example: 'terraformtestbackup01'",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServerName"): schema.StringAttribute{
 				Description: "Backup server name",
@@ -57,65 +57,84 @@ func (d *backupBackupDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID",
-						Computed:    true,
+						Description: "ID \n" +
+							"  - example: 'b9261af7ab4a48fd9f1b7c46608767f2'",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Backup server name",
-						Computed:    true,
+						Description: "Backup name \n" +
+							"  - example: 'terraformtestbackup01'",
+						Computed: true,
 					},
 					common.ToSnakeCase("PolicyType"): schema.StringAttribute{
-						Description: "Backup policy type",
-						Computed:    true,
+						Description: "PolicyType is the type field of a Backup policy \n" +
+							"  - example: 'VM_IMAGE' \n" +
+							"  - pattern: `^(VM_IMAGE)$`",
+						Computed: true,
 					},
 					common.ToSnakeCase("RetentionPeriod"): schema.StringAttribute{
-						Description: "Backup retention period",
-						Computed:    true,
+						Description: "Backup retention period \n" +
+							"  - example: 'MONTH_1' \n" +
+							"  - pattern: `^(WEEK_2|MONTH_1|MONTH_3|MONTH_6|YEAR_1)$`",
+						Computed: true,
 					},
 					common.ToSnakeCase("RoleType"): schema.StringAttribute{
-						Description: "Backup role type",
-						Computed:    true,
+						Description: "Backup role type \n" +
+							"  - example: 'ORIGINAL' \n" +
+							"  - pattern: `^(ORIGINAL)$`",
+						Computed: true,
 					},
 					common.ToSnakeCase("ServerName"): schema.StringAttribute{
 						Description: "Backup server name",
 						Computed:    true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "Backup state",
-						Computed:    true,
+						Description: "Backup state \n" +
+							"  - example: 'AVAILABLE' \n",
+						Computed: true,
 					},
 					common.ToSnakeCase("EncryptEnabled"): schema.BoolAttribute{
-						Description: "Whether to use Encryption",
-						Computed:    true,
+						Description: "Whether to use Encryption \n" +
+							"  - example: true",
+						Computed: true,
 					},
 					common.ToSnakeCase("PolicyCategory"): schema.StringAttribute{
-						Description: "Backup policy category",
-						Computed:    true,
+						Description: "PolicyCategory is the category field of a Backup policy. \n" +
+							"  - example: 'AGENTLESS' \n" +
+							"  - pattern: `^(AGENTLESS)$`",
+						Computed: true,
 					},
 					common.ToSnakeCase("ServerCategory"): schema.StringAttribute{
-						Description: "Backup server category",
-						Computed:    true,
+						Description: "Category of the server to be backup \n" +
+							"  - example: 'VIRTUAL_SERVER' \n" +
+							"  - pattern: `^(VIRTUAL_SERVER|GPU_SERVER)$`",
+						Computed: true,
 					},
 					common.ToSnakeCase("ServerUuid"): schema.StringAttribute{
-						Description: "Backup server UUID",
-						Computed:    true,
+						Description: "Backup server UUID \n" +
+							"  - example: 'YOUR RESOURCE'S SERVER_UUID'",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At",
-						Computed:    true,
+						Description: "Modified At \n" +
+							"  - example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By",
-						Computed:    true,
+						Description: "Modified By \n" +
+							"  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						Computed: true,
 					},
 
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At",
-						Computed:    true,
+						Description: "Created At \n" +
+							"  - example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By",
-						Computed:    true,
+						Description: "Created By \n" +
+							"  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						Computed: true,
 					},
 				},
 			},
@@ -153,10 +172,6 @@ func (d *backupBackupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	if !state.Region.IsNull() {
-		d.client.Config.Region = state.Region.ValueString()
-	}
-
 	ids, err := GetBackups(d.clients, state.Name, state.ServerName, state.Filter)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -171,7 +186,7 @@ func (d *backupBackupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			return
 		}
 
-		data, err := d.client.GetBackup(ctx, id.ValueString())
+		data, _, err := d.client.GetBackup(ctx, id.ValueString())
 		if err != nil {
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(

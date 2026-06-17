@@ -108,8 +108,9 @@ variable "clusters_filter_use_regex" {
   - example: 10000
 - `sort` (String) Sort
   - example: created_at:desc
-- `status` (List of String) Status List
-  - example: [RUNNING]
+- `status` (List of String) Cluster Status
+  - pattern: RUNNING|CREATING|UPDATING|DELETING
+  - example: RUNNING
 - `subnet_id` (String) SubnetId (validation)
   - example: YOUR RESOURCE'S SUBNET_ID
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
@@ -126,5 +127,8 @@ variable "clusters_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

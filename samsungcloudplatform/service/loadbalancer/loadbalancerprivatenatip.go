@@ -3,18 +3,19 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/loadbalancer"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -46,55 +47,67 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Schema(_ context.Context,
 		Description: "Loadbalancer Private NAT.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the resource.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-				Description: "LoadbalancerId",
-				Required:    true,
+				Description: "The LoadBalancer ID associated with the Private NAT IP.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Required: true,
 			},
 			common.ToSnakeCase("LoadbalancerPrivateNatIp"): schema.SingleNestedAttribute{
 				Description: "A detail of private NAT.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Optional:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Optional:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Optional:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Optional:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ExternalIpAddress"): schema.StringAttribute{
-						Description: "ExternalIpAddress",
-						Optional:    true,
+						Description: "The external IP address.\n" +
+							"  - example : 192.168.0.1\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Optional:    true,
+						Description: "The unique identifier of the Private NAT IP.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("InternalIpAddress"): schema.StringAttribute{
-						Description: "InternalIpAddress",
-						Optional:    true,
+						Description: "The internal IP address.\n" +
+							"  - example : 10.0.0.1\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("PrivateNatIpId"): schema.StringAttribute{
-						Description: "PrivateNatIpId",
-						Optional:    true,
+						Description: "The private NAT IP ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Optional:    true,
+						Description: "The current state of the Private NAT IP.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+						Optional: true,
 					},
 				},
 			},
@@ -103,12 +116,14 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Schema(_ context.Context,
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PrivateNatId"): schema.StringAttribute{
-						Description: "PrivateNatId",
-						Optional:    true,
+						Description: "The private NAT ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("PrivateNatIpId"): schema.StringAttribute{
-						Description: "PrivateNatIpId",
-						Optional:    true,
+						Description: "The private NAT IP ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 				},
 			},

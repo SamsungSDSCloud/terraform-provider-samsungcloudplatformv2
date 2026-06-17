@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_internet_gateway Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  internet gateway
+  Internet Gateway resource for Internet traffic from vpc.
 ---
 
 # samsungcloudplatformv2_vpc_internet_gateway (Resource)
 
-internet gateway
+Internet Gateway resource for Internet traffic from vpc.
 
 ## Example Usage
 
@@ -48,21 +48,21 @@ variable "igw_description" {
 
 ### Required
 
-- `type` (String) Type 
+- `type` (String) The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.
   - example : IGW | GGW | SIGW
-- `vpc_id` (String) VPC ID 
+- `vpc_id` (String) The identifier of the VPC that the internet gateway belongs to.
   - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
-- `description` (String) Description
-  - example : Internet Gateway description
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Internet Gateway Description
   - maxLength : 50
-- `firewall_enabled` (Boolean) Firewall Enabled 
+- `firewall_enabled` (Boolean) Whether the firewall is enabled for the internet gateway.(Enable : true, Disable : false)
   - example : true | false
-- `firewall_loggable` (Boolean) Firewall Loggable 
+- `firewall_loggable` (Boolean) Whether firewall logging is enabled for the internet gateway.(Enable : true, Disable : false)
   - example : true | false
-- `loggable` (Boolean) Loggable 
+- `loggable` (Boolean) Whether logging is enabled for the NAT.(NAT logging Enable : true, NAT logging Diable : false) 
   - example : true | false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -70,7 +70,8 @@ variable "igw_description" {
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
+- `id` (String) The unique identifier of the internet gateway.
+  - example: YOUR RESOURCE'S ID
 - `internet_gateway` (Attributes) InternetGateway (see [below for nested schema](#nestedatt--internet_gateway))
 
 <a id="nestedatt--internet_gateway"></a>
@@ -78,17 +79,31 @@ variable "igw_description" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `firewall_id` (String) FirewallId
-- `id` (String) Id
-- `loggable` (Boolean) Loggable
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `state` (String) State
-- `type` (String) Type
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) The identifier of the account that owns the internet gateway.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Internet Gateway Description
+- `firewall_id` (String) The identifier of the firewall associated with the internet gateway.
+  - example: YOUR RESOURCE'S FIREWALL_ID
+- `id` (String) The unique identifier of the internet gateway.
+  - example: YOUR RESOURCE'S ID
+- `loggable` (Boolean) Whether logging is enabled for the NAT.(NAT logging Enable : true, NAT logging Diable : false)
+  - example : true
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the internet gateway.
+  - example : my-internet-gateway
+- `state` (String) The current lifecycle state of the internet gateway.
+  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
+- `type` (String) The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.
+  - example : IGW | GGW | SIGW
+- `vpc_id` (String) The identifier of the VPC that the internet gateway belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the internet gateway belongs to.
+  - example : vpcName

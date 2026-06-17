@@ -35,7 +35,8 @@ variable "id" {
 
 ### Required
 
-- `id` (String) Id
+- `id` (String) The unique identifier of the peering.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -46,28 +47,39 @@ variable "id" {
 
 Read-Only:
 
-- `account_type` (String) Account Type
+- `account_type` (String) The type of account.
   - Enum: SAME | DIFFERENT
-- `approver_vpc_account_id` (String) Approver VPC Account ID
-- `approver_vpc_id` (String) Approver VPC ID
-- `approver_vpc_name` (String) Approver VPC Name
-- `created_at` (String) Created At
+  - example:SAME
+- `approver_vpc_account_id` (String) The identifier of the account that the approver VPC belongs to.
+  - example: YOUR RESOURCE'S APPROVER_VPC_ACCOUNT_ID
+- `approver_vpc_id` (String) The identifier of the approver VPC.
+  - example: YOUR RESOURCE'S APPROVER_VPC_ID
+- `approver_vpc_name` (String) The name of the approver VPC.
+  - example : 7df8abb4912e4709b1cb237daccca7a8
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
   - Example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created By
+- `created_by` (String) The user id that created the resource.
   - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `delete_requester_account_id` (String) Requester VPC Account ID
-- `description` (String) VPC Peering Description
-- `id` (String) VPC Peering ID
-- `modified_at` (String) Modified At
-  - Example: 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified By
-  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `name` (String) VPC Peering Name
+- `delete_requester_account_id` (String) The identifier of account that the deletion requester belongs to.
+  - example: YOUR RESOURCE'S DELETE_REQUESTER_ACCOUNT_ID
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : resourceDescription
+- `id` (String) The unique identifier of the peering.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+   - Example: 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+   - Example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `name` (String) The name of the resource.
   - Minimum length: 3
   - Maximum length: 20
   - Pattern: ^[a-zA-Z0-9-]*$
-- `requester_vpc_account_id` (String) Requester VPC Account ID
-- `requester_vpc_id` (String) Requester VPC ID
-- `requester_vpc_name` (String) Requester VPC Name
-- `state` (String) State
+- `requester_vpc_account_id` (String) The identifier of the account that the requester VPC belongs to.
+  - example: YOUR RESOURCE'S REQUESTER_VPC_ACCOUNT_ID
+- `requester_vpc_id` (String) The identifier of the requester VPC.
+  - example: YOUR RESOURCE'S REQUESTER_VPC_ID
+- `requester_vpc_name` (String) The name of the requester VPC.
+  - example : resourceName
+- `state` (String) The current lifecycle state of the peering.
   - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING
+  - example:ACTIVE

@@ -36,48 +36,78 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Alert ID
+- `id` (String) Alert ID.
+ - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `alert` (Attributes) Alert (see [below for nested schema](#nestedatt--alert))
+- `alert` (Attributes) Alert information.
+ - example : Alert (see [below for nested schema](#nestedatt--alert))
 
 <a id="nestedatt--alert"></a>
 ### Nested Schema for `alert`
 
 Read-Only:
 
-- `activated_yn` (String) Whether the Alert is activated or not
-- `created_at` (String) Created date time
-- `created_by` (String) Creator ID
-- `description` (String) Alert description
-- `dimensions` (Attributes List) List of dimensions (see [below for nested schema](#nestedatt--alert--dimensions))
-- `evaluation_count` (Number) Evaluation count for the Alert condition
-- `evaluation_time_window` (Number) Evaluation time window (period * evaluation_count)
-- `level` (String) Alert level - HIGH, MIDDLE, LOW
-- `lower_bound` (Number) Lower bound for the Alert "RANGE" operator
-- `metric_id` (String) Sharing type
-- `metric_name` (String) Metric name
-- `metric_unit` (String) Metric unit
-- `missing_data_option` (String) Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE
-- `modified_at` (String) Modified date time
-- `modified_by` (String) Modifier ID
-- `name` (String) Alert name
-- `namespace_id` (String) Namespace ID
-- `namespace_name` (String) Namespace name
-- `operator` (String) Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE
-- `period` (Number) Period (seconds)
-- `srn` (String) SDS cloud resource name of the Alert
-- `state` (String) Alert state - NORMAL, ALERT, INSUFFICIENT_DATA
-- `statistic` (String) Statistic - SUM, AVG, MAX, MIN
-- `threshold` (Number) Threshold for the Alert condition (except for "RANGE" operator)
-- `upper_bound` (Number) Upper bound for the Alert "RANGE" operator
-- `violation_count` (Number) Violation count for the Alert condition
+- `activated_yn` (String) Whether the Alert is activated or not.
+ - example : Y
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+ - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Alert description.
+ - example : Description for Alert Test
+- `dimensions` (Attributes List) List of dimensions.
+ - example : [{"key": "instance_id", "value": "i-12345678"}] (see [below for nested schema](#nestedatt--alert--dimensions))
+- `evaluation_count` (Number) Evaluation count for the Alert condition.
+ - example : 3
+- `evaluation_time_window` (Number) Evaluation time window (period * evaluation_count).
+ - example : 900
+- `level` (String) Alert level - HIGH, MIDDLE, LOW.
+ - example : HIGH
+- `lower_bound` (Number) Lower bound for the Alert range operator.
+ - example : 80.0
+- `metric_id` (String) The unique identifier of the metric.
+ - example: YOUR RESOURCE'S METRIC_ID
+- `metric_name` (String) The name of the metric.
+ - example : CPU Usage
+- `metric_unit` (String) The unit of the metric.
+ - example : BYTE
+- `missing_data_option` (String) Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE.
+ - example : BREACHING
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+ - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) Alert name.
+ - example : Alert Test
+- `namespace_id` (String) The unique identifier of the namespace.
+ - example: YOUR RESOURCE'S NAMESPACE_ID
+- `namespace_name` (String) The name of the namespace.
+ - example : Virtual Server
+- `operator` (String) Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE.
+ - example : RANGE
+- `period` (Number) Period (seconds).
+ - example : 300
+- `srn` (String) SDS cloud resource name of the Alert.
+ - example : srn:dev2::1bcf39b344ac41cbaf0466ff0d2bebad:kr-west1::scp-servicewatch:alert/0ad6da92-634a-4f8c-932e-9d650599ab1e
+- `state` (String) Alert state - NORMAL, ALERT, INSUFFICIENT_DATA.
+ - example : NORMAL
+- `statistic` (String) Statistic - SUM, AVG, MAX, MIN.
+ - example : AVG
+- `threshold` (Number) Threshold for the Alert condition (except for RANGE operator).
+ - example : 80.0
+- `upper_bound` (Number) Upper bound for the Alert range operator.
+ - example : 90.0
+- `violation_count` (Number) Violation count for the Alert condition.
+ - example : 2
 
 <a id="nestedatt--alert--dimensions"></a>
 ### Nested Schema for `alert.dimensions`
 
 Read-Only:
 
-- `key` (String) Dimension key
-- `value` (String) Dimensions value
+- `key` (String) Dimension key.
+ - example : instance_id
+- `value` (String) Dimension value.
+ - example : i-12345678

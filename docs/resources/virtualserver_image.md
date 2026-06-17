@@ -2,12 +2,18 @@
 page_title: "samsungcloudplatformv2_virtualserver_image Resource - samsungcloudplatformv2"
 subcategory: Image
 description: |-
-  image
+  Image resource for virtual servers.
+  Image Creation Methods:
+  URL-based creation: Specify the URL of a qcow2 image file uploaded to Object StorageServer snapshot: Create an image from an existing server snapshot (specify instance_id)
 ---
 
 # samsungcloudplatformv2_virtualserver_image (Resource)
 
-image
+Image resource for virtual servers.
+
+**Image Creation Methods:**
+- URL-based creation: Specify the URL of a qcow2 image file uploaded to Object Storage
+- Server snapshot: Create an image from an existing server snapshot (specify instance_id)
 
 ## Example Usage
 
@@ -103,42 +109,58 @@ variable "instance_id" {
 
 ### Required
 
-- `name` (String) Name
+- `name` (String) Image name.
+  - example: ubuntu-22.04
+  - minLength: 1
+  - maxLength: 255
 
 ### Optional
 
-- `container_format` (String) Container format
-- `disk_format` (String) Disk format
-- `instance_id` (String) Instance Id
-- `min_disk` (Number) Min disk
-- `min_ram` (Number) Min ram
-- `os_distro` (String) OS Distro
-- `protected` (Boolean) Protected
+- `container_format` (String) Container format.
+  - example: bare
+- `disk_format` (String) Disk format.
+  - example: qcow2
+- `instance_id` (String) Server ID. Specify when creating an image from an existing server.
+  - example: YOUR RESOURCE'S INSTANCE_ID
+  - note: Do not specify when creating an image via URL.
+- `min_disk` (Number) Minimum disk size (GB).
+  - example: 100
+- `min_ram` (Number) Minimum RAM size (MB).
+  - example: 2048
+- `os_distro` (String) OS distribution.
+  - example: ubuntu
+  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle
+- `protected` (Boolean) Deletion protection. When set to true, prevents image deletion.
+  - example: false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
-- `url` (String) Url
-- `visibility` (String) Visibility
+- `url` (String) Object Storage URL. Only qcow2 format is allowed.
+  - example: https://object-store.kr-west1.s.samsungsdscloud.com/bucket/image.qcow2
+  - note: Specify only when creating an image via URL.
+- `visibility` (String) Image visibility.
+  - example: private
+  - Available values: shared, private
 
 ### Read-Only
 
-- `checksum` (String) Checksum
-- `created_at` (String) Created at
-- `file` (String) File
-- `id` (String) Identifier of the resource.
-- `os_hash_algo` (String) OS Hash algo
-- `os_hash_value` (String) OS Hash value
-- `os_hidden` (Boolean) OS hidden
-- `owner` (String) Owner
-- `owner_account_name` (String) Owner account name
-- `owner_user_name` (String) Owner user name
-- `root_device_name` (String) Root device name
-- `scp_image_type` (String) SCP Image type
-- `scp_k8s_version` (String) SCP K8s version
-- `scp_original_image_type` (String) SCP original Image type
-- `scp_os_version` (String) SCP OS version
-- `size` (Number) Size
-- `status` (String) Status
-- `updated_at` (String) Updated at
-- `virtual_size` (Number) Virtual size
-- `volumes` (String) Volumes
+- `checksum` (String) MD5 checksum of image data. Used for image integrity verification.
+- `created_at` (String) Creation timestamp.
+- `file` (String) Image file URL.
+- `id` (String) Resource ID.
+- `os_hash_algo` (String) Hash algorithm for image integrity verification.
+- `os_hash_value` (String) Hash value of image binary.
+- `os_hidden` (Boolean) Image hidden status.
+- `owner` (String) Owner account ID.
+- `owner_account_name` (String) Owner account name.
+- `owner_user_name` (String) Owner user name.
+- `root_device_name` (String) Root device name.
+- `scp_image_type` (String) SCP image type.
+- `scp_k8s_version` (String) K8S version. Only has value for K8S images.
+- `scp_original_image_type` (String) Original image type.
+- `scp_os_version` (String) OS version.
+- `size` (Number) Image size (bytes).
+- `status` (String) Image status.
+- `updated_at` (String) Update timestamp.
+- `virtual_size` (Number) Virtual disk size (bytes).
+- `volumes` (String) Volume information.

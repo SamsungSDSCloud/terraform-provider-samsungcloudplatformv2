@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,129 +43,158 @@ func (d *serviceWatchAlertDataSource) Schema(_ context.Context, _ datasource.Sch
 		Description: "Alert Data Source",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Alert ID",
-				Optional:    true,
+				Description: "Alert ID.\n" +
+					" - example : 0ad6da92-634a-4f8c-932e-9d650599ab1e\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Alert"): schema.SingleNestedAttribute{
-				Description: "Alert",
-				Computed:    true,
+				Description: "Alert information.\n" +
+					" - example : Alert\n",
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Alert name",
-						Computed:    true,
+						Description: "Alert name.\n" +
+							" - example : Alert Test\n",
+						Computed: true,
 					},
-					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Alert description",
-						Computed:    true,
-					},
+			common.ToSnakeCase("Description"): schema.StringAttribute{
+				Description: "Alert description.\n" +
+					" - example : Description for Alert Test\n",
+				Computed: true,
+			},
 					common.ToSnakeCase("Srn"): schema.StringAttribute{
-						Description: "SDS cloud resource name of the Alert",
-						Computed:    true,
+						Description: "SDS cloud resource name of the Alert.\n" +
+							" - example : srn:dev2::1bcf39b344ac41cbaf0466ff0d2bebad:kr-west1::scp-servicewatch:alert/0ad6da92-634a-4f8c-932e-9d650599ab1e\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ActivatedYn"): schema.StringAttribute{
-						Description: "Whether the Alert is activated or not",
-						Computed:    true,
+						Description: "Whether the Alert is activated or not.\n" +
+							" - example : Y\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "Alert state - NORMAL, ALERT, INSUFFICIENT_DATA",
-						Computed:    true,
+						Description: "Alert state - NORMAL, ALERT, INSUFFICIENT_DATA.\n" +
+							" - example : NORMAL\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Level"): schema.StringAttribute{
-						Description: "Alert level - HIGH, MIDDLE, LOW",
-						Computed:    true,
+						Description: "Alert level - HIGH, MIDDLE, LOW.\n" +
+							" - example : HIGH\n",
+						Computed: true,
 					},
-					common.ToSnakeCase("NamespaceId"): schema.StringAttribute{
-						Description: "Namespace ID",
-						Computed:    true,
-					},
-					common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
-						Description: "Namespace name",
-						Computed:    true,
-					},
+			common.ToSnakeCase("NamespaceId"): schema.StringAttribute{
+				Description: "The unique identifier of the namespace.\n" +
+					" - example : 1d9d05af5c624f2cb80a45f2c911e2f4\n",
+				Computed: true,
+			},
+			common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
+				Description: "The name of the namespace.\n" +
+					" - example : Virtual Server\n",
+				Computed: true,
+			},
 					common.ToSnakeCase("MetricId"): schema.StringAttribute{
-						Description: "Sharing type",
-						Computed:    true,
+						Description: "The unique identifier of the metric.\n" +
+							" - example : f13aab3b88c341b2bc73f8925a0e8cc5\n",
+						Computed: true,
 					},
-					common.ToSnakeCase("MetricName"): schema.StringAttribute{
-						Description: "Metric name",
-						Computed:    true,
-					},
+			common.ToSnakeCase("MetricName"): schema.StringAttribute{
+				Description: "The name of the metric.\n" +
+					" - example : CPU Usage\n",
+				Computed: true,
+			},
 					common.ToSnakeCase("MetricUnit"): schema.StringAttribute{
-						Description: "Metric unit",
-						Computed:    true,
+						Description: "The unit of the metric.\n" +
+							" - example : BYTE\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Dimensions"): schema.ListNestedAttribute{
-						Description: "List of dimensions",
-						Computed:    true,
+						Description: "List of dimensions.\n" +
+							" - example : [{\"key\": \"instance_id\", \"value\": \"i-12345678\"}]\n",
+						Computed: true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Key"): schema.StringAttribute{
-									Description: "Dimension key",
-									Computed:    true,
+									Description: "Dimension key.\n" +
+										" - example : instance_id\n",
+									Computed: true,
 								},
 								common.ToSnakeCase("Value"): schema.StringAttribute{
-									Description: "Dimensions value",
-									Computed:    true,
+									Description: "Dimension value.\n" +
+										" - example : i-12345678\n",
+									Computed: true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("Period"): schema.Int32Attribute{
-						Description: "Period (seconds)",
-						Computed:    true,
+						Description: "Period (seconds).\n" +
+							" - example : 300\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Statistic"): schema.StringAttribute{
-						Description: "Statistic - SUM, AVG, MAX, MIN",
-						Computed:    true,
+						Description: "Statistic - SUM, AVG, MAX, MIN.\n" +
+							" - example : AVG\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("EvaluationCount"): schema.Int32Attribute{
-						Description: "Evaluation count for the Alert condition",
-						Computed:    true,
+						Description: "Evaluation count for the Alert condition.\n" +
+							" - example : 3\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("EvaluationTimeWindow"): schema.Int32Attribute{
-						Description: "Evaluation time window (period * evaluation_count)",
-						Computed:    true,
+						Description: "Evaluation time window (period * evaluation_count).\n" +
+							" - example : 900\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Threshold"): schema.Float32Attribute{
-						Description: "Threshold for the Alert condition (except for \"RANGE\" operator)",
-						Computed:    true,
+						Description: "Threshold for the Alert condition (except for RANGE operator).\n" +
+							" - example : 80.0\n",
+						Computed: true,
 					},
-					common.ToSnakeCase("UpperBound"): schema.Float32Attribute{
-						Description: "Upper bound for the Alert \"RANGE\" operator",
-						Computed:    true,
-					},
-					common.ToSnakeCase("LowerBound"): schema.Float32Attribute{
-						Description: "Lower bound for the Alert \"RANGE\" operator",
-						Computed:    true,
-					},
+			common.ToSnakeCase("UpperBound"): schema.Float32Attribute{
+				Description: "Upper bound for the Alert range operator.\n" +
+					" - example : 90.0\n",
+				Computed: true,
+			},
+			common.ToSnakeCase("LowerBound"): schema.Float32Attribute{
+				Description: "Lower bound for the Alert range operator.\n" +
+					" - example : 80.0\n",
+				Computed: true,
+			},
 					common.ToSnakeCase("Operator"): schema.StringAttribute{
-						Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE",
-						Computed:    true,
+						Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE.\n" +
+							" - example : RANGE\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ViolationCount"): schema.Int32Attribute{
-						Description: "Violation count for the Alert condition",
-						Computed:    true,
+						Description: "Violation count for the Alert condition.\n" +
+							" - example : 2\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MissingDataOption"): schema.StringAttribute{
-						Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE",
-						Computed:    true,
+						Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE.\n" +
+							" - example : BREACHING\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created date time",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Creator ID",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-
-						Description: "Modified date time",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modifier ID",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 				},
 			},

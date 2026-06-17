@@ -42,30 +42,38 @@ variable "dst_ip" {
 
 ### Required
 
-- `firewall_id` (String) Firewall Id 
+- `firewall_id` (String) The identifier of the firewall associated with the resource.
   - example: YOUR RESOURCE'S FIREWALL_ID
 
 ### Optional
 
-- `description` (String) Description 
-  - example : firewallDescription
-- `dst_ip` (String) Destination IP 
-  - example : 10.10.10.10
-- `fetch_all` (Boolean) Fetch All 
-  - example : True | False
-- `page` (Number) Page 
-  - example : 0
-- `size` (Number) Size 
-  - example : 20
-- `sort` (String) Sort 
-  - example : created_at:desc
-- `src_ip` (String) Source IP 
-  - example : 10.10.10.10
-- `state` (List of String) State 
-  - example : CREATING | ACTIVE | DELETING | EDITING | ERROR
-- `status` (String) Status 
-  - example : ENABLE | DISABLE
+- `description` (String) A brief explanation or note about this resource.
+  - example: Firewall rule for web tier
+  - constraints: maxLength: 100
+- `dst_ip` (String) Destination IP.
+  - example: 10.10.10.10
+- `fetch_all` (Boolean) Whether to retrieve the full list of firewall rules.
+  - example: True
+  - valid: True, False
+- `page` (Number) The page number for pagination.
+  - example: 1
+  - constraints: min: 1
+- `size` (Number) The number of items per page.
+  - example: 20
+  - constraints: min: 1
+- `sort` (String) The sorting criteria.
+  - example: created_at:desc
+  - valid: field_name:asc or field_name:desc
+- `src_ip` (String) Source IP.
+  - example: 10.10.10.10
+- `state` (List of String) The current state of the resource.
+  - example: ACTIVE
+  - valid: CREATING, ACTIVE, DELETING, EDITING, ERROR
+- `status` (String) The current status of the resource.
+  - example: ENABLE
+  - valid: ENABLE, DISABLE
 
 ### Read-Only
 
-- `ids` (List of String) Firewall Id List
+- `ids` (List of String) Firewall Rule Id List.
+  - example: ['YOUR RESOURCE'S IDS']

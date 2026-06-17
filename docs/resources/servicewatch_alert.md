@@ -128,46 +128,77 @@ variable "missing_data_option" {
 
 ### Required
 
-- `level` (String) Alert level - HIGH, MIDDLE, LOW
-- `metric_name` (String) Metric name
-- `missing_data_option` (String) Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE
-- `name` (String) Alert name
-- `namespace_name` (String) Namespace name
-- `operator` (String) Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE
-- `period` (Number) Period (seconds)
-- `statistic` (String) Statistic - SUM, AVG, MAX, MIN
-- `type` (String) Alert type
+- `level` (String) Alert level - HIGH, MIDDLE, LOW.
+ - example : HIGH
+- `metric_name` (String) The name of the metric.
+ - example : CPU Usage
+- `missing_data_option` (String) Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE.
+ - example : BREACHING
+- `name` (String) Alert name.
+ - example : Alert Test
+ - minLength: 3
+ - maxLength: 100
+- `namespace_name` (String) The name of the namespace.
+ - example : Virtual Server
+- `operator` (String) Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE.
+ - example : RANGE
+- `period` (Number) Period (seconds).
+ - example : 300
+- `statistic` (String) Statistic - SUM, AVG, MAX, MIN.
+ - example : AVG
+- `type` (String) Alert type - METRIC_ALERT, SERVICE_ALERT, COMPOSITE_ALERT.
+ - example : METRIC_ALERT
 
 ### Optional
 
-- `activated_yn` (String) Whether the Alert is activated or not
-- `description` (String) Alert description
-- `dimensions` (Attributes List) List of dimension (see [below for nested schema](#nestedatt--dimensions))
-- `evaluation_count` (Number) Evaluation count for the Alert condition
-- `lower_bound` (Number) Lower bound for the Alert range operator
-- `recipient_ids` (List of String) List of user IDs
+- `activated_yn` (String) Whether the Alert is activated or not.
+ - example : Y
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+ - example : Description for Alert Test
+ - maxLength: 1000
+- `dimensions` (Attributes List) List of dimensions.
+ - example : [{"key": "instance_id", "value": "i-12345678"}] (see [below for nested schema](#nestedatt--dimensions))
+- `evaluation_count` (Number) Evaluation count for the Alert condition.
+ - example : 3
+- `lower_bound` (Number) Lower bound for the Alert range operator.
+ - example : 80.0
+- `recipient_ids` (List of String) List of user IDs.
+ - example: YOUR RESOURCE'S RECIPIENT_IDS
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
-- `threshold` (Number) Threshold for the Alert condition (except from RANGE operator)
-- `upper_bound` (Number) Upper bound for the Alert range operator
-- `violation_count` (Number) Violation count for the Alert condition
+- `threshold` (Number) Threshold for the Alert condition (except for RANGE operator).
+ - example : 80.0
+- `upper_bound` (Number) Upper bound for the Alert range operator.
+ - example : 90.0
+- `violation_count` (Number) Violation count for the Alert condition.
+ - example : 2
 
 ### Read-Only
 
-- `created_at` (String) Created date time
-- `created_by` (String) Creator ID
-- `id` (String) Alert ID
-- `last_updated` (String) Timestamp of the last Terraform update of the Resource Group
-- `metric_id` (String) Sharing type
-- `modified_at` (String) Modified date time
-- `modified_by` (String) Modifier ID
-- `namespace_id` (String) Namespace ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+ - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Alert ID.
+ - example: YOUR RESOURCE'S ID
+- `last_updated` (String) Timestamp of the last Terraform update of the Resource Group.
+ - example : 2024-05-17T00:23:17Z
+- `metric_id` (String) The unique identifier of the metric.
+ - example: YOUR RESOURCE'S METRIC_ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+ - example: YOUR RESOURCE'S MODIFIED_BY
+- `namespace_id` (String) The unique identifier of the namespace.
+ - example: YOUR RESOURCE'S NAMESPACE_ID
 
 <a id="nestedatt--dimensions"></a>
 ### Nested Schema for `dimensions`
 
 Required:
 
-- `key` (String) Dimension key
-- `value` (String) Dimension value
+- `key` (String) Dimension key.
+ - example : instance_id
+- `value` (String) Dimension value.
+ - example : i-12345678

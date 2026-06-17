@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_subnet Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  subnet
+  VPC Subnet resource.
 ---
 
 # samsungcloudplatformv2_vpc_subnet (Resource)
 
-subnet
+VPC Subnet resource.
 
 ## Example Usage
 
@@ -74,7 +74,7 @@ variable "subnet_allocation_pools" {
 }
 
 variable "subnet_dns_nameservers" {
-  type    = list(string)
+  type    = set(string)
   default = ["8.8.8.8"]
 }
 
@@ -115,57 +115,67 @@ variable "tags" {
 
 ### Required
 
-- `cidr` (String) Suabnet CIDR
-  - example : 192.167.1.0/24 
+- `cidr` (String) The IP address range of the subnet in CIDR notation.
+  - example : 192.168.0.0/24 
   - maxMask : /28
   - minMask : /16
-- `name` (String) Subnet Name 
+- `name` (String) The name of the subnet.
   - example : subnetName
   - maxLength : 20
   - minLength : 3
   - pattern : ^[a-zA-Z0-9-]+$
-- `type` (String) Subnet Type 
+- `type` (String) The type of the subnet.
   - example : GENERAL | LOCAL | VPC_ENDPOINT
-- `vpc_id` (String) VPC ID 
+- `vpc_id` (String) The identifier of the VPC that the subnet belongs to.
   - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
-- `allocation_pools` (Attributes List) Allocation Pools 
-  - example : [{ "start": "10.0.0.2", "end": "10.0.0.254" }] (see [below for nested schema](#nestedatt--allocation_pools))
-- `description` (String) Description
+- `allocation_pools` (Attributes List) The ranges of IP addresses available for allocation within the subnet.
+  - example : [{ "start": "192.168.0.3", "end": "192.168.0.254" }] (see [below for nested schema](#nestedatt--allocation_pools))
+- `description` (String) Enter a brief explanation or note about this subnet. This help identify the purpose or usage of the subnet.
   - maxLength: 50
   - example: Subnet Description
-- `dhcp_ip_address` (String) DHCP automatically assigned IP
-  - example: 192.167.1.2
-- `dns_nameservers` (List of String) DNS Name Servers
+- `dhcp_ip_address` (String) The IP address automatically assigned by DHCP.
+  - example: 192.168.0.2
+- `dns_nameservers` (Set of String) The list of DNS name server addresses for the subnet.
   - example: ["1.1.1.1", "2.2.2.2"]
-- `gateway_ip_address` (String) Gateway IP Address
-  - example: 192.167.1.1
-- `host_routes` (Attributes List) HostRoutes 
-  - example : [{ "destination": "192.168.24.0/24", "nexthop": "192.168.20.5" }] (see [below for nested schema](#nestedatt--host_routes))
+- `gateway_ip_address` (String) The gateway IP address of the subnet.
+  - example: 192.168.0.1
+- `host_routes` (Attributes List) The static host routes configured for the subnet.
+  - example : [{ "destination": "192.168.24.0/24", "nexthop": "192.168.0.5" }] (see [below for nested schema](#nestedatt--host_routes))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `id` (String) Identifier of the resource.
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `state` (String) State
-- `vpc_name` (String) VpcName
+- `account_id` (String) The identifier of the account that owns the subnet.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the subnet was created in ISO 8601 format.
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) The unique identifier of the subnet.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the subnet was last modified in ISO 8601 format.
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `state` (String) The current lifecycle state of the subnet.
+  - example : ACTIVE
+- `vpc_name` (String) The name of the VPC that the subnet belongs to.
+  - example : VpcName
 
 <a id="nestedatt--allocation_pools"></a>
 ### Nested Schema for `allocation_pools`
 
 Required:
 
-- `end` (String) End
-- `start` (String) Start
+- `end` (String) The end IP address of the allocation range.
+  - example : 192.168.0.1
+- `start` (String) The start IP address of the allocation range.
+  - example : 192.168.0.1
 
 
 <a id="nestedatt--host_routes"></a>
@@ -173,5 +183,7 @@ Required:
 
 Required:
 
-- `destination` (String) Destination
-- `nexthop` (String) Nexthop
+- `destination` (String) the target IP address range (CIDR) for which the route should be applied
+  - example : 192.168.0.1
+- `nexthop` (String) The IP address of the next router/VM that the traffic should be sent to in order to reach the destination
+  - example : 192.168.0.1

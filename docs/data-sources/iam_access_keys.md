@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_iam_access_keys Data Source - samsungcloudplatformv2"
 subcategory: Access Key
 description: |-
-  list of access key.
+  Show IAM Access Keys
 ---
 
 # samsungcloudplatformv2_iam_access_keys (Data Source)
 
-list of access key.
+Show IAM Access Keys
 
 ## Example Usage
 
@@ -35,30 +35,48 @@ variable "access_key_limit" {
 
 ### Optional
 
-- `account_id` (String) Account Id
-- `limit` (Number) Limit (between 1 and 10000)
-- `marker` (String) Marker (between 1 and 64 characters)
-- `sort` (String) Sort
+- `account_id` (String) Account ID to filter access keys.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `limit` (Number) Maximum number of results to return.
+  - example : 100
+  - min: 1, max: 10000
+- `marker` (String) Marker for pagination (cursor for next page of results).
+  - example : 'page-2'
+- `sort` (String) Sort order for results (e.g., 'createdAt,desc').
+  - example : 'createdAt,desc'
 
 ### Read-Only
 
-- `access_keys` (Attributes List) A list of access key. (see [below for nested schema](#nestedatt--access_keys))
+- `access_keys` (Attributes List) A list of access keys. (see [below for nested schema](#nestedatt--access_keys))
 
 <a id="nestedatt--access_keys"></a>
 ### Nested Schema for `access_keys`
 
 Read-Only:
 
-- `access_key` (String) AccessKey
-- `access_key_type` (String) AccessKeyType
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `expiration_timestamp` (String) ExpirationTimestamp
-- `id` (String) Id
-- `is_enabled` (Boolean) Is enabled
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `parent_access_key_id` (String) ParentAccessKeyId
-- `secret_key` (String) SecretKey
+- `access_key` (String) The access key string value.
+  - example : 'ak-example-access-key-id'
+- `access_key_type` (String) Type of access key determining its expiration policy.
+  - example : 'PERMANENT' | 'TEMPORARY' | 'SECRET_VAULT_TEMPORARY'
+- `account_id` (String) Account ID that owns the access key.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) Timestamp when the access key was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the access key.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Human-readable description of the access key.
+  - example : 'My Access Key'
+- `expiration_timestamp` (String) Timestamp when the access key expires (for temporary keys).
+  - example : '2024-01-02T00:00:00Z'
+- `id` (String) Unique identifier of the access key.
+  - example: YOUR RESOURCE'S ID
+- `is_enabled` (Boolean) Whether the access key is enabled/active.
+  - example : true
+- `modified_at` (String) Timestamp when the access key was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the access key.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `parent_access_key_id` (String) Parent access key ID if this is a derived key.
+  - example: YOUR RESOURCE'S PARENT_ACCESS_KEY_ID
+- `secret_key` (String) The secret key string value.
+  - example : 'sk-example-secret-key-value'

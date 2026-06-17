@@ -2,17 +2,18 @@
 page_title: "samsungcloudplatformv2_baremetal_baremetal Resource - samsungcloudplatformv2"
 subcategory: Bare Metal Server
 description: |-
-  Baremetal
+  Bare Metal Server Resource
 ---
 
 # samsungcloudplatformv2_baremetal_baremetal (Resource)
 
-Baremetal
+Bare Metal Server Resource
 
 ## Example Usage
 
 ```terraform
 provider "samsungcloudplatformv2" {
+  default_region = "kr-west1"
 }
 
 resource "samsungcloudplatformv2_baremetal_baremetal" "baremetal" {
@@ -154,7 +155,7 @@ variable "delete_timeouts" {
 - `region_id` (String) Region ID
   - example: YOUR RESOURCE'S REGION_ID
 - `server_details` (Attributes List) Detailed settings for each server
-  - example: [{bare_metal_server_name='bm-server', server_type_id='83c3c73d457345e3829ee6d5557c0011', nat_enabled='false'}]
+  - example: [{bare_metal_server_name='bm-server', server_type_id='YOUR RESOURCE'S SERVER_TYPE_ID', nat_enabled='false'}]
   - maxLength: 5
   - minLength: 1 (see [below for nested schema](#nestedatt--server_details))
 - `subnet_id` (String) Subnet ID
@@ -165,7 +166,7 @@ variable "delete_timeouts" {
 ### Optional
 
 - `init_script` (String) init script
-  - example: init script
+  - example: #!/bin/bash\necho 'Hello World!'
   - maxLength: 16384
 - `lock_enabled` (Boolean) Use Lock
   - example: true
@@ -216,8 +217,6 @@ Required:
   - maxLength(for linux): 28
   - pattern(for window): ^[a-z][a-z0-9-]{1,13}[a-z0-9]$
   - pattern(for linux): ^[a-z][a-z0-9-]{1,26}[a-z0-9]$
-- `nat_enabled` (Boolean) Use Public NAT
-  - example: true
 - `server_type_id` (String) Server Type ID
   - example: YOUR RESOURCE'S SERVER_TYPE_ID
 
@@ -229,6 +228,8 @@ Optional:
   - example: 192.168.3.4
 - `ip_address` (String) subnet IP address
   - example: 192.168.2.4
+- `nat_enabled` (Boolean) Use Public NAT
+  - example: true
 - `public_ip_address_id` (String) public IP address id
   - example: YOUR RESOURCE'S PUBLIC_IP_ADDRESS_ID
 - `state` (String) Bare Metal Server state

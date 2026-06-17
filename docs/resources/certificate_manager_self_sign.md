@@ -16,15 +16,15 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_certificate_manager_self_sign" "certificatemanager01" {
-  cn             = var.cn
-  name                  = var.name
-  not_after_dt           = var.not_after_dt
-  not_before_dt                = var.not_before_dt
-  organization                = var.organization
-  region                = var.region
-  tags                  = var.tags
-  recipients            = var.recipients
-  timezone              = var.timezone
+  cn            = var.cn
+  name          = var.name
+  not_after_dt  = var.not_after_dt
+  not_before_dt = var.not_before_dt
+  organization  = var.organization
+  region        = var.region
+  tags          = var.tags
+  recipients    = var.recipients
+  timezone      = var.timezone
 }
 
 
@@ -72,7 +72,7 @@ variable "recipients" {
   default = [{
     region    = "Asia/Seoul"
     user_id   = "ENTER YOUR RESOURCE'S USER_ID"
-    user_name = "rk.dthung1@partner.samsung.com"
+    user_name = "userA@samsung.com"
   }]
 }
 
@@ -90,20 +90,20 @@ variable "tags" {
 
 ### Required
 
-- `cn` (String) Certificate Common Name
-  - Example: test.go.kr
-- `name` (String) Certificate Name
-  - Example: test-certificate
-- `not_after_dt` (String) Certificate Expire Date
-  - Example: 20251212
-- `not_before_dt` (String) Certificate Start Date
-  - Example: 20250101
-- `organization` (String) Certificate Organization Name
-  - Example: samsungSDS
-- `region` (String) Name of region
-  - Example: west1
-- `timezone` (String) Timezone
-  - Example: Asia/Seoul
+- `cn` (String) Certificate Common Name.
+  - example : 'test.go.kr'
+- `name` (String) Certificate Name.
+  - example : 'test-certificate'
+- `not_after_dt` (String) Certificate Expire Date.
+  - example : '20251212'
+- `not_before_dt` (String) Certificate Start Date.
+  - example : '20250101'
+- `organization` (String) Certificate Organization Name.
+  - example : 'samsungSDS'
+- `region` (String) Name of region.
+  - example : 'west1'
+- `timezone` (String) Timezone indentifier.
+  - example : 'Asia/Seoul'
 
 ### Optional
 
@@ -114,7 +114,7 @@ variable "tags" {
 
 ### Read-Only
 
-- `certificate` (Attributes) Certificate (see [below for nested schema](#nestedatt--certificate))
+- `certificate` (Attributes) Certificate detail (see [below for nested schema](#nestedatt--certificate))
 - `id` (String) Identifier of the resource.
 
 <a id="nestedatt--certificate"></a>
@@ -122,17 +122,17 @@ variable "tags" {
 
 Read-Only:
 
-- `cert_kind` (String) Certificate type
-  - Example: DEV
-- `cn` (String) Certificate Common Name
-  - Example: test.go.kr
-- `id` (String) ID
-  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
-- `name` (String) Certificate Name
-  - Example: test-certificate
-- `not_after_dt` (String) Certificate Expire Date
-  - Example: 2026-02-07T18:07:59
-- `not_before_dt` (String) Certificate Start Date
-  - Example: 2025-02-08T18:07:00
-- `state` (String) Certificate State
-  - Example: VALID
+- `cert_kind` (String) Certificate type.
+  - example : 'DEV'
+- `cn` (String) Certificate Common Name.
+  - example : 'test.go.kr'
+- `id` (String) Certificate ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Certificate Name.
+  - example : 'test-certificate'
+- `not_after_dt` (String) Certificate Expire Date.
+  - example : '2026-02-07T18:07:59'
+- `not_before_dt` (String) Certificate Start Date.
+  - example : '2025-02-08T18:07:00'
+- `state` (String) Certificate State.
+  - example : 'VALID'

@@ -3,7 +3,7 @@ package vpcv1d2
 import (
 	"context"
 
-	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.2"
+	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.2"
 )
 
 func (client *Client) GetVpcPeeringRuleList(ctx context.Context, request VpcPeeringRuleDataSource) (*scpvpc.VpcPeeringRuleListResponse, error) {

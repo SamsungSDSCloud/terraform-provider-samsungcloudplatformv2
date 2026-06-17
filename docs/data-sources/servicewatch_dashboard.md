@@ -36,65 +36,97 @@ variable "id" {
 
 ### Optional
 
-- `favorite_enabled` (Boolean) Whether it is a favorite dashboard
-- `id` (String) Dashboard ID
-- `name` (String) Dashboard name
-- `share_type` (String) Sharing type
-- `srn` (String) Service resource name
-- `type` (String) Dashboard type
+- `favorite_enabled` (Boolean) Whether it is a favorite dashboard.
+ - example : true
+- `id` (String) Dashboard ID.
+ - example: YOUR RESOURCE'S ID
+- `name` (String) Dashboard name.
+ - example : Production-Web-Servers
+- `share_type` (String) Sharing type.
+ - example : Private
+- `srn` (String) Service resource name.
+ - example : srn:dev2::account-id:region::scp-servicewatch:dashboard/b48e730a70e74f6aa3d2555000b5c22b
+- `type` (String) Dashboard type.
+ - example : Custom
 
 ### Read-Only
 
-- `created_at` (String) Created date time
-- `created_by` (String) Creator ID
-- `modified_at` (String) Modified date time
-- `modified_by` (String) Modifier ID
-- `widgets` (Attributes List) List of widgets (see [below for nested schema](#nestedatt--widgets))
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+ - example: YOUR RESOURCE'S CREATED_BY
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+ - example: YOUR RESOURCE'S MODIFIED_BY
+- `widgets` (Attributes List) List of widgets.
+ - example : [{"id": "75da70a1a4fb486ab0282cf90693ec3c", "type": "metric"}] (see [below for nested schema](#nestedatt--widgets))
 
 <a id="nestedatt--widgets"></a>
 ### Nested Schema for `widgets`
 
 Read-Only:
 
-- `height` (Number) Widget height
-- `id` (String) Widget ID
-- `order` (Number) Widget's order in the dashboard
-- `properties` (Attributes) Widget's detailed properties (see [below for nested schema](#nestedatt--widgets--properties))
-- `type` (String) Widget type
-- `width` (Number) Widget width
+- `height` (Number) Widget height.
+ - example : 1
+- `id` (String) Widget ID.
+ - example: YOUR RESOURCE'S ID
+- `order` (Number) Widget's order in the dashboard.
+ - example : 1
+- `properties` (Attributes) Widget's detailed properties.
+ - example : {"title": "CPU Utilization", "view": "line"} (see [below for nested schema](#nestedatt--widgets--properties))
+- `type` (String) Widget type.
+ - example : metric
+- `width` (Number) Widget width.
+ - example : 1
 
 <a id="nestedatt--widgets--properties"></a>
 ### Nested Schema for `widgets.properties`
 
 Read-Only:
 
-- `metrics` (Attributes List) List of metrics included in the widget (see [below for nested schema](#nestedatt--widgets--properties--metrics))
-- `period` (Number) Query period (seconds)
-- `stacked` (Boolean) Whether the graph is stacked
-- `statistic_type` (String) Statistical function
-- `title` (String) Widget title
-- `view` (String) View type
+- `metrics` (Attributes List) List of metrics included in the widget.
+ - example : [{"name": "cpu_utilization", "namespace_name": "SCP/Compute"}] (see [below for nested schema](#nestedatt--widgets--properties--metrics))
+- `period` (Number) Query period (seconds).
+ - example : 300
+- `stacked` (Boolean) Whether the graph is stacked.
+ - example : false
+- `statistic_type` (String) Statistical function.
+ - example : AVG
+- `title` (String) Widget title.
+ - example : Virtual Server | CPU Utilization
+- `view` (String) View type.
+ - example : line
 
 <a id="nestedatt--widgets--properties--metrics"></a>
 ### Nested Schema for `widgets.properties.metrics`
 
 Optional:
 
-- `dimensions` (Attributes List) List of dimensions (see [below for nested schema](#nestedatt--widgets--properties--metrics--dimensions))
+- `dimensions` (Attributes List) List of dimensions.
+ - example : [{"key": "instance_id", "value": "i-1234567890abcdef0"}] (see [below for nested schema](#nestedatt--widgets--properties--metrics--dimensions))
 
 Read-Only:
 
-- `color` (String) Metric line color
-- `display_name` (String) Display name (label) of the metric
-- `name` (String) Metric name
-- `namespace_name` (String) Namespace name
-- `period` (Number) Query period (seconds)
-- `statistic_type` (String) Statistical function
+- `color` (String) Metric line color.
+ - example : #2ecc71
+- `display_name` (String) Display name (label) of the metric.
+ - example : CPU Utilization (%)
+- `name` (String) Metric name.
+ - example : cpu_utilization
+- `namespace_name` (String) The name of the namespace.
+ - example : SCP/Compute
+- `period` (Number) Query period (seconds).
+ - example : 300
+- `statistic_type` (String) Statistical function.
+ - example : AVG
 
 <a id="nestedatt--widgets--properties--metrics--dimensions"></a>
 ### Nested Schema for `widgets.properties.metrics.dimensions`
 
 Read-Only:
 
-- `key` (String) Dimension key
-- `value` (String) Dimension value
+- `key` (String) Dimension key.
+ - example : instance_id
+- `value` (String) Dimension value.
+ - example : i-1234567890abcdef0

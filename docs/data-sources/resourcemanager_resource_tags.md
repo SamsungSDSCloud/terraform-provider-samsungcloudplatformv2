@@ -16,31 +16,51 @@ list of resource tag.
 
 ### Required
 
-- `srn` (String) Srn
+- `srn` (String) The System Resource Name (SRN) of the resource group.
+
+Example: `srn:s::13d97ad943ca452481d624f78391df13:kr-west1::resourcemanager:resource-group/70636f984e564b3c9e54e74a53f9318d`
 
 ### Optional
 
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
+- `page` (Number) A Number of page.
+
+Example: `1`
+- `size` (Number) A Number of results displayed per page.
+
+Example: `15`
+- `sort` (String) Sorts the query results.
+
+Example: `createdAt:desc`
 
 ### Read-Only
 
-- `content` (Attributes) Content (see [below for nested schema](#nestedatt--content))
-- `encoded_srn` (String) Encoded Srn
+- `content` (Attributes) This is set data of SRNs and tags.
+
+Example: See nested attributes below. (see [below for nested schema](#nestedatt--content))
+- `encoded_srn` (String) The System Resource Name (SRN) of the resource group with base64 encoded.
+
+Example: `c3JuOnM6OjEzZDk3YWQ5NDNjYTQ1MjQ4MWQ2MjRmNzgzOTFkZjEzOmtyLXdlc3QxOjpyZXNvdXJjZW1hbmFnZXI6cmVzb3VyY2UtZ3JvdXAvNzA2MzZmOTg0ZTU2NGIzYzllNTRlNzRhNTNmOTMxOGQ=`
 
 <a id="nestedatt--content"></a>
 ### Nested Schema for `content`
 
 Read-Only:
 
-- `srn` (String) Srn
-- `tags` (Attributes List) A list of tag. (see [below for nested schema](#nestedatt--content--tags))
+- `srn` (String) The System Resource Name (SRN) of the resource group.
+
+Example: `srn:s::13d97ad943ca452481d624f78391df13:kr-west1::resourcemanager:resource-group/70636f984e564b3c9e54e74a53f9318d`
+- `tags` (Attributes List) A list of tag.
+
+Example: See nested attributes below. (see [below for nested schema](#nestedatt--content--tags))
 
 <a id="nestedatt--content--tags"></a>
 ### Nested Schema for `content.tags`
 
 Read-Only:
 
-- `key` (String) Key
-- `value` (String) Value
+- `key` (String) The key of the tag.
+
+Example: `Environment`
+- `value` (String) The value of the tag.
+
+Example: `Production`

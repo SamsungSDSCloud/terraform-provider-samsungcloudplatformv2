@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_firewall_firewall Data Source - samsungcloudplatformv2"
 subcategory: Firewall
 description: |-
-  Firewall
+  Retrieves details of a firewall instance.
 ---
 
 # samsungcloudplatformv2_firewall_firewall (Data Source)
 
-Firewall
+Retrieves details of a firewall instance.
 
 ## Example Usage
 
@@ -36,33 +36,51 @@ variable "id" {
 
 ### Required
 
-- `id` (String) Firewall ID 
+- `id` (String) The unique identifier of the resource.
   - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `firewall` (Attributes) Firewall (see [below for nested schema](#nestedatt--firewall))
+- `firewall` (Attributes) The firewall resource details. (see [below for nested schema](#nestedatt--firewall))
 
 <a id="nestedatt--firewall"></a>
 ### Nested Schema for `firewall`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `flavor_name` (String) FlavorName
-- `flavor_rule_quota` (Number) FlavorRuleQuota
-- `fw_resource_id` (String) FwResourceId
-- `id` (String) Id
-- `loggable` (Boolean) Loggable
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `pre_product_id` (String) PreProductId
-- `product_type` (String) ProductType
-- `state` (String) State
-- `status` (String) Status
-- `total_rule_count` (Number) TotalRuleCount
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example: 2025-01-15T10:30:00Z
+- `created_by` (String) The user ID that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `flavor_name` (String) Firewall size.
+  - example: MEDIUM
+- `flavor_rule_quota` (Number) Firewall rule quota based on firewall size.
+  - example: 200
+- `fw_resource_id` (String) The resource ID of the associated firewall service.
+  - example: YOUR RESOURCE'S FW_RESOURCE_ID
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `loggable` (Boolean) The flag indicating whether firewall flow logs are stored.
+  - example: True
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example: 2025-06-01T14:22:00Z
+- `modified_by` (String) The user ID that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the resource.
+  - example: fw-web-prod
+- `pre_product_id` (String) The identifier of the firewall pre‑product associated with the service.
+  - example: YOUR RESOURCE'S PRE_PRODUCT_ID
+- `product_type` (String) The type of the firewall service.
+  - example: IGW
+- `state` (String) The current state of the resource.
+  - example: ACTIVE
+- `status` (String) The current status of the resource.
+  - example: ENABLE
+- `total_rule_count` (Number) Number of rules in the firewall.
+  - example: 5
+- `vpc_id` (String) The identifier of the VPC that the resource belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the resource belongs to.
+  - example: vpc-prod-01

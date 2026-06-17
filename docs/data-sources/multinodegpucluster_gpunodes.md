@@ -82,6 +82,7 @@ variable "vpc_id" {
 ### Read-Only
 
 - `ids` (List of String) GPU Node ID List
+  - example: ['YOUR RESOURCE'S IDS']
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -89,5 +90,8 @@ variable "vpc_id" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_certificate Data Source - samsungcloudplatformv2"
 subcategory: LB Certificate
 description: |-
-  Show Lb Certificate.
+  Retrieve details of a specific LB Certificate.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_certificate (Data Source)
 
-Show Lb Certificate.
+Retrieve details of a specific LB Certificate.
 
 ## Example Usage
 
@@ -35,33 +35,33 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Id
+- `id` (String) The unique identifier of the LB Certificate.
 
 ### Read-Only
 
-- `lb_certificate` (Attributes) A detail of Lb Certificate. (see [below for nested schema](#nestedatt--lb_certificate))
+- `lb_certificate` (Attributes) Details of the LB Certificate. (see [below for nested schema](#nestedatt--lb_certificate))
 
 <a id="nestedatt--lb_certificate"></a>
 ### Nested Schema for `lb_certificate`
 
 Optional:
 
-- `account_id` (String) AccountId
-- `cert_body` (String) CertBody
-- `cert_chain` (String) CertChain
-- `cert_kind` (String) CertKind
-- `cn` (String) Cn
-- `id` (String) Id
-- `name` (String) Name
-- `not_after_dt` (String) NotAfterDt
-- `not_before_dt` (String) NotBeforeDt
-- `organization` (String) Organization
-- `private_key` (String) PrivateKey
-- `state` (String) State
+- `account_id` (String) The account ID associated with the resource.
+- `cert_body` (String) The certificate body in PEM format.
+- `cert_chain` (String) The certificate chain in PEM format.
+- `cert_kind` (String) The type of certificate (e.g., SERVER, CLIENT).
+- `cn` (String) The common name (CN) of the certificate.
+- `id` (String) The unique identifier of the LB Certificate.
+- `name` (String) The name of the LB Certificate (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `not_after_dt` (String) The expiration date of the certificate (e.g., '2026-02-12T23:59:59Z').
+- `not_before_dt` (String) The start date of the certificate validity (e.g., '2025-02-12T00:00:00Z').
+- `organization` (String) The organization name in the certificate.
+- `private_key` (String) The private key associated with the certificate.
+- `state` (String) The current state of the LB Certificate (ACTIVE, ERROR).
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

@@ -3,8 +3,8 @@ package eventstreams
 import (
 	"context"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/eventstreams/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/eventstreams/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

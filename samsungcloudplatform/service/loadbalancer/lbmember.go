@@ -6,13 +6,13 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/baremetal"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/baremetal"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -50,82 +50,108 @@ func (r *loadbalancerLbMemberResource) Metadata(_ context.Context, req resource.
 // Schema defines the schema for the data source.
 func (r *loadbalancerLbMemberResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Lb Member.",
+		Description: "LB Member resource for managing pool members.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the resource.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("LbServerGroupId"): schema.StringAttribute{
-				Description: "LbServerGroupId",
-				Required:    true,
+				Description: "The LB Server Group ID.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Required: true,
 			},
 			common.ToSnakeCase("LbMember"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Member.",
+				Description: "Details of the LB Member.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the LB Member.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | EDITING | ERROR\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Computed:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Uuid"): schema.StringAttribute{
-						Description: "Uuid",
-						Computed:    true,
+						Description: "The unique identifier (UUID) of the member resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ObjectId"): schema.StringAttribute{
-						Description: "ObjectId",
-						Computed:    true,
+						Description: "The object ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-						Description: "ObjectType",
-						Computed:    true,
+						Description: "The object type.\n" +
+							"  - example : VM\n" +
+							"  - pattern : VM | BM | MANUAL | MNGC\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MemberWeight"): schema.Int32Attribute{
-						Description: "MemberWeight",
-						Computed:    true,
+						Description: "The weight of the member.\n" +
+							"  - example : 100\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 1000\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MemberState"): schema.StringAttribute{
-						Description: "MemberState",
-						Computed:    true,
+						Description: "The state of the member.\n" +
+							"  - example : ENABLE\n" +
+							"  - pattern : ENABLE | DISABLE\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MemberPort"): schema.Int32Attribute{
-						Description: "MemberPort",
-						Computed:    true,
+						Description: "The port number of the member.\n" +
+							"  - example : 80\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 65534\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MemberIp"): schema.StringAttribute{
-						Description: "MemberIp",
-						Computed:    true,
+						Description: "The IP address of the member.\n" +
+							"  - example : 192.168.0.1\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the LB Member.\n" +
+							"  - example : Member01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LbServerGroupId"): schema.StringAttribute{
-						Description: "LbServerGroupId",
-						Computed:    true,
+						Description: "The LB Server Group ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 				},
 			},
@@ -134,48 +160,63 @@ func (r *loadbalancerLbMemberResource) Schema(_ context.Context, _ resource.Sche
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("ObjectId"): schema.StringAttribute{
-						Description: "The ID of the backend object (VM instance, BM server, etc.). Required when `object_type` is `VM` or `BM`. Omit when `object_type` is `MANUAL`.",
-						Optional:    true,
+						Description: "The ID of the backend object (VM instance, BM server, etc.). Required when `object_type` is `VM` or `BM`. Omit when `object_type` is `MANUAL`.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-						Description: "The type of backend object. Valid values: `VM` (virtual machine), `BM` (bare metal server), `MANUAL` (IP-based/manual member), `MNGC` (managed container). Defaults to `VM` if not specified. For `VM` or `BM`, `object_id` is required. For `MANUAL`, `member_ip` is required and `object_id` should be omitted.",
-						Optional:    true,
+						Description: "The type of backend object. Valid values: `VM` (virtual machine), `BM` (bare metal server), `MANUAL` (IP-based/manual member), `MNGC` (managed container). Defaults to `VM` if not specified. For `VM` or `BM`, `object_id` is required. For `MANUAL`, `member_ip` is required and `object_id` should be omitted.\n" +
+							"  - example : VM\n" +
+							"  - pattern : VM | BM | MANUAL | MNGC\n",
+						Optional: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("VM", "BM", "MANUAL", "MNGC"),
 						},
 					},
 					common.ToSnakeCase("MemberPort"): schema.Int32Attribute{
-						Description: "The protocol port number of the member (1-65535). Required.",
-						Required:    true,
+						Description: "The protocol port number of the member. Required.\n" +
+							"  - example : 80\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 65534\n",
+						Required: true,
 						Validators: []validator.Int32{
 							int32validator.Between(1, 65535),
 						},
 					},
 					common.ToSnakeCase("MemberIp"): schema.StringAttribute{
-						Description: "The IP address of the member. Required for all modes. For `VM`/`BM` modes, this is typically the private IP of the instance. For `MANUAL` mode, specify the target IP directly.",
-						Required:    true,
+						Description: "The IP address of the member. Required for all modes. For `VM`/`BM` modes, this is typically the private IP of the instance. For `MANUAL` mode, specify the target IP directly.\n" +
+							"  - example : 192.168.0.1\n",
+						Required: true,
 						Validators: []validator.String{
 							baremetalcommon.IpStringValidator{},
 						},
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "The name of the member. Required.",
-						Required:    true,
+						Description: "The name of the member. Required.\n" +
+							"  - example : Member01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n",
+						Required: true,
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 63),
 							stringvalidator.RegexMatches(regexp.MustCompile(`^[a-zA-Z0-9\s\-_\.]*$`), "Member Name"),
 						},
 					},
 					common.ToSnakeCase("MemberWeight"): schema.Int32Attribute{
-						Description: "The weight of the member for load balancing (1-100). Higher values receive more traffic. Defaults to 1 if not specified.",
-						Optional:    true,
+						Description: "The weight of the member for load balancing. Higher values receive more traffic. Defaults to 1 if not specified.\n" +
+							"  - example : 100\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 1000\n",
+						Optional: true,
 						Validators: []validator.Int32{
 							int32validator.Between(1, 1000),
 						},
 					},
 					common.ToSnakeCase("MemberState"): schema.StringAttribute{
-						Description: "The initial state of the member. Valid values: `ENABLE` (accepts traffic), `DISABLE` (does not accept traffic). Defaults to `ENABLE` if not specified.",
-						Optional:    true,
+						Description: "The initial state of the member. Valid values: `ENABLE` (accepts traffic), `DISABLE` (does not accept traffic). Defaults to `ENABLE` if not specified.\n" +
+							"  - example : ENABLE\n" +
+							"  - pattern : ENABLE | DISABLE\n",
+						Optional: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("ENABLE", "DISABLE"),
 						},
@@ -491,5 +532,5 @@ func waitForMemberStatus(ctx context.Context, loadbalancerClient *loadbalancer.C
 			return nil, "", err
 		}
 		return info, string(info.GetMember().State), nil
-	})
+	}, -1, -1, -1, -1)
 }

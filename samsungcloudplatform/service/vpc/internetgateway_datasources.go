@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,51 +43,51 @@ func (d *vpcInternetGatewayDataSource) Schema(_ context.Context, _ datasource.Sc
 		Description: "List of internet gateways.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size \n" +
+				Description: "The number of items per page. \n" +
 					"  - example : 20 \n" +
 					"  - minimum : 0",
 				Optional: true,
 				Computed: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page \n" +
+				Description: "The page number for pagination. \n" +
 					"  - example : 0 \n" +
 					"  - minimum : 0",
 				Optional: true,
 				Computed: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order. \n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Internet Gateway ID \n" +
+				Description: "The unique identifier of the internet gateway.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Internet Gateway Name \n" +
+				Description: "The name of the internet gateway.\n" +
 					"  - example : IGW_VPCname",
 				Optional: true,
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Internet Gateway Type \n" +
+				Description: "The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.\n" +
 					"  - example : IGW | GGW | SIGW",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State \n" +
+				Description: "The current lifecycle state of the internet gateway. \n" +
 					"  - example : CREATING | ACTIVE | DELETING | ERROR",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
+				Description: "The identifier of the VPC that the internet gateway belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description: "VPC Name \n" +
+				Description: "The name of the VPC that the internet gateway belongs to.\n" +
 					"  - example : vpcName",
 				Optional: true,
 			},
@@ -97,67 +97,82 @@ func (d *vpcInternetGatewayDataSource) Schema(_ context.Context, _ datasource.Sc
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Internet Gateway ID",
-							Computed:    true,
+							Description: "The unique identifier of the internet gateway.\n" +
+								"  - example : 023c57b14f11483689338d085e061492",
+							Computed: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Internet Gateway Name",
-							Computed:    true,
+							Description: "The name of the internet gateway.\n" +
+								"  - example : IGW_VPCname",
+							Computed: true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "Account ID",
-							Computed:    true,
+							Description: "The identifier of the account that owns the internet gateway.\n" +
+								"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+							Computed: true,
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Internet Gateway Type",
-							Computed:    true,
+							Description: "The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.\n" +
+								"  - example : IGW | GGW | SIGW",
+							Computed: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Computed:    true,
+							Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
+								"  - example : Internet Gateway Description",
+							Computed: true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "VPC ID",
-							Computed:    true,
+							Description: "The identifier of the VPC that the internet gateway belongs to.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("VpcName"): schema.StringAttribute{
-							Description: "VPC Name",
-							Computed:    true,
+							Description: "The name of the VPC that the internet gateway belongs to.\n" +
+								"  - example : vpcName",
+							Computed: true,
 						},
 						common.ToSnakeCase("Loggable"): schema.BoolAttribute{
-							Description: "NAT Loggable",
-							Computed:    true,
+							Description: "Whether logging is enabled for the internet gateway.\n" +
+								"  - example : true",
+							Computed: true,
 						},
 						common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-							Description: "Firewall ID",
-							Computed:    true,
+							Description: "The identifier of the firewall associated with the internet gateway.\n" +
+								"  - example : b156740b6335468d8354eb9ef8eddf5a",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "Created At",
-							Computed:    true,
+							Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "Created By",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "Modified At",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "Modified By",
-							Computed:    true,
+							Description: "The user id that modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Computed:    true,
+							Description: "The current lifecycle state of the internet gateway.\n" +
+								"  example : CREATING | ACTIVE | EDITING | DELETING | ERROR",
+							Computed: true,
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
-				Description: "Total count",
-				Computed:    true,
+				Description: "The total number of internet gateways.\n" +
+					"  - example : 2",
+				Computed: true,
 			},
 			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
 				Description: "List of sort condition \n" +

@@ -83,23 +83,23 @@ variable "vpc_name" {
 
 ### Optional
 
-- `id` (String) Direct Connect ID 
+- `id` (String) The unique identifier of the direct connect. 
   - example: YOUR RESOURCE'S ID
-- `name` (String) Direct Connect Name 
+- `name` (String) The name of the direct connect. 
   - example : directConnectName
-- `page` (Number) page 
+- `page` (Number) The page number for pagination. 
   - example : 0 
   - minimum : 0
-- `size` (Number) size 
+- `size` (Number) The number of items per page. 
   - example : 20 
   - minimum : 0
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. 
   - example : created_at:desc
-- `state` (String) State 
+- `state` (String) The current lifecycle state of the direct connect. 
   - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
-- `vpc_id` (String) VPC ID 
+- `vpc_id` (String) The identifier of the VPC that the direct connect belongs to. 
   - example: YOUR RESOURCE'S VPC_ID
-- `vpc_name` (String) VPC Name 
+- `vpc_name` (String) The name of the VPC that the direct connect belongs to. 
   - example : vpcName
 
 ### Read-Only
@@ -107,23 +107,39 @@ variable "vpc_name" {
 - `direct_connects` (Attributes List) A list of direct connect. (see [below for nested schema](#nestedatt--direct_connects))
 - `sort_final` (List of String) List of sort condition 
   - example : ["created_at:desc"]
-- `total_count` (Number) total count
+- `total_count` (Number) The total number of Direct Connect.
+  - example : 5
 
 <a id="nestedatt--direct_connects"></a>
 ### Nested Schema for `direct_connects`
 
 Read-Only:
 
-- `account_id` (String) account id
-- `bandwidth` (Number) bandwidth
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `description` (String) description
-- `firewall_id` (String) firewall id
-- `id` (String) Direct Connect Id
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `name` (String) Direct Connect Name
-- `state` (String) state
-- `vpc_id` (String) vpc id
-- `vpc_name` (String) vpc name
+- `account_id` (String) The identifier of the account that owns the direct connect.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `bandwidth` (Number) The bandwidth capacity(1Gpbs, 10Gpbs, 20Gpbs or 40Gpbs) of the connection.
+  - example : 1 | 10 | 20 | 40
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this direct connect. This help identify the purpose or usage of the resource.
+  - example : Direct Connect description
+  - maxLength : 50
+  - minLength : 1
+- `firewall_id` (String) The identifier of the firewall associated with the direct connect.
+  - example: YOUR RESOURCE'S FIREWALL_ID
+- `id` (String) Identifier of the direct connect.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the direct connect.
+  - example : directConnectName
+- `state` (String) The current lifecycle state of the direct connect.
+  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
+- `vpc_id` (String) The identifier of the VPC that the direct connect belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the direct connect belongs to.
+  - example : vpc-prod-01

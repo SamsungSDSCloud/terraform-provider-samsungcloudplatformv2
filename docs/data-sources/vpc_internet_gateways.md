@@ -95,25 +95,25 @@ variable "vpc_name" {
 
 ### Optional
 
-- `id` (String) Internet Gateway ID 
+- `id` (String) The unique identifier of the internet gateway.
   - example: YOUR RESOURCE'S ID
-- `name` (String) Internet Gateway Name 
+- `name` (String) The name of the internet gateway.
   - example : IGW_VPCname
-- `page` (Number) Page 
+- `page` (Number) The page number for pagination. 
   - example : 0 
   - minimum : 0
-- `size` (Number) Size 
+- `size` (Number) The number of items per page. 
   - example : 20 
   - minimum : 0
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order. 
   - example : created_at:desc
-- `state` (String) State 
+- `state` (String) The current lifecycle state of the internet gateway. 
   - example : CREATING | ACTIVE | DELETING | ERROR
-- `type` (String) Internet Gateway Type 
+- `type` (String) The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.
   - example : IGW | GGW | SIGW
-- `vpc_id` (String) VPC ID 
+- `vpc_id` (String) The identifier of the VPC that the internet gateway belongs to.
   - example: YOUR RESOURCE'S VPC_ID
-- `vpc_name` (String) VPC Name 
+- `vpc_name` (String) The name of the VPC that the internet gateway belongs to.
   - example : vpcName
 
 ### Read-Only
@@ -121,24 +121,39 @@ variable "vpc_name" {
 - `internet_gateways` (Attributes List) A list of internet gateways. (see [below for nested schema](#nestedatt--internet_gateways))
 - `sort_final` (List of String) List of sort condition 
   - example : ["created_at:desc"]
-- `total_count` (Number) Total count
+- `total_count` (Number) The total number of internet gateways.
+  - example : 2
 
 <a id="nestedatt--internet_gateways"></a>
 ### Nested Schema for `internet_gateways`
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `description` (String) Description
-- `firewall_id` (String) Firewall ID
-- `id` (String) Internet Gateway ID
-- `loggable` (Boolean) NAT Loggable
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `name` (String) Internet Gateway Name
-- `state` (String) State
-- `type` (String) Internet Gateway Type
-- `vpc_id` (String) VPC ID
-- `vpc_name` (String) VPC Name
+- `account_id` (String) The identifier of the account that owns the internet gateway.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : Internet Gateway Description
+- `firewall_id` (String) The identifier of the firewall associated with the internet gateway.
+  - example: YOUR RESOURCE'S FIREWALL_ID
+- `id` (String) The unique identifier of the internet gateway.
+  - example: YOUR RESOURCE'S ID
+- `loggable` (Boolean) Whether logging is enabled for the internet gateway.
+  - example : true
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the internet gateway.
+  - example : IGW_VPCname
+- `state` (String) The current lifecycle state of the internet gateway.
+  example : CREATING | ACTIVE | EDITING | DELETING | ERROR
+- `type` (String) The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.
+  - example : IGW | GGW | SIGW
+- `vpc_id` (String) The identifier of the VPC that the internet gateway belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the internet gateway belongs to.
+  - example : vpcName

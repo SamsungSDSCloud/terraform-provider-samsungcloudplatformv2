@@ -42,12 +42,12 @@ variable "loadbalancer_id" {
 
 Optional:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `external_ip_address` (String) ExternalIpAddress
-- `id` (String) Id
-- `internal_ip_address` (String) InternalIpAddress
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `private_nat_ip_id` (String) PrivateNatIpId
-- `state` (String) State
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `external_ip_address` (String) The external IP address.
+- `id` (String) The unique identifier of the Private NAT IP.
+- `internal_ip_address` (String) The internal IP address.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.
+- `private_nat_ip_id` (String) The private NAT IP ID.
+- `state` (String) The current state of the Private NAT IP (CREATING, ACTIVE, DELETING, ERROR).

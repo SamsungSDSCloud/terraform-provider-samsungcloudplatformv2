@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_iam_users Data Source - samsungcloudplatformv2"
 subcategory: User
 description: |-
-  Show Users.
+  Show IAM Users
 ---
 
 # samsungcloudplatformv2_iam_users (Data Source)
 
-Show Users.
+Show IAM Users
 
 ## Example Usage
 
@@ -72,59 +72,93 @@ variable "account_id" {
 
 ### Optional
 
-- `account_id` (String) Account ID
-- `email` (String) Email
+- `account_id` (String) Account ID to filter users.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `email` (String) Filter users by email address.
+  - example : 'user@example.com'
 - `page` (Number) Page (between 0 and 10000)
+  - example : 0
 - `size` (Number) Size (between 1 and 10000)
-- `sort` (String) Sort
-- `type` (String) User Type
-- `user_name` (String) User Name
-- `users` (Attributes List) A list of user. (see [below for nested schema](#nestedatt--users))
+  - example : 100
+- `sort` (String) Sort order for results (e.g., 'createdAt,desc').
+  - example : 'createdAt,desc'
+- `type` (String) Filter users by type.
+  - example : 'scp'
+- `user_name` (String) Filter users by username.
+  - example : 'john.doe'
+- `users` (Attributes List) List of users matching the filter criteria. (see [below for nested schema](#nestedatt--users))
 
 <a id="nestedatt--users"></a>
 ### Nested Schema for `users`
 
 Optional:
 
-- `company_name` (String) Company Name
-- `console_url` (String) Console URL
-- `first_name` (String) First Name
-- `last_login_at` (String) Last Login At
-- `last_name` (String) Last Name
-- `password` (String) Password
+- `company_name` (String) Company name of the user.
+  - example : 'Samsung SDS'
+- `console_url` (String) URL to access the console.
+  - example : 'https://console.example.com'
+- `first_name` (String) First name of the user.
+  - example : 'John'
+- `last_login_at` (String) Timestamp when the user last logged in.
+  - example : '2024-01-01T00:00:00Z'
+- `last_name` (String) Last name of the user.
+  - example : 'Doe'
+- `password` (String) User password (masked for security).
+  - example: YOUR RESOURCE'S PASSWORD
 - `policies` (Attributes List) Policies (see [below for nested schema](#nestedatt--users--policies))
 
 Read-Only:
 
 - `access_keys` (Attributes List) Access Keys (see [below for nested schema](#nestedatt--users--access_keys))
-- `account_id` (String) Account ID
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `description` (String) Description
-- `dst_offset` (String) Dst Offset
-- `email` (String) Email
-- `email_authenticated` (Boolean) Email Authenticated
+- `account_id` (String) Account ID of the user.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) Timestamp when the user was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the user.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Human-readable description of the user.
+  - example : 'My user description'
+- `dst_offset` (String) Daylight saving time offset.
+  - example : '+09:00'
+- `email` (String) Email address of the user.
+  - example : 'user@example.com'
+- `email_authenticated` (Boolean) Whether the email has been authenticated.
+  - example : true
 - `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--users--groups))
-- `id` (String) ID
-- `last_password_update_at` (String) Last Password Update At
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `name` (String) Name
-- `password_reuse_count` (Number) Password Reuse Count
-- `phone_authenticated` (Boolean) Phone Authenticated
-- `timezone` (String) Timezone
-- `type` (String) Type
-- `tz_id` (String) TZ ID
-- `user_name` (String) User Name
-- `utc_offset` (String) UTC Offset
+- `id` (String) Unique identifier of the user.
+  - example: YOUR RESOURCE'S ID
+- `last_password_update_at` (String) Timestamp when the password was last updated.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_at` (String) Timestamp when the user was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the user.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) User name.
+  - example : 'John Doe'
+- `password_reuse_count` (Number) Number of previous passwords that cannot be reused.
+  - example : 3
+- `phone_authenticated` (Boolean) Whether the phone number has been authenticated.
+  - example : true
+- `timezone` (String) Timezone of the user.
+  - example : 'Asia/Seoul'
+- `type` (String) Type of user.
+  - example : 'IAM'
+- `tz_id` (String) Timezone ID.
+  - example: YOUR RESOURCE'S TZ_ID
+- `user_name` (String) Unique username.
+  - example : 'john.doe'
+- `utc_offset` (String) UTC offset of the user.
+  - example : '+09:00'
 
 <a id="nestedatt--users--policies"></a>
 ### Nested Schema for `users.policies`
 
 Read-Only:
 
-- `id` (String) ID
-- `name` (String) Name
+- `id` (String) Policy ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Policy name.
+  - example : 'MyPolicy'
 
 
 <a id="nestedatt--users--access_keys"></a>
@@ -132,11 +166,16 @@ Read-Only:
 
 Read-Only:
 
-- `access_key` (String) Access Key
-- `created_at` (String) Created At
-- `expiration_timestamp` (String) Expiration Timestmap
-- `id` (String) ID
-- `is_enabled` (Boolean) Is Enabled
+- `access_key` (String) The access key string value.
+  - example : 'ak-example-access-key-id'
+- `created_at` (String) Timestamp when the access key was created.
+  - example : '2024-01-01T00:00:00Z'
+- `expiration_timestamp` (String) Timestamp when the access key expires.
+  - example : '2024-01-02T00:00:00Z'
+- `id` (String) Unique identifier of the access key.
+  - example: YOUR RESOURCE'S ID
+- `is_enabled` (Boolean) Whether the access key is enabled/active.
+  - example : true
 
 
 <a id="nestedatt--users--groups"></a>
@@ -144,5 +183,7 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) Group ID
-- `name` (String) Group Name
+- `id` (String) Group ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Group name.
+  - example : 'MyGroup'

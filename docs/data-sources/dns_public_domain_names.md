@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_dns_public_domain_names Data Source - samsungcloudplatformv2"
 subcategory: DNS
 description: |-
-  list of public domain name.
+  Provides a list of public domain names.
 ---
 
 # samsungcloudplatformv2_dns_public_domain_names (Data Source)
 
-list of public domain name.
+Provides a list of public domain names.
 
 ## Example Usage
 
@@ -34,31 +34,46 @@ variable "size" {
 
 ### Optional
 
-- `created_by` (String) CreatedBy
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `name` (String) The name to filter public domain names by.
+  - example : example.com
+- `page` (Number) The page number for pagination.
+  - example : 0
+- `size` (Number) The number of items per page.
+  - example : 20
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : created_at:asc
 
 ### Read-Only
 
-- `public_domain_names` (Attributes List) A list of PublicDomainName. (see [below for nested schema](#nestedatt--public_domain_names))
+- `public_domain_names` (Attributes List) List of public domain names matching the query. (see [below for nested schema](#nestedatt--public_domain_names))
 
 <a id="nestedatt--public_domain_names"></a>
 ### Nested Schema for `public_domain_names`
 
 Optional:
 
-- `expired_date` (String) ExpiredDate
-- `id` (String) Id
-- `name` (String) Name
-- `register_email` (String) Register email
-- `start_date` (String) StartDate
-- `status` (String) Status
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `expired_date` (String) The expiration date of the domain registration.
+  - example : 2025-12-31
+- `id` (String) The unique identifier of the public domain name.
+  - example: YOUR RESOURCE'S ID
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the public domain name.
+  - example : example.com
+- `register_email` (String) The email address of the domain registrant.
+  - example : user@example.com
+- `start_date` (String) The start date of the domain registration.
+  - example : 2024-01-01
+- `status` (String) The current status of the public domain name.
+  - example : REGISTERED
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z

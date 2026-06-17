@@ -16,8 +16,6 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_backup_backups" "ids" {
-  region = var.region
-
   server_name = var.server_name
   name = var.name
 
@@ -32,11 +30,6 @@ output "ids" {
   value = data.samsungcloudplatformv2_backup_backups.ids
 }
 
-
-variable "region" {
-  type    = string
-  default = "kr-west1"
-}
 
 variable "server_name" {
   type    = string
@@ -70,13 +63,15 @@ variable "backups_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `name` (String) Backup name
-- `region` (String) Region
-- `server_name` (String) Backup server name
+- `name` (String) Backup name 
+  - example: 'terraformtestbackup01'
+- `server_name` (String) Backup server name 
+  - example: 'terraformbackupserver01'
 
 ### Read-Only
 
-- `ids` (List of String) Backup ID List
+- `ids` (List of String) Backup ID List 
+   - example: ['YOUR RESOURCE'S IDS']
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -84,5 +79,8 @@ variable "backups_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

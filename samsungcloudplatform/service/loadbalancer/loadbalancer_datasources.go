@@ -3,11 +3,11 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,96 +43,96 @@ func (d *loadbalancerLoadbalancerDataSources) Schema(_ context.Context, _ dataso
 		Description: "Get List of Loadbalancers.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
+				Description: "The number of items per page.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
+				Description: "The page number.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
+				Description: "The sort order.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
+				Description: "The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
 				Optional:    true,
 			},
 			common.ToSnakeCase("ServiceIp"): schema.StringAttribute{
-				Description: "ServiceIp",
+				Description: "The service IP address.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "SubnetId",
+				Description: "The subnet ID where the resource is located.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VpcId",
+				Description: "The VPC ID where the resource is located.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("Loadbalancers"): schema.ListNestedAttribute{
-				Description: "A list of Loadbalancers.",
+				Description: "List of LoadBalancers.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
+							Description: "The unique identifier of the LoadBalancer.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
+							Description: "The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
 							Optional:    true,
 						},
 						common.ToSnakeCase("ServiceIp"): schema.StringAttribute{
-							Description: "ServiceIp",
+							Description: "The service IP address.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("SourceNatIp"): schema.StringAttribute{
-							Description: "SourceNatIp",
+							Description: "The source NAT IP address.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
+							Description: "The current state of the Load Balancer (CREATING, ACTIVE, DELETING, ERROR).",
 							Optional:    true,
 						},
 						common.ToSnakeCase("ListenerCount"): schema.Int32Attribute{
-							Description: "ListenerCount",
+							Description: "The number of listeners.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("PublicNatEnabled"): schema.BoolAttribute{
-							Description: "PublicNatEnabled",
+							Description: "Whether public NAT is enabled.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("LayerType"): schema.StringAttribute{
-							Description: "LayerType",
+							Description: "The layer type of the Load Balancer (L4, L7).",
 							Optional:    true,
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-							Description: "SubnetId",
+							Description: "The subnet ID where the resource is located.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "VpcId",
+							Description: "The VPC ID where the resource is located.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-							Description: "FirewallId",
+							Description: "The firewall ID.",
 							Optional:    true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "created at",
+							Description: "The timestamp when the resource was created, in ISO 8601 format.",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "created by",
+							Description: "The user id that created the resource.",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "modified at",
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "modified by",
+							Description: "The user id that last modified the resource.",
 							Computed:    true,
 						},
 					},

@@ -5,9 +5,9 @@ import (
 	"math"
 	"net/http"
 
-	virtualservercommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
+	virtualservercommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/virtualserver/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -345,21 +345,43 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 	blankSourceType, _ := scpvirtualserver.NewVolumeSourceTypeFromValue("blank")
 
 	defaultVolumeType, _ := client.GetDefaultVolumeType(ctx)
-	volumeType := request.BootVolume.Type.ValueStringPointer()
-	if request.BootVolume.Type.IsNull() || request.BootVolume.Type.IsUnknown() {
+
+	// Convert BootVolume from types.Object to ServerResourceVolume
+	var bootVolume ServerResourceVolume
+	if !request.BootVolume.IsNull() && !request.BootVolume.IsUnknown() {
+		attrs := request.BootVolume.Attributes()
+		if v, ok := attrs["type"]; ok {
+			bootVolume.Type = v.(types.String)
+		}
+		if v, ok := attrs["delete_on_termination"]; ok {
+			bootVolume.DeleteOnTermination = v.(types.Bool)
+		}
+		if v, ok := attrs["size"]; ok {
+			bootVolume.Size = v.(types.Int32)
+		}
+		if v, ok := attrs["max_iops"]; ok {
+			bootVolume.MaxIops = v.(types.Int32)
+		}
+		if v, ok := attrs["max_throughput"]; ok {
+			bootVolume.MaxThroughput = v.(types.Int32)
+		}
+	}
+
+	volumeType := bootVolume.Type.ValueStringPointer()
+	if bootVolume.Type.IsNull() || bootVolume.Type.IsUnknown() {
 		volumeType = defaultVolumeType.Name.Get()
 	}
-	deleteOnTermination := request.BootVolume.DeleteOnTermination.ValueBoolPointer()
-	if request.BootVolume.DeleteOnTermination.IsNull() || request.BootVolume.DeleteOnTermination.IsUnknown() {
+	deleteOnTermination := bootVolume.DeleteOnTermination.ValueBoolPointer()
+	if bootVolume.DeleteOnTermination.IsNull() || bootVolume.DeleteOnTermination.IsUnknown() {
 		deleteOnTermination = nil
 	}
 
-	bootVolumeMaxIops := request.BootVolume.MaxIops.ValueInt32Pointer()
-	if request.BootVolume.MaxIops.IsNull() || request.BootVolume.MaxIops.IsUnknown() {
+	bootVolumeMaxIops := bootVolume.MaxIops.ValueInt32Pointer()
+	if bootVolume.MaxIops.IsNull() || bootVolume.MaxIops.IsUnknown() {
 		bootVolumeMaxIops = nil
 	}
-	bootVolumeMaxThroughput := request.BootVolume.MaxThroughput.ValueInt32Pointer()
-	if request.BootVolume.MaxThroughput.IsNull() || request.BootVolume.MaxThroughput.IsUnknown() {
+	bootVolumeMaxThroughput := bootVolume.MaxThroughput.ValueInt32Pointer()
+	if bootVolume.MaxThroughput.IsNull() || bootVolume.MaxThroughput.IsUnknown() {
 		bootVolumeMaxThroughput = nil
 	}
 	volumeState := scpvirtualserver.VolumeV1Dot2{
@@ -367,7 +389,7 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 		DeleteOnTermination: *scpvirtualserver.NewNullableBool(deleteOnTermination),
 		MaxIops:             *scpvirtualserver.NewNullableInt32(bootVolumeMaxIops),
 		MaxThroughput:       *scpvirtualserver.NewNullableInt32(bootVolumeMaxThroughput),
-		Size:                request.BootVolume.Size.ValueInt32(),
+		Size:                bootVolume.Size.ValueInt32(),
 		SourceType:          *scpvirtualserver.NewNullableVolumeSourceType(imageSourceType),
 		Type:                *scpvirtualserver.NewNullableString(volumeType),
 	}

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpn_vpn_gateway Resource - samsungcloudplatformv2"
 subcategory: VPN Gateway
 description: |-
-  Vpn gateway
+  Manages VPN gateways to connect external networks securely.
 ---
 
 # samsungcloudplatformv2_vpn_vpn_gateway (Resource)
 
-Vpn gateway
+Manages VPN gateways to connect external networks securely.
 
 
 
@@ -16,47 +16,66 @@ Vpn gateway
 
 ### Required
 
-- `ip_address` (String) Ip Address
-  - example : 123.0.0.1
-- `ip_id` (String) Identifier of the IP
+- `ip_address` (String) The IP address assigned to the resource.
+  - example: 10.0.0.0/24
+- `ip_id` (String) The identifier of the IP address assigned to the resource.
   - example: YOUR RESOURCE'S IP_ID
-- `ip_type` (String) Type of IP
-  - example : PUBLIC
-- `name` (String) Name
-  - example : ExampleVpnGW1
-- `vpc_id` (String) Identifier of the VPC
+- `ip_type` (String) The type of the IP address assigned to the resource.
+  - example: PUBLIC
+  - valid: PUBLIC
+- `name` (String) The name of the resource.
+  - example: vpnGWProd
+  - valid: English letters and numbers only
+  - constraints: minLength: 1, maxLength: 20
+- `vpc_id` (String) The identifier of the VPC that the resource belongs to.
   - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
-- `description` (String) Description
-  - example : Description for VPN Gateway
+- `description` (String) A brief explanation or note about this resource.
+  - example: VPN test
+  - constraints: maxLength: 40
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
+- `id` (String) The unique identifier of the resource.
   - example: YOUR RESOURCE'S ID
-- `vpn_gateway` (Attributes) Vpn gateway (see [below for nested schema](#nestedatt--vpn_gateway))
+- `vpn_gateway` (Attributes) The identifier of the VPN gateway that the resource belongs to.
+  - example: 01c543eb4b8d42a9a3502345d4025147 (see [below for nested schema](#nestedatt--vpn_gateway))
 
 <a id="nestedatt--vpn_gateway"></a>
 ### Nested Schema for `vpn_gateway`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `ip_address` (String) IpAddress
-- `ip_id` (String) IpId
-- `ip_type` (String) IpType
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `state` (String) State
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example: 2025-01-15T10:30:00Z
+- `created_by` (String) The user ID that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) A brief explanation or note about this resource.
+  - example: VPN test
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `ip_address` (String) The IP address assigned to the resource.
+  - example: 10.0.0.0/24
+- `ip_id` (String) The identifier of the IP address assigned to the resource.
+  - example: YOUR RESOURCE'S IP_ID
+- `ip_type` (String) The type of the IP address assigned to the resource.
+  - example: PUBLIC
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example: 2025-06-01T14:22:00Z
+- `modified_by` (String) The user ID that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the resource.
+  - example: vpnGWProd
+- `state` (String) The current state of the resource.
+  - example: ACTIVE
+- `vpc_id` (String) The identifier of the VPC that the resource belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the resource belongs to.
+  - example: vpcProd01

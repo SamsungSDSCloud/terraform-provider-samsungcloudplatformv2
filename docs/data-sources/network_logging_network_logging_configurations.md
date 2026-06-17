@@ -63,24 +63,24 @@ variable "resource_type" {
 
 ### Required
 
-- `resource_type` (String) ResourceType 
+- `resource_type` (String) Type of the Resource. 
   - example : FIREWALL | SECURITY_GROUP | NAT
 
 ### Optional
 
-- `limit` (Number) Limit 
+- `limit` (Number) Number of items returned per page. 
   - example : 10 
   - maximum : 10000 
   - minimum : 1
-- `marker` (String) Marker 
+- `marker` (String) Pagination Start ID. 
   - example : 607e0938521643b5b4b266f343fae693 
   - maxLength : 64 
   - minLength : 1
-- `resource_id` (String) ResourceId 
+- `resource_id` (String) Identifier of the Resource. 
   - example: YOUR RESOURCE'S RESOURCE_ID
-- `resource_name` (String) ResourceName 
-  - example : FW_IGW_xxxxxx
-- `sort` (String) Sort 
+- `resource_name` (String) Name of the Resource. 
+  - example : FW_IGW_example
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. 
   - example : created_at:desc
 
 ### Read-Only
@@ -92,16 +92,29 @@ variable "resource_type" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `bucket_name` (String) BucketName
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `down_interface` (String) DownInterface
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `resource_id` (String) ResourceId
-- `resource_name` (String) ResourceName
-- `resource_type` (String) ResourceType
-- `security_group_log_id` (String) SecurityGroupLogId
-- `up_interface` (String) UpInterface
+- `account_id` (String) Identifier of the Account. 
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `bucket_name` (String) Name of the Bucket. 
+  - example : bucket_name
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format. 
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource. 
+  - example: YOUR RESOURCE'S CREATED_BY
+- `down_interface` (String) Interface Name fo the Down Direction. 
+  - example : IFW1-v1234dn
+- `id` (String) Identifier of the Network Logging Configuration. 
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format. 
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource. 
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `resource_id` (String) Identifier of Resource. 
+  - example: YOUR RESOURCE'S RESOURCE_ID
+- `resource_name` (String) Name of the Resource. 
+  - example : FW_IGW_example
+- `resource_type` (String) Type of the Resource. 
+  - example : FIREWALL | SECURITY_GROUP | NAT
+- `security_group_log_id` (String) Log Identifier of the SecurityGroup. 
+  - example: YOUR RESOURCE'S SECURITY_GROUP_LOG_ID
+- `up_interface` (String) Interface Name of the Up Direction. 
+  - example : IFW1-v1234up

@@ -3,10 +3,11 @@ package resourcemanager
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,33 +42,40 @@ func (d *resourceManagerTagDataSource) Schema(_ context.Context, _ datasource.Sc
 		Description: "list of resource tag.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Key"): schema.StringAttribute{
-				Description: "Tag Key",
-				Optional:    true,
+				Description:         "Tag key.",
+				MarkdownDescription: "The key of the tag.\n\nExample: `Environment`",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Value"): schema.StringAttribute{
-				Description: "Tag Value",
-				Optional:    true,
+				Description:         "Tag value.",
+				MarkdownDescription: "The value of the tag.\n\nExample: `Production`",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ResourceIdentifier"): schema.StringAttribute{
-				Description: "Resource Identifier",
-				Optional:    true,
+				Description:         "Resource Identifier",
+				MarkdownDescription: "The ID of the resource.\n\nExample: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Content"): schema.ListNestedAttribute{
-				Description: "A list of tag.",
-				Computed:    true,
+				Description:         "This is set data of SRNs and tags.",
+				MarkdownDescription: "This is set data of SRNs and tags.\n\nExample: See nested attributes below.",
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Srn"): schema.StringAttribute{
-							Description: "Srn",
-							Computed:    true,
+							Description:         "System Resource Name.",
+							MarkdownDescription: "The System Resource Name (SRN) of the resource group.\n\nExample: `srn:s::13d97ad943ca452481d624f78391df13:kr-west1::resourcemanager:resource-group/70636f984e564b3c9e54e74a53f9318d`",
+							Computed:            true,
 						},
 						common.ToSnakeCase("Key"): schema.StringAttribute{
-							Description: "Key",
-							Computed:    true,
+							Description:         "Tag key.",
+							MarkdownDescription: "The key of the tag.\n\nExample: `Environment`",
+							Computed:            true,
 						},
 						common.ToSnakeCase("Value"): schema.StringAttribute{
-							Description: "Value",
-							Computed:    true,
+							Description:         "Tag value.",
+							MarkdownDescription: "The value of the tag.\n\nExample: `Production`",
+							Computed:            true,
 						},
 					},
 				},

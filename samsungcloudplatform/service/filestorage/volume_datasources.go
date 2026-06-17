@@ -3,10 +3,10 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -71,15 +71,16 @@ func (d *fileStorageVolumeDataSources) Schema(_ context.Context, _ datasource.Sc
 				},
 			},
 			common.ToSnakeCase("TypeName"): schema.StringAttribute{
-				Description: "Volume Type Name \n" +
-					"  - example : 'HDD' \n" +
+				Description: "The storage tier type for filtering volumes. Valid values: HDD (standard HDD), SSD (solid-state drive), HighPerformanceSSD (high-performance SSD), SSD_SAP_S (SAP standard), SSD_SAP_E (SAP enterprise). \n" +
+					"  - example: 'HDD' \n" +
 					"  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$` \n",
 				Optional: true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
-				Description: "Volume ID List",
+				Description: "Volume ID List \n" +
+					"  - example: ['bfdbabf2-04d9-4e8b-a205-020f8e6da438'] \n",
 			},
 		},
 	}

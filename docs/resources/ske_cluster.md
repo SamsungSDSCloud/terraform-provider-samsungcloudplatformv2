@@ -101,7 +101,9 @@ variable "service_watch_logging_enabled" {
   - example: true
 - `kubernetes_version` (String) Cluster Version
   - pattern: ^v[0-9]{1}\.[0-9]{1,2}\.[0-9]{1,2}$
-  - example: v1.29.8
+  - pattern: v1.31.X|v1.32.X|v1.33.X|v1.34.X
+  - example: v1.34.3
+  - Use the samsungcloudplatformv2_ske_kubernetes_versions data source to query the SKE service for all Kubernetes versions supported. (ex v1.31.X|v1.32.X|v1.33.X|v1.34.X)
 - `name` (String) Cluster Name
   - maxLength: 30
   - minLength: 3
@@ -114,13 +116,14 @@ variable "service_watch_logging_enabled" {
 - `subnet_id` (String) Subnet ID
   - example: YOUR RESOURCE'S SUBNET_ID
 - `volume_id` (String) Volume ID
-  - example: ['YOUR RESOURCE'S VOLUME_ID']
+  - example: YOUR RESOURCE'S VOLUME_ID
 - `vpc_id` (String) VPC ID
   - example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
-- `private_endpoint_access_control_resources` (Attributes List) Private Endpoint Access Control Resources (see [below for nested schema](#nestedatt--private_endpoint_access_control_resources))
+- `private_endpoint_access_control_resources` (Attributes List) Private Endpoint Access Control Resources
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name', type='vm'} (see [below for nested schema](#nestedatt--private_endpoint_access_control_resources))
 - `public_endpoint_access_control_ip` (String) Public Endpoint Access Control IP
   - example: 192.168.0.0
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
@@ -129,8 +132,10 @@ variable "service_watch_logging_enabled" {
 
 ### Read-Only
 
-- `cluster` (Attributes) (see [below for nested schema](#nestedatt--cluster))
+- `cluster` (Attributes) Cluster
+ - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_cluster#nested-schema-for-cluster (see [below for nested schema](#nestedatt--cluster))
 - `id` (String) Identifier of the resource.
+ - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--private_endpoint_access_control_resources"></a>
 ### Nested Schema for `private_endpoint_access_control_resources`
@@ -142,6 +147,7 @@ Required:
 - `name` (String) Private Endpoint Access Control Resource Name
   - example: sample-name
 - `type` (String) Private Endpoint Access Control Resource Type
+  - pattern: vm|bm|gpuvm|mngc|devops
   - example: vm
 
 
@@ -163,8 +169,12 @@ Read-Only:
 - `id` (String) ID
   - example: YOUR RESOURCE'S ID
 - `kubernetes_version` (String) Cluster Version
-  - example: v1.29.8
-- `managed_security_group` (Attributes) Managed Security Group (see [below for nested schema](#nestedatt--cluster--managed_security_group))
+  - pattern: ^v[0-9]{1}\.[0-9]{1,2}\.[0-9]{1,2}$
+  - pattern: v1.31.X|v1.32.X|v1.33.X|v1.34.X
+  - example: v1.34.3
+  - Use the samsungcloudplatformv2_ske_kubernetes_versions data source to query the SKE service for all Kubernetes versions supported. (ex v1.31.X|v1.32.X|v1.33.X|v1.34.X)
+- `managed_security_group` (Attributes) Managed Security Group
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--managed_security_group))
 - `max_node_count` (Number) Cluster Max Node Count
   - example: 5
 - `modified_at` (String) Modified At
@@ -175,25 +185,33 @@ Read-Only:
   - example: sample-cluster
 - `node_count` (Number) Cluster Node Count
   - example: 5
-- `private_endpoint_access_control_resources` (Attributes List) Private Endpoint Access Control Resources (see [below for nested schema](#nestedatt--cluster--private_endpoint_access_control_resources))
-- `private_endpoint_url` (String) Private Kubeconfig Download Yn
-  - example: N
-- `private_kubeconfig_download_yn` (String) Private Endpoint URL
+- `private_endpoint_access_control_resources` (Attributes List) Private Endpoint Access Control Resources
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name', type='vm'} (see [below for nested schema](#nestedatt--cluster--private_endpoint_access_control_resources))
+- `private_endpoint_url` (String) Private Endpoint URL
   - example: https://sample-cluster.ske.private.kr-west1.samsungsdscloud.com:6443
+- `private_kubeconfig_download_yn` (String) Private Kubeconfig Download Yn
+  - pattern: Y|N
+  - example: N
 - `public_endpoint_access_control_ip` (String) Public Endpoint Access Control IP
   - example: 192.168.0.0
 - `public_endpoint_url` (String) Public Endpoint URL
   - example: https://sample-cluster.ske.kr-west1.samsungsdscloud.com:6443
 - `public_kubeconfig_download_yn` (String) Public Kubeconfig Download Yn
+  - pattern: Y|N
   - example: N
-- `security_group_list` (Attributes List) Connected Security Group List (see [below for nested schema](#nestedatt--cluster--security_group_list))
+- `security_group_list` (Attributes List) Connected Security Group List
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--security_group_list))
 - `service_watch_logging_enabled` (Boolean) Service Watch Enabled
   - example: true
 - `status` (String) Cluster Status
+  - pattern: RUNNING|CREATING|UPDATING|DELETING
   - example: RUNNING
-- `subnet` (Attributes) Subnet of Cluster (see [below for nested schema](#nestedatt--cluster--subnet))
-- `volume` (Attributes) Connected File Storage (see [below for nested schema](#nestedatt--cluster--volume))
-- `vpc` (Attributes) VPC of Cluster (see [below for nested schema](#nestedatt--cluster--vpc))
+- `subnet` (Attributes) Subnet of Cluster
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--subnet))
+- `volume` (Attributes) Connected File Storage
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--volume))
+- `vpc` (Attributes) VPC of Cluster
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--vpc))
 
 <a id="nestedatt--cluster--managed_security_group"></a>
 ### Nested Schema for `cluster.managed_security_group`
@@ -216,6 +234,7 @@ Read-Only:
 - `name` (String) Private Endpoint Access Control Resource Name
   - example: sample-name
 - `type` (String) Private Endpoint Access Control Resource Type
+  - pattern: vm |bm|gpuvm|mngc|devops
   - example: vm
 
 

@@ -5,9 +5,9 @@ variable "diagnosis_id" {
 }
 
 variable "access_key" {
-  description = "Access Key"
+  description = "Your API access key"
   type        = string
-  default     = "b19a2ee194744c21874935863f9e88e3"
+  default     = "b19a2ee194744c2187xxxxxxxxxxxxxx"
 }
 
 variable "diagnosis_check_type" {
@@ -17,13 +17,13 @@ variable "diagnosis_check_type" {
 }
 
 variable "secret_key" {
-  description = "Secret Key"
+  description = "Your API secret key"
   type        = string
   default     = ""
 }
 
 variable "tenant_id" {
-  description = "Tenant ID"
+  description = "Your tenant ID"
   type        = string
   default     = "ENTER YOUR RESOURCE'S TENANT_ID"
 }

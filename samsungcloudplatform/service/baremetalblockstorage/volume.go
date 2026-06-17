@@ -4,22 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetalblockstorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/baremetalblockstorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -29,8 +31,9 @@ import (
 )
 
 var (
-	_ resource.ResourceWithConfigure  = &baremetalBlockStorageVolume{}
-	_ resource.ResourceWithModifyPlan = &baremetalBlockStorageVolume{}
+	_ resource.ResourceWithConfigure   = &baremetalBlockStorageVolume{}
+	_ resource.ResourceWithModifyPlan  = &baremetalBlockStorageVolume{}
+	_ resource.ResourceWithImportState = &baremetalBlockStorageVolume{}
 )
 
 func NewBaremetalBlockStorageVolumeResource() resource.Resource {
@@ -51,8 +54,7 @@ func (r *baremetalBlockStorageVolume) Schema(ctx context.Context, request resour
 	response.Schema = schema.Schema{
 		Description: "Block Storage(BM)",
 		Attributes: map[string]schema.Attribute{
-			"region": region.ResourceSchema(),
-			"tags":   tag.ResourceSchema(),
+			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("id"): schema.StringAttribute{
 				Description: "Volume id. \n" +
 					"  - example: 8bf55e738d4e44b5a21dbe133a42ecbe \n",
@@ -98,7 +100,10 @@ func (r *baremetalBlockStorageVolume) Schema(ctx context.Context, request resour
 					"  - example : [{object_type='BM', object_id='83c3c73d457345e3829ee6d5557c0011'}] \n" +
 					"  - maxLength : 8 \n" +
 					"  - minLength : 1 \n",
-
+				MarkdownDescription: "List of server id and type. \n" +
+					"  - example : [{object_type='BM', object_id='YOUR RESOURCE'S OBJECT_ID'}] \n" +
+					"  - maxLength : 8 \n" +
+					"  - minLength : 1 \n",
 				Required: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -112,7 +117,7 @@ func (r *baremetalBlockStorageVolume) Schema(ctx context.Context, request resour
 							},
 						},
 						"object_id": schema.StringAttribute{
-							Description: "Object id. \n" +
+							Description: "BM or MNGC id. \n" +
 								"  - example : 83c3c73d457345e3829ee6d5557c0016",
 							Required: true,
 						},
@@ -212,10 +217,6 @@ func (r *baremetalBlockStorageVolume) ModifyPlan(ctx context.Context, request re
 		response.Diagnostics.AddError("Could not change disk_type",
 			"Could not change disk_type.\nIf you want to change, create a new resource.")
 	}
-	if !state.Region.Equal(plan.Region) {
-		response.Diagnostics.AddError("Could not change region",
-			"Could not change region.\nIf you want to change, create a new resource.")
-	}
 	if plan.DiskType.ValueString() == "HDD" && !plan.QoS.IsNull() {
 		response.Diagnostics.AddError("Could not set QoS to HDD",
 			"If the disk type is HDD, QoS settings cannot be configured.")
@@ -232,10 +233,6 @@ func (r *baremetalBlockStorageVolume) Create(ctx context.Context, request resour
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
-	}
-
-	if !plan.Region.IsNull() {
-		r.client.Config.Region = plan.Region.ValueString()
 	}
 
 	createTimeout, diags := plan.Timeouts.Create(ctx, 30*time.Minute)
@@ -292,6 +289,10 @@ func (r *baremetalBlockStorageVolume) Create(ctx context.Context, request resour
 	}
 }
 
+func (r *baremetalBlockStorageVolume) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
 func (r *baremetalBlockStorageVolume) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
 	var state baremetalblockstorage.VolumeResource
 	diags := request.State.Get(ctx, &state)
@@ -300,13 +301,12 @@ func (r *baremetalBlockStorageVolume) Read(ctx context.Context, request resource
 		return
 	}
 
-	if !state.Region.IsNull() {
-		r.client.Config.Region = state.Region.ValueString()
-		r.clients.Iam.Config.Region = state.Region.ValueString()
-	}
-
-	volumeResponse, _, err := r.client.GetBlockStorage(ctx, state.Id.ValueString())
+	volumeResponse, httpStatus, err := r.client.GetBlockStorage(ctx, state.Id.ValueString())
 	if err != nil {
+		if httpStatus == http.StatusNotFound {
+			response.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError("Error Reading Block Storage(BM)",
 			"Could not read Block Storage(BM), unexpected error:"+err.Error()+"\nReason: "+detail)
@@ -314,32 +314,49 @@ func (r *baremetalBlockStorageVolume) Read(ctx context.Context, request resource
 	}
 	blockStorage := volumeResponse.Result
 
-	refreshBlockStorageName := types.StringPointerValue(blockStorage.Name)
-	if !state.Name.Equal(refreshBlockStorageName) {
-		//state.Name = refreshBlockStorageName
-		response.Diagnostics.AddWarning("Warning Reading Block Storage(BM)",
-			"The name of the Block Storage has been modified.\n"+
-				"Cannot modify the name in Terraform.\n"+
-				"You must manually modify the \".tfstate\", \".tf\" file or roll back the name in the console.\n"+
-				"Current: "+refreshBlockStorageName.String()+"\n"+
-				"Previous: "+state.Name.String())
-	}
+	state.Name = types.StringPointerValue(blockStorage.Name)
+	state.DiskType = types.StringValue(string(*blockStorage.DiskType))
+	state.SizeGb = types.Int32PointerValue(blockStorage.SizeGb)
 
-	attachments := make([]baremetalblockstorage.Attachment, 0)
-	for _, attachment := range blockStorage.Attachments {
-		elems := baremetalblockstorage.Attachment{
-			ObjectId:   types.StringPointerValue(attachment.Id),
-			ObjectType: types.StringValue(string(*attachment.Type)),
+	currentAttachmentMap := make(map[string]baremetalblockstorage.Attachment)
+	for _, att := range blockStorage.Attachments {
+		currentAttachmentMap[*att.Id] = baremetalblockstorage.Attachment{
+			ObjectId:   types.StringPointerValue(att.Id),
+			ObjectType: types.StringValue(string(*att.Type)),
 		}
-
-		attachments = append(attachments, elems)
 	}
-	state.Attachments = attachments
+
+	newAttachments := make([]baremetalblockstorage.Attachment, 0)
+	for _, userInput := range state.Attachments {
+		if serverAtt, ok := currentAttachmentMap[userInput.ObjectId.ValueString()]; ok {
+			newAttachments = append(newAttachments, serverAtt)
+		}
+	}
+	state.Attachments = newAttachments
+
+	if blockStorage.HasQos() {
+		qosObj, diags2 := types.ObjectValue(
+			map[string]attr.Type{
+				"iops":       types.Int32Type,
+				"throughput": types.Int32Type,
+			},
+			map[string]attr.Value{
+				"iops":       types.Int32Value(blockStorage.Qos.Iops),
+				"throughput": types.Int32Value(blockStorage.Qos.Throughput),
+			},
+		)
+		response.Diagnostics.Append(diags2...)
+		if response.Diagnostics.HasError() {
+			return
+		}
+		state.QoS = qosObj
+	}
+
 	tagsMap, err := tag.GetTags(r.clients, "baremetal-blockstorage", "volume", *blockStorage.Id)
 	if err != nil {
 		response.Diagnostics.AddError("Error Reading Block Storage(BM)", err.Error())
 	}
-	state.Tags = tagsMap
+	state.Tags = common.NullTagCheck(tagsMap, state.Tags)
 
 	diags = response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)
@@ -356,11 +373,6 @@ func (r *baremetalBlockStorageVolume) Update(ctx context.Context, request resour
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
-	}
-
-	if !state.Region.IsNull() {
-		r.client.Config.Region = state.Region.ValueString()
-		r.clients.Iam.Config.Region = state.Region.ValueString()
 	}
 
 	beforeAttachmentMap := make(map[string]string)
@@ -448,11 +460,6 @@ func (r *baremetalBlockStorageVolume) Delete(ctx context.Context, request resour
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
-	}
-
-	if !state.Region.IsNull() {
-		r.client.Config.Region = state.Region.ValueString()
-		r.clients.Iam.Config.Region = state.Region.ValueString()
 	}
 
 	blockStorageId := state.Id.ValueString()

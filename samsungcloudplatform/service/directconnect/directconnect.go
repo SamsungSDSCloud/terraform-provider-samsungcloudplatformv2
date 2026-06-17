@@ -3,25 +3,30 @@ package directconnect
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnect"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpdirectconnect "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/direct-connect/1.0"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/directconnect"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpdirectconnect "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/direct-connect/1.0"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &directConnectDirectConnectResource{}
-	_ resource.ResourceWithConfigure = &directConnectDirectConnectResource{}
+	_ resource.Resource                = &directConnectDirectConnectResource{}
+	_ resource.ResourceWithConfigure   = &directConnectDirectConnectResource{}
+	_ resource.ResourceWithImportState = &directConnectDirectConnectResource{}
 )
 
 // NewDirectConnectDirectConnectResource is a helper function to simplify the provider implementation.
@@ -44,103 +49,134 @@ func (r *directConnectDirectConnectResource) Metadata(_ context.Context, req res
 // Schema defines the schema for the data source.
 func (r *directConnectDirectConnectResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "direct connect",
+		Description: "Direct Connect for connect between a customer's premises and a vpc.",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the direct connect.\n" +
+					"  - example : fe860e0af0c04dcd8182b84f907f31f4",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Bandwidth"): schema.Int32Attribute{
-				Description: "Type \n" +
+				Description: "The bandwidth capacity(1Gpbs, 10Gpbs, 20Gpbs or 40Gpbs) of the connection.\n" +
 					"  - example : 1 | 10 | 20 | 40",
 				Required: true,
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
+				Description: "Enter a brief explanation or note about this direct connect. This help identify the purpose or usage of the resource. \n" +
 					"  - example : Direct Connect description\n" +
 					"  - maxLength : 50\n" +
 					"  - minLength : 1",
 				Optional: true,
 			},
 			common.ToSnakeCase("FirewallEnabled"): schema.BoolAttribute{
-				Description: "Firewall Enabled \n" +
+				Description: "Whether the firewall is enabled for the direct connect.(firewall Enable : true, firewall Diable : false)\n" +
 					"  - example : true | false",
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("FirewallLoggable"): schema.BoolAttribute{
-				Description: "Firewall Loggable \n" +
+				Description: "Whether firewall logging is enabled for the direct connect.(firewall logging Enable : true, firewall logging Diable : false) \n" +
 					"  - example : true | false",
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Direct Connect Name \n" +
-					"  - example : directConnectName",
+				Description: "The name of the direct connect.\n" +
+					"- example : directConnectName",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
-					"  - example : 023c57b14f11483689338d085e061492",
+				Description: "The identifier of the VPC that the direct connect belongs to.\n" +
+					"- example : 023c57b14f11483689338d085e061492",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("DirectConnect"): schema.SingleNestedAttribute{
 				Description: "DirectConnect",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "id",
-						Computed:    true,
+						Description: "Identifier of the direct connect.\n" +
+							"  - example : fe860e0af0c04dcd8182b84f907f31f4",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "name",
-						Computed:    true,
+						Description: "The name of the direct connect.\n" +
+							"  - example : directConnectName",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "account id",
-						Computed:    true,
+						Description: "The identifier of the account that owns the direct connect.\n " +
+							"  - example: 27bb070b564349f8a31cc60734cc36a5",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this direct connect. This help identify the purpose or usage of the resource. \n" +
+							"  - example : Direct Connect description\n" +
+							"  - maxLength : 50\n" +
+							"  - minLength : 1",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "vpc id",
-						Computed:    true,
+						Description: "The identifier of the VPC that the direct connect belongs to.\n" +
+							"- example : 023c57b14f11483689338d085e061492",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "vpc name",
-						Computed:    true,
+						Description: "The name of the VPC that the direct connect belongs to.\n" +
+							"  - example : vpc-prod-01",
+						Computed: true,
 					},
 					common.ToSnakeCase("Bandwidth"): schema.Int32Attribute{
-						Description: "bandwidth",
-						Computed:    true,
+						Description: "The bandwidth capacity(1Gpbs, 10Gpbs, 20Gpbs or 40Gpbs) of the connection.\n" +
+							"  - example : 1 | 10 | 20 | 40",
+						Computed: true,
 					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-						Description: "firewall id",
-						Computed:    true,
+						Description: "The identifier of the firewall associated with the direct connect.\n" +
+							"  - example: 68db67f78abd405da98a6056a8ee42af",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "state",
-						Computed:    true,
+						Description: "The current lifecycle state of the direct connect. \n" +
+							"  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR",
+						Computed: true,
 					},
 				},
 			},
@@ -193,14 +229,26 @@ func (r *directConnectDirectConnectResource) Create(ctx context.Context, req res
 
 	plan.Id = types.StringValue(data.DirectConnect.Id)
 	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	dconModel := createDirectConnectModel(data)
 
 	dconObjectValue, diags := types.ObjectValueFrom(ctx, dconModel.AttributeTypes(), dconModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.DirectConnect = dconObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	err = waitForDirectConnectStatus(ctx, r.client, data.DirectConnect.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -222,6 +270,10 @@ func (r *directConnectDirectConnectResource) Create(ctx context.Context, req res
 	resp.State = readResp.State
 }
 
+func (r *directConnectDirectConnectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
 // Read refreshes the Terraform state with the latest data.
 func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
@@ -235,6 +287,10 @@ func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resou
 	// Get refreshed order value from direct connect
 	data, err := r.client.GetDirectConnect(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading direct connect",
@@ -245,7 +301,22 @@ func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resou
 	dconModel := createDirectConnectModel(data)
 
 	dconObjectValue, diags := types.ObjectValueFrom(ctx, dconModel.AttributeTypes(), dconModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.DirectConnect = dconObjectValue
+
+	// Update top-level input fields from API response to detect drift
+	state.Name = types.StringValue(data.DirectConnect.Name)
+	state.Description = types.StringPointerValue(data.DirectConnect.Description.Get())
+	state.Bandwidth = types.Int32Value(data.DirectConnect.Bandwidth)
+	state.VpcId = types.StringValue(data.DirectConnect.VpcId)
+	if data.DirectConnect.FirewallId.IsSet() && data.DirectConnect.FirewallId.Get() != nil && *data.DirectConnect.FirewallId.Get() != "" {
+		state.FirewallEnabled = types.BoolValue(true)
+	} else {
+		state.FirewallEnabled = types.BoolValue(false)
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -289,6 +360,10 @@ func (r *directConnectDirectConnectResource) Update(ctx context.Context, req res
 	dconModel := createDirectConnectModel(data)
 
 	dconObjectValue, diags := types.ObjectValueFrom(ctx, dconModel.AttributeTypes(), dconModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.DirectConnect = dconObjectValue
 
 	diags = resp.State.Set(ctx, state)
@@ -355,5 +430,5 @@ func waitForDirectConnectStatus(ctx context.Context, directConnectClient *direct
 			return nil, "", err
 		}
 		return info, string(info.DirectConnect.State), nil
-	})
+	}, -1, -1, -1, -1)
 }

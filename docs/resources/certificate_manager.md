@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_certificate_manager Resource - samsungcloudplatformv2"
 subcategory: Certificate Manager
 description: |-
-  certificate manager
+  Certificate manager detail
 ---
 
 # samsungcloudplatformv2_certificate_manager (Resource)
 
-certificate manager
+Certificate manager detail
 
 ## Example Usage
 
@@ -66,7 +66,7 @@ variable "recipients" {
   default = [{
     region    = "Asia/Seoul"
     user_id   = "ENTER YOUR RESOURCE'S USER_ID"
-    user_name = "rk.dthung1@partner.samsung.com"
+    user_name = "userA@samsung.com"
   }]
 }
 
@@ -84,30 +84,30 @@ variable "tags" {
 
 ### Required
 
-- `cert_body` (String) Certificate body
-  - Example: encoded certificate body data
-- `name` (String) Certificate Name
-  - Example: test-certificate
-- `private_key` (String) Private key
-  - Example: encoded private key data
-- `region` (String) Name of region
-  - Example: west1
-- `timezone` (String) Timezone
-  - Example: Asia/Seoul
+- `cert_body` (String) Certificate body.
+  - example : 'encoded certificate body data'
+- `name` (String) Certificate Name.
+  - example : 'test-certificate'
+- `private_key` (String) Encoded private key data.
+  - example : '<encoded private_key data>'
+- `region` (String) Name of region.
+  - example : 'west1'
+- `timezone` (String) Timezone indentifier.
+  - example : 'Asia/Seoul'
 
 ### Optional
 
-- `cert_chain` (String) Certificate chain
-  - Example: encoded certificate chain data
-- `recipients` (List of Map of String) Recipients
-  - Example: [{"region":"","user_id":"sdaFDQSDADZ2488e195c0e97d9b9eb","user_name":"kildong.hong"}]
+- `cert_chain` (String) Certificate chain.
+  - example : 'encoded certificate chain data'
+- `recipients` (List of Map of String) List of recipients.
+  - example : [{"region":"","user_id":"sdaFDQSDADZ2488e195c0e97d9b9eb","user_name":"kildong.hong"}]
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `certificate` (Attributes) Certificate (see [below for nested schema](#nestedatt--certificate))
+- `certificate` (Attributes) Certificate detail (see [below for nested schema](#nestedatt--certificate))
 - `id` (String) Identifier of the resource.
 
 <a id="nestedatt--certificate"></a>
@@ -115,17 +115,17 @@ variable "tags" {
 
 Read-Only:
 
-- `cert_kind` (String) Certificate type
-  - Example: PRD
-- `cn` (String) Certificate Common Name
-  - Example: test.go.kr
-- `id` (String) ID
-  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
-- `name` (String) Certificate Name
-  - Example: test-certificate
-- `not_after_dt` (String) Certificate Expire Date
-  - Example: 2026-02-07T18:07:59
-- `not_before_dt` (String) Certificate Start Date
-  - Example: 2025-02-08T18:07:00
-- `state` (String) Certificate State
-  - Example: VALID
+- `cert_kind` (String) Certificate type.
+  - example : 'PRD'
+- `cn` (String) Certificate Common Name.
+  - example : 'test.go.kr'
+- `id` (String) Certificate ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Certificate Name.
+  - example : 'test-certificate'
+- `not_after_dt` (String) Certificate Expire Date.
+  - example : '2026-02-07T18:07:59'
+- `not_before_dt` (String) Certificate Start Date.
+  - example : '2025-02-08T18:07:00'
+- `state` (String) Certificate State.
+  - example : 'VALID'

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_member Data Source - samsungcloudplatformv2"
 subcategory: LB Member
 description: |-
-  Show Lb Member.
+  Retrieve details of a specific LB Member.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_member (Data Source)
 
-Show Lb Member.
+Retrieve details of a specific LB Member.
 
 ## Example Usage
 
@@ -40,33 +40,33 @@ variable "lb_server_group_id" {
 
 ### Optional
 
-- `id` (String) Id
-- `lb_server_group_id` (String) LbServerGroupId
+- `id` (String) The unique identifier of the LB Member.
+- `lb_server_group_id` (String) The LB Server Group ID.
 
 ### Read-Only
 
-- `lb_member` (Attributes) A detail of Lb Member. (see [below for nested schema](#nestedatt--lb_member))
+- `lb_member` (Attributes) Details of the LB Member. (see [below for nested schema](#nestedatt--lb_member))
 
 <a id="nestedatt--lb_member"></a>
 ### Nested Schema for `lb_member`
 
 Optional:
 
-- `lb_server_group_id` (String) LbServerGroupId
-- `member_ip` (String) MemberIp
-- `member_port` (Number) MemberPort
-- `member_state` (String) MemberState
-- `member_weight` (Number) MemberWeight
-- `name` (String) Name
-- `object_id` (String) ObjectId
-- `object_type` (String) ObjectType
-- `state` (String) State
-- `subnet_id` (String) SubnetId
+- `lb_server_group_id` (String) The LB Server Group ID.
+- `member_ip` (String) The IP address of the member.
+- `member_port` (Number) The port number of the member (1-65534).
+- `member_state` (String) The state of the member (ENABLE, DISABLE).
+- `member_weight` (Number) The weight of the member (1-1000).
+- `name` (String) The name of the LB Member (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `object_id` (String) The object ID.
+- `object_type` (String) The object type (VM, BM, MANUAL, MNGC).
+- `state` (String) The current state of the LB Member (CREATING, ACTIVE, DELETING, EDITING, ERROR).
+- `subnet_id` (String) The subnet ID where the resource is located.
 - `uuid` (String) Uuid
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

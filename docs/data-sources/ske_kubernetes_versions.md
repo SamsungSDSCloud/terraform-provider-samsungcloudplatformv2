@@ -16,7 +16,6 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_ske_kubernetes_versions" "kubernetes_versions" {
-    region = var.region
 }
 
 
@@ -40,14 +39,15 @@ variable "region" {
 
 ### Read-Only
 
-- `kubernetes_versions` (Attributes List) Kubernetes Version List (see [below for nested schema](#nestedatt--kubernetes_versions))
+- `kubernetes_versions` (Attributes List) Connected File Storage
+  - example:  [{description = 'v1.30.6',kubernetes_version = ''v1.30.6'} ,{description = 'v1.31.8', kubernetes_version = 'v1.31.8'} ,{description = 'v1.32.8', kubernetes_version = 'v1.32.8'} ,{description = 'v1.33.5', kubernetes_version = 'v1.33.5'} ,{description = 'v1.34.3', kubernetes_version = 'v1.34.3'}] (see [below for nested schema](#nestedatt--kubernetes_versions))
 
 <a id="nestedatt--kubernetes_versions"></a>
 ### Nested Schema for `kubernetes_versions`
 
 Read-Only:
 
-- `description` (String) Description
-  - example: v1.29.8
-- `kubernetes_version` (String) Kubernetes Version
-  - example: v1.29.8
+- `description` (String) Kubernetes Version Description
+  - example: [v1.31.X|v1.32.X|v1.33.X|v1.34.X]
+- `kubernetes_version` (String) Kubernetes Version Description
+  - example: [v1.31.X|v1.32.X|v1.33.X|v1.34.X]

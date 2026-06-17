@@ -1,4 +1,5 @@
 provider "samsungcloudplatformv2" {
+  default_region = "kr-west1"
 }
 
 resource "samsungcloudplatformv2_baremetal_baremetal" "baremetal" {

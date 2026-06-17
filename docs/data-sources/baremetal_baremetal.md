@@ -36,6 +36,7 @@ variable "id" {
 ### Required
 
 - `id` (String) Bare Metal Server ID
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -52,8 +53,9 @@ variable "id" {
 - `image_version` (String) Image version
   - example: RHEL 8.7 for BM
 - `init_script` (String) Init script
-  - example: init script
-- `local_subnet_info` (Attributes List) (see [below for nested schema](#nestedatt--local_subnet_info))
+  - example: #!/bin/bash\necho 'Hello World!'
+- `local_subnet_info` (Attributes List) local subnet info connected to the server
+  - example: [{interface_name='ens8f1,bond_serv.2',local_subnet_id='YOUR RESOURCE'S LOCAL_SUBNET_ID', policy_subnet_ip='192.168.0.2', state='', vlan_id='YOUR RESOURCE'S VLAN_ID', vni_role_name='mgmtJ4dzQBo'}] (see [below for nested schema](#nestedatt--local_subnet_info))
 - `lock_enabled` (Boolean) Use Lock
   - example: true
 - `modified_at` (String) Modified At
@@ -68,10 +70,12 @@ variable "id" {
   - example: pg-group
 - `policy_ip` (String) Policy IP
   - example: 192.168.0.1
-- `private_nat_info` (Attributes) Private Nat Info (see [below for nested schema](#nestedatt--private_nat_info))
+- `private_nat_info` (Attributes) Private Nat Info
+  - example: {nat_id: 'YOUR RESOURCE'S NAT_ID', nat_ip: '192.170.2.10', nat_ip_id: 'YOUR RESOURCE'S NAT_IP_ID', state:'ACTIVE', static_nat_id: 'YOUR RESOURCE'S STATIC_NAT_ID} (see [below for nested schema](#nestedatt--private_nat_info))
 - `product_type_id` (String) Bare Metal Server scale ID
   - example: YOUR RESOURCE'S PRODUCT_TYPE_ID
-- `public_nat_info` (Attributes) Public Nat Info (see [below for nested schema](#nestedatt--public_nat_info))
+- `public_nat_info` (Attributes) Public Nat Info
+  - example: {nat_ip: '192.170.2.10', nat_ip_id: 'YOUR RESOURCE'S NAT_IP_ID', state: 'ACTIVE', static_nat_id:'YOUR RESOURCE'S STATIC_NAT_ID'} (see [below for nested schema](#nestedatt--public_nat_info))
 - `region_id` (String) Region ID
   - example: YOUR RESOURCE'S REGION_ID
 - `root_account` (String) Root Account
@@ -99,7 +103,7 @@ Read-Only:
 - `local_subnet_id` (String) Local Subnet ID
   - example: YOUR RESOURCE'S LOCAL_SUBNET_ID
 - `policy_local_subnet_ip` (String) Policy Local Subnet IP
-  - example: 192.168.0.1
+  - example: 192.168.0.2
 - `state` (String) LocalSubnet IP state
   - example: CREATING
 - `vlan_id` (String) Vlan Id
@@ -130,7 +134,6 @@ Read-Only:
 
 Read-Only:
 
-- `nat_id` (String)
 - `nat_ip` (String) NAT IP
   - example: 192.170.2.10
 - `nat_ip_id` (String) NAT IP ID

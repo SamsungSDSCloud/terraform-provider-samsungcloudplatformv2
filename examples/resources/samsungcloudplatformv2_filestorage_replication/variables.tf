@@ -35,12 +35,12 @@ variable "replication_type" {
 
 variable "replication_update_type" {
   type    = string
-  default = null
+  default = "replication update type"
 }
 
 variable "replication_policy" {
   type    = string
-  default = null
+  default = "replication policy"
 }
 
 

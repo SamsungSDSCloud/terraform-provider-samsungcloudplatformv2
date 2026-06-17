@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_dns_hosted_zone Resource - samsungcloudplatformv2"
 subcategory: DNS
 description: |-
-  HostedZone.
+  A hosted zone that contains DNS records for managing domain name resolution.
 ---
 
 # samsungcloudplatformv2_dns_hosted_zone (Resource)
 
-HostedZone.
+A hosted zone that contains DNS records for managing domain name resolution.
 
 ## Example Usage
 
@@ -54,25 +54,30 @@ variable "tag" {
 
 ### Optional
 
-- `hosted_zone_create` (Attributes) Create HostedZone. (see [below for nested schema](#nestedatt--hosted_zone_create))
+- `hosted_zone_create` (Attributes) Parameters for creating a new hosted zone. (see [below for nested schema](#nestedatt--hosted_zone_create))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
-- `zone` (Attributes) A detail of HostedZone. (see [below for nested schema](#nestedatt--zone))
+- `id` (String) The unique identifier of the hosted zone to query.
+  - example: YOUR RESOURCE'S ID
+- `zone` (Attributes) Detailed information about the hosted zone. (see [below for nested schema](#nestedatt--zone))
 
 <a id="nestedatt--hosted_zone_create"></a>
 ### Nested Schema for `hosted_zone_create`
 
 Optional:
 
-- `description` (String) Description
-- `name` (String) Name
-- `private_dns_id` (String) PrivateDnsId
-- `type` (String) Type
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `name` (String) The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.
+  - example : my-zone.com
+- `private_dns_id` (String) The DNS server ID for registering a Hosted Zone. Input this only when the Hosted Zone is of Private type.
+  - example: YOUR RESOURCE'S PRIVATE_DNS_ID
+- `type` (String) The type of the hosted zone (e.g., PUBLIC or PRIVATE).
+  - example : PRIVATE
 
 
 <a id="nestedatt--zone"></a>
@@ -80,16 +85,29 @@ Optional:
 
 Optional:
 
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `hosted_zone_type` (String) HostedZoneType
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `pool_id` (String) PoolId
-- `private_dns_id` (String) PrivateDnsId
-- `private_dns_name` (String) PrivateDnsName
-- `status` (String) Status
-- `ttl` (Number) Ttl
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `hosted_zone_type` (String) The type of the hosted zone (e.g., PUBLIC or PRIVATE).
+  - example : PRIVATE
+- `id` (String) Hosted Zone ID
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.
+  - example : my-zone.com
+- `pool_id` (String) Designate Pool ID
+  - example: YOUR RESOURCE'S POOL_ID
+- `private_dns_id` (String) The DNS server ID for registering a Hosted Zone.For a Public‑type Hosted Zone, display it as an empty value.
+  - example: YOUR RESOURCE'S PRIVATE_DNS_ID
+- `private_dns_name` (String) The DNS server name for registering a Hosted Zone.For a Public‑type Hosted Zone, display it as an empty value.
+  - example : private-dns01
+- `status` (String) The current status of the hosted zone (e.g., ACTIVE, CREATING, DELETING).
+  - example : ACTIVE
+- `ttl` (Number) TTL for the zone.
+  - example : 3600

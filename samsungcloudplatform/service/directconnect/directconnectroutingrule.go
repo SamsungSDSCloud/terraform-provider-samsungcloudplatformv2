@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnect"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpdirectconnect "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/direct-connect/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/directconnect"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpdirectconnect "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/direct-connect/1.0"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -20,8 +21,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &directConnectRoutingRuleResource{}
-	_ resource.ResourceWithConfigure = &directConnectRoutingRuleResource{}
+	_ resource.Resource                = &directConnectRoutingRuleResource{}
+	_ resource.ResourceWithConfigure   = &directConnectRoutingRuleResource{}
+	_ resource.ResourceWithImportState = &directConnectRoutingRuleResource{}
 )
 
 // NewDirectConnectRoutingRuleResource is a helper function to simplify the provider implementation.
@@ -44,101 +46,130 @@ func (r *directConnectRoutingRuleResource) Metadata(_ context.Context, req resou
 // Schema defines the schema for the data source.
 func (r *directConnectRoutingRuleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "routing rule",
+		Description: "Direct Connect Routing Rule",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the routing rule.\n" +
+					"  - example : fe860e0af0c04dcd8182b84f907f31f4",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("DirectConnectId"): schema.StringAttribute{
-				Description: "Direct Connect ID \n" +
+				Description: "The identifier of the direct Connect.\n " +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
 			common.ToSnakeCase("DestinationType"): schema.StringAttribute{
-				Description: "Destination Type \n" +
-					"  - example : ON-PREM | VPC",
+				Description: "The type of the routing destination.In the VPC, the Direct Connect direction is ON_PREMISE, in the opposite direction—from Direct Connect toward the VPC—the direction is VPC.\n" +
+					"  -  example : ON-PREMISE | VPC",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-				Description: "Destination CIDR \n" +
+				Description: "The destination IP address range in CIDR notation.\n" +
 					"  - example : 10.10.10.0/24",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("DestinationResourceId"): schema.StringAttribute{
-				Description: "Destination Resource ID \n" +
-					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Description: "The identifier of the destination resource.When the Destination Type is VPC, provide the VpcId.\n " +
+					"  -  example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
+				Description: "Enter a brief explanation or note about this routing rule. This help identify the purpose or usage of the resource.\n" +
 					"  - example : Routing Rule description\n" +
 					"  - maxLength : 50\n" +
 					"  - minLength : 1",
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("RoutingRule"): schema.SingleNestedAttribute{
-				Description: "RoutingRule",
+				Description: "Direct Connect Routing Rule",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "id",
-						Computed:    true,
+						Description: "The unique identifier of the routing rule.\n" +
+							"  - example : fe860e0af0c04dcd8182b84f907f31f4",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the direct connect.\n " +
+							"  -  example: 27bb070b564349f8a31cc60734cc36a5",
+						Computed: true,
 					},
 					common.ToSnakeCase("OwnerId"): schema.StringAttribute{
-						Description: "OwnerId",
-						Computed:    true,
+						Description: "The identifier of the routing rule owner.\n " +
+							"  -  example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+						Computed: true,
 					},
 					common.ToSnakeCase("OwnerType"): schema.StringAttribute{
-						Description: "OwnerType",
-						Computed:    true,
+						Description: "The type of the routing rule owner.\n" +
+							"  -  example: DIRECT_CONNECT",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationType"): schema.StringAttribute{
-						Description: "DestinationType",
-						Computed:    true,
+						Description: "The type of the routing destination.In the VPC, the Direct Connect direction is ON_PREMISE, in the opposite direction—from Direct Connect toward the VPC—the direction is VPC.\n" +
+							"  -  example : ON-PREMISE | VPC",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-						Description: "DestinationCidr",
-						Computed:    true,
+						Description: "The destination IP address range in CIDR notation.\n" +
+							"  - example : 10.10.10.0/24",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationResourceId"): schema.StringAttribute{
-						Description: "DestinationResourceId",
-						Computed:    true,
+						Description: "The identifier of the destination resource.When the Destination Type is VPC, provide the VpcId.\n " +
+							"  -  example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationResourceName"): schema.StringAttribute{
-						Description: "DestinationResourceName",
-						Computed:    true,
+						Description: "The name of the destination resource.When the Destination Type is VPC, provide the Vpc Name.\n " +
+							"  -  example : Resource Name",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this routing rule. This help identify the purpose or usage of the resource.\n" +
+							"  - example : Routing Rule description\n" +
+							"  - maxLength : 50\n" +
+							"  - minLength : 1",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current lifecycle state of the routing rule.\n" +
+							"  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR",
+						Computed: true,
 					},
 				},
 			},
@@ -193,14 +224,26 @@ func (r *directConnectRoutingRuleResource) Create(ctx context.Context, req resou
 	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(routingRule.Id)
 	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	routingRuleModel := createRoutingRuleModel(&routingRule)
 
 	routingRuleObjectValue, diags := types.ObjectValueFrom(ctx, routingRuleModel.AttributeTypes(), routingRuleModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.RoutingRule = routingRuleObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	err = waitForRoutingRuleStatus(ctx, r.client, plan.DirectConnectId.ValueString(), data.RoutingRule.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -222,6 +265,20 @@ func (r *directConnectRoutingRuleResource) Create(ctx context.Context, req resou
 	resp.State = readResp.State
 }
 
+func (r *directConnectRoutingRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: DirectConnectId/RoutingRuleId, got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("direct_connect_id"), types.StringValue(parts[0]))
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
+}
+
 func (r *directConnectRoutingRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
 	var state directconnect.RoutingRuleResource
@@ -234,6 +291,10 @@ func (r *directConnectRoutingRuleResource) Read(ctx context.Context, req resourc
 	// Get refreshed order value from routing rule
 	data, err := r.client.GetRoutingRule(ctx, state.DirectConnectId.ValueString(), state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading routing rule",
@@ -251,7 +312,18 @@ func (r *directConnectRoutingRuleResource) Read(ctx context.Context, req resourc
 	routingRuleModel := createRoutingRuleModel(&data.RoutingRules[0])
 
 	routingRuleObjectValue, diags := types.ObjectValueFrom(ctx, routingRuleModel.AttributeTypes(), routingRuleModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.RoutingRule = routingRuleObjectValue
+
+	// Update top-level input fields from API response to detect drift
+	rr := data.RoutingRules[0]
+	state.DestinationType = types.StringValue(string(rr.DestinationType))
+	state.DestinationCidr = types.StringValue(rr.DestinationCidr)
+	state.DestinationResourceId = types.StringPointerValue(rr.DestinationResourceId.Get())
+	state.Description = types.StringValue(rr.Description)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -261,7 +333,19 @@ func (r *directConnectRoutingRuleResource) Read(ctx context.Context, req resourc
 	}
 }
 
-func (r *directConnectRoutingRuleResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+// Update is a no-op: the API has no update endpoint.
+// RequiresReplace on all input fields ensures Terraform destroys and recreates instead.
+func (r *directConnectRoutingRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan directconnect.RoutingRuleResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.AddWarning(
+		"Routing rule update not supported",
+		"Routing rule attributes are immutable. Terraform will replace this resource on the next apply.",
+	)
+	resp.State.Set(ctx, plan)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -324,5 +408,5 @@ func waitForRoutingRuleStatus(ctx context.Context, routingRuleClient *directconn
 			return info, "DELETED", nil
 		}
 		return info, string(info.RoutingRules[0].State), nil
-	})
+	}, -1, -1, -1, -1)
 }

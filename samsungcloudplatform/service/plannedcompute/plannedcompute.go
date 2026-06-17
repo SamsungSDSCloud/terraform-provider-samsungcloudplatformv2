@@ -3,16 +3,17 @@ package billing
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/billing" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/billing" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,12 +23,18 @@ import (
 )
 
 var (
-	_ resource.Resource              = &billingPlannedComputeResource{}
-	_ resource.ResourceWithConfigure = &billingPlannedComputeResource{}
+	_ resource.Resource                = &billingPlannedComputeResource{}
+	_ resource.ResourceWithConfigure   = &billingPlannedComputeResource{}
+	_ resource.ResourceWithImportState = &billingPlannedComputeResource{}
 )
 
 func NewBillingPlannedComputeResource() resource.Resource {
 	return &billingPlannedComputeResource{}
+}
+
+// ImportState implements resource.ResourceWithImportState.
+func (r *billingPlannedComputeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 type billingPlannedComputeResource struct {
@@ -46,8 +53,7 @@ func (r *billingPlannedComputeResource) Schema(_ context.Context, _ resource.Sch
 	resp.Schema = schema.Schema{
 		Description: "Planned compute",
 		Attributes: map[string]schema.Attribute{
-			"region": region.ResourceSchema(),
-			"tags":   tag.ResourceSchema(),
+			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
 				Description: "Identifier of the resource.",
 				Computed:    true,
@@ -255,10 +261,6 @@ func (r *billingPlannedComputeResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	if !plan.Region.IsNull() {
-		r.client.Config.Region = plan.Region.ValueString()
-	}
-
 	data, err := r.client.CreatePlannedCompute(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
@@ -277,6 +279,31 @@ func (r *billingPlannedComputeResource) Create(ctx context.Context, req resource
 		idString = ""
 	}
 	plan.Id = types.StringValue(idString)
+
+	// ID가 유효한 경우에만 폴링
+	if idString != "" {
+		// 생성 후 리소스가 준비될 때까지 대기
+		err = r.waitForPlannedComputeReady(ctx, idString, 60*time.Second)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error waiting for planned compute",
+				"Planned compute was created but failed to become ready: "+err.Error(),
+			)
+			return
+		}
+
+		// 최신 상태 다시 조회
+		data, err = r.client.GetPlannedCompute(ctx, idString)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error reading planned compute after creation",
+				"Could not read Planned Compute ID "+idString+": "+err.Error()+"\nReason: "+detail,
+			)
+			return
+		}
+		plannedCompute = data.PlannedCompute
+	}
 
 	serverTypeDesc, diags := convertMapStringInterfaceToTypesMap(plannedCompute.GetServerTypeDescription())
 
@@ -330,10 +357,15 @@ func (r *billingPlannedComputeResource) Read(ctx context.Context, req resource.R
 
 	data, err := r.client.GetPlannedCompute(ctx, state.Id.ValueString())
 	if err != nil {
+		// 404 Not Found - 리소스가 외부에서 삭제된 경우 Terraform 상태에서 제거
+		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Resource Group",
-			"Could not read Resource Group ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			"Error Reading Planned Compute",
+			"Could not read Planned Compute ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
@@ -458,5 +490,43 @@ func (r *billingPlannedComputeResource) Delete(ctx context.Context, req resource
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+}
+
+// waitForPlannedComputeReady waits for the planned compute to be in ready state.
+func (r *billingPlannedComputeResource) waitForPlannedComputeReady(ctx context.Context, id string, timeout time.Duration) error {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-timer.C:
+			return fmt.Errorf("timeout waiting for planned compute %s to be ready", id)
+		case <-ticker.C:
+			data, err := r.client.GetPlannedCompute(ctx, id)
+			if err != nil {
+				// 404 Not Found - 생성 중일 수 있음, 계속 대기
+				if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+					continue
+				}
+				// 일시적 오류는 무시하고 계속 폴링 (네트워크 문제 등)
+				if client.IsTransientError(err) {
+					continue
+				}
+				// 그 외의 영구적인 오류는 반환
+				return err
+			}
+
+			// 상태 확인 - 실제 API 응답에 맞게 수정 필요
+			state := data.PlannedCompute.GetState()
+			if state == "ACTIVE" || state == "RUNNING" || state == "Ready" || state == "CREATED" {
+				return nil
+			}
+		}
 	}
 }

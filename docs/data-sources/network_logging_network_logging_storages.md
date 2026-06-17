@@ -51,20 +51,20 @@ variable "resource_type" {
 
 ### Required
 
-- `resource_type` (String) ResourceType 
+- `resource_type` (String) Type of the Resource. 
   - example : FIREWALL | SECURITY_GROUP | NAT
 
 ### Optional
 
-- `limit` (Number) Limit 
+- `limit` (Number) Number of items returned per page. 
   - example : 10 
   - maximum : 10000 
   - minimum : 1
-- `marker` (String) Marker 
+- `marker` (String) Pagination Start ID. 
   - example : 607e0938521643b5b4b266f343fae693 
   - maxLength : 64 
   - minLength : 1
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. 
   - example : created_at:desc
 
 ### Read-Only
@@ -76,11 +76,19 @@ variable "resource_type" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `bucket_name` (String) BucketName
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `resource_type` (String) ResourceType
+- `account_id` (String) Identifier of the Account. 
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `bucket_name` (String) Name of the Bucket. 
+  - example : bucket_name
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format. 
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource. 
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Identifier of the Network Logging Storage. 
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format. 
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource. 
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `resource_type` (String) Type of the Resource. 
+  - example : FIREWALL | SECURITY_GROUP | NAT

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_volume Resource - samsungcloudplatformv2"
 subcategory: Virtual Server Volume
 description: |-
-  volume
+  Creates a block storage volume for virtual servers.
 ---
 
 # samsungcloudplatformv2_virtualserver_volume (Resource)
 
-volume
+Creates a block storage volume for virtual servers.
 
 ## Example Usage
 
@@ -58,31 +58,43 @@ variable "volume_server" {
 
 ### Required
 
-- `size` (Number) Size
+- `size` (Number) Volume size (GiB). Must be a multiple of 8.
+  - example: 104
+  - minimum: 8
 
 ### Optional
 
-- `max_iops` (Number) The number of distinct read or write operations a volume can process in a single second.
-- `max_throughput` (Number) The actual amount of data (volume) transferred to or from the storage device per second.
-- `name` (String) Name
-- `servers` (Attributes List) Servers (see [below for nested schema](#nestedatt--servers))
+- `max_iops` (Number) Maximum IOPS per second.
+  - example: 10000
+  - note: Number of read/write operations a volume can process per second
+- `max_throughput` (Number) Maximum throughput per second (MB/s).
+  - example: 500
+  - note: Actual amount of data transferred to/from storage device per second
+- `name` (String) Volume name.
+  - example: my-volume
+  - minLength: 1
+  - maxLength: 255
+- `servers` (Attributes List) List of attached servers. (see [below for nested schema](#nestedatt--servers))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
-- `volume_type` (String) VolumeType
+- `volume_type` (String) Volume type.
+  - example: ssd
+  - Available values: ssd_provisioned, ssd, hdd
 
 ### Read-Only
 
-- `bootable` (Boolean) Bootable
-- `encrypted` (Boolean) Encrypted
-- `id` (String) Identifier of the resource.
-- `multiattach` (Boolean) Multiattach
-- `state` (String) State
-- `user_id` (String) UserId
+- `bootable` (Boolean) Whether the volume is bootable.
+- `encrypted` (Boolean) Whether the volume is encrypted.
+- `id` (String) Resource ID.
+- `multiattach` (Boolean) Whether the volume can be attached to multiple servers.
+- `state` (String) Volume state.
+- `user_id` (String) User ID.
 
 <a id="nestedatt--servers"></a>
 ### Nested Schema for `servers`
 
 Optional:
 
-- `id` (String) Id
+- `id` (String) Server ID.
+  - example: YOUR RESOURCE'S ID

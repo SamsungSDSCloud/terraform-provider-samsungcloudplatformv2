@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_dns_private_dns Resource - samsungcloudplatformv2"
 subcategory: DNS
 description: |-
-  PrivateDns.
+  A private DNS instance for managing internal DNS resolution.
 ---
 
 # samsungcloudplatformv2_dns_private_dns (Resource)
 
-PrivateDns.
+A private DNS instance for managing internal DNS resolution.
 
 ## Example Usage
 
@@ -52,24 +52,28 @@ variable "tag" {
 
 ### Optional
 
-- `private_dns_create` (Attributes) Create PrivateDns. (see [below for nested schema](#nestedatt--private_dns_create))
+- `private_dns_create` (Attributes) Configuration for creating a new private DNS. (see [below for nested schema](#nestedatt--private_dns_create))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
-- `private_dns` (Attributes) A detail of PrivateDns. (see [below for nested schema](#nestedatt--private_dns))
+- `id` (String) The unique identifier of the private DNS.
+  - example: YOUR RESOURCE'S ID
+- `private_dns` (Attributes) Detailed information about the private DNS. (see [below for nested schema](#nestedatt--private_dns))
 
 <a id="nestedatt--private_dns_create"></a>
 ### Nested Schema for `private_dns_create`
 
 Optional:
 
-- `connected_vpc_ids` (List of String) ConnectedVpcIds
-- `description` (String) Description
-- `name` (String) Name
+- `connected_vpc_ids` (List of String) The list of VPC identifiers connected to this private DNS.Only VPCs that are connected to the DNS can query the domain information registered in it.
+  - example: YOUR RESOURCE'S CONNECTED_VPC_IDS
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `name` (String) The name for the private DNS to be created.
+  - example : private-dns01
 
 
 <a id="nestedatt--private_dns"></a>
@@ -77,21 +81,36 @@ Optional:
 
 Optional:
 
-- `auth_dns_name` (String) AuthDnsName
-- `connected_vpc_ids` (List of String) ConnectedVpcIds
-- `description` (String) Description
-- `id` (String) Id
-- `name` (String) Name
-- `pool_id` (String) PoolId
-- `pool_name` (String) PoolName
-- `registered_region` (String) RegisteredRegion
-- `resolver_ip` (String) ResolverIp
-- `resolver_name` (String) ResolverName
-- `state` (String) State
+- `auth_dns_name` (String) The authoritative DNS name of the private DNS.
+  - example : auth.dns.example.com
+- `connected_vpc_ids` (List of String) The list of VPC identifiers connected to this private DNS.Only VPCs that are connected to the DNS can query the domain information registered in it.
+  - example: YOUR RESOURCE'S CONNECTED_VPC_IDS
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `id` (String) The unique identifier of the private DNS.
+  - example: YOUR RESOURCE'S ID
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the private DNS.
+  - example : private-dns01
+- `pool_id` (String) The resource pool identifier associated with the private DNS.
+  - example: YOUR RESOURCE'S POOL_ID
+- `pool_name` (String) The name of the resource pool.
+  - example : pool-01
+- `registered_region` (String) The region where the private DNS is registered.
+  - example : KR-WEST1
+- `resolver_ip` (String) The IP address of the DNS resolver.
+  - example : 198.19.0.101
+- `resolver_name` (String) The name of the DNS resolver.
+  - example : resolver-01
+- `state` (String) The current state of the private DNS.
+  - example : ACTIVE
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z

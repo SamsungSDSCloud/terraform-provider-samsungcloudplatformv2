@@ -42,16 +42,22 @@ variable "resource_type" {
 
 ### Required
 
-- `bucket_name` (String) BucketName 
+- `bucket_name` (String) Name of the Bucket. 
   - example : bucket_name
-- `resource_type` (String) ResourceType 
+- `resource_type` (String) Type of the Resource. 
   - example : FIREWALL | SECURITY_GROUP | NAT
 
 ### Read-Only
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `id` (String) Identifier of the resource.
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
+- `account_id` (String) Identifier of the Account. 
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format. 
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource. 
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Identifier of the Resource. 
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format. 
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource. 
+  - example: YOUR RESOURCE'S MODIFIED_BY

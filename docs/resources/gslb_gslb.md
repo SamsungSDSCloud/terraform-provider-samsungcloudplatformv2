@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_gslb_gslb Resource - samsungcloudplatformv2"
 subcategory: GSLB
 description: |-
-  Gslb.
+  Global Server Load Balancer resource for distributing traffic across multiple regions.
 ---
 
 # samsungcloudplatformv2_gslb_gslb (Resource)
 
-Gslb.
+Global Server Load Balancer resource for distributing traffic across multiple regions.
 
 ## Example Usage
 
@@ -93,7 +93,7 @@ variable "tag" {
 
 ### Required
 
-- `gslb_create` (Attributes) Create Gslb. (see [below for nested schema](#nestedatt--gslb_create))
+- `gslb_create` (Attributes) Parameters for creating a new GSLB. (see [below for nested schema](#nestedatt--gslb_create))
 
 ### Optional
 
@@ -103,33 +103,42 @@ variable "tag" {
 
 ### Read-Only
 
-- `gslb` (Attributes) A detail of Gslb. (see [below for nested schema](#nestedatt--gslb))
-- `id` (String) Identifier of the resource.
+- `gslb` (Attributes) Details of the Global Server Load Balancer. (see [below for nested schema](#nestedatt--gslb))
+- `id` (String) The unique identifier of the GSLB.
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--gslb_create"></a>
 ### Nested Schema for `gslb_create`
 
 Required:
 
-- `algorithm` (String) Algorithm
-- `env_usage` (String) EnvUsage
-- `name` (String) Name
-- `resources` (Attributes List) Resources (see [below for nested schema](#nestedatt--gslb_create--resources))
+- `algorithm` (String) The load balancing algorithm for GSLB traffic distribution (e.g., ROUND_ROBIN, RATIO).
+  - example : ROUND_ROBIN
+- `env_usage` (String) The environment usage type for the GSLB (e.g., PUBLIC).
+  - example : PUBLIC
+- `name` (String) The name of the GSLB.
+  - example : example.gslb.e.samsungsdscloud.com
+- `resources` (Attributes List) The list of resources for the GSLB. (see [below for nested schema](#nestedatt--gslb_create--resources))
 
 Optional:
 
-- `description` (String) Description
-- `health_check` (Attributes) HealthCheck (see [below for nested schema](#nestedatt--gslb_create--health_check))
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Example Description for GSLB
+- `health_check` (Attributes) Health check configuration for monitoring GSLB endpoint availability. (see [below for nested schema](#nestedatt--gslb_create--health_check))
 
 <a id="nestedatt--gslb_create--resources"></a>
 ### Nested Schema for `gslb_create.resources`
 
 Optional:
 
-- `description` (String) Description
-- `destination` (String) Destination
-- `region` (String) Region
-- `weight` (Number) Weight
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Example Description for GSLB Resource
+- `destination` (String) The destination endpoint for the GSLB resource.
+  - example : 192.168.1.100
+- `region` (String) The region where the GSLB resource is located.
+  - example : kr-west1
+- `weight` (Number) The weight for load balancing distribution (0-100).
+  - example : 50
 
 
 <a id="nestedatt--gslb_create--health_check"></a>
@@ -137,23 +146,35 @@ Optional:
 
 Required:
 
-- `protocol` (String) The GSLB Health Check Protocol.
+- `protocol` (String) The protocol used for health checks (e.g., ICMP, TCP, HTTP, HTTPS).
+  - example : TCP
 
 Optional:
 
 - `health_check_interval` (Number) The GSLB Health Check Interval.
+  - example : 30
   - Range: 5 to 299
 - `health_check_probe_timeout` (Number) The GSLB Health Check Probe Timeout.
+  - example : 10
   - Range: 5 to 300
 - `health_check_user_id` (String) The GSLB Health Check User Name.
+  - example: YOUR RESOURCE'S HEALTH_CHECK_USER_ID
   - Max Length: 60
-- `health_check_user_password` (String) The GSLB Health Check Password.
+- `health_check_user_password` (String) The GSLB Health Check Password. If the User name is entered, This value is required.
+  - example: YOUR RESOURCE'S HEALTH_CHECK_USER_PASSWORD
+  - maxLength: 20
+  - minLength: 8
+  - pattern: ^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@!%*#?&])[A-Za-z\d$@!%*#?&]$
 - `receive_string` (String) The GSLB Health Check Receive String.
+  - example : HTTP/1.1 200 OK
   - Max Length: 300
-- `send_string` (String) The GSLB Health Check Send String.
+- `send_string` (String) The GSLB Health Check Send String. If no input is provided, it operates as a "GET /" request.
+  - example : GET /
 - `service_port` (Number) The GSLB Health Check Service Port.
+  - example : 80
   - Range: 1 to 65535
-- `timeout` (Number) The GSLB Health Check Timeout.
+- `timeout` (Number) The GSLB Health Check Timeout. It must be greater than the Interval.
+  - example : 40
   - Range: 6 to 300
 
 
@@ -163,50 +184,66 @@ Optional:
 
 Read-Only:
 
-- `algorithm` (String) Algorithm
-- `created_at` (String) Created at
-  - Example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created by
-  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `description` (String) Description
-- `env_usage` (String) EnvUsage
-- `health_check` (Attributes) HealthCheck (see [below for nested schema](#nestedatt--gslb--health_check))
-- `id` (String) id
-- `linked_resource_count` (Number) LinkedResourceCount
-- `modified_at` (String) Modified at
-  - Example: 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified by
-  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `name` (String) Name
-- `state` (String) State
+- `algorithm` (String) The load balancing algorithm for GSLB traffic distribution (e.g., ROUND_ROBIN, RATIO).
+  - example : ROUND_ROBIN
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Example Description for GSLB
+- `env_usage` (String) The environment usage type for the GSLB (e.g., PUBLIC).
+  - example : PUBLIC
+- `health_check` (Attributes) Health check configuration for monitoring GSLB endpoint availability. (see [below for nested schema](#nestedatt--gslb--health_check))
+- `id` (String) The unique identifier of the GSLB.
+  - example: YOUR RESOURCE'S ID
+- `linked_resource_count` (Number) The number of resources linked to this GSLB.
+  - example : 2
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the GSLB.
+  - example : example.gslb.e.samsungsdscloud.com
+- `state` (String) The current state of the GSLB (e.g., ACTIVE, CREATING, EDITING, ERROR, DELETING).
+  - example : ACTIVE
 
 <a id="nestedatt--gslb--health_check"></a>
 ### Nested Schema for `gslb.health_check`
 
 Read-Only:
 
-- `created_at` (String) Created at
-  - Example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created by
-  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `health_check_interval` (Number) The GSLB Health Check Interval.
+  - example : 30
   - Range: 5 to 299
 - `health_check_probe_timeout` (Number) The GSLB Health Check Probe Timeout.
+  - example : 10
   - Range: 5 to 300
 - `health_check_user_id` (String) The GSLB Health Check User Name.
+  - example: YOUR RESOURCE'S HEALTH_CHECK_USER_ID
   - Max length: 60
 - `health_check_user_password` (String) The GSLB Health Check Password.
-- `id` (String) ID
-  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
-- `modified_at` (String) Modified at
-  - Example: 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified by
-  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `protocol` (String) The GSLB Health Check Protocol.
+  - example: YOUR RESOURCE'S HEALTH_CHECK_USER_PASSWORD
+- `id` (String) The unique identifier of the health check configuration.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `protocol` (String) The protocol used for health checks (e.g., ICMP, TCP, HTTP, HTTPS).
+  - example : TCP
 - `receive_string` (String) The GSLB Health Check Receive String.
+  - example : HTTP/1.1 200 OK
   - Max length: 300
-- `send_string` (String) The GSLB Health Check Send String.
+- `send_string` (String) The GSLB Health Check Send String. If no input is provided, it operates as a "GET /" request.
+  - example : GET /
 - `service_port` (Number) The GSLB Health Check Service Port.
+  - example : 80
   - Range: 1 to 65535
-- `timeout` (Number) The GSLB Health Check Timeout.
+- `timeout` (Number) The GSLB Health Check Timeout. It must be greater than the Interval.
+  - example : 40
   - Range: 6 to 300

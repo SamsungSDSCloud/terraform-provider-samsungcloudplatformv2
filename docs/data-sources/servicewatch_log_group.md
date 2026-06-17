@@ -36,25 +36,37 @@ variable "id" {
 
 ### Required
 
-- `log_group_id` (String) Log group ID
+- `log_group_id` (String) The unique identifier of the log group.
+ - example: YOUR RESOURCE'S LOG_GROUP_ID
 
 ### Optional
 
-- `log_group` (Attributes) Log group (see [below for nested schema](#nestedatt--log_group))
+- `log_group` (Attributes) List of log group.
+ - example : {"id": "bce52822147744b4afe0187164caa2e8", "name": "testlg01"} (see [below for nested schema](#nestedatt--log_group))
 
 <a id="nestedatt--log_group"></a>
 ### Nested Schema for `log_group`
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `created_at` (String) Created date time
-- `created_by` (String) Creator ID
-- `id` (String) Log group ID
-- `modified_at` (String) Modified date time
-- `modified_by` (String) Modifier ID
-- `name` (String) Log group name
-- `retention_period` (Number) Log group retention period
-- `retention_period_name` (String) Log group retention period name
-- `status` (String) Log group status
-Allowed values: ACTIVE, DELETING, DELETED
+- `account_id` (String) The unique identifier of the account.
+ - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+ - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) The unique identifier of the log group.
+ - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+ - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) Log group name.
+ - example : testlg01
+- `retention_period` (Number) Log group retention period.
+ - example : 365
+- `retention_period_name` (String) Log group retention period name.
+ - example : 1 year
+- `status` (String) Log group status.
+Allowed values: ACTIVE, DELETING, DELETED.
+ - example : ACTIVE

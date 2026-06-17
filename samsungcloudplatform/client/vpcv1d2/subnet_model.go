@@ -1,7 +1,7 @@
 package vpcv1d2
 
 import (
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.2"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -44,7 +44,7 @@ type SubnetResource struct {
 	CreatedBy        types.String     `tfsdk:"created_by"`
 	Description      types.String     `tfsdk:"description"`
 	DhcpIpAddress    types.String     `tfsdk:"dhcp_ip_address"`
-	DnsNameservers   []string         `tfsdk:"dns_nameservers"`
+	DnsNameservers   types.Set        `tfsdk:"dns_nameservers"`
 	GatewayIpAddress types.String     `tfsdk:"gateway_ip_address"`
 	HostRoutes       []HostRoute      `tfsdk:"host_routes"`
 	Id               types.String     `tfsdk:"id"`
@@ -86,6 +86,21 @@ func convertHostRoutesToInterface(routes []HostRoute) []interface{} {
 			"destination": route.Destination.ValueString(),
 			"nexthop":     route.Nexthop.ValueString(),
 		}
+	}
+	return result
+}
+
+func convertDnsNameserversToString(nameservers types.Set) []string {
+	if nameservers.IsNull() || nameservers.IsUnknown() {
+		return nil
+	}
+	elements := nameservers.Elements()
+	if len(elements) == 0 {
+		return nil
+	}
+	result := make([]string, len(elements))
+	for i, elem := range elements {
+		result[i] = elem.(types.String).ValueString()
 	}
 	return result
 }

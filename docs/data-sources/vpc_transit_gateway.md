@@ -37,7 +37,8 @@ variable "id" {
 
 ### Required
 
-- `id` (String) Id
+- `id` (String) The unique identifier of the transit gateway.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -48,17 +49,30 @@ variable "id" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `bandwidth` (Number) Bandwidth
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `firewall_connection_state` (String) firewall connection state
-- `firewall_ids` (String) FirewallIds
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `state` (String) State - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING 
- - example : CREATING
-- `uplink_enabled` (Boolean) UplinkEnabled
+- `account_id` (String) The identifier of the account that owns the transit gateway.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `bandwidth` (Number) The bandwidth capacity of the connection.
+  - example : 1
+- `created_at` (String) The timestamp when the transit gateway was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the transit gateway.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this transit gateway. This help identify the purpose or usage of the resource.
+  - example : TransitGateway Description
+- `firewall_connection_state` (String) The current lifecycle state of the firewall connection. 
+  - example : INACTIVE
+- `firewall_ids` (String) List of firewall IDs
+  - example: YOUR RESOURCE'S FIREWALL_IDS
+- `id` (String) The unique identifier of the transit gateway.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the transit gateway was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the transit gateway.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the transit gateway.
+  - example : TransitGatewayName
+- `state` (String) The current lifecycle state of the transit gateway.
+  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING 
+  - example : CREATING
+- `uplink_enabled` (Boolean) Whether the uplink is enabled.
+  - example : false

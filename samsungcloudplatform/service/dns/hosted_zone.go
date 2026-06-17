@@ -3,23 +3,29 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
+	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/dns"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &dnsHostedZoneResource{}
-	_ resource.ResourceWithConfigure = &dnsHostedZoneResource{}
+	_ resource.Resource                = &dnsHostedZoneResource{}
+	_ resource.ResourceWithConfigure   = &dnsHostedZoneResource{}
+	_ resource.ResourceWithImportState = &dnsHostedZoneResource{}
 )
 
 // NewResourceManagerResourceGroupResource is a helper function to simplify the provider implementation.
@@ -42,10 +48,11 @@ func (r *dnsHostedZoneResource) Metadata(_ context.Context, req resource.Metadat
 // Schema defines the schema for the data source.
 func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "HostedZone.",
+		Description: "A hosted zone that contains DNS records for managing domain name resolution.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
+				Description: "The unique identifier of the hosted zone to query.\n" +
+                    "  - example : 3432012nfdksdf03ktrld9234lgfg ",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -53,82 +60,102 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 			},
 			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("Zone"): schema.SingleNestedAttribute{
-				Description: "A detail of HostedZone.",
+				Description: "Detailed information about the hosted zone.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Optional:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Optional:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Optional: true,
 					},
 					common.ToSnakeCase("HostedZoneType"): schema.StringAttribute{
-						Description: "HostedZoneType",
-						Optional:    true,
+						Description: "The type of the hosted zone (e.g., PUBLIC or PRIVATE).\n" +
+							"  - example : PRIVATE ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Optional:    true,
+						Description: "Hosted Zone ID\n" +
+							"  - example : 3432012nfdksdf03ktrld9234lgfg ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Optional:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Optional:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.\n" +
+							"  - example : my-zone.com ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PoolId"): schema.StringAttribute{
-						Description: "PoolId",
-						Optional:    true,
+						Description: "Designate Pool ID\n" +
+							"  - example : 10fjksdpooliddfsi12389esfdslkdsr32 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PrivateDnsId"): schema.StringAttribute{
-						Description: "PrivateDnsId",
-						Optional:    true,
+						Description: "The DNS server ID for registering a Hosted Zone.For a Public‑type Hosted Zone, display it as an empty value.\n" +
+							"  - example : 10fjkewefprivatedns3193rud543 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PrivateDnsName"): schema.StringAttribute{
-						Description: "PrivateDnsName",
-						Optional:    true,
+						Description: "The DNS server name for registering a Hosted Zone.For a Public‑type Hosted Zone, display it as an empty value.\n" +
+							"  - example : private-dns01 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Optional:    true,
+						Description: "The current status of the hosted zone (e.g., ACTIVE, CREATING, DELETING).\n" +
+							"  - example : ACTIVE ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Ttl"): schema.Int32Attribute{
-						Description: "Ttl",
-						Optional:    true,
+						Description: "TTL for the zone.\n" +
+							"  - example : 3600 ",
+						Optional: true,
 					},
 				},
 			},
 			common.ToSnakeCase("HostedZoneCreate"): schema.SingleNestedAttribute{
-				Description: "Create HostedZone.",
+				Description: "Parameters for creating a new hosted zone.",
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.\n" +
+							"  - example : my-zone.com ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PrivateDnsId"): schema.StringAttribute{
-						Description: "PrivateDnsId",
-						Optional:    true,
+						Description: "The DNS server ID for registering a Hosted Zone. Input this only when the Hosted Zone is of Private type.\n" +
+							"  - example : 10fjkewefprivatedns3193rud543 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Optional:    true,
+						Description: "The type of the hosted zone (e.g., PUBLIC or PRIVATE).\n" +
+							"  - example : PRIVATE ",
+						Optional: true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("PUBLIC", "PRIVATE"),
+						},
 					},
 				},
 			},
@@ -202,6 +229,10 @@ func (r *dnsHostedZoneResource) Create(ctx context.Context, req resource.CreateR
 	hostedZoneModel := convertHostedZoneShowResponseV1Dot3ToHostedZone(*dataForShow)
 
 	hostedZoneOjbectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.Zone = hostedZoneOjbectValue
 
 	// Set state to fully populated data
@@ -210,6 +241,11 @@ func (r *dnsHostedZoneResource) Create(ctx context.Context, req resource.CreateR
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// ImportState implements [resource.ResourceWithImportState].
+func (r *dnsHostedZoneResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -225,6 +261,10 @@ func (r *dnsHostedZoneResource) Read(ctx context.Context, req resource.ReadReque
 	// Get refreshed order value from Gslb
 	data, err := r.client.GetHostedZone(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading HostedZone",
@@ -236,7 +276,19 @@ func (r *dnsHostedZoneResource) Read(ctx context.Context, req resource.ReadReque
 	hostedZoneModel := convertHostedZoneShowResponseV1Dot3ToHostedZone(*data)
 
 	hostedZoneObjectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Zone = hostedZoneObjectValue
+
+	if state.HostedZoneCreate == nil {
+		state.HostedZoneCreate = &dns.HostedZoneCreate{}
+	}
+	state.HostedZoneCreate.Description = hostedZoneModel.Description
+	state.HostedZoneCreate.Name = hostedZoneModel.Name
+	state.HostedZoneCreate.PrivateDnsId = hostedZoneModel.PrivateDnsId
+	state.HostedZoneCreate.Type = hostedZoneModel.HostedZoneType
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -298,6 +350,10 @@ func (r *dnsHostedZoneResource) Update(ctx context.Context, req resource.UpdateR
 	hostedZoneModel := convertHostedZoneShowResponseV1Dot3ToHostedZone(*dataForShow)
 
 	hostedZoneObjectValue, diags := types.ObjectValueFrom(ctx, hostedZoneModel.AttributeTypes(), hostedZoneModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Zone = hostedZoneObjectValue
 
 	// Set refreshed state
@@ -343,7 +399,7 @@ func waitForHostedZoneStatus(ctx context.Context, hostedZoneClient *dns.Client, 
 			return nil, "", err
 		}
 		return info, string(info.Status), nil
-	})
+	}, -1, -1, -1, -1)
 }
 
 func checkModifiedFieldsExcludingDescription(oldState dns.HostedZoneResource, newState dns.HostedZoneResource) bool {

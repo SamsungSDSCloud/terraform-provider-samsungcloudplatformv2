@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_listeners Data Source - samsungcloudplatformv2"
 subcategory: LB Listener
 description: |-
-  list of lb listener.
+  List all LB Listeners.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_listeners (Data Source)
 
-list of lb listener.
+List all LB Listeners.
 
 ## Example Usage
 
@@ -67,32 +67,32 @@ variable "service_port" {
 
 ### Optional
 
-- `loadbalancer_id` (String) LoadbalancerId
-- `name` (String) Name
-- `page` (Number) Page
-- `service_port` (Number) ServicePort
-- `size` (Number) Size
-- `sort` (String) Sort
-- `state` (String) State
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the listener.
+- `name` (String) The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `page` (Number) The page number.
+- `service_port` (Number) The service port number for the listener.
+- `size` (Number) The number of items per page.
+- `sort` (String) The sort order.
+- `state` (String) The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).
 
 ### Read-Only
 
-- `lb_listeners` (Attributes List) A list of Lb Listeners. (see [below for nested schema](#nestedatt--lb_listeners))
+- `lb_listeners` (Attributes List) List of LB Listeners. (see [below for nested schema](#nestedatt--lb_listeners))
 
 <a id="nestedatt--lb_listeners"></a>
 ### Nested Schema for `lb_listeners`
 
 Optional:
 
-- `id` (String) Id
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `service_port` (Number) ServicePort
-- `state` (String) State
+- `id` (String) The unique identifier of the LB Listener.
+- `name` (String) The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `protocol` (String) The protocol used for the listener (TCP, UDP, HTTP, HTTPS, TLS, TCP_PROXY).
+- `service_port` (Number) The service port number for the listener.
+- `state` (String) The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

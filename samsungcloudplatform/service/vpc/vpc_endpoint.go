@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -45,18 +45,19 @@ func (r *vpcVpcEndpointResource) Metadata(_ context.Context, req resource.Metada
 // Schema defines the schema for the data source.
 func (r *vpcVpcEndpointResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "vpcendpoint",
+		Description: "Resource of vpcendpoint",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the endpoint.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "VPC Endpoint Name \n" +
+				Description: "The name of the endpoint.\n" +
 					"  - example : vpcEndpointName\n" +
 					"  - maxLength : 20\n" +
 					"  - minLength : 3\n" +
@@ -64,28 +65,28 @@ func (r *vpcVpcEndpointResource) Schema(_ context.Context, _ resource.SchemaRequ
 				Required: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
+				Description: "The identifier of the VPC that the endpoint belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID \n" +
+				Description: "The identifier of the subnet that the endpoint belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
 			common.ToSnakeCase("ResourceType"): schema.StringAttribute{
-				Description: "VPC Endpoint Resource Type \n" +
+				Description: "The type of the target resource.(File Storage : FS, Object Storage : OBS, Container Registry : SCR, DNS : DNS)\n" +
 					"  - example : FS | OBS | SCR | DNS",
 				Required: true,
 			},
 			common.ToSnakeCase("ResourceKey"): schema.StringAttribute{
-				Description: "VPC Endpoint Resource Key \n" +
+				Description: "The key identifying the target resource of the endpoint.\n" +
 					"  - example(case: SCR/DNS) : 07c5364702384471b650147321b52173 \n" +
 					"  - example(case: FS/OBS) : 1.1.1.1",
 				Required: true,
 			},
 			common.ToSnakeCase("ResourceInfo"): schema.StringAttribute{
-				Description: "VPC Endpoint Resource Info \n" +
+				Description: "The information about the target resource of the endpoint.\n" +
 					"  - example(case: FS) : 192.168.0.1(SSD) \n" +
 					"  - example(case: OBS) : https://xxx.samsungsdscloud.com \n" +
 					"  - example(case: SCR) : xxx.samsungsdscloud.com(Auth) \n" +
@@ -93,12 +94,12 @@ func (r *vpcVpcEndpointResource) Schema(_ context.Context, _ resource.SchemaRequ
 				Required: true,
 			},
 			common.ToSnakeCase("EndpointIpAddress"): schema.StringAttribute{
-				Description: "Endpoint IP Address \n" +
+				Description: "The IP address of the endpoint. \n" +
 					"  - example : 10.10.10.10",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
+				Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
 					"  - example : VPC Endpoint description\n" +
 					"  - maxLength : 50",
 				Optional: true,
@@ -110,72 +111,89 @@ func (r *vpcVpcEndpointResource) Schema(_ context.Context, _ resource.SchemaRequ
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the endpoint.\n" +
+							"  - example : 12f56e27070248a6a240a497e43fbe18",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the endpoint.\n" +
+							"  - example : VpcEndpointName",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Computed:    true,
+						Description: "The identifier of the VPC that the endpoint belongs to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "VpcName",
-						Computed:    true,
+						Description: "The name of the VPC that the endpoint belongs to.\n" +
+							"  - example : vpcName",
+						Computed: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Computed:    true,
+						Description: "The identifier of the subnet that the endpoint belongs to.\n" +
+							"  - example : 023c57b14f11483689338d085e061492",
+						Computed: true,
 					},
 					common.ToSnakeCase("SubnetName"): schema.StringAttribute{
-						Description: "SubnetName",
-						Computed:    true,
+						Description: "The name of the subnet that the endpoint belongs to.\n" +
+							"  - example : subnetName",
+						Computed: true,
 					},
 					common.ToSnakeCase("EndpointIpAddress"): schema.StringAttribute{
-						Description: "EndpointIpAddress",
-						Computed:    true,
+						Description: "The IP address of the endpoint.\n" +
+							"  - example : 192.167.0.5",
+						Computed: true,
 					},
 					common.ToSnakeCase("ResourceType"): schema.StringAttribute{
-						Description: "ResourceType",
-						Computed:    true,
+						Description: "The type of the target resource.\n" +
+							"  - example : FS",
+						Computed: true,
 					},
 					common.ToSnakeCase("ResourceKey"): schema.StringAttribute{
-						Description: "ResourceKey",
-						Computed:    true,
+						Description: "The key identifying the target resource of the endpoint.\n" +
+							"  - example : 07c5364702384471b650147321b52173",
+						Computed: true,
 					},
 					common.ToSnakeCase("ResourceInfo"): schema.StringAttribute{
-						Description: "ResourceInfo",
-						Computed:    true,
+						Description: "The information about the target resource of the endpoint.\n" +
+							"  - example : x.samsungsdscloud.com(Registry)",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the endpoint.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current lifecycle state of the endpoint.\n" +
+							"  - example : ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
+							"  - example : VpcEndpoint Description",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The user id that modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 				},
 			},
@@ -426,5 +444,5 @@ func waitForVpcEndpointStatus(ctx context.Context, vpcClient *vpc.Client, id str
 			return nil, "", err
 		}
 		return info, string(info.VpcEndpoint.State), nil
-	})
+	}, -1, -1, -1, -1)
 }

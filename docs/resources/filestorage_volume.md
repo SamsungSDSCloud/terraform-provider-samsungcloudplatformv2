@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_filestorage_volume Resource - samsungcloudplatformv2"
 subcategory: File Storage Volume
 description: |-
-  
+  Manages a File Storage Volume on Samsung Cloud Platform.
 ---
 
 # samsungcloudplatformv2_filestorage_volume (Resource)
 
-
+Manages a File Storage Volume on Samsung Cloud Platform.
 
 ## Example Usage
 
@@ -93,19 +93,19 @@ variable "tags" {
 ### Optional
 
 - `access_rules` (Attributes Set) List of AccessRule (see [below for nested schema](#nestedatt--access_rules))
-- `cifs_password` (String) Cifs Password 
-  - example: YOUR RESOURCE'S CIFS_PASSWORD
+- `cifs_password` (String, Sensitive) Cifs Password 
+  - example : '<YOUR_CIFS_PASSWORD>' 
   - maxLength: 20  
   - minLength: 6  
   - pattern: `^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$`
 - `file_unit_recovery_enabled` (Boolean) File Unit Recovery Enabled 
-  - example : 'true'
+  - example : true
 - `path` (String) Volume Mount Path 
   - example : 'xxx.xx.xxx.xxx'
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
-- `usage` (Number)
+- `usage` (Number) The current usage of the volume in GiB.
 
 ### Read-Only
 
@@ -114,16 +114,17 @@ variable "tags" {
 - `created_at` (String) Created At 
   - example : '2024-07-30T04:54:33.219373'
 - `encryption_enabled` (Boolean) Volume Encryption Enabled 
-  - example : 'true'
-- `endpoint_path` (String) Volume Endpoint Path 
+  - example : true
+- `endpoint_path` (String) The network endpoint path used to mount and access the file storage volume. 
   - example : 'xxx.xx.xxx.xxx'
-- `id` (String) Identifier of the resource.
-- `name_uuid` (String) Volume Name Uuid 
+- `id` (String) Identifier of the resource. 
+  - example: YOUR RESOURCE'S ID
+- `name_uuid` (String) The unique system-assigned name (UUID format) for the volume. 
   - example : 'my_volume_2m060u'
-- `purpose` (String) Volume Purpose 
+- `purpose` (String) The designated purpose or workload type of the volume (e.g., general, backup). 
   - example : 'none'
-- `state` (String) Volume State
-- `type_id` (String) Volume Type ID 
+- `state` (String) The current lifecycle state of the volume. Valid values: creating, available, error, deleting.
+- `type_id` (String) The unique identifier of the storage tier (volume type) assigned to this volume. 
   - example: YOUR RESOURCE'S TYPE_ID
 
 <a id="nestedatt--access_rules"></a>
@@ -133,5 +134,6 @@ Optional:
 
 - `object_id` (String) Object Id 
   - example: YOUR RESOURCE'S OBJECT_ID
-- `object_type` (String) Object Type  - example : 'VM' 
+- `object_type` (String) Object Type 
+  - example : 'VM' 
   - pattern: `^(VM|BM|GPU|GPU_NODE|ENDPOINT)$`

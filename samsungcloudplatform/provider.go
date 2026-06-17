@@ -2,21 +2,22 @@ package samsungcloudplatform
 
 import (
 	"context"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/config"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"os/user"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/config"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/service"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sysuser "os/user"
-	"path/filepath"
-	"strings"
-	"sync"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -96,6 +97,10 @@ func (p *samsungcloudplatformv2Provider) Schema(_ context.Context, _ provider.Sc
 				Description: "SDK Microversion Check timeout",
 				Optional:    true,
 			},
+			"skip_version_check": schema.BoolAttribute{
+				Description: "Skip SDK version check on provider initialization",
+				Optional:    true,
+			},
 		},
 	}
 }
@@ -113,7 +118,7 @@ func (p *samsungcloudplatformv2Provider) Configure(ctx context.Context, req prov
 		return
 	}
 
-	user, err := sysuser.Current()
+	user, err := user.Current()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to retrieve current user",
@@ -151,55 +156,60 @@ func (p *samsungcloudplatformv2Provider) Configure(ctx context.Context, req prov
 		providerConfig.SecretKey.ValueString(),
 		providerConfig.DefaultRegion.ValueString(),
 	)
-	serviceBasePath, err := catalog.GetEndpointList(serviceList, providerConfig.AccountId.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to get endpoint list",
-			"Error details: "+err.Error(),
-		)
-		return
-	}
 
-	var wg sync.WaitGroup
-	results := make(chan string, len(serviceBasePath))
-
-	for _, endpoint := range serviceBasePath {
-		wg.Add(1)
-		go catalog.AsyncVersionCheck(serviceList, endpoint, results, &wg, configureTime, providerConfig.MaxRemainDays.ValueInt64(), providerConfig.MicroversionCheckTimeout.ValueInt64())
-	}
-	wg.Wait()
-	close(results)
-
-	if len(results) != 0 {
-		result_msg := ""
-
-		var deprecated_msg = []string{"SDK Supported Until Check \n"}
-		var err_msg = []string{"Service Check Failed List"}
-
-		for v := range results {
-			if strings.Contains(v, scpsdk.DEPRECATED_SDK_MSG_PREFIX) {
-				deprecated_msg = append(deprecated_msg, v)
-			} else {
-				err_msg = append(err_msg, v)
-			}
-		}
-		if len(deprecated_msg) > 1 {
-			for _, msg := range deprecated_msg {
-				result_msg += msg
-			}
-			result_msg += "\n"
-		}
-		if len(err_msg) > 1 {
-			for _, msg := range err_msg {
-				result_msg += msg + "\n"
-			}
+	if !providerConfig.SkipVersionCheck.ValueBool() {
+		serviceBasePath, err := catalog.GetEndpointList(serviceList, providerConfig.AccountId.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Failed to get endpoint list",
+				"Error details: "+err.Error(),
+			)
+			return
 		}
 
-		resp.Diagnostics.AddWarning(
-			"Check the warning based on the results of the pre-inspection of the current Terraform provider version.\n"+
-				"Please check and update the version if necessary.",
-			result_msg,
-		)
+		var wg sync.WaitGroup
+		results := make(chan string, len(serviceBasePath))
+
+		for _, endpoint := range serviceBasePath {
+			wg.Add(1)
+			go catalog.AsyncVersionCheck(serviceList, endpoint, results, &wg, configureTime, providerConfig.MaxRemainDays.ValueInt64(), providerConfig.MicroversionCheckTimeout.ValueInt64())
+		}
+		wg.Wait()
+		close(results)
+
+		if len(results) != 0 {
+			result_msg := ""
+
+			var deprecated_msg = []string{"SDK Supported Until Check \n"}
+			var err_msg = []string{"Service Check Failed List"}
+
+			for v := range results {
+				if strings.Contains(v, scpsdk.DEPRECATED_SDK_MSG_PREFIX) {
+					deprecated_msg = append(deprecated_msg, v)
+				} else {
+					err_msg = append(err_msg, v)
+				}
+			}
+			if len(deprecated_msg) > 1 {
+				for _, msg := range deprecated_msg {
+					result_msg += msg
+				}
+				result_msg += "\n"
+			}
+			if len(err_msg) > 1 {
+				for _, msg := range err_msg {
+					result_msg += msg + "\n"
+				}
+			}
+
+			resp.Diagnostics.AddWarning(
+				"Check the warning based on the results of the pre-inspection of the current Terraform provider version.\n"+
+					"Please check and update the version if necessary.",
+				result_msg,
+			)
+		}
+	} else {
+		tflog.Info(ctx, "Skipping SDK version check due to skip_version_check=true")
 	}
 
 	// Make the samsungcloudplatformv2 client available during DataSource and Resource

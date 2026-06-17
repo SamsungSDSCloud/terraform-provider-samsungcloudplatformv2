@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_server_group Data Source - samsungcloudplatformv2"
 subcategory: LB Server Group
 description: |-
-  Show Lb Server Group.
+  Retrieve details of a specific LB Server Group.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_server_group (Data Source)
 
-Show Lb Server Group.
+Retrieve details of a specific LB Server Group.
 
 ## Example Usage
 
@@ -34,32 +34,32 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Id
+- `id` (String) The unique identifier of the LB Server Group.
 
 ### Read-Only
 
-- `lb_server_group` (Attributes) A detail of Lb Server Group. (see [below for nested schema](#nestedatt--lb_server_group))
+- `lb_server_group` (Attributes) Details of the LB Server Group. (see [below for nested schema](#nestedatt--lb_server_group))
 
 <a id="nestedatt--lb_server_group"></a>
 ### Nested Schema for `lb_server_group`
 
 Optional:
 
-- `account_id` (String) AccountId
-- `description` (String) Description
-- `lb_health_check_id` (String) LbHealthCheckId
-- `lb_method` (String) LbMethod
-- `lb_name` (String) LbName
-- `loadbalancer_id` (String) LoadbalancerId
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `account_id` (String) The account ID associated with the resource.
+- `description` (String) Enter a brief explanation or note about this resource (max 255 characters). This helps identify the purpose or usage of the resource.
+- `lb_health_check_id` (String) The LB Health Check ID.
+- `lb_method` (String) The load balancing method (ROUND_ROBIN, LEAST_CONNECTION, IP_HASH, WEIGHTED_ROUND_ROBIN, WEIGHTED_LEAST_CONNECTION).
+- `lb_name` (String) The name of the LoadBalancer.
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the server group.
+- `name` (String) The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `protocol` (String) The protocol for the server group (TCP, UDP).
+- `state` (String) The current state of the LB Server Group (CREATING, ACTIVE, DELETING, ERROR, EDITING).
+- `subnet_id` (String) The subnet ID where the resource is located.
+- `vpc_id` (String) The VPC ID where the resource is located.
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

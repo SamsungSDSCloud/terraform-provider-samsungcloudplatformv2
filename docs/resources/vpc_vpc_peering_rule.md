@@ -57,12 +57,13 @@ variable "tags" {
 
 ### Required
 
-- `destination_cidr` (String) Destination CIDR
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
   - Example : 192.168.1.0/24
-- `destination_vpc_type` (String) Destination VPC Type 
+- `destination_vpc_type` (String) The type of the destination VPC.
   - Example : REQUESTER_VPC | APPROVER_VPC
   - Reference : VpcPeeringRuleDestinationVpcType
-- `vpc_peering_id` (String) VPC Peering ID
+- `vpc_peering_id` (String) The identifier of the VPC peering.
+  - example: YOUR RESOURCE'S VPC_PEERING_ID
 
 ### Optional
 
@@ -79,27 +80,34 @@ variable "tags" {
 
 Read-Only:
 
-- `created_at` (String) Created At
-  - Example : 2024-05-17T00:23:17Z
-- `created_by` (String) Created By
-  - Example : 90dddfc2b1e04edba54ba2b41539a9ac
-- `destination_cidr` (String) Destination CIDR
-- `destination_vpc_id` (String) Destination VPC ID
-- `destination_vpc_name` (String) Destination VPC Name
-- `destination_vpc_type` (String) Destination VPC Type
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
+  - example : 10.10.10.0/24
+- `destination_vpc_id` (String) The identifier of the destination VPC.
+  - example: YOUR RESOURCE'S DESTINATION_VPC_ID
+- `destination_vpc_name` (String) The name of the destination VPC.
+  - example : vpcName
+- `destination_vpc_type` (String) The type of the destination VPC.
   - Example : REQUESTER_VPC | APPROVER_VPC
   - Reference : VpcPeeringRuleDestinationVpcType
-- `id` (String) VPC Peering Rule ID
-- `modified_at` (String) Modified At
-  - Example : 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified By
-  - Example : 90dddfc2b1e04edba54ba2b41539a9ac
-- `source_vpc_id` (String) Source VPC ID
-- `source_vpc_name` (String) Source VPC Name
-- `source_vpc_type` (String) Source VPC Type
+- `id` (String) The unique identifier of the VPC peering rule.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `source_vpc_id` (String) The identifier of the source VPC.
+  - example: YOUR RESOURCE'S SOURCE_VPC_ID
+- `source_vpc_name` (String) The name of the source VPC.
+  - example : vpcName
+- `source_vpc_type` (String) The type of the source VPC.
   - Example : REQUESTER_VPC | APPROVER_VPC
   - Reference : VpcPeeringRuleDestinationVpcType
-- `state` (String) State
+- `state` (String) The current lifecycle state of the VPC peering rule.
   - Example : CREATING | ACTIVE | DELETING | DELETED | ERROR
   - Reference : RoutingRuleState
-- `vpc_peering_id` (String) VPC Peering ID
+- `vpc_peering_id` (String) The identifier of the VPC peering.
+  - example: YOUR RESOURCE'S VPC_PEERING_ID

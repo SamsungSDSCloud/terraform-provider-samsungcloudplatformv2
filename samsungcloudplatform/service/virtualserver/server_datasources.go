@@ -3,11 +3,12 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -34,44 +35,54 @@ func (d *virtualServerServerDataSources) Metadata(_ context.Context, req datasou
 
 func (d *virtualServerServerDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of servers.",
+		Description:         "Retrieves a list of virtual servers.",
+		MarkdownDescription: "Retrieves a list of virtual server IDs matching the specified criteria.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description:         "Server name to filter by.\n  - example: my-server\n  - minLength: 1\n  - maxLength: 255",
+				MarkdownDescription: "Server name to filter by.\n  - example: my-server\n  - minLength: 1\n  - maxLength: 255",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Ip"): schema.StringAttribute{
-				Description: "Ip",
-				Optional:    true,
+				Description:         "IP address to filter servers.\n  - example: 192.168.1.100",
+				MarkdownDescription: "IP address to filter servers.\n  - example: 192.168.1.100",
+				Optional:            true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
+				Description:         "Server state to filter.\n  - Available values: ACTIVE, SHUTOFF, ERROR",
+				MarkdownDescription: "Server state to filter.\n  - Available values: ACTIVE, SHUTOFF, ERROR",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ProductCategory"): schema.StringAttribute{
-				Description: "Product category",
-				Optional:    true,
+				Description:         "Product category.\n  - Available values: compute, container",
+				MarkdownDescription: "Product category.\n  - Available values: compute, container",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ProductOffering"): schema.StringAttribute{
-				Description: "Product offering",
-				Optional:    true,
+				Description:         "Product offering.\n  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm",
+				MarkdownDescription: "Product offering.\n  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm\n  - note: Use gpu_server for GPU instances",
+				Optional:            true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID",
-				Optional:    true,
+				Description:         "VPC ID.\n  - example: cc976b621087484ea5fd527f4b78708b",
+				MarkdownDescription: "VPC ID.\n  - example: cc976b621087484ea5fd527f4b78708b",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ServerTypeId"): schema.StringAttribute{
-				Description: "Server type ID",
-				Optional:    true,
+				Description:         "Server type ID.\n  - example: s1v1m2",
+				MarkdownDescription: "Server type ID.\n  - example: s1v1m2",
+				Optional:            true,
 			},
 			common.ToSnakeCase("AutoScalingGroupId"): schema.StringAttribute{
-				Description: "Auto scaling group ID",
-				Optional:    true,
+				Description:         "Auto Scaling Group ID.\n  - example: 52613bd852b04b39adcb15a8364d856d",
+				MarkdownDescription: "Auto Scaling Group ID.\n  - example: 52613bd852b04b39adcb15a8364d856d",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				Description: "Server ID List",
+				ElementType:         types.StringType,
+				Computed:            true,
+				Description:         "List of retrieved server IDs.",
+				MarkdownDescription: "List of retrieved server IDs.",
 			},
 		},
 		Blocks: map[string]schema.Block{

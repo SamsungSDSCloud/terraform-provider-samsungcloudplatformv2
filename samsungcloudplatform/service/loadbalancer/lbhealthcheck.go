@@ -3,13 +3,13 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -44,157 +44,233 @@ func (r *loadbalancerLbHealthCheckResource) Metadata(_ context.Context, req reso
 // Schema defines the schema for the data source.
 func (r *loadbalancerLbHealthCheckResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Lb Health Check.",
+		Description: "LB Health Check resource for monitoring server health.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the resource.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("LbHealthCheck"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Health Check.",
+				Description: "Details of the LB Health Check.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : this is an lb server group\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Optional:    true,
+						Description: "The VPC ID where the resource is located.\n" +
+							"  - example : 8acceeb6920c4fc494490d864f67f0b5\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Optional:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 60fba45cb6c811efba41ba92e4fe7200\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "Protocol",
-						Optional:    true,
+						Description: "The protocol used for the health check.\n" +
+							"  - example : TCP\n" +
+							"  - pattern : TCP | HTTP | HTTPS\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Optional:    true,
+						Description: "The current state of the Health Check.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the LB Health Check.\n" +
+							"  - example : ServerGroup01\n" +
+							"  - minLength : 3\n" +
+							"  - maxLength : 63\n" +
+							"  - pattern : ^[a-zA-Z0-9][-a-zA-Z0-9_]*[a-zA-Z0-9]$\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckPort"): schema.Int32Attribute{
-						Description: "HealthCheckPort",
-						Optional:    true,
+						Description: "The port number used for health checks.\n" +
+							"  - example : 80\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 65534\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckInterval"): schema.Int32Attribute{
-						Description: "HealthCheckInterval",
-						Optional:    true,
+						Description: "The interval between health checks in seconds.\n" +
+							"  - example : 5\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 180\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckTimeout"): schema.Int32Attribute{
-						Description: "HealthCheckTimeout",
-						Optional:    true,
+						Description: "The timeout for health check responses in seconds. Must be less than or equal to the interval.\n" +
+							"  - example : 5\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 180\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckCount"): schema.Int32Attribute{
-						Description: "HealthCheckCount",
-						Optional:    true,
+						Description: "The number of consecutive health check failures before marking as unhealthy.\n" +
+							"  - example : 3\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 10\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HttpMethod"): schema.StringAttribute{
-						Description: "HttpMethod",
-						Optional:    true,
+						Description: "The HTTP method used for health checks.\n" +
+							"  - example : GET\n" +
+							"  - pattern : GET | POST\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckUrl"): schema.StringAttribute{
-						Description: "HealthCheckUrl",
-						Optional:    true,
+						Description: "The URL path for HTTP health checks.\n" +
+							"  - example : /test\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 50\n" +
+							"  - pattern : ^/[A-Za-z0-9/._?&=-]*$\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ResponseCode"): schema.StringAttribute{
-						Description: "ResponseCode",
-						Optional:    true,
+						Description: "The expected HTTP response code for health checks.\n" +
+							"  - example : 200\n" +
+							"  - minimum : 200\n" +
+							"  - maximum : 599\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckType"): schema.StringAttribute{
-						Description: "HealthCheckType",
-						Optional:    true,
+						Description: "The type of health check.\n" +
+							"  - example : DEFAULT\n" +
+							"  - pattern : DEFAULT | CUSTOM\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("RequestData"): schema.StringAttribute{
-						Description: "RequestData",
-						Optional:    true,
+						Description: "The request data sent during health checks.\n" +
+							"  - example : username=admin&password=1234\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Optional:    true,
+						Description: "The account ID associated with the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 				},
 			},
 			common.ToSnakeCase("LbHealthCheckCreate"): schema.SingleNestedAttribute{
-				Description: "Create Lb Health Check.",
+				Description: "Parameters for creating a new LB Health Check.",
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					"tags": tag.ResourceSchema(),
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : this is an lb server group\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Optional:    true,
+						Description: "The VPC ID where the resource is located.\n" +
+							"  - example : 8acceeb6920c4fc494490d864f67f0b5\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Optional:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 60fba45cb6c811efba41ba92e4fe7200\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "Protocol",
-						Optional:    true,
+						Description: "The protocol used for the health check.\n" +
+							"  - example : TCP\n" +
+							"  - pattern : TCP | HTTP | HTTPS\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the LB Health Check.\n" +
+							"  - example : ServerGroup01\n" +
+							"  - minLength : 3\n" +
+							"  - maxLength : 63\n" +
+							"  - pattern : ^[a-zA-Z0-9][-a-zA-Z0-9_]*[a-zA-Z0-9]$\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckPort"): schema.Int32Attribute{
-						Description: "HealthCheckPort",
-						Optional:    true,
+						Description: "The port number used for health checks.\n" +
+							"  - example : 80\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 65534\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckInterval"): schema.Int32Attribute{
-						Description: "HealthCheckInterval",
-						Optional:    true,
+						Description: "The interval between health checks in seconds.\n" +
+							"  - example : 5\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 180\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckTimeout"): schema.Int32Attribute{
-						Description: "HealthCheckTimeout",
-						Optional:    true,
+						Description: "The timeout for health check responses in seconds. Must be less than or equal to the interval.\n" +
+							"  - example : 5\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 180\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckCount"): schema.Int32Attribute{
-						Description: "HealthCheckCount",
-						Optional:    true,
+						Description: "The number of consecutive health check failures before marking as unhealthy.\n" +
+							"  - example : 3\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 10\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HttpMethod"): schema.StringAttribute{
-						Description: "HttpMethod",
-						Optional:    true,
+						Description: "The HTTP method used for health checks.\n" +
+							"  - example : GET\n" +
+							"  - pattern : GET | POST\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckUrl"): schema.StringAttribute{
-						Description: "HealthCheckUrl",
-						Optional:    true,
+						Description: "The URL path for HTTP health checks.\n" +
+							"  - example : /test\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 50\n" +
+							"  - pattern : ^/[A-Za-z0-9/._?&=-]*$\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ResponseCode"): schema.StringAttribute{
-						Description: "ResponseCode",
-						Optional:    true,
+						Description: "The expected HTTP response code for health checks.\n" +
+							"  - example : 200\n" +
+							"  - minimum : 200\n" +
+							"  - maximum : 599\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("RequestData"): schema.StringAttribute{
-						Description: "RequestData",
-						Optional:    true,
+						Description: "The request data sent during health checks.\n" +
+							"  - example : username=admin&password=1234\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 				},
 			},

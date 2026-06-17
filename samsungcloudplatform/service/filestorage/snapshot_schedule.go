@@ -3,18 +3,22 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"strings"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
-	_ resource.Resource              = &fileStorageSnapshotScheduleResource{}
-	_ resource.ResourceWithConfigure = &fileStorageSnapshotScheduleResource{}
+	_ resource.Resource                = &fileStorageSnapshotScheduleResource{}
+	_ resource.ResourceWithConfigure   = &fileStorageSnapshotScheduleResource{}
+	_ resource.ResourceWithImportState = &fileStorageSnapshotScheduleResource{}
 )
 
 func NewFileStorageSnapshotScheduleResource() resource.Resource {
@@ -33,7 +37,7 @@ func (r *fileStorageSnapshotScheduleResource) Metadata(_ context.Context, req re
 
 func (r *fileStorageSnapshotScheduleResource) Schema(_ context.Context, _ resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
-		Description: "Lists of SnapshotSchedules.",
+		Description: "Manages a File Storage Snapshot Schedule on Samsung Cloud Platform.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("VolumeId"): schema.StringAttribute{
 				Description: "Volume ID \n" +
@@ -42,7 +46,7 @@ func (r *fileStorageSnapshotScheduleResource) Schema(_ context.Context, _ resour
 			},
 			common.ToSnakeCase("SnapshotPolicyEnabled"): schema.BoolAttribute{
 				Description: "Snapshot Policy Enabled \n" +
-					"  - example : 'true' \n",
+					"  - example : true \n",
 				Computed: true,
 			},
 			common.ToSnakeCase("SnapshotRetentionCount"): schema.Int32Attribute{
@@ -57,26 +61,30 @@ func (r *fileStorageSnapshotScheduleResource) Schema(_ context.Context, _ resour
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("DayOfWeek"): schema.StringAttribute{
-						Description: "Day Of Week \n" +
+						Description: "The day of the week for the snapshot schedule (e.g., MON, TUE). Required if frequency is WEEKLY. \n" +
 							"  - example : 'MON' \n" +
 							"  - pattern: `^(SUN|MON|TUE|WED|THU|FRI|SAT)$` \n",
 						Optional: true,
 					},
 					common.ToSnakeCase("Frequency"): schema.StringAttribute{
-						Description: "Frequency \n" +
+						Description: "The frequency of the snapshot schedule (e.g., DAILY, WEEKLY). \n" +
 							"  - example : 'DAILY' \n" +
 							"  - pattern: `^(WEEKLY|DAILY)$` \n",
 						Optional: true,
 					},
 					common.ToSnakeCase("Hour"): schema.StringAttribute{
-						Description: "Hour \n" +
+						Description: "The hour of the day (0-23) when the snapshot is taken. \n" +
 							"  - example : '0' \n" +
 							"  - maximum : 23 \n" +
 							"  - minimum : 0  \n" +
 							"  - pattern: `^([0-9]|1[0-9]|2[0-3])$` \n",
 						Optional: true,
 					},
-					common.ToSnakeCase("Id"): schema.StringAttribute{Description: "ID", Computed: true},
+					common.ToSnakeCase("Id"): schema.StringAttribute{
+						Description: "The unique identifier of the snapshot schedule. \n" +
+							"  - example : 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' \n",
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -182,7 +190,7 @@ func (r *fileStorageSnapshotScheduleResource) Create(ctx context.Context, reques
 	plan.SnapshotRetentionCount = types.Int32PointerValue(snapshotSchedule.SnapshotRetentionCount)
 	plan.SnapshotPolicyEnabled = types.BoolPointerValue(snapshotSchedule.SnapshotPolicyEnabled.Get())
 
-	var snapshotScheduleState = filestorage.SnapshotSchedule{
+	var snapshotScheduleState = &filestorage.SnapshotSchedule{
 		DayOfWeek: types.StringPointerValue(nil),
 		Frequency: types.StringValue(""),
 		Hour:      types.StringValue(""),
@@ -190,7 +198,7 @@ func (r *fileStorageSnapshotScheduleResource) Create(ctx context.Context, reques
 	}
 
 	for _, snapshotScheduleList := range snapshotSchedule.SnapshotSchedule {
-		snapshotScheduleState = filestorage.SnapshotSchedule{
+		snapshotScheduleState = &filestorage.SnapshotSchedule{
 			DayOfWeek: types.StringPointerValue(snapshotScheduleList.DayOfWeek.Get()),
 			Frequency: types.StringValue(snapshotScheduleList.Frequency),
 			Hour:      types.StringValue(snapshotScheduleList.Hour),
@@ -222,6 +230,10 @@ func (r *fileStorageSnapshotScheduleResource) Read(ctx context.Context, request 
 
 	data, err := r.client.GetSnapshotScheduleList(ctx, state.VolumeId.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			response.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error Reading Snapshot Schedule",
@@ -233,7 +245,7 @@ func (r *fileStorageSnapshotScheduleResource) Read(ctx context.Context, request 
 	state.SnapshotRetentionCount = types.Int32PointerValue(data.SnapshotRetentionCount)
 	state.SnapshotPolicyEnabled = types.BoolPointerValue(data.SnapshotPolicyEnabled.Get())
 
-	var snapshotScheduleState = filestorage.SnapshotSchedule{
+	var snapshotScheduleState = &filestorage.SnapshotSchedule{
 		DayOfWeek: types.StringPointerValue(nil),
 		Frequency: types.StringValue(""),
 		Hour:      types.StringValue(""),
@@ -241,7 +253,7 @@ func (r *fileStorageSnapshotScheduleResource) Read(ctx context.Context, request 
 	}
 
 	for _, snapshotScheduleList := range data.SnapshotSchedule {
-		snapshotScheduleState = filestorage.SnapshotSchedule{
+		snapshotScheduleState = &filestorage.SnapshotSchedule{
 			DayOfWeek: types.StringPointerValue(snapshotScheduleList.DayOfWeek.Get()),
 			Frequency: types.StringValue(snapshotScheduleList.Frequency),
 			Hour:      types.StringValue(snapshotScheduleList.Hour),
@@ -282,7 +294,7 @@ func (r *fileStorageSnapshotScheduleResource) Update(ctx context.Context, reques
 
 	var SnapshotSheduleId = ""
 
-	var snapshotScheduleState = filestorage.SnapshotSchedule{
+	var snapshotScheduleState = &filestorage.SnapshotSchedule{
 		DayOfWeek: types.StringPointerValue(nil),
 		Frequency: types.StringValue(""),
 		Hour:      types.StringValue(""),
@@ -290,7 +302,7 @@ func (r *fileStorageSnapshotScheduleResource) Update(ctx context.Context, reques
 	}
 
 	for _, snapshotScheduleList := range getData.SnapshotSchedule {
-		snapshotScheduleState = filestorage.SnapshotSchedule{
+		snapshotScheduleState = &filestorage.SnapshotSchedule{
 			DayOfWeek: types.StringPointerValue(snapshotScheduleList.DayOfWeek.Get()),
 			Frequency: types.StringValue(snapshotScheduleList.Frequency),
 			Hour:      types.StringValue(snapshotScheduleList.Hour),
@@ -329,7 +341,7 @@ func (r *fileStorageSnapshotScheduleResource) Update(ctx context.Context, reques
 	plan.SnapshotPolicyEnabled = types.BoolPointerValue(snapshotSchedule.SnapshotPolicyEnabled.Get())
 
 	for _, snapshotScheduleList := range snapshotSchedule.SnapshotSchedule {
-		snapshotScheduleState = filestorage.SnapshotSchedule{
+		snapshotScheduleState = &filestorage.SnapshotSchedule{
 			DayOfWeek: types.StringPointerValue(snapshotScheduleList.DayOfWeek.Get()),
 			Frequency: types.StringValue(snapshotScheduleList.Frequency),
 			Hour:      types.StringValue(snapshotScheduleList.Hour),
@@ -398,4 +410,9 @@ func (r *fileStorageSnapshotScheduleResource) Delete(ctx context.Context, reques
 		)
 		return
 	}
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *fileStorageSnapshotScheduleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("volume_id"), req, resp)
 }

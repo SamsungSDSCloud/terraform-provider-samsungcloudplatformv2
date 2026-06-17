@@ -36,21 +36,28 @@ variable "product_type" {
 
 ### Optional
 
-- `name` (String) Firewall Name 
-  - example : subnetName
-- `page` (Number) Page 
-  - example : 0
-- `product_type` (List of String) ProductType 
-  - example : IGW | GGW | DGW | LB | SIGW | TGW_IGW | TGW_GGW | TGW_DGW | TGW_SIGW | TGW_BM
-- `size` (Number) Size 
-  - example : 20
-- `sort` (String) Sort 
-  - example : created_at:desc
-- `state` (List of String) State 
-  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR | DEPLOYING
-- `vpc_name` (String) Vpc Name 
-  - example : vpcName
+- `name` (String) The name of the resource.
+  - example: fw-web-prod
+  - constraints: maxLength: 255
+- `page` (Number) The page number for pagination.
+  - example: 1
+  - constraints: min: 1
+- `product_type` (List of String) The type of the firewall service.
+  - example: IGW
+  - valid: IGW, GGW, DGW, LB, SIGW, TGW_IGW, TGW_GGW, TGW_DGW, TGW_SIGW, TGW_BM
+- `size` (Number) The number of items per page.
+  - example: 20
+  - constraints: min: 1
+- `sort` (String) The sorting criteria.
+  - example: created_at:desc
+  - valid: field_name:asc or field_name:desc
+- `state` (List of String) The current state of the resource.
+  - example: ACTIVE
+  - valid: CREATING, ACTIVE, EDITING, DELETING, ERROR, DEPLOYING
+- `vpc_name` (String) The name of the VPC that the resource belongs to.
+  - example: vpc-prod-01
 
 ### Read-Only
 
-- `ids` (List of String) Firewall Id List
+- `ids` (List of String) Firewall Rule Id List.
+  - example: ['YOUR RESOURCE'S IDS']

@@ -3,20 +3,22 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -40,42 +42,58 @@ func (r *virtualServerKeypairResource) Metadata(_ context.Context, req resource.
 
 func (r *virtualServerKeypairResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "keypair",
+		Description: "Creates a keypair for SSH access to virtual servers.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int32Attribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Resource ID.",
+				MarkdownDescription: "Resource ID.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.Int32{
 					int32planmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Required:    true,
+				Description: "Keypair name.\n" +
+					"  - example: my-keypair\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				MarkdownDescription: "Keypair name.\n" +
+					"  - example: my-keypair\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				Required: true,
 			},
 			common.ToSnakeCase("PublicKey"): schema.StringAttribute{
-				Description: "Public key",
-				Computed:    true,
+				Description:         "Public key. Automatically generated.",
+				MarkdownDescription: "Public key. Automatically generated.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Fingerprint"): schema.StringAttribute{
-				Description: "Fingerprint",
-				Computed:    true,
+				Description:         "Fingerprint of the public key.",
+				MarkdownDescription: "Fingerprint of the public key.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Type",
-				Computed:    true,
+				Description:         "Keypair type.",
+				MarkdownDescription: "Keypair type.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("PrivateKey"): schema.StringAttribute{
-				Description: "Private key",
-				Computed:    true,
+				Description: "Private key.\n" +
+					"  - note: Only available at creation time. Store securely as it cannot be retrieved later.",
+				MarkdownDescription: "Private key.\n" +
+					"  - note: Only available at creation time. Store securely as it cannot be retrieved later.",
+				Computed: true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created at",
-				Computed:    true,
+				Description:         "Created at.",
+				MarkdownDescription: "Created at.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("UserId"): schema.StringAttribute{
-				Description: "User ID",
-				Computed:    true,
+				Description:         "User ID.",
+				MarkdownDescription: "User ID.",
+				Computed:            true,
 			},
 			"tags": tag.ResourceSchema(),
 		},
@@ -280,4 +298,12 @@ func (r *virtualServerKeypairResource) Delete(ctx context.Context, req resource.
 		)
 		return
 	}
+}
+
+func (r *virtualServerKeypairResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }

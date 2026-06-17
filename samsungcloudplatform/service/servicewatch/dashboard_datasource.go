@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/servicewatch/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -45,139 +45,171 @@ func (d *serviceWatchDashboardDataSource) Schema(_ context.Context, _ datasource
 		Description: "Dashboard Data Source",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Dashboard ID",
-				Optional:    true,
+				Description: "Dashboard ID.\n" +
+					" - example : b48e730a70e74f6aa3d2555000b5c22b\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Dashboard name",
-				Optional:    true,
+				Description: "Dashboard name.\n" +
+					" - example : Production-Web-Servers\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Dashboard type",
-				Optional:    true,
+				Description: "Dashboard type.\n" +
+					" - example : Custom\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("FavoriteEnabled"): schema.BoolAttribute{
-				Description: "Whether it is a favorite dashboard",
-				Optional:    true,
+				Description: "Whether it is a favorite dashboard.\n" +
+					" - example : true\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Srn"): schema.StringAttribute{
-				Description: "Service resource name",
+				Description: "Service resource name.\n" +
+					" - example : srn:dev2::account-id:region::scp-servicewatch:dashboard/b48e730a70e74f6aa3d2555000b5c22b\n",
 				Optional:    true,
 			},
 			common.ToSnakeCase("ShareType"): schema.StringAttribute{
-				Description: "Sharing type",
-				Optional:    true,
+				Description: "Sharing type.\n" +
+					" - example : Private\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created date time",
-				Computed:    true,
+				Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description: "Creator ID",
-				Computed:    true,
+				Description: "The user id that created the resource.\n" +
+					" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
 
-				Description: "Modified date time",
-				Computed:    true,
+				Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-				Description: "Modifier ID",
-				Computed:    true,
+				Description: "The user id that last modified the resource.\n" +
+					" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("Widgets"): schema.ListNestedAttribute{
-				Description: "List of widgets",
+				Description: "List of widgets.\n" +
+					" - example : [{\"id\": \"75da70a1a4fb486ab0282cf90693ec3c\", \"type\": \"metric\"}]\n",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Widget ID",
-							Computed:    true,
+							Description: "Widget ID.\n" +
+								" - example : 75da70a1a4fb486ab0282cf90693ec3c\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Widget type",
-							Computed:    true,
+							Description: "Widget type.\n" +
+								" - example : metric\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Width"): schema.Int32Attribute{
-							Description: "Widget width",
-							Computed:    true,
+							Description: "Widget width.\n" +
+								" - example : 1\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Height"): schema.Int32Attribute{
-							Description: "Widget height",
-							Computed:    true,
+							Description: "Widget height.\n" +
+								" - example : 1\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Order"): schema.Int32Attribute{
-							Description: "Widget's order in the dashboard",
-							Computed:    true,
+							Description: "Widget's order in the dashboard.\n" +
+								" - example : 1\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Properties"): schema.SingleNestedAttribute{
-							Description: "Widget's detailed properties",
+							Description: "Widget's detailed properties.\n" +
+								" - example : {\"title\": \"CPU Utilization\", \"view\": \"line\"}\n",
 							Computed:    true,
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Title"): schema.StringAttribute{
-									Description: "Widget title",
-									Computed:    true,
+									Description: "Widget title.\n" +
+										" - example : Virtual Server | CPU Utilization\n",
+									Computed: true,
 								},
 								common.ToSnakeCase("Period"): schema.Int32Attribute{
-									Description: "Query period (seconds)",
-									Computed:    true,
+									Description: "Query period (seconds).\n" +
+										" - example : 300\n",
+									Computed: true,
 								},
 								common.ToSnakeCase("Stacked"): schema.BoolAttribute{
-									Description: "Whether the graph is stacked",
-									Computed:    true,
+									Description: "Whether the graph is stacked.\n" +
+										" - example : false\n",
+									Computed: true,
 								},
 								common.ToSnakeCase("StatisticType"): schema.StringAttribute{
-									Description: "Statistical function",
-									Computed:    true,
+									Description: "Statistical function.\n" +
+										" - example : AVG\n",
+									Computed: true,
 								},
 								common.ToSnakeCase("View"): schema.StringAttribute{
-									Description: "View type",
-									Computed:    true,
+									Description: "View type.\n" +
+										" - example : line\n",
+									Computed: true,
 								},
 								common.ToSnakeCase("Metrics"): schema.ListNestedAttribute{
-									Description: "List of metrics included in the widget",
+									Description: "List of metrics included in the widget.\n" +
+										" - example : [{\"name\": \"cpu_utilization\", \"namespace_name\": \"SCP/Compute\"}]\n",
 									Computed:    true,
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											common.ToSnakeCase("Name"): schema.StringAttribute{
-												Description: "Metric name",
+												Description: "Metric name.\n" +
+													" - example : cpu_utilization\n",
 												Computed:    true,
 											},
 											common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
-												Description: "Namespace name",
+												Description: "The name of the namespace.\n" +
+													" - example : SCP/Compute\n",
 												Computed:    true,
 											},
 											common.ToSnakeCase("DisplayName"): schema.StringAttribute{
-												Description: "Display name (label) of the metric",
+												Description: "Display name (label) of the metric.\n" +
+													" - example : CPU Utilization (%)\n",
 												Computed:    true,
 											},
 											common.ToSnakeCase("Color"): schema.StringAttribute{
-												Description: "Metric line color",
+													Description: "Metric line color.\n" +
+														" - example : #2ecc71\n",
 												Computed:    true,
 											},
-											common.ToSnakeCase("Dimensions"): schema.ListNestedAttribute{
-												Description: "List of dimensions",
-												Optional:    true,
-												NestedObject: schema.NestedAttributeObject{
-													Attributes: map[string]schema.Attribute{
-														common.ToSnakeCase("Key"): schema.StringAttribute{
-															Description: "Dimension key",
-															Computed:    true,
-														},
-														common.ToSnakeCase("Value"): schema.StringAttribute{
-															Description: "Dimension value",
-															Computed:    true,
-														},
-													},
-												},
+                                            common.ToSnakeCase("Dimensions"): schema.ListNestedAttribute{
+                                                Description: "List of dimensions.\n" +
+                                                    " - example : [{\"key\": \"instance_id\", \"value\": \"i-1234567890abcdef0\"}]\n",
+                                                Optional:    true,
+                                                NestedObject: schema.NestedAttributeObject{
+                                                    Attributes: map[string]schema.Attribute{
+                                                        common.ToSnakeCase("Key"): schema.StringAttribute{
+                                                            Description: "Dimension key.\n" +
+                                                                " - example : instance_id\n",
+                                                            Computed:    true,
+                                                        },
+                                                        common.ToSnakeCase("Value"): schema.StringAttribute{
+                                                            Description: "Dimension value.\n" +
+                                                                " - example : i-1234567890abcdef0\n",
+                                                            Computed:    true,
+                                                        },
+                                                    },
+                                                },
 											},
 											common.ToSnakeCase("Period"): schema.Int32Attribute{
-												Description: "Query period (seconds)",
-												Computed:    true,
+														Description: "Query period (seconds).\n" +
+															" - example : 300\n",
+														Computed:    true,
 											},
 											common.ToSnakeCase("StatisticType"): schema.StringAttribute{
-												Description: "Statistical function",
-												Computed:    true,
+													Description: "Statistical function.\n" +
+														" - example : AVG\n",
+													Computed:    true,
 											},
 										},
 									},

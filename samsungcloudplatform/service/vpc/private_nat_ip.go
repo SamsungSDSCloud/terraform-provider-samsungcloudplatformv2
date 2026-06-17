@@ -3,17 +3,18 @@ package vpc
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -42,27 +43,28 @@ func (d *vpcPrivateNatIpResource) Metadata(_ context.Context, req resource.Metad
 // Schema defines the schema for the data source.
 func (d *vpcPrivateNatIpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Private NAT IP.",
+		Description: "Ip resource for Private NAT.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the resource.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("PrivateNatId"): schema.StringAttribute{
-				Description: "Private NAT ID \n" +
+				Description: "The identifier of the private NAT that the resource belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
 			common.ToSnakeCase("IpAddress"): schema.StringAttribute{
-				Description: "IP address \n" +
+				Description: "The IP address assigned to the private NAT.\n" +
 					"  - example : 192.168.10.0",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
+				Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
 					"  - example : Private NAT IP description\n" +
 					"  - maxLength : 50",
 				Optional: true,
@@ -74,56 +76,69 @@ func (d *vpcPrivateNatIpResource) Schema(_ context.Context, _ resource.SchemaReq
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the private NAT ip.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("IpAddress"): schema.StringAttribute{
-						Description: "IpAddress",
-						Computed:    true,
+						Description: "The IP address assigned to the private NAT.\n" +
+							"  - example : 192.168.10.0",
+						Computed: true,
 					},
 					common.ToSnakeCase("PrivateNatId"): schema.StringAttribute{
-						Description: "PrivateNatId",
-						Computed:    true,
+						Description: "The identifier of the private NAT that the private NAT ip belongs to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("PrivateNatName"): schema.StringAttribute{
-						Description: "PrivateNatName",
-						Computed:    true,
+						Description: "The name of the private NAT that the private NAT ip belongs to.\n" +
+							"  - example : privatenatName",
+						Computed: true,
 					},
 					common.ToSnakeCase("AttachedResourceName"): schema.StringAttribute{
-						Description: "AttachedResourceName",
-						Computed:    true,
+						Description: "The name of the resource that this private NAT ip is attached to.\n" +
+							"  - example : resourceName",
+						Computed: true,
 					},
 					common.ToSnakeCase("AttachedResourceType"): schema.StringAttribute{
-						Description: "AttachedResourceType",
-						Computed:    true,
+						Description: "The type of the resource that this private NAT ip is attached to.\n" +
+							"  - example : VM",
+						Computed: true,
 					},
 					common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
-						Description: "AttachedResourceId",
-						Computed:    true,
+						Description: "The identifier of the resource that this private NAT ip is attached to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current lifecycle state of the private NAT ip.\n" +
+							"  - example : ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
+							"  - example : resourceDescription",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The user id that modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 				},
 			},

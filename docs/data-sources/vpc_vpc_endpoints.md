@@ -109,32 +109,32 @@ variable "sort" {
 
 ### Optional
 
-- `endpoint_ip_address` (String) VPC Endpoint IP Address 
+- `endpoint_ip_address` (String) The IP address of the endpoint.
   - example : 1.1.1.1
-- `id` (String) VPC Endpoint ID 
+- `id` (String) The unique identifier of the endpoint.
   - example: YOUR RESOURCE'S ID
-- `name` (String) VPC Endpoint Name 
+- `name` (String) The name of the endpoint.
   - example : vpcName
-- `page` (Number) Page 
+- `page` (Number) The page number for pagination.
   - example : 0 
   - minimum : 0
-- `resource_key` (String) VPC Endpoint Resource Key 
+- `resource_key` (String) The key identifying the target resource of the endpoint.
   - example(case: SCR/DNS) : 07c5364702384471b650147321b52173 
   - example(case: FS/OBS) : 1.1.1.1
-- `resource_type` (String) VPC Endpoint Resource Type 
+- `resource_type` (String) The type of the target resource.(File Storage : FS, Object Storage : OBS, Container Registry : SCR, DNS : DNS)
   - example : FS | OBS | SCR | DNS
-- `size` (Number) Size 
+- `size` (Number) The number of items per page. 
   - example : 20 
   - minimum : 0
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
   - example : created_at:desc
-- `state` (String) State 
+- `state` (String) The current lifecycle state of the endpoint.
   - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
-- `subnet_id` (String) Subnet ID 
+- `subnet_id` (String) The identifier of the subnet that the endpoint belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
-- `vpc_id` (String) VPC ID 
+- `vpc_id` (String) The identifier of the VPC that the endpoint belongs to.
   - example: YOUR RESOURCE'S VPC_ID
-- `vpc_name` (String) VPC Name 
+- `vpc_name` (String) The name of the VPC that the endpoint belongs to. 
   - example : vpcName
 
 ### Read-Only
@@ -148,20 +148,37 @@ variable "sort" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `endpoint_ip_address` (String) EndpointIpAddress
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `resource_info` (String) ResourceInfo
-- `resource_key` (String) ResourceKey
-- `resource_type` (String) ResourceType
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `subnet_name` (String) SubnetName
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) The identifier of the account that owns the endpoint.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : resourceDescription
+- `endpoint_ip_address` (String) The IP address of the endpoint.
+  - example : 1.1.1.1
+- `id` (String) The unique identifier of the endpoint.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the endpoint.
+  - example : endpointName
+- `resource_info` (String) The information about the target resource of the endpoint.
+  - example : x.samsungsdscloud.com(Registry)
+- `resource_key` (String) The key identifying the target resource of the endpoint.
+  - example : 07c5364702384471b650147321b52173
+- `resource_type` (String) The type of the target resource.(File Storage : FS, Object Storage : OBS, Container Registry : SCR, DNS : DNS)
+  - example : FS | OBS | SCR | DNS
+- `state` (String) The current lifecycle state of the endpoint.
+  - example : ACTIVE
+- `subnet_id` (String) The identifier of the subnet that the endpoint belongs to.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `subnet_name` (String) The name of the subnet that the endpoint belongs to.
+  - example : resourceName
+- `vpc_id` (String) The identifier of the VPC that the endpoint belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the endpoint belongs to.
+  - example : vpcName

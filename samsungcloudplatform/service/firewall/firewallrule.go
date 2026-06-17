@@ -3,25 +3,29 @@ package firewall
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/firewall/1.0"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/firewall"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/firewall/1.0"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &firewallFirewallRuleResource{}
-	_ resource.ResourceWithConfigure = &firewallFirewallRuleResource{}
+	_ resource.Resource                = &firewallFirewallRuleResource{}
+	_ resource.ResourceWithConfigure   = &firewallFirewallRuleResource{}
+	_ resource.ResourceWithImportState = &firewallFirewallRuleResource{}
 )
 
 // NewFirewallFirewallRuleResource is a helper function to simplify the provider implementation.
@@ -43,113 +47,134 @@ func (r *firewallFirewallRuleResource) Metadata(_ context.Context, req resource.
 // Schema defines the schema for the data source.
 func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Firewall rule",
+		Description: "Manages firewall rules to control network traffic.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the resource.\n" +
+					"  - example: 0e2b4ece64944d7d8a72983e945b867b",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-				Description: "Firewall ID \n" +
-					"  - example : 68db67f78abd405da98a6056a8ee42af",
+				Description: "The identifier of the firewall associated with the resource.\n" +
+					"  - example: 68db67f78abd405da98a6056a8ee42af",
 				Required: true,
 			},
 			common.ToSnakeCase("FirewallRule"): schema.SingleNestedAttribute{
-				Description: "Firewall rule",
+				Description: "Firewall Rule.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the resource.\n" +
+							"  - example: 0e2b4ece64944d7d8a72983e945b867b",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the resource.\n" +
+							"  - example: 0e2b4ece64944d7d8a72983e945b867b",
+						Computed: true,
 					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-						Description: "FirewallId",
-						Computed:    true,
+						Description: "The identifier of the firewall associated with the resource.\n" +
+							"  - example: 68db67f78abd405da98a6056a8ee42af",
+						Computed: true,
 					},
 					common.ToSnakeCase("Sequence"): schema.Int32Attribute{
-						Description: "Sequence",
-						Computed:    true,
+						Description: "The order in which the rule is evaluated.\n" +
+							"  - example: 100",
+						Computed: true,
 					},
 					common.ToSnakeCase("SourceInterface"): schema.StringAttribute{
-						Description: "SourceInterface",
-						Computed:    true,
+						Description: "The source interface the rule applies to.\n" +
+							"  - example: L2FW-DGW2800up",
+						Computed: true,
 					},
 					common.ToSnakeCase("SourceAddress"): schema.ListAttribute{
-						Description: "SourceAddress",
+						Description: "The source IP addresses the rule applies to.\n" +
+							"  - example: [10.10.10.0/24, 10.10.11.0/24]",
 						Computed:    true,
 						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("DestinationInterface"): schema.StringAttribute{
-						Description: "DestinationInterface",
-						Computed:    true,
+						Description: "The destination interface the rule applies to.\n" +
+							"  - example: L2FW-DGW2800dn",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationAddress"): schema.ListAttribute{
-						Description: "DestinationAddress",
+						Description: "The destination address the rule applies to.\n" +
+							"  - example: [192.168.0.0/16, 192.169.0.0/16]",
 						Computed:    true,
 						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("Service"): schema.ListNestedAttribute{
-						Description: "Service",
+						Description: "The service ports the rule applies to.",
 						Computed:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("ServiceType"): schema.StringAttribute{
-									Description: "ServiceType",
-									Computed:    true,
+									Description: "The type of the service.\n" +
+										"  - example: TCP",
+									Computed: true,
 								},
 								common.ToSnakeCase("ServiceValue"): schema.StringAttribute{
-									Description: "ServiceValue",
-									Computed:    true,
+									Description: "The value of the service.\n" +
+										"  - example: 80",
+									Computed: true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("Action"): schema.StringAttribute{
-						Description: "Action",
-						Computed:    true,
+						Description: "The action applied to traffic that matches the rule.\n" +
+							"  - example: ALLOW",
+						Computed: true,
 					},
 					common.ToSnakeCase("Direction"): schema.StringAttribute{
-						Description: "Direction",
-						Computed:    true,
+						Description: "The direction of the traffic the rule applies to.\n" +
+							"  - example: INBOUND",
+						Computed: true,
 					},
 					common.ToSnakeCase("VendorRuleId"): schema.StringAttribute{
-						Description: "VendorRuleId",
-						Computed:    true,
+						Description: "The firewall device's unique identifier for the rule.\n" +
+							"  - example: 20",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "A brief explanation or note about this resource.\n" +
+							"  - example: Firewall rule for web tier",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the resource.\n" +
+							"  - example: ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Computed:    true,
+						Description: "The current status of the resource.\n" +
+							"  - example: ENABLE",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example: 2025-01-15T10:30:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user ID that created the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example: 2025-06-01T14:22:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The user ID that modified the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 				},
 			},
@@ -158,80 +183,84 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("SourceAddress"): schema.ListAttribute{
-						Description: "Source Address \n" +
-							"  - example : ['10.10.10.10', '20.20.20.20']",
+						Description: "The source IP addresses the rule applies to.\n" +
+							"  - example: [10.10.10.0/24, 10.10.11.0/24]",
 						Required:    true,
 						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("DestinationAddress"): schema.ListAttribute{
-						Description: "Destination Address \n" +
-							"  - example : ['10.10.10.10', '20.20.20.20']",
+						Description: "The destination address the rule applies to.\n" +
+							"  - example: [192.168.0.0/16, 192.169.0.0/16]",
 						Required:    true,
 						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("Service"): schema.ListNestedAttribute{
-						Description: "Service",
+						Description: "The service ports the rule applies to.",
 						Required:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("ServiceType"): schema.StringAttribute{
-									Description: "Service Type \n" +
-										"  - example : TCP | UDP | ICMP | IP | TCP_ALL | UDP_ALL | ICMP_ALL | ALL",
+									Description: "The type of the service.\n" +
+										"  - example: TCP\n" +
+										"  - valid: TCP, UDP, ICMP, IP, TCP_ALL, UDP_ALL, ICMP_ALL, ALL",
 									Required: true,
 									Validators: []validator.String{
 										stringvalidator.OneOf("TCP", "UDP", "ICMP", "IP", "TCP_ALL", "UDP_ALL", "ICMP_ALL", "ALL"),
 									},
 								},
 								common.ToSnakeCase("ServiceValue"): schema.StringAttribute{
-									Description: "Service Value \n" +
-										"  - example : 443",
+									Description: "The value of the service.\n" +
+										"  - example: 80",
 									Optional: true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("Action"): schema.StringAttribute{
-						Description: "Action \n" +
-							"  - example : ALLOW | DENY",
+						Description: "The action applied to traffic that matches the rule.\n" +
+							"  - example: ALLOW\n" +
+							"  - valid: ALLOW, DENY",
 						Required: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("ALLOW", "DENY"),
 						},
 					},
 					common.ToSnakeCase("Direction"): schema.StringAttribute{
-						Description: "Direction \n" +
-							"  - example : INBOUND | OUTBOUND",
+						Description: "The direction of the traffic the rule applies to.\n" +
+							"  - example: INBOUND\n" +
+							"  - valid: INBOUND, OUTBOUND",
 						Required: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("INBOUND", "OUTBOUND"),
 						},
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status \n" +
-							"  - example : ENABLE | DISABLE",
+						Description: "The current status of the resource.\n" +
+							"  - example: ENABLE\n" +
+							"  - valid: ENABLE, DISABLE",
 						Required: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("ENABLE", "DISABLE"),
 						},
 					},
 					common.ToSnakeCase("OrderRuleId"): schema.StringAttribute{
-						Description: "OrderRule ID \n" +
-							"  - example : 7087c92d295445cda2785a94aab93c65",
+						Description: "The target ID used when changing the order of a rule.\n" +
+							"  - example: 7087c92d295445cda2785a94aab93c65",
 						Optional: true,
 					},
 					common.ToSnakeCase("OrderDirection"): schema.StringAttribute{
-						Description: "Order Direction \n" +
-							"  - example :  BEFORE | AFTER | BOTTOM",
+						Description: "The type of ordering change applied to the rule.\n" +
+							"  - example: BEFORE\n" +
+							"  - valid: BEFORE, AFTER, BOTTOM",
 						Optional: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("BEFORE", "AFTER", "BOTTOM"),
 						},
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description\n" +
-							"  - example : VPC description\n" +
-							"  - maxLength : 100\n" +
-							"  - minLength : 1",
+						Description: "A brief explanation or note about this resource.\n" +
+							"  - example: Firewall rule for web tier\n" +
+							"  - constraints: maxLength: 100",
 						Optional: true,
 						Validators: []validator.String{
 							stringvalidator.LengthAtMost(100),
@@ -285,11 +314,27 @@ func (r *firewallFirewallRuleResource) Create(ctx context.Context, req resource.
 		return
 	}
 
+	if data == nil {
+		resp.Diagnostics.AddError("Error creating firewall rule", "Received nil response from API")
+		return
+	}
+	// Wait for the firewall rule to reach ACTIVE state before setting Terraform state
+	if err := waitForFirewallRuleStatus(ctx, r.client, data.FirewallRule.Id, []string{}, []string{"ACTIVE"}); err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating firewall rule",
+			"Could not wait for firewall rule to become active: "+err.Error(),
+		)
+		return
+	}
+
 	plan.Id = types.StringValue(data.FirewallRule.Id)
 
-	// Map response body to schema and populate Computed attribute values
 	firewallRuleModel := createFirewallRuleModel(data)
-	firewallRuleObjectValue, diags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
+	firewallRuleObjectValue, objDiags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
+	resp.Diagnostics.Append(objDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.FirewallRule = firewallRuleObjectValue
 
 	// Set state to fully populated data
@@ -313,6 +358,10 @@ func (r *firewallFirewallRuleResource) Read(ctx context.Context, req resource.Re
 	data, err := r.client.GetFirewallRule(state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
+		if strings.Contains(detail, "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error Reading firewall rule",
 			"Could not read firewall rule ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
@@ -320,14 +369,33 @@ func (r *firewallFirewallRuleResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
+	if data == nil {
+		resp.Diagnostics.AddError("Error processing firewall rule", "Received nil response from API")
+		return
+	}
 	firewallRuleModel := createFirewallRuleModel(data)
 
-	firewallRuleObjectValue, diags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
+	firewallRuleObjectValue, objDiags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
+	resp.Diagnostics.Append(objDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.FirewallRule = firewallRuleObjectValue
+	// Map additional fields to state (input block & top‑level id)
+	state.FirewallId = types.StringValue(data.FirewallRule.FirewallId)
+	state.FirewallRuleCreate = firewall.FirewallRuleCreate{
+		SourceAddress:      data.FirewallRule.SourceAddress,
+		DestinationAddress: data.FirewallRule.DestinationAddress,
+		Service:            firewallRuleModel.Service,
+		Action:             types.StringValue(string(data.FirewallRule.Action)),
+		Direction:          types.StringValue(string(data.FirewallRule.Direction)),
+		Status:             types.StringValue(string(data.FirewallRule.Status)),
+		Description:        types.StringPointerValue(data.FirewallRule.Description.Get()),
+	}
 
 	// Set refreshed state
-	diags = resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	objDiags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(objDiags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -353,19 +421,40 @@ func (r *firewallFirewallRuleResource) Update(ctx context.Context, req resource.
 		return
 	}
 
+	// Wait for the firewall rule to reach ACTIVE state after update
+	if err := waitForFirewallRuleStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"ACTIVE"}); err != nil {
+		resp.Diagnostics.AddError(
+			"Error updating firewall rule",
+			"Could not wait for firewall rule to become active: "+err.Error(),
+		)
+		return
+	}
+
 	// Fetch updated items from GetFirewallRule as UpdateFirewallRule items are not populated.
 	data, err := r.client.GetFirewallRule(state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
+		if strings.Contains(detail, "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error Reading firewall rule",
 			"Could not read firewall rule ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError("Error processing firewall rule", "Received nil response from API")
+		return
+	}
 	firewallRuleModel := createFirewallRuleModel(data)
 
-	firewallRuleObjectValue, diags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
+	firewallRuleObjectValue, objDiags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
+	resp.Diagnostics.Append(objDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.FirewallRule = firewallRuleObjectValue
 
 	diags = resp.State.Set(ctx, state)
@@ -398,6 +487,25 @@ func (r *firewallFirewallRuleResource) Delete(ctx context.Context, req resource.
 	}
 }
 
+func (r *firewallFirewallRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func waitForFirewallRuleStatus(ctx context.Context, firewallClient *firewall.Client, id string, pendingStates []string, targetStates []string) error {
+
+	err := client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, err := firewallClient.GetFirewallRule(id)
+		if err != nil {
+
+			return nil, "", err
+		}
+		currentState := string(info.FirewallRule.State)
+
+		return info, currentState, nil
+	}, -1, -1, -1, -1)
+	return err
+}
+
 func createFirewallRuleModel(data *scpfirewall.FirewallRuleShowResponse) firewall.FirewallRule {
 	fwRule := data.FirewallRule
 	sourceAddresses := make([]string, 0, len(fwRule.SourceAddress))
@@ -412,7 +520,7 @@ func createFirewallRuleModel(data *scpfirewall.FirewallRuleShowResponse) firewal
 	for _, service := range fwRule.Service {
 		services = append(services, firewall.FirewallPort{
 			ServiceType:  types.StringValue(string(service.ServiceType)),
-			ServiceValue: types.StringValue(*service.ServiceValue),
+			ServiceValue: types.StringPointerValue(service.ServiceValue),
 		})
 	}
 

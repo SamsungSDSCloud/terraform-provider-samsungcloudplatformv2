@@ -3,11 +3,11 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -34,12 +34,14 @@ func (d *virtualServerKeypairDataSources) Metadata(_ context.Context, req dataso
 
 func (d *virtualServerKeypairDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of keypair.",
+		Description:         "Retrieves a list of keypairs.",
+		MarkdownDescription: "Retrieves a list of keypairs for SSH access to virtual servers.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Names"): schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				Description: "Keypair Name List",
+				ElementType:         types.StringType,
+				Computed:            true,
+				Description:         "List of keypair names.",
+				MarkdownDescription: "List of keypair names.",
 			},
 		},
 		Blocks: map[string]schema.Block{

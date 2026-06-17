@@ -4,16 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetal"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/baremetal"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpbaremetal1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/baremetal/1.1"
+	"net/http"
+	"reflect"
+	"regexp"
+	"slices"
+	"strings"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpbaremetal1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/baremetal/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -23,17 +31,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
-	"regexp"
-	"slices"
-	"strings"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource               = &baremetalBaremetalResource{}
-	_ resource.ResourceWithConfigure  = &baremetalBaremetalResource{}
-	_ resource.ResourceWithModifyPlan = &baremetalBaremetalResource{}
+	_ resource.Resource                = &baremetalBaremetalResource{}
+	_ resource.ResourceWithConfigure   = &baremetalBaremetalResource{}
+	_ resource.ResourceWithModifyPlan  = &baremetalBaremetalResource{}
+	_ resource.ResourceWithImportState = &baremetalBaremetalResource{}
 )
 
 // NewBaremetalBaremetalResource is a helper function to simplify the provider implementation.
@@ -82,7 +87,7 @@ func (r *baremetalBaremetalResource) Configure(_ context.Context, req resource.C
 
 func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Description: "Baremetal",
+		Description: "Bare Metal Server Resource",
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
 				Computed:            true,
@@ -125,10 +130,10 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 				Computed: true,
 				Description: "init script\n" +
-					"  - example: init script\n" +
+					"  - example: #!/bin/bash\\necho 'Hello World!'\n" +
 					"  - maxLength: 16384",
 				MarkdownDescription: "init script\n" +
-					"  - example: init script\n" +
+					"  - example: #!/bin/bash\\necho 'Hello World!'\n" +
 					"  - maxLength: 16384",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(16384),
@@ -187,7 +192,8 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 					"  - pattern: ^[a-z0-9]{5,20}$",
 			},
 			"os_user_password": schema.StringAttribute{
-				Required: true,
+				Required:  true,
+				WriteOnly: true,
 				Description: "OS user password.\n" +
 					"  - example: P@ssword1!2\n" +
 					"  - maxLength: 20\n" +
@@ -293,9 +299,11 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"nat_enabled": schema.BoolAttribute{
-							Required:            true,
+							Optional:            true,
+							Computed:            true,
 							Description:         "Use Public NAT\n  - example: true",
 							MarkdownDescription: "Use Public NAT\n  - example: true",
+							Default:             booldefault.StaticBool(false),
 						},
 						"public_ip_address_id": schema.StringAttribute{
 							Optional:            true,
@@ -308,6 +316,9 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 							Required:            true,
 							Description:         "Server Type ID\n  - example: PRODUCT-0iT9dNiLr4lVoYmjlY2Vgg",
 							MarkdownDescription: "Server Type ID\n  - example: PRODUCT-0iT9dNiLr4lVoYmjlY2Vgg",
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.RequiresReplace(),
+							},
 						},
 						"use_hyper_threading": schema.BoolAttribute{
 							Optional:            true,
@@ -346,7 +357,7 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 					"  - maxLength: 5\n" +
 					"  - minLength: 1\n",
 				MarkdownDescription: "Detailed settings for each server\n" +
-					"  - example: [{bare_metal_server_name='bm-server', server_type_id='83c3c73d457345e3829ee6d5557c0011', nat_enabled='false'}]\n" +
+					"  - example: [{bare_metal_server_name='bm-server', server_type_id='YOUR RESOURCE'S SERVER_TYPE_ID', nat_enabled='false'}]\n" +
 					"  - maxLength: 5\n" +
 					"  - minLength: 1\n",
 				Validators: []validator.List{
@@ -406,11 +417,6 @@ func (r *baremetalBaremetalResource) ModifyPlan(ctx context.Context, req resourc
 		return
 	}
 
-	if !plan.RegionId.IsNull() {
-		r.client.Config.Region = plan.RegionId.ValueString()
-		r.clients.Iam.Config.Region = plan.RegionId.ValueString()
-	}
-
 	// create validate start
 	var planServerDetails []baremetal.ServerDetails
 	plan.ServerDetails.ElementsAs(ctx, &planServerDetails, false)
@@ -444,10 +450,9 @@ func (r *baremetalBaremetalResource) ModifyPlan(ctx context.Context, req resourc
 
 		// validate server info
 		errList := validateServerDetailInfo(planServerDetails, osType)
-		if errList != nil {
-			for _, e := range errList {
-				resp.Diagnostics.AddError("server detail info error", e.Error())
-			}
+
+		for _, e := range errList {
+			resp.Diagnostics.AddError("server detail info error", e.Error())
 		}
 
 		return
@@ -477,21 +482,18 @@ func (r *baremetalBaremetalResource) ModifyPlan(ctx context.Context, req resourc
 
 // Create create baremetal servers and sets the initial Terraform state.
 func (r *baremetalBaremetalResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	// Retrieve values from plan
-	var plan baremetal.BaremetalResource
+	// Retrieve values from plan and config
+	var plan, draft baremetal.BaremetalResource
 	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	diags = req.Config.Get(ctx, &draft)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if !plan.RegionId.IsNull() {
-		r.client.Config.Region = plan.RegionId.ValueString()
-		r.clients.Iam.Config.Region = plan.RegionId.ValueString()
-	}
-
 	// Create baremetal servers
-	asyncResponse, err := r.client.CreateBaremetal(ctx, plan)
+	asyncResponse, err := r.client.CreateBaremetal(ctx, plan, draft)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -527,13 +529,6 @@ func (r *baremetalBaremetalResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "baremetal", "baremetal", baremetalIdList[0])
-	if err != nil {
-		resp.Diagnostics.AddError("Error Reading Baremetal Tag", err.Error())
-		return
-	}
-	plan.Tags = tagsMap
-
 	setBaremetalDetailToResource(baremetalShowResponse, &plan)
 
 	// get serverDetail data
@@ -554,9 +549,13 @@ func (r *baremetalBaremetalResource) Create(ctx context.Context, req resource.Cr
 		getServerDetailInfo(baremetalShowResponse, &serverDetails[idx])
 	}
 	var serverDetail baremetal.ServerDetails
-	serverDetailInfoListType, _ := types.ListValueFrom(ctx, types.ObjectType{
+	serverDetailInfoListType, diags := types.ListValueFrom(ctx, types.ObjectType{
 		AttrTypes: serverDetail.AttributeTypes(),
 	}, serverDetails)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	plan.ServerDetails = serverDetailInfoListType
 
@@ -578,18 +577,19 @@ func (r *baremetalBaremetalResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	if !state.RegionId.IsNull() {
-		r.client.Config.Region = state.RegionId.ValueString()
-		r.clients.Iam.Config.Region = state.RegionId.ValueString()
-	}
-
 	var requestServerDetails []baremetal.ServerDetails
 	state.ServerDetails.ElementsAs(ctx, &requestServerDetails, false)
 
 	baremetalId := requestServerDetails[0].Id.ValueString()
 	// Get refreshed value from Baremetal
-	baremetalShowResponse, _, err := r.client.GetBaremetal(ctx, baremetalId)
+	baremetalShowResponse, httpResponse, err := r.client.GetBaremetal(ctx, baremetalId)
 	if err != nil {
+		if httpResponse != nil {
+			if httpResponse.StatusCode == http.StatusNotFound {
+				resp.State.RemoveResource(ctx)
+				return
+			}
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Baremetal",
@@ -604,9 +604,43 @@ func (r *baremetalBaremetalResource) Read(ctx context.Context, req resource.Read
 		resp.Diagnostics.AddError("Error Reading Baremetal Tag", err.Error())
 		return
 	}
+	tagsMap = common.NullTagCheck(tagsMap, state.Tags)
 	state.Tags = tagsMap
 
 	setBaremetalDetailToResource(baremetalShowResponse, &state)
+
+	// Get Server Details
+	var baremetalIds []string
+	for _, server := range requestServerDetails {
+		baremetalIds = append(baremetalIds, server.Id.ValueString())
+	}
+
+	// get serverDetail data
+	serverDetails := make([]baremetal.ServerDetails, len(baremetalIds))
+	for idx, baremetalId := range baremetalIds {
+		// Get refreshed value from Baremetal
+		baremetalShowResponse, _, err := r.client.GetBaremetal(ctx, baremetalId)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error Reading Baremetal",
+				"Could not read Baremetal ID "+baremetalId+": "+err.Error()+"\nReason: "+detail,
+			)
+			return
+		}
+
+		getServerDetailInfo(baremetalShowResponse, &serverDetails[idx])
+	}
+	var serverDetail baremetal.ServerDetails
+	serverDetailInfoListType, diags := types.ListValueFrom(ctx, types.ObjectType{
+		AttrTypes: serverDetail.AttributeTypes(),
+	}, serverDetails)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.ServerDetails = serverDetailInfoListType
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -727,9 +761,13 @@ func (r *baremetalBaremetalResource) Update(ctx context.Context, req resource.Up
 	}
 
 	var serverDetail baremetal.ServerDetails
-	serverDetailInfoListType, _ := types.ListValueFrom(ctx, types.ObjectType{
+	serverDetailInfoListType, diags := types.ListValueFrom(ctx, types.ObjectType{
 		AttrTypes: serverDetail.AttributeTypes(),
 	}, planServerDetails)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	plan.ServerDetails = serverDetailInfoListType
 
@@ -744,6 +782,7 @@ func (r *baremetalBaremetalResource) Update(ctx context.Context, req resource.Up
 			)
 			return
 		}
+		tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
 		plan.Tags = tagsMap
 	}
 
@@ -762,11 +801,6 @@ func (r *baremetalBaremetalResource) Delete(ctx context.Context, req resource.De
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	if !state.RegionId.IsNull() {
-		r.client.Config.Region = state.RegionId.ValueString()
-		r.clients.Iam.Config.Region = state.RegionId.ValueString()
 	}
 
 	var serverDetails []baremetal.ServerDetails
@@ -813,7 +847,7 @@ func waitForBaremetalStatus(ctx context.Context, baremetalClient *baremetal.Clie
 			return nil, "", err
 		}
 		return info, info.State, nil
-	})
+	}, -1, -1, -1, -1)
 }
 
 func setBaremetalDetailToResource(baremetalDetail *scpbaremetal1d1.BaremetalShowResponseV1Dot1, baremetalResource *baremetal.BaremetalResource) {
@@ -824,16 +858,24 @@ func setBaremetalDetailToResource(baremetalDetail *scpbaremetal1d1.BaremetalShow
 	baremetalResource.OsType = types.StringValue(baremetalDetail.OsType)
 	baremetalResource.RegionId = types.StringValue(baremetalDetail.RegionId)
 	baremetalResource.RootAccount = types.StringValue(baremetalDetail.RootAccount)
+	baremetalResource.OsUserId = types.StringValue(baremetalDetail.RootAccount)
 	baremetalResource.TimeZone = types.StringValue(baremetalDetail.TimeZone)
 
 	// network info
 	baremetalResource.NetworkId = types.StringValue(baremetalDetail.NetworkId)
+	baremetalResource.SubnetId = types.StringValue(baremetalDetail.NetworkId)
 	baremetalResource.VpcId = types.StringValue(baremetalDetail.VpcId)
 
 	// additional info
 	baremetalResource.PlacementGroupName = types.StringPointerValue(baremetalDetail.PlacementGroupName.Get())
 	baremetalResource.InitScript = types.StringValue(baremetalDetail.InitScript)
 	baremetalResource.LockEnabled = types.BoolPointerValue(baremetalDetail.LockEnabled)
+
+	if baremetalDetail.PlacementGroupName.Get() == nil || *baremetalDetail.PlacementGroupName.Get() == "" {
+		baremetalResource.UsePlacementGroup = types.BoolValue(false)
+	} else {
+		baremetalResource.UsePlacementGroup = types.BoolValue(true)
+	}
 
 	// metadata info
 	baremetalResource.CreatedBy = types.StringValue(baremetalDetail.CreatedBy)
@@ -844,17 +886,32 @@ func setBaremetalDetailToResource(baremetalDetail *scpbaremetal1d1.BaremetalShow
 
 func getServerDetailInfo(baremetalDetail *scpbaremetal1d1.BaremetalShowResponseV1Dot1, serverDetail *baremetal.ServerDetails) {
 
-	var localSubnetIpaddress string
+	var localSubnetIpaddress, localSubnetId string
 	if len(baremetalDetail.LocalSubnetInfo) == 0 {
 		localSubnetIpaddress = ""
+		localSubnetId = ""
 	} else {
 		localSubnetIpaddress = baremetalDetail.LocalSubnetInfo[0].PolicyLocalSubnetIp
+		localSubnetId = baremetalDetail.LocalSubnetInfo[0].LocalSubnetId
 	}
 
 	serverDetail.Id = types.StringValue(baremetalDetail.Id)
+	serverDetail.BareMetalServerName = types.StringValue(baremetalDetail.ServerName)
+	serverDetail.ServerTypeId = types.StringValue(baremetalDetail.ProductTypeId)
 	serverDetail.BareMetalLocalSubnetIpAddress = types.StringValue(localSubnetIpaddress)
+	serverDetail.BareMetalLocalSubnetId = types.StringValue(localSubnetId)
+	serverDetail.UseHyperThreading = types.BoolValue(baremetalDetail.HyperThreadingUse)
 	serverDetail.IpAddress = types.StringValue(baremetalDetail.PolicyIp)
 	serverDetail.State = types.StringValue(baremetalDetail.State)
+
+	// nat info
+	if baremetalDetail.PublicNatInfo.IsSet() && baremetalDetail.PublicNatInfo.Get() != nil {
+		serverDetail.NatEnabled = types.BoolValue(true)
+		serverDetail.PublicIpAddressId = types.StringValue(baremetalDetail.PublicNatInfo.Get().NatIpId)
+	} else {
+		serverDetail.NatEnabled = types.BoolValue(false)
+		serverDetail.PublicIpAddressId = types.StringValue("")
+	}
 }
 
 func validatePlacementGroup(usePlacementGroup bool, placementGroupName string) error {
@@ -1029,7 +1086,7 @@ func getChangeField(ctx context.Context, plan, state baremetal.BaremetalResource
 				return changedFields
 			}
 
-			for idx, _ := range planServerDetails {
+			for idx := range planServerDetails {
 				planServerDetailsValue := reflect.ValueOf(planServerDetails[idx])
 				stateServerDetailsValue := reflect.ValueOf(stateServerDetails[idx])
 
@@ -1055,4 +1112,57 @@ func getChangeField(ctx context.Context, plan, state baremetal.BaremetalResource
 	}
 
 	return changedFields
+}
+
+func (r *baremetalBaremetalResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	baremetalId := req.ID
+	if baremetalId == "" {
+		resp.Diagnostics.AddError(
+			"Invalid import identifier",
+			"The import ID cannot be empty",
+		)
+		return
+	}
+
+	var state baremetal.BaremetalResource
+	var diags diag.Diagnostics
+
+	// populate default as new creation, be refreshed later in read phase
+	state.ServerDetails, diags = types.ListValueFrom(
+		ctx,
+		types.ObjectType{
+			AttrTypes: baremetal.ServerDetails{}.AttributeTypes(),
+		},
+		[]baremetal.ServerDetails{{
+			Id: types.StringValue(baremetalId),
+		}},
+	)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Tags, diags = types.MapValue(types.StringType, make(map[string]attr.Value, 0))
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Timeouts = timeouts.Value{
+		Object: types.ObjectNull(map[string]attr.Type{
+			"create": types.StringType,
+			"delete": types.StringType,
+		}),
+	}
+
+	// CLOSE: Update state
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

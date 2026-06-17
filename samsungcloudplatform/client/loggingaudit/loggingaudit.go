@@ -2,8 +2,9 @@ package loggingaudit
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loggingaudit/1.1"
+
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loggingaudit/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -85,6 +86,9 @@ func (client *Client) CreateTrail(ctx context.Context, request TrailResource) (*
 		UserTotalYn:         *loggingaudit.NewNullableString(request.UserTotalYn.ValueStringPointer()),
 		OrganizationTrailYn: *loggingaudit.NewNullableString(request.OrganizationTrailYn.ValueStringPointer()),
 		LogArchiveAccountId: *loggingaudit.NewNullableString(request.LogArchiveAccountId.ValueStringPointer()),
+		IamRoleId:           *loggingaudit.NewNullableString(request.IamRoleId.ValueStringPointer()),
+		LogGroupName:        *loggingaudit.NewNullableString(request.LogGroupName.ValueStringPointer()),
+		ServiceWatchYn:      *loggingaudit.NewNullableString(request.ServiceWatchYn.ValueStringPointer()),
 	})
 
 	resp, _, err := req.Execute()
@@ -114,6 +118,9 @@ func (client *Client) SetTrail(ctx context.Context, trailId string, request Trai
 		TrailSaveType:       *loggingaudit.NewNullableString(request.TrailSaveType.ValueStringPointer()),
 		UserTotalYn:         *loggingaudit.NewNullableString(request.UserTotalYn.ValueStringPointer()),
 		OrganizationTrailYn: *loggingaudit.NewNullableString(request.OrganizationTrailYn.ValueStringPointer()),
+		IamRoleId:           *loggingaudit.NewNullableString(request.IamRoleId.ValueStringPointer()),
+		LogGroupName:        *loggingaudit.NewNullableString(request.LogGroupName.ValueStringPointer()),
+		ServiceWatchYn:      *loggingaudit.NewNullableString(request.ServiceWatchYn.ValueStringPointer()),
 	})
 
 	resp, _, err := req.Execute()

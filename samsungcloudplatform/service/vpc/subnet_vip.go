@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -42,21 +42,21 @@ func (r *VPCSubnetVipResource) Metadata(_ context.Context, req resource.Metadata
 // Schema defines the schema for the resource.
 func (r *VPCSubnetVipResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "VPC Subnet Vip",
+		Description: "Resource of Subnet Vip",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet Id \n" +
+				Description: "The identifier of the subnet that the subnet vip belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description \n" +
+				Description: "Enter a brief explanation or note about this VPC Subnet Vip. This help identify the purpose or usage of the subnet vip.\n" +
 					"  - example : Subnet VIP Description",
 				Optional: true,
 			},
 			common.ToSnakeCase("VirtualIpAddress"): schema.StringAttribute{
-				Description: "Virtual IP Address \n" +
+				Description: "The virtual IP address assigned to the subnet vip.\n" +
 					"  - example : 192.168.20.6",
 				Optional: true,
 			},
@@ -67,46 +67,55 @@ func (r *VPCSubnetVipResource) Schema(_ context.Context, _ resource.SchemaReques
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Subnet Vip Id",
-						Computed:    true,
+						Description: "The unique identifier of the subnet vip.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By",
-						Computed:    true,
+						Description: "The user id that modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State \n" +
-							"  - enum : CREATING, ACTIVE, DELETING, DELETED, ERROR",
+						Description: "The current lifecycle state of the subnet vip.\n" +
+							"  - enum : CREATING, ACTIVE, DELETING, DELETED, ERROR\n" +
+                            "  - example : ACTIVE",
 						Computed: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "Subnet ID",
-						Computed:    true,
+						Description: "The identifier of the subnet that the resource belongs to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("VipPortId"): schema.StringAttribute{
-						Description: "Vip Port Id",
-						Computed:    true,
+						Description: "The identifier of the subnet vip Port.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("VirtualIpAddress"): schema.StringAttribute{
-						Description: "Virtual IP Address \n" +
+						Description: "The virtual IP address assigned to the subnet vip.\n" +
 							"  - example : 192.168.20.6",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this subnet vip. This help identify the purpose or usage of the subnet vip.\n" +
+							"  - example : resourceDescription",
+						Computed: true,
 					},
 					common.ToSnakeCase("ConnectedPorts"): schema.ListNestedAttribute{
 						Description: "Connected Ports",
@@ -114,28 +123,34 @@ func (r *VPCSubnetVipResource) Schema(_ context.Context, _ resource.SchemaReques
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "Connected Port Id",
-									Computed:    true,
+									Description: "The unique identifier of the connected port.\n" +
+										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
 								},
 								common.ToSnakeCase("PortId"): schema.StringAttribute{
-									Description: "Port ID",
-									Computed:    true,
+									Description: "The unique identifier of port\n" +
+										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
 								},
 								common.ToSnakeCase("PortName"): schema.StringAttribute{
-									Description: "Port Name",
-									Computed:    true,
+									Description: "The name of the port.\n" +
+										"  - example : portName",
+									Computed: true,
 								},
 								common.ToSnakeCase("PortIpAddress"): schema.StringAttribute{
-									Description: "Port IP Address",
-									Computed:    true,
+									Description: "The ip address of the port.\n" +
+										"  - example : 192.167.0.5",
+									Computed: true,
 								},
 								common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
-									Description: "Connected resource ID",
-									Computed:    true,
+									Description: "The identifier of the resource that this resource is attached to.\n" +
+										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
 								},
 								common.ToSnakeCase("AttachedResourceType"): schema.StringAttribute{
-									Description: "Connected resource Type",
-									Computed:    true,
+									Description: "The type of the resource that this resource is attached to.\n" +
+										"  - example : VM",
+									Computed: true,
 								},
 							},
 						},
@@ -145,20 +160,24 @@ func (r *VPCSubnetVipResource) Schema(_ context.Context, _ resource.SchemaReques
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("ExternalIpAddress"): schema.StringAttribute{
-								Description: "Static Nat External Ip Address",
-								Computed:    true,
+								Description: "Static Nat External Ip Address\n" +
+									"  - example : 192.168.0.1",
+								Computed: true,
 							},
 							common.ToSnakeCase("Id"): schema.StringAttribute{
-								Description: "Static Nat Id",
-								Computed:    true,
+								Description: "The unique identifier of the Static Nat.\n" +
+									"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+								Computed: true,
 							},
 							common.ToSnakeCase("PublicipId"): schema.StringAttribute{
-								Description: "Publicip ID",
-								Computed:    true,
+								Description: "The identifier of the public IP address.\n" +
+									"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+								Computed: true,
 							},
 							common.ToSnakeCase("State"): schema.StringAttribute{
-								Description: "Static Nat State",
-								Computed:    true,
+								Description: "The current lifecycle state of the Static Nat State\n" +
+									"  - example : ACTIVE",
+								Computed: true,
 							},
 						},
 					},

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_gslb_gslb_rrcs Data Source - samsungcloudplatformv2"
 subcategory: GSLB
 description: |-
-  The GSLB Regional Resource List.
+  Gets a list of GSLB regional routing controls.
 ---
 
 # samsungcloudplatformv2_gslb_gslb_rrcs (Data Source)
 
-The GSLB Regional Resource List.
+Gets a list of GSLB regional routing controls.
 
 ## Example Usage
 
@@ -76,43 +76,51 @@ variable "name" {
 
 ### Optional
 
-- `name` (String) The Name of the gslb.
-- `page` (Number) page
-  - Example: 0
-- `region` (String) The GSLB Resource Region.
-- `size` (Number) size
-  - Example: 20
-- `sort` (String) sort
-  - Example: created_at:desc
-- `status` (String) The GSLB Resource Status.
+- `name` (String) The name to filter GSLB resources.
+  - example : example.gslb.e.samsungsdscloud.com
+- `page` (Number) The page number for pagination.
+  - example : 0
+- `region` (String) The region to filter GSLB resources.
+  - example : kr-west1
+- `size` (Number) The number of items per page.
+  - example : 20
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : createdAt:asc
+- `status` (String) Whether to use the GSLB resource. (e.g., ENABLE, DISABLE)
+  - example : ENABLE
 
 ### Read-Only
 
-- `regional_gslbs` (Attributes List) GSLB Routing Control List. (see [below for nested schema](#nestedatt--regional_gslbs))
-- `total_count` (Number) Count
-  - Example: 20
+- `regional_gslbs` (Attributes List) A list of GSLB regional routing controls. (see [below for nested schema](#nestedatt--regional_gslbs))
+- `total_count` (Number) The total number of GSLB regional routing controls.
+  - example : 2
 
 <a id="nestedatt--regional_gslbs"></a>
 ### Nested Schema for `regional_gslbs`
 
 Read-Only:
 
-- `algorithm` (String) The GSLB Algorithm.
-- `created_at` (String) Created At
-  - Example: 2024-05-17T00:23:17Z
-  - Format: date-time
-- `created_by` (String) Created By
-  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `description` (String) Description
-- `env_usage` (String) The GSLB Environment Usage.
-- `id` (String) ID
-  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
-- `linked_regional_resource_count` (Number) The GSLB Linked Resource Count Per Region.
-- `modified_at` (String) Modified At
-  - Example: 2024-05-17T00:23:17Z
-  - Format: date-time
-- `modified_by` (String) Modified By
-  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `name` (String) The Name of the gslb.
-- `region` (String) The GSLB Resource Region.
-- `status` (String) The GSLB Resource Status.
+- `algorithm` (String) The load balancing algorithm for GSLB traffic distribution (e.g., ROUND_ROBIN, RATIO).
+  - example : ROUND_ROBIN
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Example Description for GSLB
+- `env_usage` (String) The environment usage type for the GSLB (e.g., PUBLIC).
+  - example : PUBLIC
+- `id` (String) The unique identifier of the GSLB.
+  - example: YOUR RESOURCE'S ID
+- `linked_regional_resource_count` (Number) The number of resources linked to this GSLB in the region.
+  - example : 2
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the GSLB.
+  - example : example.gslb.e.samsungsdscloud.com
+- `region` (String) The region where the GSLB resource is located.
+  - example : kr-west1
+- `status` (String) Whether to use the GSLB resource. (e.g., ENABLE, DISABLE)
+  - example : ENABLE

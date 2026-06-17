@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	gslb "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/gslb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpgslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/gslb/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	gslb "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/gslb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpgslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/gslb/1.1"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -47,231 +49,277 @@ func (r *gslbGslbResource) Metadata(_ context.Context, req resource.MetadataRequ
 // Schema defines the schema for the data source.
 func (r *gslbGslbResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "Gslb.",
+		Description: "Global Server Load Balancer resource for distributing traffic across multiple regions.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the GSLB.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 			common.ToSnakeCase("Gslb"): schema.SingleNestedAttribute{
-				Description: "A detail of Gslb.",
+				Description: "Details of the Global Server Load Balancer.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Algorithm"): schema.StringAttribute{
-						Description: "Algorithm",
-						Computed:    true,
+						Description: "The load balancing algorithm for GSLB traffic distribution (e.g., ROUND_ROBIN, RATIO).\n" +
+							"  - example : ROUND_ROBIN",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created at\n" +
-							"  - Example: 2024-05-17T00:23:17Z",
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created by\n" +
-							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : Example Description for GSLB",
+						Computed: true,
 					},
 					common.ToSnakeCase("EnvUsage"): schema.StringAttribute{
-						Description: "EnvUsage",
-						Computed:    true,
+						Description: "The environment usage type for the GSLB (e.g., PUBLIC).\n" +
+							"  - example : PUBLIC",
+						Computed: true,
 					},
 					common.ToSnakeCase("HealthCheck"): schema.SingleNestedAttribute{
-						Description: "HealthCheck",
+						Description: "Health check configuration for monitoring GSLB endpoint availability.",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-								Description: "Created at\n" +
-									"  - Example: 2024-05-17T00:23:17Z",
+								Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+									"  - example : 2024-05-17T00:23:17Z",
 								Computed: true,
 							},
 							common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-								Description: "Created by\n" +
-									"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+								Description: "The user id that created the resource.\n" +
+									"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 								Computed: true,
 							},
 							common.ToSnakeCase("HealthCheckInterval"): schema.Int32Attribute{
 								Description: "The GSLB Health Check Interval.\n" +
+									"  - example : 30\n" +
 									"  - Range: 5 to 299",
 								Computed: true,
 							},
 							common.ToSnakeCase("HealthCheckProbeTimeout"): schema.Int32Attribute{
 								Description: "The GSLB Health Check Probe Timeout.\n" +
+									"  - example : 10\n" +
 									"  - Range: 5 to 300",
 								Computed: true,
 							},
 							common.ToSnakeCase("HealthCheckUserId"): schema.StringAttribute{
 								Description: "The GSLB Health Check User Name.\n" +
+									"  - example : healthcheck_user\n" +
 									"  - Max length: 60",
 								Computed: true,
 							},
 							common.ToSnakeCase("HealthCheckUserPassword"): schema.StringAttribute{
-								Description: "The GSLB Health Check Password.",
-								Computed:    true,
+								Description: "The GSLB Health Check Password.\n" +
+									"  - example : **********",
+								Computed: true,
 							},
 							common.ToSnakeCase("Id"): schema.StringAttribute{
-								Description: "ID\n" +
-									"  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+								Description: "The unique identifier of the health check configuration.\n" +
+									"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e",
 								Computed: true,
 							},
 							common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-								Description: "Modified at\n" +
-									"  - Example: 2024-05-17T00:23:17Z",
+								Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+									"  - example : 2024-05-17T00:23:17Z",
 								Computed: true,
 							},
 							common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-								Description: "Modified by\n" +
-									"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+								Description: "The user id that last modified the resource.\n" +
+									"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 								Computed: true,
 							},
 							common.ToSnakeCase("Protocol"): schema.StringAttribute{
-								Description: "The GSLB Health Check Protocol.",
-								Computed:    true,
+								Description: "The protocol used for health checks (e.g., ICMP, TCP, HTTP, HTTPS).\n" +
+									"  - example : TCP",
+								Computed: true,
 							},
 							common.ToSnakeCase("ReceiveString"): schema.StringAttribute{
 								Description: "The GSLB Health Check Receive String.\n" +
+									"  - example : HTTP/1.1 200 OK\n" +
 									"  - Max length: 300",
 								Computed: true,
 							},
 							common.ToSnakeCase("SendString"): schema.StringAttribute{
-								Description: "The GSLB Health Check Send String.",
-								Computed:    true,
+								Description: "The GSLB Health Check Send String. If no input is provided, it operates as a \"GET /\" request.\n" +
+									"  - example : GET /",
+								Computed: true,
 							},
 							common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
 								Description: "The GSLB Health Check Service Port.\n" +
+									"  - example : 80\n" +
 									"  - Range: 1 to 65535",
 								Computed: true,
 							},
 							common.ToSnakeCase("Timeout"): schema.Int32Attribute{
-								Description: "The GSLB Health Check Timeout.\n" +
+								Description: "The GSLB Health Check Timeout. It must be greater than the Interval.\n" +
+									"  - example : 40\n" +
 									"  - Range: 6 to 300",
 								Computed: true,
 							},
 						},
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "id",
-						Computed:    true,
+						Description: "The unique identifier of the GSLB.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+						Computed: true,
 					},
 					common.ToSnakeCase("LinkedResourceCount"): schema.Int32Attribute{
-						Description: "LinkedResourceCount",
-						Computed:    true,
+						Description: "The number of resources linked to this GSLB.\n" +
+							"  - example : 2",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified at\n" +
-							"  - Example: 2024-05-17T00:23:17Z",
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified by\n" +
-							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the GSLB.\n" +
+							"  - example : example.gslb.e.samsungsdscloud.com",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the GSLB (e.g., ACTIVE, CREATING, EDITING, ERROR, DELETING).\n" +
+							"  - example : ACTIVE",
+						Computed: true,
 					},
 				},
 			},
 			common.ToSnakeCase("GslbCreate"): schema.SingleNestedAttribute{
-				Description: "Create Gslb.",
+				Description: "Parameters for creating a new GSLB.",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Algorithm"): schema.StringAttribute{
-						Description: "Algorithm",
-						Required:    true,
+						Description: "The load balancing algorithm for GSLB traffic distribution (e.g., ROUND_ROBIN, RATIO).\n" +
+							"  - example : ROUND_ROBIN",
+						Required: true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("ROUND_ROBIN", "RATIO"),
+						},
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : Example Description for GSLB",
+						Optional: true,
 					},
 					common.ToSnakeCase("EnvUsage"): schema.StringAttribute{
-						Description: "EnvUsage",
-						Required:    true,
+						Description: "The environment usage type for the GSLB (e.g., PUBLIC).\n" +
+							"  - example : PUBLIC",
+						Required: true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("PUBLIC"),
+						},
 					},
 					common.ToSnakeCase("HealthCheck"): schema.SingleNestedAttribute{
-						Description: "HealthCheck",
+						Description: "Health check configuration for monitoring GSLB endpoint availability.",
 						Optional:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("HealthCheckInterval"): schema.Int32Attribute{
 								Description: "The GSLB Health Check Interval.\n" +
+									"  - example : 30\n" +
 									"  - Range: 5 to 299",
 								Optional: true,
 							},
 							common.ToSnakeCase("HealthCheckProbeTimeout"): schema.Int32Attribute{
 								Description: "The GSLB Health Check Probe Timeout.\n" +
+									"  - example : 10\n" +
 									"  - Range: 5 to 300",
 								Optional: true,
 							},
 							common.ToSnakeCase("HealthCheckUserId"): schema.StringAttribute{
 								Description: "The GSLB Health Check User Name.\n" +
+									"  - example : healthcheck_user\n" +
 									"  - Max Length: 60",
 								Optional: true,
 							},
 							common.ToSnakeCase("HealthCheckUserPassword"): schema.StringAttribute{
-								Description: "The GSLB Health Check Password.",
-								Optional:    true,
+								Description: "The GSLB Health Check Password. If the User name is entered, This value is required.\n" +
+									"  - example : **********\n" +
+									"  - maxLength: 20\n" +
+									"  - minLength: 8\n" +
+									"  - pattern: ^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@!%*#?&])[A-Za-z\\d$@!%*#?&]$",
+								Optional: true,
 							},
 							common.ToSnakeCase("Protocol"): schema.StringAttribute{
-								Description: "The GSLB Health Check Protocol.",
-								Required:    true,
+								Description: "The protocol used for health checks (e.g., ICMP, TCP, HTTP, HTTPS).\n" +
+									"  - example : TCP",
+								Required: true,
+								Validators: []validator.String{
+									stringvalidator.OneOf("ICMP", "TCP", "HTTP", "HTTPS"),
+								},
 							},
 							common.ToSnakeCase("ReceiveString"): schema.StringAttribute{
 								Description: "The GSLB Health Check Receive String.\n" +
+									"  - example : HTTP/1.1 200 OK\n" +
 									"  - Max Length: 300",
 								Optional: true,
 							},
 							common.ToSnakeCase("SendString"): schema.StringAttribute{
-								Description: "The GSLB Health Check Send String.",
-								Optional:    true,
+								Description: "The GSLB Health Check Send String. If no input is provided, it operates as a \"GET /\" request.\n" +
+									"  - example : GET /",
+								Optional: true,
 							},
 							common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
 								Description: "The GSLB Health Check Service Port.\n" +
+									"  - example : 80\n" +
 									"  - Range: 1 to 65535",
 								Optional: true,
 							},
 							common.ToSnakeCase("Timeout"): schema.Int32Attribute{
-								Description: "The GSLB Health Check Timeout.\n" +
+								Description: "The GSLB Health Check Timeout. It must be greater than the Interval.\n" +
+									"  - example : 40\n" +
 									"  - Range: 6 to 300",
 								Optional: true,
 							},
 						},
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Required:    true,
+						Description: "The name of the GSLB.\n" +
+							"  - example : example.gslb.e.samsungsdscloud.com",
+						Required: true,
 					},
 					common.ToSnakeCase("Resources"): schema.ListNestedAttribute{
-						Description: "Resources",
+						Description: "The list of resources for the GSLB.",
 						Required:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Description"): schema.StringAttribute{
-									Description: "Description",
-									Optional:    true,
+									Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+										"  - example : Example Description for GSLB Resource",
+									Optional: true,
 								},
 								common.ToSnakeCase("Destination"): schema.StringAttribute{
-									Description: "Destination",
-									Optional:    true,
+									Description: "The destination endpoint for the GSLB resource.\n" +
+										"  - example : 192.168.1.100",
+									Optional: true,
 								},
 								common.ToSnakeCase("Region"): schema.StringAttribute{
-									Description: "Region",
-									Optional:    true,
+									Description: "The region where the GSLB resource is located.\n" +
+										"  - example : kr-west1",
+									Optional: true,
 								},
 								common.ToSnakeCase("Weight"): schema.Int32Attribute{
-									Description: "Weight",
-									Optional:    true,
+									Description: "The weight for load balancing distribution (0-100).\n" +
+										"  - example : 50",
+									Optional: true,
 								},
 							},
 						},
@@ -318,7 +366,7 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating Gslb",
-			"Could not create Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
+			"Could not create Gslb, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -364,7 +412,7 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Gslb",
-			"Could not read Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
+			"Could not read Gslb, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -409,7 +457,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
 				"Error updating Gslb",
-				"Could not update Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
+				"Could not update Gslb, unexpected error: "+err.Error()+reasonPrefix+detail,
 			)
 			return
 		}
@@ -421,7 +469,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
 				"Error updating Gslb",
-				"Could not update Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
+				"Could not update Gslb, unexpected error: "+err.Error()+reasonPrefix+detail,
 			)
 			return
 		}
@@ -433,7 +481,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
 				"Error updating Gslb",
-				"Could not update Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
+				"Could not update Gslb, unexpected error: "+err.Error()+reasonPrefix+detail,
 			)
 			return
 		}
@@ -453,7 +501,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Gslb",
-			"Could not read Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
+			"Could not read Gslb, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -487,7 +535,7 @@ func (r *gslbGslbResource) Delete(ctx context.Context, req resource.DeleteReques
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Deleting Gslb",
-			"Could not delete Gslb, unexpected error: "+err.Error() + reasonPrefix + detail,
+			"Could not delete Gslb, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -633,5 +681,5 @@ func waitForGslbStatus(ctx context.Context, gslbClient *gslb.Client, id string, 
 			return nil, "", err
 		}
 		return info, info.Gslb.State, nil
-	})
+	}, -1, -1, -1, -1)
 }

@@ -3,9 +3,9 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/filestorage"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,74 +37,79 @@ func (d *fileStorageVolumeDataSource) Schema(_ context.Context, _ datasource.Sch
 }
 func VolumeDataSourceSchema() schema.Schema {
 	return schema.Schema{
+		Description: "Retrieves details of a File Storage Volume on Samsung Cloud Platform.",
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
 				Computed: true,
 				Description: "Account ID \n" +
-					"  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
+					"  - example: 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
 			},
 			"created_at": schema.StringAttribute{
 				Computed: true,
 				Description: "Created At \n" +
-					"  - example : '2024-07-30T04:54:33.219373' \n",
+					"  - example: '2024-07-30T04:54:33.219373Z' \n",
 			},
 			"encryption_enabled": schema.BoolAttribute{
 				Computed: true,
 				Description: "Volume Encryption Enabled \n" +
-					"  - example : 'true'",
+					"  - example: true",
 			},
 			"endpoint_path": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Endpoint Path \n" +
-					"  - example : 'xxx.xx.xxx.xxx'",
+				Description: "The network endpoint path used to mount and access the file storage volume. \n" +
+					"  - example: 'xxx.xx.xxx.xxx'",
 			},
 			"file_unit_recovery_enabled": schema.BoolAttribute{
 				Computed: true,
+				Description: "Indicates whether file unit recovery is enabled for the volume. \n" +
+					"  - example: true",
 			},
 			"id": schema.StringAttribute{
 				Required: true,
-				Description: "ID \n" +
-					"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
+				Description: "Identifier of the resource. \n" +
+					"  - example: 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
 			},
 			"name": schema.StringAttribute{
 				Computed: true,
 				Description: "Volume Name \n" +
-					"  - example : 'my_volume' \n",
+					"  - example: 'my_volume' \n",
 			},
 			"path": schema.StringAttribute{
 				Computed: true,
 				Description: "Volume Mount Path \n" +
-					"  - example : 'xxx.xx.xxx.xxx'",
+					"  - example: 'xxx.xx.xxx.xxx'",
 			},
 			"protocol": schema.StringAttribute{
 				Computed: true,
 				Description: "Protocol \n" +
-					"  - example : 'NFS' \n",
+					"  - example: 'NFS' \n" +
+					"  - pattern: `^(NFS|CIFS)$` \n",
 			},
 			"purpose": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Purpose \n" +
-					"  - example : 'none' \n",
+				Description: "The designated purpose or workload type of the volume (e.g., general, backup). \n" +
+					"  - example: 'none' \n",
 			},
 			"state": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume State \n" +
-					"  - example : 'available' \n",
+				Description: "The current lifecycle state of the volume. Valid values: creating, available, error, deleting. \n" +
+					"  - example: 'available' \n",
 			},
 			"type_id": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Type ID \n" +
-					"  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
+				Description: "The unique identifier of the storage tier (volume type) assigned to this volume. \n" +
+					"  - example: 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
 			},
 			"type_name": schema.StringAttribute{
 				Computed: true,
 				Description: "Volume Type Name \n" +
-					"  - example : 'HDD' \n",
+					"  - example: 'HDD' \n" +
+					"  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$` \n",
 			},
 			"usage": schema.Int64Attribute{
 				Computed: true,
-				Description: "Volume Usage \n" +
-					"  - example : '100000' \n",
+				Description: "The current usage of the volume in GiB. \n" +
+					"  - example: 100000",
 			},
 		},
 	}

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	scpci "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/configinspection"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	scpci "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/configinspection"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,133 +43,138 @@ func (d *configinspectionsDataSource) Schema(_ context.Context, _ datasource.Sch
 		Attributes: map[string]schema.Attribute{
 			// Input attributes
 			common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
-				Description: "Id of diagnosis",
-				Required:    true,
+				Description: "Id of diagnosis.\n" +
+					"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
+				Required: true,
 			},
 
 			// Output attributes
 			common.ToSnakeCase("AuthKeyResponses"): schema.SingleNestedAttribute{
-				Description: "Authentication key response",
+				Description: "Authentication key response.",
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AuthKeyCreatedAt"): schema.StringAttribute{
-						Description: "Created date of authkey\n" +
-							"  - Example: 2022-01-01T12:00:00Z",
+						Description: "Created date of authkey.\n" +
+							"  - example : '2022-01-01T12:00:00Z'",
 						Computed: true,
 					},
 					common.ToSnakeCase("AuthKeyExpiredAt"): schema.StringAttribute{
-						Description: "Expired date of authkey\n" +
-							"  - Example: 2022-01-01T12:00:00Z",
+						Description: "Expired date of authkey.\n" +
+							"  - example : '2022-01-01T12:00:00Z'",
 						Computed: true,
 					},
 					common.ToSnakeCase("AuthKeyId"): schema.StringAttribute{
-						Description: "Id of auth key\n" +
-							"  - Example: 9b72a9856e494e67afc69atd3631fe38",
+						Description: "Id of auth key.\n" +
+							"  - example : '9b72a9856e494exxxxxxxxxxxxxxxxxx'",
 						Computed: true,
 					},
 					common.ToSnakeCase("AuthKeyState"): schema.StringAttribute{
-						Description: "State of auth key\n" +
-							"  - Example: ACTIVATED",
+						Description: "State of auth key.\n" +
+							"  - example : 'ACTIVATED'",
 						Computed: true},
 					common.ToSnakeCase("UserId"): schema.StringAttribute{
-						Description: "User Id\n" +
-							"  - Example: 4f5d60e9e08b48d0a0881e21ab14e266",
+						Description: "Account owner of this diagnosis.\n" +
+							"  - example : '4f5d60e9e08b48d0a08xxxxxxxxxxxxx'",
 						Computed: true,
 					},
 				},
 				Computed: true,
 			},
 			common.ToSnakeCase("ScheduleResponse"): schema.SingleNestedAttribute{
-				Description: "Diagnosis schedule response",
+				Description: "Diagnosis schedule response.",
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
-						Description: "Id of diagnosis\n" +
-							"  - Example: DIA-943731CB8E3045C289BAECAEC3532097",
+						Description: "Id of diagnosis.\n" +
+							"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 						Computed: true,
 					},
 					common.ToSnakeCase("DiagnosisStartTimePattern"): schema.StringAttribute{
-						Description: "Start time( 5-minute increments, 00 to 23 hours, 00 to 55 minutes )\n" +
-							"  - Example: 08:00",
+						Description: "Start time (5-minute increments, 00 to 23 hours, 00 to 55 minutes).\n" +
+							"  - example : '08:00'",
 						Computed: true,
 					},
 					common.ToSnakeCase("FrequencyType"): schema.StringAttribute{
-						Description: "Schedule type( monthly, weekly, daily)\n" +
-							"  - Example: MONTH",
+						Description: "Schedule type (monthly, weekly, daily).\n" +
+							"  - example : 'MONTH'",
 						Computed: true,
 					},
 					common.ToSnakeCase("FrequencyValue"): schema.StringAttribute{
-						Description: "Schedule value (01~31, MONDAY~SUNDAY, everyDay)\n" +
-							"  - Example: 1",
+						Description: "Schedule value (01~31, MONDAY~SUNDAY, everyDay).\n" +
+							"  - example : 1",
 						Computed: true,
 					},
 					common.ToSnakeCase("UseDiagnosisCheckTypeBp"): schema.StringAttribute{
-						Description: "Checklist Best Practice Use\n" +
-							"  - Example: y",
+						Description: "Checklist Best Practice Use.\n" +
+							"  - example : 'y'",
 						Computed: true,
 					},
 					common.ToSnakeCase("UseDiagnosisCheckTypeSsi"): schema.StringAttribute{
-						Description: "Checklist SSI usage\n" +
-							"  - Example: y",
+						Description: "Checklist SSI usage.\n" +
+							"  - example : 'y'",
 						Computed: true,
 					},
 				},
 				Computed: true,
 			},
 			common.ToSnakeCase("SummaryResponses"): schema.SingleNestedAttribute{
-				Description: "Summary response",
+				Description: "Summary of the config inspection diagnosis, including identity, configuration, and latest run status.",
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created date\n" +
-							"  - Example: 2022-01-01T12:00:00Z",
+						Description: "Created date.\n" +
+							"  - example : '2022-01-01T12:00:00Z'",
 						Computed: true,
 					},
 					common.ToSnakeCase("CspType"): schema.StringAttribute{
-						Description: "Type of cloud service provider\n" +
-							"  - Example: SCP",
+						Description: "Type of cloud service provider.\n" +
+							"  - example : 'SCP'\n" +
+							"  - enum : SCP | AWS | Azure",
 						Computed: true,
 					},
 					common.ToSnakeCase("DiagnosisAccountId"): schema.StringAttribute{
-						Description: "Id of diagnosis\n" +
-							"  - Example: 0e3dffc50eb247a1adf4f2e5c82c4f99",
+						Description: "Account Id of diagnosis.\n" +
+							"  - example : '0e3dffc50eb247a1adxxxxxxxxxxxxxx'",
 						Computed: true,
 					},
 					common.ToSnakeCase("DiagnosisCheckType"): schema.StringAttribute{
-						Description: "Check type of diagnosis\n" +
-							"  - Example: BP",
+						Description: "Check type of diagnosis.\n" +
+							"  - example : 'BP'\n" +
+							"  - enum : BP | SSI",
 						Computed: true,
 					},
 					common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
-						Description: "Id of diagnosis\n" +
-							"  - Example: DIA-943731CB8E3045C289BAECAEC3532097",
+						Description: "Id of diagnosis.\n" +
+							"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 						Computed: true,
 					},
 					common.ToSnakeCase("DiagnosisName"): schema.StringAttribute{
-						Description: "Name of diagnosis\n" +
-							"  - Example: Sample Diagnosis Name",
+						Description: "Name of diagnosis.\n" +
+							"  - example : 'Sample Diagnosis Name'\n" +
+							"  - pattern : `^[a-zA-Z0-9-_]+$`",
 						Computed: true,
 					},
 					common.ToSnakeCase("DiagnosisType"): schema.StringAttribute{
-						Description: "Diagnosis Type\n" +
-							"  - Example: Console",
+						Description: "How the diagnosis is executed.\n" +
+							"  - example : 'Console'",
 						Computed: true,
 					},
 					common.ToSnakeCase("PlanType"): schema.StringAttribute{
-						Description: "plan Type\n" +
-							"  - Example: STANDARD",
+						Description: "Billing plan for the inspection.\n" +
+							"  - example : 'STANDARD'\n" +
+							"  - enum : STANDARD | MONTHLY",
 						Computed: true,
 					},
 					common.ToSnakeCase("ErrorState"): schema.StringAttribute{
-						Description: "Error type of recent diagnosis\n" +
-							"  - Example: CONNECTION_FAIL",
+						Description: "Error type of recent diagnosis.\n" +
+							"  - example : 'CONNECTION_FAIL'",
 						Computed: true,
 					},
 					common.ToSnakeCase("RecentDiagnosisAt"): schema.StringAttribute{
-						Description: "Recent diagnosis date\n" +
-							"  - Example: 2022-01-01T12:00:00Z",
+						Description: "Recent diagnosis date.\n" +
+							"  - example : '2022-01-01T12:00:00Z'",
 						Computed: true,
 					},
 					common.ToSnakeCase("RecentDiagnosisState"): schema.StringAttribute{
-						Description: "Recent diagnosis state\n" +
-							"  - Example: Completed",
+						Description: "Status of the most recent diagnosis run.\n" +
+							"  - example : 'Completed'",
 						Computed: true,
 					},
 				},

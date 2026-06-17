@@ -3,10 +3,10 @@ package firewall
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/firewall"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -45,49 +45,57 @@ func (d *firewallFirewallRuleDataSources) Schema(_ context.Context, _ datasource
 		Description: "List of firewall rule",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page \n" +
-					"  - example : 0",
+				Description: "The page number for pagination.\n" +
+					"  - example: 1\n" +
+					"  - constraints: min: 1",
 				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.AtLeast(0),
 				},
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size \n" +
-					"  - example : 20",
+				Description: "The number of items per page.\n" +
+					"  - example: 20\n" +
+					"  - constraints: min: 1",
 				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.AtLeast(0),
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
-					"  - example : created_at:desc",
+				Description: "The sorting criteria.\n" +
+					"  - example: created_at:desc\n" +
+					"  - valid: field_name:asc or field_name:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-				Description: "Firewall Id \n" +
-					"  - example : 68db67f78abd405da98a6056a8ee42af",
+				Description: "The identifier of the firewall associated with the resource.\n" +
+					"  - example: 68db67f78abd405da98a6056a8ee42af",
 				Required: true,
 			},
 			common.ToSnakeCase("SrcIp"): schema.StringAttribute{
-				Description: "Source IP \n" +
-					"  - example : 10.10.10.10",
+				Description: "Source IP.\n" +
+					"  - example: 10.10.10.10",
 				Optional: true,
 			},
 			common.ToSnakeCase("DstIp"): schema.StringAttribute{
-				Description: "Destination IP \n" +
-					"  - example : 10.10.10.10",
+				Description: "Destination IP.\n" +
+					"  - example: 10.10.10.10",
 				Optional: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description \n" +
-					"  - example : firewallDescription",
+				Description: "A brief explanation or note about this resource.\n" +
+					"  - example: Firewall rule for web tier\n" +
+					"  - constraints: maxLength: 100",
 				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
 			},
 			common.ToSnakeCase("State"): schema.ListAttribute{
-				Description: "State \n" +
-					"  - example : CREATING | ACTIVE | DELETING | EDITING | ERROR",
+				Description: "The current state of the resource.\n" +
+					"  - example: ACTIVE\n" +
+					"  - valid: CREATING, ACTIVE, DELETING, EDITING, ERROR",
 				Optional:    true,
 				ElementType: types.StringType,
 				Validators: []validator.List{
@@ -97,22 +105,25 @@ func (d *firewallFirewallRuleDataSources) Schema(_ context.Context, _ datasource
 				},
 			},
 			common.ToSnakeCase("Status"): schema.StringAttribute{
-				Description: "Status \n" +
-					"  - example : ENABLE | DISABLE",
+				Description: "The current status of the resource.\n" +
+					"  - example: ENABLE\n" +
+					"  - valid: ENABLE, DISABLE",
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("ENABLE", "DISABLE"),
 				},
 			},
 			common.ToSnakeCase("FetchAll"): schema.BoolAttribute{
-				Description: "Fetch All \n" +
-					"  - example : True | False",
+				Description: "Whether to retrieve the full list of firewall rules.\n" +
+					"  - example: True\n" +
+					"  - valid: True, False",
 				Optional: true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
-				Description: "Firewall Id List",
+				Description: "Firewall Rule Id List.\n" +
+					"  - example: [8e83f42d823941d7a4883f0f99101ef9, 6b6e5b7dd69f480fa68235605a5a9792]",
 			},
 		},
 	}

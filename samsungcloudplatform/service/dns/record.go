@@ -3,22 +3,28 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
+	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/dns"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &dnsRecordResource{}
-	_ resource.ResourceWithConfigure = &dnsRecordResource{}
+	_ resource.Resource                = &dnsRecordResource{}
+	_ resource.ResourceWithConfigure   = &dnsRecordResource{}
+	_ resource.ResourceWithImportState = &dnsRecordResource{}
 )
 
 // NewResourceManagerResourceGroupResource is a helper function to simplify the provider implementation.
@@ -41,116 +47,141 @@ func (r *dnsRecordResource) Metadata(_ context.Context, req resource.MetadataReq
 // Schema defines the schema for the data source.
 func (r *dnsRecordResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "Record.",
+		Description: "A DNS record resource for managing domain name resolution.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
+				Description: "The unique identifier of the DNS record.\n" +
+                    "  - example : 6ed7bc1-4b05-3cc7-7105-c1b71f7f30a7 ",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("HostedZoneId"): schema.StringAttribute{
-				Description: "Hosted zone ID.",
-				Optional:    true,
+				Description: "The identifier of the hosted zone that contains this DNS record.\n" +
+					"  - example : 3432012nfdksdf03ktrld9234lgfg ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Record"): schema.SingleNestedAttribute{
-				Description: "A detail of Record.",
+				Description: "Detailed information about the DNS record.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Action"): schema.StringAttribute{
-						Description: "Action",
-						Optional:    true,
+						Description: "The action performed on the DNS record.\n" +
+							"  - example : NONE",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Optional:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Optional:    true,
+						Description: "The unique identifier of the DNS record.\n" +
+							"  - example : 6ed7bc1-4b05-3cc7-7105-c1b71f7f30a7 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Links"): schema.SingleNestedAttribute{
-						Description: "Links",
+						Description: "The links related to the DNS record.",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("Self"): schema.StringAttribute{
-								Description: "Self",
-								Optional:    true,
+								Description: "The self-referential link of the DNS record.\n" +
+									"  - example : https://api.samsungsdscloud.com/dns/v1/records/3432012nfdksdf03ktrld9234lgfg ",
+								Optional: true,
 							},
 						},
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the DNS record.\n" +
+							"  - example : test.app ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ProjectId"): schema.StringAttribute{
-						Description: "ProjectId",
-						Optional:    true,
+						Description: "The project identifier associated with the DNS record.\n" +
+							"  - example : 003dffc50eb123a1cbf4f2e5c71d4f15 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Records"): schema.ListAttribute{
 						ElementType: types.StringType,
-						Description: "Records",
-						Optional:    true,
+						Description: "A list of data for this record\n" +
+							"  - example : [\"12.34.45.67\"] ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Optional:    true,
+						Description: "The current status of the DNS record.\n" +
+							"  - example : ACTIVE ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Ttl"): schema.Int32Attribute{
-						Description: "Ttl",
-						Optional:    true,
+						Description: "The Time-To-Live (TTL) value in seconds for the DNS record.\n" +
+							"  - example : 3600 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Optional:    true,
+						Description: "The type of the DNS record (e.g., A, AAAA, CNAME, MX, TXT, SPF).\n" +
+							"  - example : A ",
+						Optional: true,
 					},
 					common.ToSnakeCase("UpdatedAt"): schema.StringAttribute{
-						Description: "UpdatedAt",
-						Optional:    true,
+						Description: "The timestamp when the resource was last updated, in ISO 8601 format.\n" +
+							"  - example : 2026-02-09T08:00:40Z ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Version"): schema.Int32Attribute{
-						Description: "Version",
-						Optional:    true,
+						Description: "The version of the DNS record.\n" +
+							"  - example : 1 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ZoneId"): schema.StringAttribute{
-						Description: "ZoneId",
-						Optional:    true,
+						Description: "ID for the zone that contains this record\n" +
+							"  - example : 3432012nfdksdf03ktrld9234lgfg ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ZoneName"): schema.StringAttribute{
-						Description: "ZoneName",
-						Optional:    true,
+						Description: "The name of the zone that contains this record\n" +
+							"  - example : my-zone.com ",
+						Optional: true,
 					},
 				},
 			},
 			common.ToSnakeCase("RecordCreate"): schema.SingleNestedAttribute{
-				Description: "Create Record.",
+				Description: "Parameters for creating a new DNS record.",
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name for the DNS record to be created.\n" +
+							"  - example : test.app ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Records"): schema.ListAttribute{
 						ElementType: types.StringType,
-						Description: "Records",
-						Optional:    true,
+						Description: "A list of data for this record\n" +
+							"  - example : [\"12.34.45.67\"]",
+						Optional: true,
 					},
 					common.ToSnakeCase("Ttl"): schema.Int32Attribute{
-						Description: "Ttl",
-						Optional:    true,
+						Description: "The Time-To-Live (TTL) value in seconds for the DNS record.\n" +
+							"  - example : 3600 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Optional:    true,
+						Description: "The type of the DNS record to create (e.g., A, AAAA, CNAME, MX, TXT).\n" +
+							"  - example : A ",
+						Optional: true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("A", "AAAA", "CNAME", "MX", "TXT", "SPF"),
+						},
 					},
 				},
 			},
@@ -199,7 +230,13 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	createErr := waitForRecordStatus(ctx, r.client, plan.HostedZoneId.ValueString(), *data.Id.Get(), []string{}, []string{"ACTIVE"})
+	idPtr := data.Id.Get()
+	if idPtr == nil {
+		resp.Diagnostics.AddError("Error creating Record", "API returned record without id")
+		return
+	}
+
+	createErr := waitForRecordStatus(ctx, r.client, plan.HostedZoneId.ValueString(), *idPtr, []string{}, []string{"ACTIVE"})
 	if createErr != nil {
 		resp.Diagnostics.AddError(
 			"Error creating record",
@@ -208,7 +245,7 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	dataForShow, err := r.client.GetRecord(ctx, plan.HostedZoneId.ValueString(), *data.Id.Get())
+	dataForShow, err := r.client.GetRecord(ctx, plan.HostedZoneId.ValueString(), *idPtr)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -218,11 +255,17 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.Id = types.StringValue(*data.Id.Get())
+	plan.Id = types.StringValue(*idPtr)
 
 	recordModel := convertRecordDetail(*dataForShow)
 
 	recordOjbectValue, diags := types.ObjectValueFrom(ctx, recordModel.AttributeTypes(), recordModel)
+
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	plan.Record = recordOjbectValue
 
 	// Set state to fully populated data
@@ -231,6 +274,20 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (r *dnsRecordResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: hostedZoneId/recordId, got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("hosted_zone_id"), types.StringValue(parts[0]))
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -246,6 +303,10 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 	// Get refreshed order value from Gslb
 	data, err := r.client.GetRecord(ctx, state.HostedZoneId.ValueString(), state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Record",
@@ -257,7 +318,20 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 	recordModel := convertRecordDetail(*data)
 
 	recordObjectValue, diags := types.ObjectValueFrom(ctx, recordModel.AttributeTypes(), recordModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Record = recordObjectValue
+
+	if state.RecordCreate == nil {
+		state.RecordCreate = &dns.RecordCreate{}
+	}
+	state.RecordCreate.Description = recordModel.Description
+	state.RecordCreate.Name = recordModel.Name
+	state.RecordCreate.Records = recordModel.Records
+	state.RecordCreate.Ttl = recordModel.Ttl
+	state.RecordCreate.Type = recordModel.Type
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -297,7 +371,13 @@ func (r *dnsRecordResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	dataForShow, err := r.client.GetRecord(ctx, state.HostedZoneId.ValueString(), *data.Id.Get())
+	idPtr := data.Id.Get()
+	if idPtr == nil {
+		resp.Diagnostics.AddError("Error updating Record", "API returned record without id")
+		return
+	}
+
+	dataForShow, err := r.client.GetRecord(ctx, state.HostedZoneId.ValueString(), *idPtr)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -310,6 +390,10 @@ func (r *dnsRecordResource) Update(ctx context.Context, req resource.UpdateReque
 	recordModel := convertRecordDetail(*dataForShow)
 
 	recordObjectValue, diags := types.ObjectValueFrom(ctx, recordModel.AttributeTypes(), recordModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Record = recordObjectValue
 
 	// Set refreshed state
@@ -343,6 +427,10 @@ func (r *dnsRecordResource) Delete(ctx context.Context, req resource.DeleteReque
 	recordModel := convertRecordDetail(convertRecordCreateResponseToRecord(*data))
 
 	recordObjectValue, diags := types.ObjectValueFrom(ctx, recordModel.AttributeTypes(), recordModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Record = recordObjectValue
 
 	// Set refreshed state
@@ -360,5 +448,5 @@ func waitForRecordStatus(ctx context.Context, recordClient *dns.Client, hostedZo
 			return nil, "", err
 		}
 		return info, *info.Status.Get(), nil
-	})
+	}, -1, -1, -1, -1)
 }

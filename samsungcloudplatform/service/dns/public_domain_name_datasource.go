@@ -3,11 +3,11 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/dns/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,123 +39,151 @@ func (d *dnsPublicDomainNameDataSource) Metadata(_ context.Context, req datasour
 // Schema defines the schema for the data source.
 func (d *dnsPublicDomainNameDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Show PublicDomainName.",
+		Description: "Provides details about a specific public domain name.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Optional:    true,
+				Description: "The unique identifier of the public domain name.\n" +
+					"  - example : 125jkdkt5fpublicdomain3193rud546 ",
+				Optional: true,
 			},
 			common.ToSnakeCase("PublicDomainNameDetail"): schema.SingleNestedAttribute{
-				Description: "A detail of PublicDomainName.",
+				Description: "Detailed information about the public domain name.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AddressType"): schema.StringAttribute{
-						Description: "AddressType",
-						Computed:    true,
+						Description: "The type of address for the domain registration.\n" +
+							"  - example : DOMESTIC ",
+						Computed: true,
 					},
 					common.ToSnakeCase("AutoExtension"): schema.BoolAttribute{
-						Description: "AutoExtension",
-						Computed:    true,
+						Description: "Indicates whether automatic extension is enabled for the domain.\n" +
+							"  - example : true ",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Computed: true,
 					},
 					common.ToSnakeCase("DomesticAddressEn"): schema.StringAttribute{
-						Description: "DomesticAddressEn",
-						Computed:    true,
+						Description: "The domestic address in English for the domain registration.\n" +
+							"  - example : Samsung-ro 123, Suwon-si, Gyeonggi-do, Korea ",
+						Computed: true,
 					},
 					common.ToSnakeCase("DomesticAddressKo"): schema.StringAttribute{
-						Description: "DomesticAddressKo",
-						Computed:    true,
+						Description: "The domestic address in Korean for the domain registration.\n" +
+							"  - example : 경기도 수원시 삼성로 123 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("DomesticFirstAddressEn"): schema.StringAttribute{
-						Description: "DomesticFirstAddressEn",
-						Computed:    true,
+						Description: "The first line of domestic address in English.\n" +
+							"  - example : Samsung-ro 123 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("DomesticFirstAddressKo"): schema.StringAttribute{
-						Description: "DomesticFirstAddressKo",
-						Computed:    true,
+						Description: "The first line of domestic address in Korean.\n" +
+							"  - example : 삼성로 123 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("DomesticSecondAddressEn"): schema.StringAttribute{
-						Description: "DomesticSecondAddressEn",
-						Computed:    true,
+						Description: "The second line of domestic address in English.\n" +
+							"  - example : Suwon-si, Gyeonggi-do ",
+						Computed: true,
 					},
 					common.ToSnakeCase("DomesticSecondAddressKo"): schema.StringAttribute{
-						Description: "DomesticSecondAddressKo",
-						Computed:    true,
+						Description: "The second line of domestic address in Korean.\n" +
+							"  - example : 경기도 수원시 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("ExpiredDate"): schema.StringAttribute{
-						Description: "ExpiredDate",
-						Computed:    true,
+						Description: "The expiration date of the domain registration.\n" +
+							"  - example : 2025-12-31 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the public domain name.\n" +
+							"  - example : pdn-abc123def456 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the public domain name.\n" +
+							"  - example : example.com ",
+						Computed: true,
 					},
 					common.ToSnakeCase("OverseasAddress"): schema.StringAttribute{
-						Description: "OverseasAddress",
-						Computed:    true,
+						Description: "The overseas address for the domain registration.\n" +
+							"  - example : 123 Main Street, City, Country ",
+						Computed: true,
 					},
 					common.ToSnakeCase("OverseasFirstAddress"): schema.StringAttribute{
-						Description: "OverseasFirstAddress",
-						Computed:    true,
+						Description: "The first line of overseas address.\n" +
+							"  - example : 123 Main Street ",
+						Computed: true,
 					},
 					common.ToSnakeCase("OverseasSecondAddress"): schema.StringAttribute{
-						Description: "OverseasSecondAddress",
-						Computed:    true,
+						Description: "The second line of overseas address.\n" +
+							"  - example : Suite 100 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("OverseasThirdAddress"): schema.StringAttribute{
-						Description: "OverseasThirdAddress",
-						Computed:    true,
+						Description: "The third line of overseas address.\n" +
+							"  - example : City, State 12345 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("PostalCode"): schema.StringAttribute{
-						Description: "PostalCode",
-						Computed:    true,
+						Description: "The postal code for the domain registration.\n" +
+							"  - example : 12345 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("RegisterEmail"): schema.StringAttribute{
-						Description: "RegisterEmail",
-						Computed:    true,
+						Description: "The email address of the domain registrant.\n" +
+							"  - example : user@example.com ",
+						Computed: true,
 					},
 					common.ToSnakeCase("RegisterNameEn"): schema.StringAttribute{
-						Description: "RegisterNameEn",
-						Computed:    true,
+						Description: "The name of the domain registrant in English.\n" +
+							"  - example : John Doe ",
+						Computed: true,
 					},
 					common.ToSnakeCase("RegisterNameKo"): schema.StringAttribute{
-						Description: "RegisterNameKo",
-						Computed:    true,
+						Description: "The name of the domain registrant in Korean.\n" +
+							"  - example : 홍길동 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("RegisterTelno"): schema.StringAttribute{
-						Description: "RegisterTelno",
-						Computed:    true,
+						Description: "The telephone number of the domain registrant.\n" +
+							"  - example : 82-10-1234-5678 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("StartDate"): schema.StringAttribute{
-						Description: "StartDate",
-						Computed:    true,
+						Description: "The start date of the domain registration.\n" +
+							"  - example : 2024-01-01 ",
+						Computed: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Computed:    true,
+						Description: "The current status of the public domain name.\n" +
+							"  - example : REGISTERED ",
+						Computed: true,
 					},
 				},
 			},

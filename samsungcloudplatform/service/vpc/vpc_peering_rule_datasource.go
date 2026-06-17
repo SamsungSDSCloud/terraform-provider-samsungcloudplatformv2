@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,60 +44,71 @@ func (d *vpcVpcPeeringRuleDataSource) Schema(_ context.Context, _ datasource.Sch
 		Attributes: map[string]schema.Attribute{
 			// Input Params
 			common.ToSnakeCase("VpcPeeringId"): schema.StringAttribute{
-				Required:    true,
-				Description: "VPC Peering ID",
+				Required: true,
+				Description: "The identifier of the VPC peering.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
 				Optional: true,
 				Computed: true,
-				Description: "Size \n" +
+				Description: "The number of items per page. \n" +
 					"  - Example: 20",
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
 				Optional: true,
 				Computed: true,
-				Description: "Page \n" +
+				Description: "The page number for pagination. \n" +
 					"  - Example: 0",
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
 				Optional: true,
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order. \n" +
 					"  - Example: created_at:desc",
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Optional:    true,
-				Description: "VPC Peering Rule ID",
+				Optional: true,
+				Description: "The unique identifier of the VPC peering rule.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 			},
 			common.ToSnakeCase("SourceVpcId"): schema.StringAttribute{
-				Optional:    true,
-				Description: "Source VPC ID",
+				Optional: true,
+				Description: "The identifier of the source VPC.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 			},
 			common.ToSnakeCase("SourceVpcType"): schema.StringAttribute{
-				Optional:    true,
-				Description: "Source VPC Type",
+				Optional: true,
+				Description: "The type of the source VPC.\n" +
+                    "  - Example : REQUESTER_VPC | APPROVER_VPC\n" +
+                    "  - Reference : VpcPeeringRuleDestinationVpcType",
 			},
 			common.ToSnakeCase("DestinationVpcId"): schema.StringAttribute{
-				Optional:    true,
-				Description: "Destination VPC ID",
+				Optional: true,
+				Description: "The identifier of the destination VPC.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 			},
 			common.ToSnakeCase("DestinationVpcType"): schema.StringAttribute{
-				Optional:    true,
-				Description: "Destination VPC Type",
+				Optional: true,
+				Description: "The type of the destination VPC.\n" +
+                "  - Example : REQUESTER_VPC | APPROVER_VPC\n" +
+                "  - Reference : VpcPeeringRuleDestinationVpcType",
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-				Optional:    true,
-				Description: "Destination CIDR",
+				Optional: true,
+				Description: "The destination IP address range in CIDR notation.\n" +
+					"  - example : 10.10.10.0/24",
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Optional:    true,
-				Description: "State",
+				Optional: true,
+				Description: "The current lifecycle state of the VPC peering rule.\n" +
+					"  - example : ACTIVE",
 			},
 
 			// Output
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
-				Description: "Total count",
-				Computed:    true,
-			},
+                Description: "The total number of VPC peering rules.\n" +
+                    "  - example : 2",
+                Computed: true,
+            },
 			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
 				Description: "List of sort condition \n" +
 					"  - example : [\"created_at:desc\"]",
@@ -111,69 +122,76 @@ func (d *vpcVpcPeeringRuleDataSource) Schema(_ context.Context, _ datasource.Sch
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 							Computed: true,
-							Description: "Created At\n" +
+							Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
 								"  - Example: 2024-05-17T00:23:17Z",
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
 							Computed: true,
-							Description: "Created By\n" +
+							Description: "The user id that created the resource.\n" +
 								"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						},
 						common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-							Computed:    true,
-							Description: "Destination CIDR",
+							Computed: true,
+							Description: "The destination IP address range in CIDR notation.\n" +
+								"  - example : 10.10.10.0/24",
 						},
 						common.ToSnakeCase("DestinationVpcId"): schema.StringAttribute{
-							Computed:    true,
-							Description: "Destination VPC ID",
+							Computed: true,
+							Description: "The identifier of the destination VPC.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 						},
 						common.ToSnakeCase("DestinationVpcName"): schema.StringAttribute{
-							Computed:    true,
-							Description: "Destination VPC Name",
+							Computed: true,
+							Description: "The name of the destination VPC.\n" +
+								"  - example : resourceName",
 						},
 						common.ToSnakeCase("DestinationVpcType"): schema.StringAttribute{
 							Computed: true,
-							Description: "Destination VPC Type\n" +
+							Description: "The type of the destination VPC.\n" +
 								"  - Example: REQUESTER_VPC | APPROVER_VPC\n" +
 								"  - Reference: VpcPeeringRuleDestinationVpcType",
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Computed:    true,
-							Description: "VPC Peering Rule ID",
+							Computed: true,
+							Description: "The unique identifier of the VPC peering rule.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
 							Computed: true,
-							Description: "Modified At\n" +
+							Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
 								"  - Example: 2024-05-17T00:23:17Z",
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
 							Computed: true,
-							Description: "Modified By\n" +
+							Description: "The user id that modified the resource.\n" +
 								"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						},
 						common.ToSnakeCase("SourceVpcId"): schema.StringAttribute{
-							Computed:    true,
-							Description: "Source VPC ID",
+							Computed: true,
+							Description: "The identifier of the source VPC.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 						},
 						common.ToSnakeCase("SourceVpcName"): schema.StringAttribute{
-							Computed:    true,
-							Description: "Source VPC Name",
+							Computed: true,
+							Description: "The name of the source VPC.\n" +
+								"  - example : resourceName",
 						},
 						common.ToSnakeCase("SourceVpcType"): schema.StringAttribute{
 							Computed: true,
-							Description: "Source VPC Type\n" +
+							Description: "The type of the source VPC.\n" +
 								"  - Example: REQUESTER_VPC | APPROVER_VPC\n" +
 								"  - Reference: VpcPeeringRuleDestinationVpcType",
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
 							Computed: true,
-							Description: "State\n" +
+							Description: "The current lifecycle state of the VPC peering rule.\n" +
 								"  - Example : CREATING | ACTIVE | DELETING | DELETED | ERROR\n" +
 								"  - Reference: RoutingRuleState",
 						},
 						common.ToSnakeCase("VpcPeeringId"): schema.StringAttribute{
-							Computed:    true,
-							Description: "VPC Peering ID",
+							Computed: true,
+							Description: "The identifier of the VPC peering.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 						},
 					},
 				},

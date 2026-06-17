@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/ske/converter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/service/ske/converter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/ske/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -87,8 +87,8 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 							},
 						},
 						Computed:            true,
-						Description:         "Node Pool Advanced Settings",
-						MarkdownDescription: "Node Pool Advanced Settings",
+						Description:         "Node Pool Advanced Settings\n  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'}",
+						MarkdownDescription: "Node Pool Advanced Settings\n  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'}",
 					},
 					"auto_recovery_enabled": schema.BoolAttribute{
 						Computed:            true,
@@ -108,9 +108,11 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 								MarkdownDescription: "Cluster ID\n  - example: 70a599e031e749b7b260868f441e862b",
 							},
 						},
-						Computed:            true,
-						Description:         "Cluster",
-						MarkdownDescription: "Cluster",
+						Computed: true,
+						Description: "Cluster\n" +
+							"  - example: {id='70a599e031e749b7b260868f441e862b'}",
+						MarkdownDescription: "Cluster\n" +
+							"  - example: {id='70a599e031e749b7b260868f441e862b'}",
 					},
 					"created_at": schema.StringAttribute{
 						Computed:            true,
@@ -160,9 +162,11 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 								MarkdownDescription: "GPU Driver Version\n  - example: ND_535.183.06",
 							},
 						},
-						Computed:            true,
-						Description:         "Image",
-						MarkdownDescription: "Image",
+						Computed: true,
+						Description: "Image\n" +
+							"  - example: {custom_image_name='res-12345678', os='my-resource', os_version='fs', scp_gpu_driver='ND_535.183.06'}",
+						MarkdownDescription: "Image\n" +
+							"  - example: {custom_image_name='res-12345678', os='my-resource', os_version='fs', scp_gpu_driver='ND_535.183.06'}",
 					},
 					"keypair": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -172,9 +176,11 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 								MarkdownDescription: "Keypair Name\n  - example: test_keypair",
 							},
 						},
-						Computed:            true,
-						Description:         "Keypair Name",
-						MarkdownDescription: "Keypair Name",
+						Computed: true,
+						Description: "Keypair Name\n" +
+							"  - example: {name='test_keypair'}",
+						MarkdownDescription: "Keypair Name\n" +
+							"  - example: {name='test_keypair'}",
 					},
 					"kubernetes_version": schema.StringAttribute{
 						Computed:            true,
@@ -196,9 +202,11 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 								},
 							},
 						},
-						Computed:            true,
-						Description:         "Node Pool Labels",
-						MarkdownDescription: "Node Pool Labels",
+						Computed: true,
+						Description: "Node Pool Labels\n" +
+							"  - example: {key='test', value='test'}",
+						MarkdownDescription: "Node Pool Labels\n" +
+							"  - example: {key='test', value='test'}",
 					},
 					"linked_resources": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
@@ -215,8 +223,8 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 								},
 								"type": schema.StringAttribute{
 									Computed:            true,
-									Description:         "Linked Resource Type (fs/obs)\n  - example: fs",
-									MarkdownDescription: "Linked Resource Type (fs/obs)\n  - example: fs",
+									Description:         "Linked Resource Type (fs/obs)\n  - pattern: fs|obs\n  - example: fs",
+									MarkdownDescription: "Linked Resource Type (fs/obs)\n  - pattern: fs|obs\n  - example: fs",
 								},
 							},
 						},
@@ -271,16 +279,16 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 					},
 					"status": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Node Pool Status\n  - example: Running",
-						MarkdownDescription: "Node Pool Status\n  - example: Running",
+						Description:         "Nodepool Status\n  - pattern: RUNNING|CREATING|SCALINGUP|SCALINGDOWN|DELETING\n  - example: RUNNING",
+						MarkdownDescription: "Nodepool Status\n  - pattern: RUNNING|CREATING|SCALINGUP|SCALINGDOWN|DELETING\n  - example: RUNNING",
 					},
 					"taints": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"effect": schema.StringAttribute{
 									Computed:            true,
-									Description:         "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]",
-									MarkdownDescription: "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]",
+									Description:         "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]\n  - example: NoSchedule",
+									MarkdownDescription: "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]\n  - example: NoSchedule",
 								},
 								"key": schema.StringAttribute{
 									Computed:            true,
@@ -299,12 +307,16 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						MarkdownDescription: "Node Pool Taints",
 					},
 					"volume_max_iops": schema.Int32Attribute{
-						Computed: true,
-						Optional: true,
+						Computed:            true,
+						Optional:            true,
+						Description:         "Volume Max Iops\n  - example: 5000",
+						MarkdownDescription: "Volume Max iops\n  - example: 5000",
 					},
 					"volume_max_throughput": schema.Int32Attribute{
-						Computed: true,
-						Optional: true,
+						Computed:            true,
+						Optional:            true,
+						Description:         "Volume Type Name\n  - example: 250",
+						MarkdownDescription: "Volume Type Name\n  - example: 250",
 					},
 					"volume_size": schema.Int32Attribute{
 						Computed:            true,
@@ -325,8 +337,8 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 							},
 							"name": schema.StringAttribute{
 								Computed:            true,
-								Description:         "Volume Type Name\n  - example: SSD",
-								MarkdownDescription: "Volume Type Name\n  - example: SSD",
+								Description:         "Volume Type Name\n  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned\n  - example: SSD",
+								MarkdownDescription: "Volume Type Name\n  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned\n  - example: SSD",
 							},
 						},
 						Computed:            true,
@@ -334,7 +346,9 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						MarkdownDescription: "Volume Type",
 					},
 				},
-				Computed: true,
+				Computed:            true,
+				Description:         "Nodepool\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_nodepool#nested-schema-for-nodepool",
+				MarkdownDescription: "Nodepool\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_nodepool#nested-schema-for-nodepool",
 			},
 			"id": schema.StringAttribute{
 				Required:            true,

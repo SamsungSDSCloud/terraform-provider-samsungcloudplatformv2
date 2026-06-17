@@ -3,10 +3,10 @@ package servicewatch
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,58 +41,71 @@ func (d *serviceWatchEventRuleDataSource) Schema(_ context.Context, _ datasource
 	    Description: "Event Rule Data Source",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("EventRule"): schema.SingleNestedAttribute{
-				Computed:            true,
-				Description:         "Event rule",
+				Computed:    true,
+				Description: "List of event rule.\n" +
+					" - example : {\"id\": \"b73f95c698f540dab18860f72fafd03f\", \"name\": \"Event rule 1\"}\n",
 				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Account ID",
-					},
+				common.ToSnakeCase("AccountId"): schema.StringAttribute{
+					Computed:    true,
+					Description: "The unique identifier of the account.\n" +
+						" - example : 1bcf39b344ac41cbaf0466ff0d2bebad\n",
+				},
 					common.ToSnakeCase("ActiveYn"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Whether the Event rule is active",
+						Computed:    true,
+						Description: "Whether the Event rule is active.\n" +
+							" - example : Y\n",
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Created date time",
+						Computed: true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Creator ID",
+						Computed: true,
+						Description: "The user id that created the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Event rule description",
+						Computed:    true,
+						Description: "Event rule description.\n" +
+							" - example : Event rule 1 description\n",
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Event rule ID",
+						Computed:    true,
+						Description: "The unique identifier of the event rule.\n" +
+							" - example : b73f95c698f540dab18860f72fafd03f\n",
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modified date time",
+						Computed: true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modifier ID",
+						Computed: true,
+						Description: "The user id that last modified the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Event rule name",
+						Computed:    true,
+						Description: "Event rule name.\n" +
+							" - example : Event rule 1\n",
 					},
-					common.ToSnakeCase("ResourceTypeId"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Resource type ID",
-					},
-					common.ToSnakeCase("ServiceId"): schema.StringAttribute{
-						Computed:            true,
-						Description:         "Service ID",
-					},
+				common.ToSnakeCase("ResourceTypeId"): schema.StringAttribute{
+					Computed:    true,
+					Description: "The unique identifier of the resource type.\n" +
+						" - example : 596bf16709e84e27b7df397bf59b877c\n",
+				},
+				common.ToSnakeCase("ServiceId"): schema.StringAttribute{
+					Computed:    true,
+					Description: "The unique identifier of the service.\n" +
+						" - example : 2778de83d7e247609445bbd570a4eba9\n",
+				},
 				},
 			},
 			common.ToSnakeCase("EventRuleId"): schema.StringAttribute{
-				Required:            true,
-				Description:         "Event rule ID",
+				Required:    true,
+				Description: "The unique identifier of the event rule.\n" +
+					" - example : b73f95c698f540dab18860f72fafd03f\n",
 			},
 		},
 	}

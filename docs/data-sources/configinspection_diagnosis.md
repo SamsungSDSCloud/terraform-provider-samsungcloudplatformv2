@@ -48,29 +48,29 @@ variable "diagnosis_id" {
 variable "diagnosis_request_sequence" {
   description = "Sequence of diagnosis request"
   type        = string
-  default     = "SCPCIS-EC862048D7744453A759493BCC165BAC"
+  default     = "SCPCIS-EC862048D7744453Axxxxxxxxxxxxxxx"
 }
 
 variable "with_count" {
-  description = "With count"
+  description = "Whether to include the total item count in the response"
   type        = string
   default     = true
 }
 
 variable "limit" {
-  description = "Limit"
+  description = "Maximum number of items to return per page"
   type        = number
   default     = 5
 }
 
 variable "marker" {
-  description = "Marker"
+  description = "Pagination token from a previous response to fetch the next page"
   type        = string
   default     = null
 }
 
 variable "sort" {
-  description = "Sort"
+  description = "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order"
   type        = string
   default     = null
 }
@@ -81,49 +81,51 @@ variable "sort" {
 
 ### Required
 
-- `diagnosis_id` (String) Id of diagnosis
-  - Example: DIA-943731CB8E3045C289BAECAEC3532097
-- `diagnosis_request_sequence` (String) Sequence of diagnosis request
-  - Example: SCPCIS-E75FD21CA524441C9C1B1B381D5974F7
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
+- `diagnosis_request_sequence` (String) Sequence of diagnosis request.
+  - example : 'SCPCIS-E75FD21CA524441C9C1B1B381D5974F7'
 
 ### Optional
 
-- `limit` (Number) Limit
-  - Example: 20
-- `marker` (String) Marker
-  - Example: 607e0938521643b5b4b266f343fae693
-- `sort` (String) Sort
-  - Example: created_at:desc
-- `with_count` (String) With count
-  - Example: true
+- `limit` (Number) Maximum number of items to return per page.
+  - example : 20
+- `marker` (String) Pagination token from a previous response to fetch the next page.
+  - example : '607e0938521643b5b4b266f34fae693'
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : 'created_at:desc'
+- `with_count` (String) Whether to include the total item count in the response.
+  - example : true
 
 ### Read-Only
 
-- `checklist_name` (String) Checklist Name
-  - Example: Sample Checklist
-- `diagnosis_account_id` (String) Id of diagnosis
-  - Example: 0e3dffc50eb247a1adf4f2e5c82c4f99
-- `diagnosis_check_type` (String) Check type of diagnosis
-  - Example: BP
-- `diagnosis_name` (String) Name of diagnosis
-  - Example: Sample Diagnosis Name
-- `links` (Attributes List) Links (see [below for nested schema](#nestedatt--links))
-- `proceed_date` (String) Proceed Date
+- `checklist_name` (String) Name of the checklist used for the diagnosis.
+- `diagnosis_account_id` (String) Account Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ACCOUNT_ID
+- `diagnosis_check_type` (String) Check type of diagnosis.
+  - example : 'BP'
+  - enum : BP | SSI
+- `diagnosis_name` (String) Name of diagnosis.
+  - example : 'Sample Diagnosis Name'
+  - pattern : `^[a-zA-Z0-9-_]+$`
+- `links` (Attributes List) Collection of hypermedia links to related resources or pages.
+  - example : [{"href": "http://scp.samsungsdscloud.com/v1/notices", "rel": "self"}] (see [below for nested schema](#nestedatt--links))
+- `proceed_date` (String) Date the diagnosis was performed.
+  - example : '2022-01-01 12:00:00'
 - `result_detail_list` (Attributes List) Result detail list (see [below for nested schema](#nestedatt--result_detail_list))
-- `total` (Number) Total
-  - Example: 10
-- `total_count` (Number) Count
-  - Example: 20
+- `total` (Number) Total number of diagnosis result items.
+- `total_count` (Number) Total number of items available across all pages.
+  - example : 20
 
 <a id="nestedatt--links"></a>
 ### Nested Schema for `links`
 
 Read-Only:
 
-- `href` (String) Href
-  - Example : http://scp.samsungsdscloud.com/v1/notices
-- `rel` (String) Rel
-  - Example : self
+- `href` (String) URL of the linked resource.
+  - example : 'http://scp.samsungsdscloud.com/v1/notices'
+- `rel` (String) Relationship type of the link.
+  - example : 'self'
 
 
 <a id="nestedatt--result_detail_list"></a>
@@ -131,24 +133,25 @@ Read-Only:
 
 Read-Only:
 
-- `action_guide` (String) Measure guide description
-  - Example: 원칙 접근 Port에 Source IP가 ANY(0.0.0.0/0)로 접근되어 있거나 과도하게 허용되는 Security Group 추가는 아래와 같이 삭제합니다.
+- `action_guide` (String) Measure guide description.
+  - example : 'Delete security group rules that allow access from ANY (0.0.0.0/0) or overly permissive source IPs to principle-based access ports, as shown below.'
 - `changed` (Boolean) Is changed?
-  - Example: true
-- `diagnosis_check_type` (String) Check type of diagnosis
-  - Example: BP
-- `diagnosis_criteria` (String) Decision standard description
-  - Example: 【 Security Group 추가 】
-① 원칙접근 Port에 Any IP 접근을 허용하는 추가가 존재하지 않아야 합니다.
-- `diagnosis_item` (String) Sub category description
-  - Example: 2.NW_003. 프로토콜 별 원칙접근 Port는 접근이 필요한 IP를 지정하여 접근을 허용해야 합니다.
-- `diagnosis_layer` (String) Inspector item category description
-  - Example: 2.NETWORK
-- `diagnosis_method` (String) Inspector method description
-  - Example: Security Group의 Inbound 추가에 원칙 접근이 필요한 사용자 또는 시스템만 접근을 허용하는 추가를 확인합니다.
-- `diagnosis_result` (String) Verify state
-  - Example: 03
-- `result_contents` (String) Result Contents
-  - Example: 상세 내용
-- `sub_category` (String) Sub category
-  - Example: NURIBP_SCP_02.NW_004
+  - example : true
+- `diagnosis_check_type` (String) Check type of diagnosis.
+  - example : 'BP'
+  - enum : BP | SSI
+- `diagnosis_criteria` (String) Decision standard description.
+  - example : '[Security Group Rule]
+There should be no rules that allow any IP access to principle-based access ports.'
+- `diagnosis_item` (String) Sub category description.
+  - example : '2.NW_003. Principle-based access ports for each protocol should specify the required IPs and allow access only to them.'
+- `diagnosis_layer` (String) Inspector item category description.
+  - example : '2.NETWORK'
+- `diagnosis_method` (String) Inspector method description.
+  - example : 'Check that security group inbound rules allow access only to users or systems that require principle-based access.'
+- `diagnosis_result` (String) Overall diagnosis execution status.
+  - example : '03'
+- `result_contents` (String) Detailed finding of the check result.
+  - example : 'Sample Result Contents'
+- `sub_category` (String) Sub category.
+  - example : 'NURIBP_SCP_02.NW_004'

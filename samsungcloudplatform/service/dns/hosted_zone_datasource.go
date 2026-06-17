@@ -3,10 +3,10 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -36,67 +36,81 @@ func (d *dnsHostedZoneDataSource) Metadata(_ context.Context, req datasource.Met
 // Schema defines the schema for the data source.
 func (d *dnsHostedZoneDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Show HostedZone.",
+		Description: "Provides details about a specific hosted zone.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Optional:    true,
+				Description: "The unique identifier of the hosted zone to query.\n" +
+					"  - example : 3432012nfdksdf03ktrld9234lgfg ",
+				Optional: true,
 			},
 			common.ToSnakeCase("HostedZoneDetail"): schema.SingleNestedAttribute{
-				Description: "A detail of HostedZone.",
+				Description: "Detailed information about the hosted zone.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Optional:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Optional:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Optional: true,
 					},
 					common.ToSnakeCase("HostedZoneType"): schema.StringAttribute{
-						Description: "HostedZoneType",
-						Optional:    true,
+						Description: "The type of the hosted zone (e.g., PUBLIC or PRIVATE).\n" +
+							"  - example : PRIVATE ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Optional:    true,
+						Description: "The unique identifier of the hosted zone.\n" +
+							"  - example : 3432012nfdksdf03ktrld9234lgfg ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Optional:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Optional:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.\n" +
+							"  - example : my-zone.com ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PoolId"): schema.StringAttribute{
-						Description: "PoolId",
-						Optional:    true,
+						Description: "The resource pool identifier associated with the hosted zone.\n" +
+							"  - example : 10fjksdpooliddfsi12389esfdslkdsr32 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PrivateDnsId"): schema.StringAttribute{
-						Description: "PrivateDnsId",
-						Optional:    true,
+						Description: "The DNS server ID for registering a Hosted Zone.For a Public‑type Hosted Zone, display it as an empty value.\n" +
+							"  - example : 10fjkewefprivatedns3193rud543 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PrivateDnsName"): schema.StringAttribute{
-						Description: "PrivateDnsName",
-						Optional:    true,
+						Description: "The DNS server name for registering a Hosted Zone.For a Public‑type Hosted Zone, display it as an empty value.\n" +
+							"  - example : private-dns01 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Optional:    true,
+						Description: "The current status of the hosted zone (e.g., ACTIVE, CREATING, DELETING).\n" +
+							"  - example : ACTIVE ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Ttl"): schema.Int32Attribute{
-						Description: "Ttl",
-						Optional:    true,
+						Description: "The Time-To-Live (TTL) value in seconds for DNS records in this zone.\n" +
+							"  - example : 3600 ",
+						Optional: true,
 					},
 				},
 			},

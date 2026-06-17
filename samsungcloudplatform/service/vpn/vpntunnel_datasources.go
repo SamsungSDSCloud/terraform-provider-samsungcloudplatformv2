@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,35 +40,47 @@ func (d *vpnVpnTunnelDataSources) Schema(_ context.Context, _ datasource.SchemaR
 	resp.Schema = schema.Schema{
 		Description: "List of vpn tunnel",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
-			},
-			common.ToSnakeCase("VpnGatewayId"): schema.StringAttribute{
-				Description: "VpnGatewayId",
-				Optional:    true,
-			},
-			common.ToSnakeCase("VpnGatewayName"): schema.StringAttribute{
-				Description: "VpnGatewayName",
-				Optional:    true,
-			},
-			common.ToSnakeCase("Ids"): schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				Description: "Vpn Tunnel Id List",
-			},
+		common.ToSnakeCase("Size"): schema.Int32Attribute{
+			Description: "The number of items per page.\n" +
+				"  - example: 20\n" +
+				"  - constraints: min: 1",
+			Optional:    true,
+		},
+		common.ToSnakeCase("Page"): schema.Int32Attribute{
+			Description: "The page number for pagination.\n" +
+				"  - example: 1\n" +
+				"  - constraints: min: 1",
+			Optional:    true,
+		},
+		common.ToSnakeCase("Sort"): schema.StringAttribute{
+			Description: "The sorting criteria.\n" +
+				"  - example: created_at:desc\n" +
+				"  - valid: field_name:asc or field_name:desc.",
+			Optional:    true,
+		},
+		common.ToSnakeCase("Name"): schema.StringAttribute{
+			Description: "The name of the resource.\n" +
+				"  - example: vpnGWProd\n" +
+				"  - valid: English letters and numbers only\n" +
+				"  - constraints: minLength: 1, maxLength: 20",
+			Optional:    true,
+		},
+		common.ToSnakeCase("VpnGatewayId"): schema.StringAttribute{
+			Description: "The identifier of the VPN gateway that the resource belongs to.\n" +
+				"  - example: 01c543eb4b8d42a9a3502345d4025147",
+			Optional:    true,
+		},
+		common.ToSnakeCase("VpnGatewayName"): schema.StringAttribute{
+			Description: "The name of the VPN gateway that the resource belongs to.\n" +
+				"  - example: vpnGWProd",
+			Optional:    true,
+		},
+		common.ToSnakeCase("Ids"): schema.ListAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
+			Description: "Vpn Tunnel Id List.\n" +
+				"  - example: [8e83f42d823941d7a4883f0f99101ef9]",
+		},
 		},
 	}
 }

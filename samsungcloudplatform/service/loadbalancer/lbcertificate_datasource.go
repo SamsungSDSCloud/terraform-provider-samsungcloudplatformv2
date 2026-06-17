@@ -3,11 +3,11 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,78 +40,78 @@ func (d *loadbalancerLbCertificateDataSource) Metadata(_ context.Context, req da
 // Schema defines the schema for the data source.
 func (d *loadbalancerLbCertificateDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "Show Lb Certificate.",
+		Description: "Retrieve details of a specific LB Certificate.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
+				Description: "The unique identifier of the LB Certificate.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("LbCertificate"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Certificate.",
+				Description: "Details of the LB Certificate.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
+						Description: "The account ID associated with the resource.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("CertBody"): schema.StringAttribute{
-						Description: "CertBody",
+						Description: "The certificate body in PEM format.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("CertChain"): schema.StringAttribute{
-						Description: "CertChain",
+						Description: "The certificate chain in PEM format.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("CertKind"): schema.StringAttribute{
-						Description: "CertKind",
+						Description: "The type of certificate (e.g., SERVER, CLIENT).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Cn"): schema.StringAttribute{
-						Description: "Cn",
+						Description: "The common name (CN) of the certificate.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
+						Description: "The timestamp when the resource was created, in ISO 8601 format.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
+						Description: "The user id that created the resource.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
+						Description: "The unique identifier of the LB Certificate.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
+						Description: "The user id that last modified the resource.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
+						Description: "The name of the LB Certificate (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-						Description: "NotAfterDt",
+						Description: "The expiration date of the certificate (e.g., '2026-02-12T23:59:59Z').",
 						Optional:    true,
 					},
 					common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
-						Description: "NotBeforeDt",
+						Description: "The start date of the certificate validity (e.g., '2025-02-12T00:00:00Z').",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Organization"): schema.StringAttribute{
-						Description: "Organization",
+						Description: "The organization name in the certificate.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("PrivateKey"): schema.StringAttribute{
-						Description: "PrivateKey",
+						Description: "The private key associated with the certificate.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
+						Description: "The current state of the LB Certificate (ACTIVE, ERROR).",
 						Optional:    true,
 					},
 				},

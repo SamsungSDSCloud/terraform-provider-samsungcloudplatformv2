@@ -51,18 +51,22 @@ variable "description" {
 
 ### Required
 
-- `name` (String) TGW name
+- `name` (String) The name of the transit gateway.
+  - example : TransitGatewayName
 
 ### Optional
 
-- `description` (String) Description
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Transit Gateway Description
+  - maxLength : 50
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
+- `id` (String) The unique identifier of the transit gateway.
+  - example: YOUR RESOURCE'S ID
 - `tgw` (Attributes) Tgw (see [below for nested schema](#nestedatt--tgw))
 
 <a id="nestedatt--tgw"></a>
@@ -70,25 +74,32 @@ variable "description" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `bandwidth` (Number) Bandwidth
-- `created_at` (String) CreatedAt 
-  - example : 2024-05-17T00:23:17Z
-- `created_by` (String) CreatedBy 
+- `account_id` (String) The identifier of the account that owns the transit gateway.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `bandwidth` (Number) The bandwidth capacity of the connection.
+  - example : 1
+- `created_at` (String) The timestamp when the transit gateway was created in ISO 8601 format.
+   - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the transit gateway. 
   - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Description
+- `description` (String) Enter a brief explanation or note about this transit gateway. This help identify the purpose or usage of the resource.
   - example : Tgw description
   - maxLength : 50
   - minLength : 1
-- `firewall_connection_state` (String) firewall connection state
-- `firewall_ids` (String) FirewallIds
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt 
+- `firewall_connection_state` (String) The current lifecycle state of the firewall connection. 
+  - example : INACTIVE
+- `firewall_ids` (String) List of the FirewallIds
+  - example: YOUR RESOURCE'S FIREWALL_IDS
+- `id` (String) The unique identifier of the transit gateway.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the transit gateway was last modified in ISO 8601 format. 
   - example : 2024-05-17T00:23:17Z
-- `modified_by` (String) ModifiedBy 
+- `modified_by` (String) The user id that modified the transit gateway. 
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) Name
+- `name` (String) The name of the transit gateway.
   - example : Tgw name
-- `state` (String) State - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING 
- - example : CREATING
-- `uplink_enabled` (Boolean) UplinkEnabled  - example : false
+- `state` (String) The current lifecycle state of the transit gateway.
+  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING 
+  - example : CREATING
+- `uplink_enabled` (Boolean) Whether the uplink is enabled.
+  - example : false

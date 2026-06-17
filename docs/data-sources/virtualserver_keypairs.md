@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_keypairs Data Source - samsungcloudplatformv2"
 subcategory: Keypair
 description: |-
-  list of keypair.
+  Retrieves a list of keypairs for SSH access to virtual servers.
 ---
 
 # samsungcloudplatformv2_virtualserver_keypairs (Data Source)
 
-list of keypair.
+Retrieves a list of keypairs for SSH access to virtual servers.
 
 ## Example Usage
 
@@ -53,7 +53,7 @@ variable "keypairs_filter_use_regex" {
 
 ### Read-Only
 
-- `names` (List of String) Keypair Name List
+- `names` (List of String) List of keypair names.
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -61,5 +61,8 @@ variable "keypairs_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

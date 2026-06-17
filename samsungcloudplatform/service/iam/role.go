@@ -3,14 +3,16 @@ package iam
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpiam1d0 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpiam1d0 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -18,8 +20,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &iamRoleResource{}
-	_ resource.ResourceWithConfigure = &iamRoleResource{}
+	_ resource.Resource                = &iamRoleResource{}
+	_ resource.ResourceWithConfigure   = &iamRoleResource{}
+	_ resource.ResourceWithImportState = &iamRoleResource{}
 )
 
 // NewIamRoleResource is a helper function to simplify the provider implementation.
@@ -41,98 +44,103 @@ func (r *iamRoleResource) Metadata(_ context.Context, req resource.MetadataReque
 
 func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Role.",
+		Description: "Manages an IAM Role.",
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Account ID",
-				MarkdownDescription: "Account ID",
+				Optional: true,
+				Description: "Account ID to create the role in.\n" +
+					"  - example : '123456789012'",
 			},
 			"description": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Description",
-				MarkdownDescription: "Description",
+				Optional: true,
+				Description: "Human-readable description of the role.\n" +
+					"  - example : 'My role description'",
 			},
 			"max_session_duration": schema.Int32Attribute{
-				Optional:            true,
-				Description:         "Max Session Duration",
-				MarkdownDescription: "Max Session Duration",
+				Optional: true,
+				Description: "Maximum duration for a session using this role (in seconds).\n" +
+					"  - example : 3600\n" +
+					"  - min: 900, max: 43200",
 			},
 			"name": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Name",
-				MarkdownDescription: "Name",
+				Optional: true,
+				Description: "Name of the role.\n" +
+					"  - example : 'MyRole'\n" +
+					"  - maxLength: 64\n" +
+					"  - minLength: 1",
 			},
 			"policy_ids": schema.ListAttribute{
-				Optional:            true,
-				Description:         "Policy IDs",
-				MarkdownDescription: "Policy IDs",
-				ElementType:         types.StringType,
+				Optional: true,
+				Description: "List of policy IDs to attach to the role.\n" +
+					"  - example : ['pol-1234567890abcdef']",
+				ElementType: types.StringType,
 			},
 			"principals": schema.ListNestedAttribute{
-				Optional:            true,
-				Description:         "Principals",
-				MarkdownDescription: "Principals",
+				Optional: true,
+				Description: "List of principals who can assume this role.\n" +
+					"  - example : '[{type: Account, value: ec2.amazonaws.com}]'",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"type": schema.StringAttribute{
-							Optional:            true,
-							Description:         "Type of principal",
-							MarkdownDescription: "Type of principal",
+							Optional: true,
+							Description: "Type of principal.\n" +
+								"  - example : 'Account' | 'SCP' | 'Federated' | 'Service'",
 						},
 						"value": schema.StringAttribute{
-							Optional:            true,
-							Description:         "Value of principal",
-							MarkdownDescription: "Value of principal",
+							Optional: true,
+							Description: "Value identifier for the principal.\n" +
+								"  - example : 'ec2.amazonaws.com'",
 						},
 					},
 				},
 			},
 			"tags": tag.ResourceSchema(),
 			"assume_role_policy_document": schema.SingleNestedAttribute{
-				Optional:            true,
-				Description:         "Assume Role Policy Document",
-				MarkdownDescription: "Assume Role Policy Document",
+				Optional: true,
+				Description: "Policy document that grants an entity permission to assume the role.\n" +
+					"  - example : '{statement: [{action: [sts:AssumeRole], effect: Allow, principal: {principal_map: {Account: [123456789012]}}, ...}], version: 2024-07-01}'",
 				Attributes: map[string]schema.Attribute{
 					"statement": schema.ListNestedAttribute{
-						Optional:            true,
-						Description:         "Statement",
-						MarkdownDescription: "Statement",
+						Optional: true,
+						Description: "List of policy statements defining who can assume this role.\n" +
+							"  - example : '[{action: [sts:AssumeRole], effect: Allow, principal: {principal_map: {Account: [123456789012]}}, sid: Sid1, ...}]'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"action": schema.ListAttribute{
-									Optional:            true,
-									Description:         "Action",
-									MarkdownDescription: "Action",
-									ElementType:         types.StringType,
+									Optional: true,
+									Description: "List of actions allowed by this statement.\n" +
+										"  - example : ['sts:AssumeRole']",
+									ElementType: types.StringType,
 								},
 								"not_action": schema.ListAttribute{
-									Optional:            true,
-									Description:         "Not Action",
-									MarkdownDescription: "Not Action",
-									ElementType:         types.StringType,
+									Optional: true,
+									Description: "List of actions that are not allowed by this statement.\n" +
+										"  - example : ['sts:AssumeRole']",
+									ElementType: types.StringType,
 								},
 								"effect": schema.StringAttribute{
-									Optional:            true,
-									Description:         "Effect",
-									MarkdownDescription: "Effect",
+									Optional: true,
+									Description: "Effect of the statement (allow or deny).\n" +
+										"  - example : 'Allow'",
 								},
 								"resource": schema.ListAttribute{
-									Optional:            true,
-									Description:         "Resource",
-									MarkdownDescription: "Resource",
-									ElementType:         types.StringType,
+									Optional: true,
+									Description: "List of resources the statement applies to.\n" +
+										"  - example : ['*']",
+									ElementType: types.StringType,
 								},
 								"principal": schema.SingleNestedAttribute{
-									Optional:            true,
-									Description:         "Principal",
-									MarkdownDescription: "Principal",
+									Optional: true,
+									Description: "Principal who can assume the role (e.g., AWS account, service, or federated user).\n" +
+										"  - example : '{principal_string: arn:aws:iam::123456789012:root, principal_map: {Account: [123456789012]}}'",
 									Attributes: map[string]schema.Attribute{
 										"principal_string": schema.StringAttribute{
-											Optional: true,
+											Optional:    true,
+											Description: "String representation of the principal (e.g., ARN or account ID).\n  - example : 'arn:aws:iam::123456789012:root'",
 										},
 										"principal_map": schema.MapAttribute{
-											Optional: true,
+											Optional:    true,
+											Description: "Map of principal type to list of principal identifiers.\n  - example : {\"Account\": [\"123456789012\"]}",
 											ElementType: types.ListType{
 												ElemType: types.StringType,
 											},
@@ -140,9 +148,9 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 									},
 								},
 								"sid": schema.StringAttribute{
-									Optional:            true,
-									Description:         "SID",
-									MarkdownDescription: "SID",
+									Optional: true,
+									Description: "Statement ID for the statement.\n" +
+										"  - example : 'Sid1'",
 								},
 								"condition": schema.MapAttribute{
 									ElementType: types.MapType{
@@ -150,150 +158,154 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 											ElemType: types.StringType,
 										},
 									},
-									Optional: true,
+									Optional:    true,
+									Description: "Condition for the policy statement that determines when the policy is in effect.\n  - example : {\"StringEquals\": {\"aws:PrincipalTag/department\": [\"finance\"]}}",
 								},
 							},
 						},
 					},
 					"version": schema.StringAttribute{
-						Optional:            true,
-						Description:         "Policy Version",
-						MarkdownDescription: "Policy Version",
+						Optional: true,
+						Description: "Policy document version.\n" +
+							"  - example : '2024-07-01'",
 					},
 				},
 			},
 			"id": schema.StringAttribute{
-				Computed:            true,
-				Description:         "ID",
-				MarkdownDescription: "ID",
+				Computed: true,
+				Description: "Unique identifier of the role.\n" +
+					"  - example : 'role-1234567890abcdef'",
 			},
 			"role": schema.SingleNestedAttribute{
-				Computed:    true,
-				Description: "Role",
+				Computed: true,
+				Description: "Detailed information about the role.\n" +
+					"  - example : '{account_id: 123456789012, created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, description: My role description, id: role-1234567890abcdef, max_session_duration: 3600, ...}'",
 				Attributes: map[string]schema.Attribute{
 					"created_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Created At",
-						MarkdownDescription: "Created At",
+						Computed: true,
+						Description: "Timestamp when the role was created.\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"created_by": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Created By",
-						MarkdownDescription: "Created By",
+						Computed: true,
+						Description: "User who created the role.\n" +
+							"  - example : 'user@example.com'",
 					},
 					"creator_email": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Creator Email",
-						MarkdownDescription: "Creator Email",
+						Computed: true,
+						Description: "Email of the user who created the role.\n" +
+							"  - example : 'user@example.com'",
 					},
 					"creator_name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Creator Name",
-						MarkdownDescription: "Creator Name",
+						Computed: true,
+						Description: "Name of the user who created the role.\n" +
+							"  - example : 'John Doe'",
 					},
 					"description": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						Description:         "Description",
-						MarkdownDescription: "Description",
+						Optional: true,
+						Computed: true,
+						Description: "Human-readable description of the role.\n" +
+							"  - example : 'My role description'",
 					},
 					"account_id": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						Description:         "Account ID",
-						MarkdownDescription: "Account ID",
+						Optional: true,
+						Computed: true,
+						Description: "Account ID that owns the role.\n" +
+							"  - example : '123456789012'",
 					},
 					"id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "ID",
-						MarkdownDescription: "ID",
+						Computed: true,
+						Description: "Unique identifier of the role.\n" +
+							"  - example : 'role-1234567890abcdef'",
 					},
 					"max_session_duration": schema.Int32Attribute{
-						Computed:            true,
-						Description:         "Max Session Duration",
-						MarkdownDescription: "Max Session Duration",
+						Computed: true,
+						Description: "Maximum duration for a session using this role (in seconds).\n" +
+							"  - example : 3600",
 					},
 					"modified_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modified At",
-						MarkdownDescription: "Modified At",
+						Computed: true,
+						Description: "Timestamp when the role was last modified.\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"modified_by": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modified By",
-						MarkdownDescription: "Modified By",
+						Computed: true,
+						Description: "User who last modified the role.\n" +
+							"  - example : 'user@example.com'",
 					},
 					"modifier_email": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modifier Email",
-						MarkdownDescription: "Modifier Email",
+						Computed: true,
+						Description: "Email of the user who last modified the role.\n" +
+							"  - example : 'user@example.com'",
 					},
 					"modifier_name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modifier Name",
-						MarkdownDescription: "Modifier Name",
+						Computed: true,
+						Description: "Name of the user who last modified the role.\n" +
+							"  - example : 'John Doe'",
 					},
 					"name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Name",
-						MarkdownDescription: "Name",
+						Computed: true,
+						Description: "Name of the role.\n" +
+							"  - example : 'AdminRole'",
 					},
 					"assume_role_policy_document": schema.SingleNestedAttribute{
-						Optional:            true,
-						Description:         "Assume Role Policy Document",
-						MarkdownDescription: "Assume Role Policy Document",
+						Optional: true,
+						Description: "Policy document that grants an entity permission to assume the role.\n" +
+							"  - example : '{statement: [{action: [sts:AssumeRole], effect: Allow, principal: {principal_map: {Account: [123456789012]}}, ...}], version: 2024-07-01}'",
 						Attributes: map[string]schema.Attribute{
 							"statement": schema.ListNestedAttribute{
-								Optional:            true,
-								Computed:            true,
-								Description:         "Statement",
-								MarkdownDescription: "Statement",
+								Optional: true,
+								Computed: true,
+								Description: "List of policy statements defining who can assume this role.\n" +
+									"  - example : '[{action: [sts:AssumeRole], effect: Allow, principal: {principal_map: {Account: [123456789012]}}, sid: Sid1, ...}]'",
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
 										"action": schema.ListAttribute{
-											Optional:            true,
-											Description:         "Action",
-											MarkdownDescription: "Action",
-											ElementType:         types.StringType,
+											Optional: true,
+											Description: "List of actions allowed by this statement.\n" +
+												"  - example : ['sts:AssumeRole']",
+											ElementType: types.StringType,
 										},
 										"not_action": schema.ListAttribute{
-											Optional:            true,
-											Description:         "Not Action",
-											MarkdownDescription: "Not Action",
-											ElementType:         types.StringType,
+											Optional: true,
+											Description: "List of actions that are not allowed by this statement.\n" +
+												"  - example : ['sts:AssumeRole']",
+											ElementType: types.StringType,
 										},
 										"effect": schema.StringAttribute{
-											Computed:            true,
-											Description:         "Effect",
-											MarkdownDescription: "Effect",
+											Computed: true,
+											Description: "Effect of the statement.\n" +
+												"  - example : 'Allow'",
 										},
 										"resource": schema.ListAttribute{
-											Optional:            true,
-											Description:         "Resource",
-											MarkdownDescription: "Resource",
-											ElementType:         types.StringType,
+											Optional: true,
+											Description: "List of resources the statement applies to.\n" +
+												"  - example : ['*']",
+											ElementType: types.StringType,
 										},
 										"principal": schema.SingleNestedAttribute{
-											Optional:            true,
-											Description:         "Principal",
-											MarkdownDescription: "Principal",
+											Optional: true,
+											Description: "Principal - The entity (user, service, or account) that can assume this role.\n" +
+												"  - example : '{principal_string: arn:aws:iam::123456789012:root, principal_map: {Account: [123456789012]}}'",
 											Attributes: map[string]schema.Attribute{
 												"principal_string": schema.StringAttribute{
-													Optional: true,
+													Optional:    true,
+													Description: "Principal as a string value (e.g., AWS account ID or IAM user ARN).\n  - example : 'arn:aws:iam::123456789012:root'",
 												},
 												"principal_map": schema.MapAttribute{
 													Optional: true,
-
-													Computed: true, ElementType: types.ListType{
+													Computed: true,
+													ElementType: types.ListType{
 														ElemType: types.StringType,
 													},
+													Description: "Principal as a map - supports multiple principal types (e.g., AWS, Federated, etc.).\n  - example : {'AWS': ['arn:aws:iam::123456789012:root']}",
 												},
 											},
 										},
 										"sid": schema.StringAttribute{
-											Computed:            true,
-											Description:         "SID",
-											MarkdownDescription: "SID",
+											Computed: true,
+											Description: "Statement ID.\n" +
+												"  - example : 'AllowAssumeRole'",
 										},
 										"condition": schema.MapAttribute{
 											ElementType: types.MapType{
@@ -301,173 +313,174 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 													ElemType: types.StringType,
 												},
 											},
-											Optional: true,
+											Optional:    true,
+											Description: "Condition for the policy statement.\n  - example : {\"StringEquals\": {\"aws:PrincipalTag/department\": [\"finance\"]}}",
 										},
 									},
 								},
 							},
 							"version": schema.StringAttribute{
-								Computed:            true,
-								Description:         "Policy Version",
-								MarkdownDescription: "Policy Version",
+								Computed: true,
+								Description: "Policy Version\n" +
+									"  - example : '2024-07-01'",
 							},
 						},
 					},
 					"policies": schema.ListNestedAttribute{
-						Optional:            true,
-						Description:         "Policies",
-						MarkdownDescription: "Policies",
+						Optional: true,
+						Description: "List of policies attached to the role.\n" +
+							"  - example : '[{account_id: 123456789012, created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, id: pol-1234567890abcdef, description: My role description, ...}]'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"account_id": schema.StringAttribute{
-									Optional:            true,
-									Description:         "Account ID",
-									MarkdownDescription: "Account ID",
+									Optional: true,
+									Description: "Account ID that owns the role.\n" +
+										"  - example : '123456789012'",
 								},
 								"created_at": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Created At",
-									MarkdownDescription: "Created At",
+									Computed: true,
+									Description: "Timestamp when the role was created.\n" +
+										"  - example : '2024-01-01T00:00:00Z'",
 								},
 								"created_by": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Created By",
-									MarkdownDescription: "Created By",
+									Computed: true,
+									Description: "User who created the role.\n" +
+										"  - example : 'user@example.com'",
 								},
 								"creator_email": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Creator Email",
-									MarkdownDescription: "Creator Email",
+									Computed: true,
+									Description: "Email of the user who created the role.\n" +
+										"  - example : 'user@example.com'",
 								},
 								"creator_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Creator Name",
-									MarkdownDescription: "Creator Name",
+									Computed: true,
+									Description: "Name of the user who created the role.\n" +
+										"  - example : 'John Doe'",
 								},
 								"default_version_id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Default Version ID",
-									MarkdownDescription: "Default Version ID",
+									Computed: true,
+									Description: "Default version ID of the policy.\n" +
+										"  - example : 'pol-1234567890abcde'",
 								},
 								"description": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Description",
-									MarkdownDescription: "Description",
+									Computed: true,
+									Description: "Human-readable description of the role.\n" +
+										"  - example : 'My role description'",
 								},
 								"domain_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Domain Name",
-									MarkdownDescription: "Domain Name",
+									Computed: true,
+									Description: "Domain name associated with the role.\n" +
+										"  - example : 'scp'",
 								},
 								"id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "ID",
-									MarkdownDescription: "ID",
+									Computed: true,
+									Description: "Unique identifier of the policy.\n" +
+										"  - example : 'pol-1234567890abcdef'",
 								},
 								"modified_at": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Modified At",
-									MarkdownDescription: "Modified At",
+									Computed: true,
+									Description: "Timestamp when the policy was last modified.\n" +
+										"  - example : '2024-01-01T00:00:00Z'",
 								},
 								"modified_by": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Modified By",
-									MarkdownDescription: "Modified By",
+									Computed: true,
+									Description: "User who last modified the policy.\n" +
+										"  - example : 'user@example.com'",
 								},
 								"modifier_email": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Modifier Email",
-									MarkdownDescription: "Modifier Email",
+									Computed: true,
+									Description: "Email of the user who last modified the policy.\n" +
+										"  - example : 'user@example.com'",
 								},
 								"modifier_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Modifier Name",
-									MarkdownDescription: "Modifier Name",
+									Computed: true,
+									Description: "Name of the user who last modified the policy.\n" +
+										"  - example : 'John Doe'",
 								},
 								"policy_category": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Policy Category",
-									MarkdownDescription: "Policy Category",
+									Computed: true,
+									Description: "Category of the policy (e.g., IDENTITY_BASED or RESOURCE_BASED).\n" +
+										"  - example : 'IDENTITY_BASED'",
 								},
 								"policy_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Policy Name",
-									MarkdownDescription: "Policy Name",
+									Computed: true,
+									Description: "Name of the policy.\n" +
+										"  - example : 'MyPolicy'",
 								},
 								"policy_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Policy Type",
-									MarkdownDescription: "Policy Type",
+									Computed: true,
+									Description: "Type of the policy.\n" +
+										"  - example : 'USER_DEFINED'",
 								},
 								"policy_versions": schema.ListNestedAttribute{
-									Optional:            true,
-									Description:         "Policy Versions",
-									MarkdownDescription: "Policy Versions",
+									Optional: true,
+									Description: "List of versions associated with the policy.\n" +
+										"  - example : '[{created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, id: ver-1234567890abcdef, policy_id: pol-1234567890abcdef, policy_version_name: POLICY_VERSION_1, ...}]'",
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"created_at": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Created At",
-												MarkdownDescription: "Created At",
+												Computed: true,
+												Description: "Timestamp when the policy version was created.\n" +
+													"  - example : '2024-01-01T00:00:00Z'",
 											},
 											"created_by": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Created By",
-												MarkdownDescription: "Created By",
+												Computed: true,
+												Description: "User who created the policy version.\n" +
+													"  - example : 'user@example.com'",
 											},
 											"id": schema.StringAttribute{
-												Computed:            true,
-												Description:         "ID",
-												MarkdownDescription: "ID",
+												Computed: true,
+												Description: "Unique identifier of the policy version.\n" +
+													"  - example : 'ver-1234567890abcdef'",
 											},
 											"modified_at": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Modified At",
-												MarkdownDescription: "Modified At",
+												Computed: true,
+												Description: "Timestamp when the policy version was last modified.\n" +
+													"  - example : '2024-01-01T00:00:00Z'",
 											},
 											"modified_by": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Modified By",
-												MarkdownDescription: "Modified By",
+												Computed: true,
+												Description: "User who last modified the policy version.\n" +
+													"  - example : 'user@example.com'",
 											},
 											"policy_document": schema.SingleNestedAttribute{
-												Computed:            true,
-												Description:         "Policy Document",
-												MarkdownDescription: "Policy Document",
+												Computed: true,
+												Description: "The policy document containing permission definitions for this policy version.\n" +
+													"  - example : '{statement: [{action: [iam:CreateRole], effect: Allow, resource: [*], ...}], version: 2024-07-01}'",
 												Attributes: map[string]schema.Attribute{
 													"statement": schema.ListNestedAttribute{
-														Computed:            true,
-														Description:         "Statement",
-														MarkdownDescription: "Statement",
+														Computed: true,
+														Description: "List of policy statements that define the permissions granted or denied.\n" +
+															"  - example : '[{action: [iam:CreateRole], effect: Allow, resource: [*], sid: Stmt1, ...}]'",
 														NestedObject: schema.NestedAttributeObject{
 															Attributes: map[string]schema.Attribute{
 																"action": schema.ListAttribute{
-																	Optional:            true,
-																	Description:         "Action",
-																	MarkdownDescription: "Action",
-																	ElementType:         types.StringType,
+																	Optional: true,
+																	Description: "List of actions allowed.\n" +
+																		"  - example : ['iam:CreateRole']",
+																	ElementType: types.StringType,
 																},
 																"not_action": schema.ListAttribute{
-																	Optional:            true,
-																	Description:         "Not Action",
-																	MarkdownDescription: "Not Action",
-																	ElementType:         types.StringType,
+																	Optional: true,
+																	Description: "List of actions that are not allowed.\n" +
+																		"  - example : ['iam:CreateRole']",
+																	ElementType: types.StringType,
 																},
 																"effect": schema.StringAttribute{
-																	Computed:            true,
-																	Description:         "Effect",
-																	MarkdownDescription: "Effect",
+																	Computed: true,
+																	Description: "Effect of the statement.\n" +
+																		"  - example : 'Allow'",
 																},
 																"resource": schema.ListAttribute{
-																	Optional:            true,
-																	Description:         "Resource",
-																	MarkdownDescription: "Resource",
-																	ElementType:         types.StringType,
+																	Optional: true,
+																	Description: "List of resources.\n" +
+																		"  - example : ['*']",
+																	ElementType: types.StringType,
 																},
 																"sid": schema.StringAttribute{
-																	Computed:            true,
-																	Description:         "SID",
-																	MarkdownDescription: "SID",
+																	Computed: true,
+																	Description: "Statement ID.\n" +
+																		"  - example : 'Stmt1'",
 																},
 																"condition": schema.MapAttribute{
 																	ElementType: types.MapType{
@@ -475,18 +488,21 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 																			ElemType: types.StringType,
 																		},
 																	},
-																	Optional: true,
+																	Optional:    true,
+																	Description: "Condition for the policy statement.\n  - example : {\"StringEquals\": {\"aws:PrincipalTag/department\": [\"finance\"]}}",
 																},
 																"principal": schema.SingleNestedAttribute{
-																	Optional:            true,
-																	Description:         "Principal",
-																	MarkdownDescription: "Principal",
+																	Optional: true,
+																	Description: "Principal who can access the resource.\n" +
+																		"  - example : '{principal_string: arn:aws:iam::123456789012:root, principal_map: {Account: [123456789012]}}'",
 																	Attributes: map[string]schema.Attribute{
 																		"principal_string": schema.StringAttribute{
-																			Optional: true,
+																			Optional:    true,
+																			Description: "String representation of the principal.\n  - example : 'arn:aws:iam::123456789012:root'",
 																		},
 																		"principal_map": schema.MapAttribute{
-																			Optional: true,
+																			Optional:    true,
+																			Description: "Map of principal type to list of principal identifiers.\n  - example : {\"Account\": [\"123456789012\"]}",
 																			ElementType: types.ListType{
 																				ElemType: types.StringType,
 																			},
@@ -497,57 +513,57 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 														},
 													},
 													"version": schema.StringAttribute{
-														Computed:            true,
-														Description:         "Policy Version",
-														MarkdownDescription: "Policy Version",
+														Computed: true,
+														Description: "Policy Version\n" +
+															"  - example : '2024-07-01'",
 													},
 												},
 											},
 											"policy_id": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Policy ID",
-												MarkdownDescription: "Policy ID",
+												Computed: true,
+												Description: "Unique identifier of the policy.\n" +
+													"  - example : 'pol-1234567890abcdef'",
 											},
 											"policy_version_name": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Policy Version Name",
-												MarkdownDescription: "Policy Version Name",
+												Computed: true,
+												Description: "Name of the policy version.\n" +
+													"  - example : 'POLICY_VERSION_1'",
 											},
 										},
 									},
 								},
 								"resource_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Resource Type",
-									MarkdownDescription: "Resource Type",
+									Computed: true,
+									Description: "Type of resource the policy applies to.\n" +
+										"  - example : 'policy'",
 								},
 								"service_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Service Name",
-									MarkdownDescription: "Service Name",
+									Computed: true,
+									Description: "Name of the service the policy is associated with.\n" +
+										"  - example : 'Identity Access Management'",
 								},
 								"service_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Service Type",
-									MarkdownDescription: "Service Type",
+									Computed: true,
+									Description: "Type of service the policy is associated with.\n" +
+										"  - example : 'iam'",
 								},
 								"srn": schema.StringAttribute{
-									Computed:            true,
-									Description:         "SRN",
-									MarkdownDescription: "SRN",
+									Computed: true,
+									Description: "Service Resource Name (SRN) - Unique identifier for the role in the SCP system.\n" +
+										"  - example : 'srn:e:::::iam:policy/policy-12345678'",
 								},
 								"state": schema.StringAttribute{
-									Computed:            true,
-									Description:         "State",
-									MarkdownDescription: "State",
+									Computed: true,
+									Description: "Current state of the role (e.g., ACTIVE, INACTIVE).\n" +
+										"  - example : 'ACTIVE'",
 								},
 							},
 						},
 					},
 					"type": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Type",
-						MarkdownDescription: "Type",
+						Computed: true,
+						Description: "Type of role.\n" +
+							"  - example : 'USER_DEFINED' | 'SERVICE' | 'SERVICE_LINKED'",
 					},
 				},
 			},
@@ -576,6 +592,10 @@ func (r *iamRoleResource) Configure(_ context.Context, req resource.ConfigureReq
 	r.clients = inst.Client
 }
 
+func (r *iamRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
 func (r *iamRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan iam.RoleResource
 	diags := req.Plan.Get(ctx, &plan)
@@ -593,6 +613,9 @@ func (r *iamRoleResource) Create(ctx context.Context, req resource.CreateRequest
 		)
 		return
 	}
+
+	// No polling needed - CreateRole API returns the complete role object directly
+	// with no pending status field. The role is immediately readable.
 
 	// assume role policy document
 	var assumeRolePolicyDocument iam.PolicyDocument
@@ -689,6 +712,10 @@ func (r *iamRoleResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	data, err := r.client.GetRole(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Unable to Show Role",
 			err.Error(),

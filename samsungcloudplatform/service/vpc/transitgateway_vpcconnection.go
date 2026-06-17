@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -62,70 +62,83 @@ func (v vpcTgwVpcConnectionResource) Metadata(ctx context.Context, req resource.
 
 func (v *vpcTgwVpcConnectionResource) Schema(ctx context.Context, request resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "vpc transitgateway vpcconnection",
+		Description: "The connection between a VPC and a Transit Gateway",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the connection.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VpcId",
-				Required:    true,
+				Description: "The identifier of the VPC that the connection belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Required: true,
 			},
 			common.ToSnakeCase("TransitGatewayId"): schema.StringAttribute{
-				Description: "TransitGateway Id",
-				Required:    true,
+				Description: "The identifier of the transit gateway that the connection belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Required: true,
 			},
 			common.ToSnakeCase("TransitGatewayVpcConnection"): schema.SingleNestedAttribute{
-				Description: "transit gateway vpc connection",
+				Description: "The connection between a VPC and a Transit Gateway",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
-						Description: "Identifier of the resource.",
-						Computed:    true,
+						Description: "The unique identifier of the connection.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the connection.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
-					},
-					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
-					},
-					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
-					},
-					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
-					},
+                        Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+                            "  - example : 2024-05-17T00:23:17Z",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+                        Description: "The user id that created the resource.\n" +
+                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+                        Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+                            "  - example : 2024-05-17T00:23:17Z",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+                        Description: "The user id that modified the resource.\n" +
+                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                        Computed: true,
+                    },
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State" +
-							" - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
+						Description: "The current lifecycle state of the connection.\n " +
+							"  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING\n" +
+							"  - example: ACTIVE",
 						Computed: true,
 					},
 					common.ToSnakeCase("TransitGatewayId"): schema.StringAttribute{
-						Description: "Transit Gateway Id",
-						Computed:    true,
+						Description: "The identifier of the transit gateway that the connection belongs to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "Vpc Id",
-						Computed:    true,
+						Description: "The identifier of the VPC that the connection belongs to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "Vpc Name",
-						Computed:    true,
+						Description: "The name of the VPC that the connection belongs to.\n" +
+							"  - example : vpcName",
+						Computed: true,
 					},
 				},
 			},
@@ -224,6 +237,7 @@ func (r vpcTgwVpcConnectionResource) Read(ctx context.Context, req resource.Read
 }
 
 func (v vpcTgwVpcConnectionResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+	// Non-compliant: Empty function
 }
 
 func (r *vpcTgwVpcConnectionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -281,5 +295,5 @@ func waitForVpcConnectStatus(ctx context.Context, vpcConnectClient *vpc.Client, 
 			return info, "DELETED", nil
 		}
 		return info, string(info.TransitGatewayVpcConnections[0].State), nil
-	})
+	}, -1, -1, -1, -1)
 }

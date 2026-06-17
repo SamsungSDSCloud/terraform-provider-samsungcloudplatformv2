@@ -3,10 +3,10 @@ package firewall
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/firewall"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -42,108 +42,128 @@ func (d *firewallFirewallRuleDataSource) Schema(_ context.Context, _ datasource.
 		Description: "Firewall rule",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Firewall Rule ID \n" +
-					"  - example : fd5aa79d25a84f52b02a954c125aa8d9",
+				Description: "The unique identifier of the resource.\n" +
+					"  - example: 0e2b4ece64944d7d8a72983e945b867b",
 				Required: true,
 			},
 			common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-				Description: "Firewall Id \n" +
-					"  - example : 68db67f78abd405da98a6056a8ee42af",
+				Description: "The identifier of the firewall associated with the resource.\n" +
+					"  - example: 68db67f78abd405da98a6056a8ee42af",
 				Required: true,
 			},
 			common.ToSnakeCase("FirewallRule"): schema.SingleNestedAttribute{
-				Description: "Firewall rule",
+				Description: "Firewall Rule.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the resource.\n" +
+							"  - example: 0e2b4ece64944d7d8a72983e945b867b",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the resource.\n" +
+							"  - example: 0e2b4ece64944d7d8a72983e945b867b",
+						Computed: true,
 					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-						Description: "FirewallId",
-						Computed:    true,
+						Description: "The identifier of the firewall associated with the resource.\n" +
+							"  - example: 68db67f78abd405da98a6056a8ee42af",
+						Computed: true,
 					},
 					common.ToSnakeCase("Sequence"): schema.Int32Attribute{
-						Description: "Sequence",
-						Computed:    true,
+						Description: "The order in which the rule is evaluated.\n" +
+							"  - example: 100",
+						Computed: true,
 					},
 					common.ToSnakeCase("SourceInterface"): schema.StringAttribute{
-						Description: "SourceInterface",
-						Computed:    true,
+						Description: "The source interface the rule applies to.\n" +
+							"  - example: L2FW-DGW2800up",
+						Computed: true,
 					},
 					common.ToSnakeCase("SourceAddress"): schema.ListAttribute{
-						Description: "SourceAddress",
+						Description: "The source IP addresses the rule applies to.\n" +
+							"  - example: [10.10.10.0/24, 10.10.11.0/24]",
 						Computed:    true,
 						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("DestinationInterface"): schema.StringAttribute{
-						Description: "DestinationInterface",
-						Computed:    true,
+						Description: "The destination interface the rule applies to.\n" +
+							"  - example: L2FW-DGW2800dn",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationAddress"): schema.ListAttribute{
-						Description: "DestinationAddress",
+						Description: "The destination address the rule applies to.\n" +
+							"  - example: [192.168.0.0/16, 192.169.0.0/16]",
 						Computed:    true,
 						ElementType: types.StringType,
 					},
 					common.ToSnakeCase("Service"): schema.ListNestedAttribute{
-						Description: "Service",
+						Description: "The service ports the rule applies to.",
 						Computed:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("ServiceType"): schema.StringAttribute{
-									Description: "ServiceType",
-									Computed:    true,
+									Description: "The type of the service.\n" +
+										"  - example: TCP",
+									Computed: true,
 								},
 								common.ToSnakeCase("ServiceValue"): schema.StringAttribute{
-									Description: "ServiceValue",
-									Computed:    true,
+									Description: "The value of the service.\n" +
+										"  - example: 80",
+									Computed: true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("Action"): schema.StringAttribute{
-						Description: "Action",
-						Computed:    true,
+						Description: "The action applied to traffic that matches the rule.\n" +
+							"  - example: ALLOW",
+						Computed: true,
 					},
 					common.ToSnakeCase("Direction"): schema.StringAttribute{
-						Description: "Direction",
-						Computed:    true,
+						Description: "The direction of the traffic the rule applies to.\n" +
+							"  - example: INBOUND",
+						Computed: true,
 					},
 					common.ToSnakeCase("VendorRuleId"): schema.StringAttribute{
-						Description: "VendorRuleId",
-						Computed:    true,
+						Description: "The firewall device's unique identifier for the rule.\n" +
+							"  - example: 20",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "A brief explanation or note about this resource.\n" +
+							"  - example: Firewall rule for web tier",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the resource.\n" +
+							"  - example: ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Computed:    true,
+						Description: "The current status of the resource.\n" +
+							"  - example: ENABLE",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example: 2025-01-15T10:30:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user ID that created the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example: 2025-06-01T14:22:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The user ID that modified the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 				},
 			},

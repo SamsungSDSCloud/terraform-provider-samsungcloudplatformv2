@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -43,41 +43,41 @@ func (d *vpcPrivateNatResource) Metadata(_ context.Context, req resource.Metadat
 // Schema defines the schema for the data source.
 func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Private NAT.",
+		Description: "Private NAT resource for the Direct Connect or the Transit Gateway.",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("Cidr"): schema.StringAttribute{
-				Description: "Private NAT IP range \n" +
+				Description: "The IP address range of the network in CIDR notation.\n" +
 					"  - example : 192.167.0.0/24",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description \n" +
+				Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. \n" +
 					"  - example : PrivateNat Description",
 				Optional: true,
 				Default:  stringdefault.StaticString(""),
 				Computed: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Private NAT Name \n" +
+				Description: "The name of the private NAT. \n" +
 					"  - example : PrivateNatName",
 				Required: true,
 			},
 			common.ToSnakeCase("ServiceResourceId"): schema.StringAttribute{
-				Description: "Private NAT connected Service Resource ID \n" +
+				Description: "The identifier of the connected service resource. \n" +
 					"  - example : 3f342bf9a557405b997c2cf48c89cbc2",
 				Required: true,
 			},
 			common.ToSnakeCase("ServiceType"): schema.StringAttribute{
-				Description: "Private NAT connected Service Type \n" +
-					"  - example : DIRECT_CONNECT",
+				Description: "The type of the connected service.\n" +
+					"  - example : DIRECT_CONNECT | TRANSIT_GATEWAY",
 				Required: true,
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 
 			// Output
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Private NAT ID \n" +
+				Description: "The unique identifier of the private NAT. \n" +
 					"  - example : 12f56e27070248a6a240a497e43fbe18",
 				Computed: true,
 			},
@@ -86,52 +86,52 @@ func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaReque
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID \n" +
+						Description: "The identifier of the account that owns the private NAT.\n" +
 							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
 						Computed: true,
 					},
 					common.ToSnakeCase("Cidr"): schema.StringAttribute{
-						Description: "Private NAT IP range \n" +
+						Description: "The IP address range of the network in CIDR notation.\n" +
 							"  - example : 192.167.0.0/24",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At \n" +
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
 							"  - example : 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By \n" +
+						Description: "The user id that created the resource. \n" +
 							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description \n" +
+						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. \n" +
 							"  - example : PrivateNat Description",
 						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Private NAT ID \n" +
+						Description: "The unique identifier of the private NAT.\n" +
 							"  - example : 12f56e27070248a6a240a497e43fbe18",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At \n" +
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
 							"  - example : 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By \n" +
+						Description: "The user id that modified the resource.\n" +
 							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Private NAT Name \n" +
+						Description: "The name of the private NAT. \n" +
 							"  - example : PrivateNatName",
 						Computed: true,
 					},
 					common.ToSnakeCase("ServiceResourceId"): schema.StringAttribute{
-						Description: "Private NAT connected Service Resource ID \n" +
+						Description: "The identifier of the connected service resource.\n" +
 							"  - example : 3f342bf9a557405b997c2cf48c89cbc2",
 						Computed: true,
 					},
@@ -141,12 +141,12 @@ func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaReque
 						Computed: true,
 					},
 					common.ToSnakeCase("ServiceType"): schema.StringAttribute{
-						Description: "Private NAT connected Service Type \n" +
-							"  - example : DIRECT_CONNECT",
+						Description: "The type of the connected service. \n" +
+							"  - example : DIRECT_CONNECT | TRANSIT_GATEWAY",
 						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "Private NAT State \n" +
+						Description: "The current lifecycle state of the private NAT.\n" +
 							"  - example : ACTIVE",
 						Computed: true,
 					},
@@ -392,5 +392,5 @@ func waitForPrivateNatStatus(ctx context.Context, vpcClient *vpcv1d2.Client, id 
 			return nil, "", err
 		}
 		return info, string(info.PrivateNat.State), nil
-	})
+	}, -1, -1, -1, -1)
 }

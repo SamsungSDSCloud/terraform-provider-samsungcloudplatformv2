@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_security_group_security_group_rules Data Source - samsungcloudplatformv2"
 subcategory: Security Group Rule
 description: |-
-  List of security group rule
+  List of security group rules
 ---
 
 # samsungcloudplatformv2_security_group_security_group_rules (Data Source)
 
-List of security group rule
+List of security group rules
 
 ## Example Usage
 
@@ -83,30 +83,37 @@ variable "service" {
 
 ### Required
 
-- `security_group_id` (String) SecurityGroupId 
+- `security_group_id` (String) The identifier of the security group that the resource belongs to.
   - example: YOUR RESOURCE'S SECURITY_GROUP_ID
 
 ### Optional
 
-- `description` (String) Description 
-  - example : securityGroupRuleDescription
-- `direction` (String) Direction 
-  - example : ingress
-- `id` (String) Id 
+- `description` (String) A brief explanation or note about this resource.
+  - example: Security group for web tier
+  - constraints: maxLength: 255
+- `direction` (String) The direction of the traffic the rule applies to.
+  - example: ingress
+  - valid: ingress, egress
+- `id` (String) The unique identifier of the resource.
   - example: YOUR RESOURCE'S ID
-- `page` (Number) Page 
-  - example : 0
-- `remote_group_id` (String) RemoteGroupId 
+- `page` (Number) The page number for pagination.
+  - example: 1
+  - constraints: min: 1
+- `remote_group_id` (String) The identifier of the remote security group the rule applies to.
   - example: YOUR RESOURCE'S REMOTE_GROUP_ID
-- `remote_ip_prefix` (String) RemoteIpPrefix 
-  - example : 10.10.10.10/32
-- `service` (String) Service 
-  - example : TCP 80
-- `size` (Number) Size 
-  - example : 20
-- `sort` (String) Sort 
-  - example : created_at:desc
+- `remote_ip_prefix` (String) The remote IP address range the rule applies to in CIDR notation.
+  - example: 10.0.0.0/24
+  - valid: IPv4 CIDR
+- `service` (String) The service ports the rule applies to.
+  - example: TCP 80
+- `size` (Number) The number of items per page.
+  - example: 20
+  - constraints: min: 1
+- `sort` (String) The sorting criteria.
+  - example: created_at:desc
+  - valid: field_name:asc or field_name:desc
 
 ### Read-Only
 
-- `ids` (List of String) Security group rule Id List
+- `ids` (List of String) The list of Security Group Rule identifiers.
+  - example: ['YOUR RESOURCE'S IDS']

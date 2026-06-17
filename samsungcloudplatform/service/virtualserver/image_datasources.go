@@ -3,11 +3,12 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -34,36 +35,59 @@ func (d *virtualServerImageDataSources) Metadata(_ context.Context, req datasour
 
 func (d *virtualServerImageDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of images.",
+		Description: "Retrieves a list of images.\n\n" +
+			"**GPU Image:**\n" +
+			"- For GPU Server, use images with `scp_image_type` of `gpu_standard` or `gpu_custom`.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("ScpImageType"): schema.StringAttribute{
-				Description: "SCP Image type",
-				Optional:    true,
+				Description: "SCP image type.\n" +
+					"  - example: standard\n" +
+					"  - Available values: standard, custom, gpu_standard, gpu_custom",
+				MarkdownDescription: "SCP image type.\n" +
+					"  - example: standard\n" +
+					"  - Available values: standard, custom, gpu_standard, gpu_custom",
+				Optional: true,
 			},
 			common.ToSnakeCase("ScpOriginalImageType"): schema.StringAttribute{
-				Description: "SCP Original Image type",
-				Optional:    true,
+				Description:         "SCP original image type.\n  - example: standard",
+				MarkdownDescription: "SCP original image type.\n  - example: standard",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description:         "Image name.\n  - example: ubuntu-22.04",
+				MarkdownDescription: "Image name.\n  - example: ubuntu-22.04",
+				Optional:            true,
 			},
 			common.ToSnakeCase("OsDistro"): schema.StringAttribute{
-				Description: "OS Distro",
-				Optional:    true,
+				Description: "OS distribution.\n" +
+					"  - example: ubuntu\n" +
+					"  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle",
+				MarkdownDescription: "OS distribution.\n" +
+					"  - example: ubuntu\n" +
+					"  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle",
+				Optional: true,
 			},
 			common.ToSnakeCase("Status"): schema.StringAttribute{
-				Description: "Status",
-				Optional:    true,
+				Description: "Image status.\n" +
+					"  - example: active\n",
+				MarkdownDescription: "Image status.\n" +
+					"  - example: active\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Visibility"): schema.StringAttribute{
-				Description: "Visibility",
-				Optional:    true,
+				Description: "Image visibility.\n" +
+					"  - example: private\n" +
+					"  - Available values: shared, private",
+				MarkdownDescription: "Image visibility.\n" +
+					"  - example: private\n" +
+					"  - Available values: , shared, private",
+				Optional: true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				Description: "Image ID List",
+				ElementType:         types.StringType,
+				Computed:            true,
+				Description:         "List of image IDs.",
+				MarkdownDescription: "List of image IDs.",
 			},
 		},
 		Blocks: map[string]schema.Block{

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_nat_gateway Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  natgateway
+  Nat Gateway resource
 ---
 
 # samsungcloudplatformv2_vpc_nat_gateway (Resource)
 
-natgateway
+Nat Gateway resource
 
 ## Example Usage
 
@@ -48,15 +48,15 @@ variable "natgateway_description" {
 
 ### Required
 
-- `publicip_id` (String) Public IP ID 
+- `publicip_id` (String) The identifier of the public IP address.
   - example: YOUR RESOURCE'S PUBLICIP_ID
-- `subnet_id` (String) Subnet ID 
+- `subnet_id` (String) The identifier of the subnet that the nat gateway belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
 
 ### Optional
 
-- `description` (String) Description
-  - example : NAT Gateway description
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : NAT Gateway Description
   - maxLength : 50
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -64,7 +64,8 @@ variable "natgateway_description" {
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
+- `id` (String) The unique identifier of the nat gateway.
+  - example: YOUR RESOURCE'S ID
 - `nat_gateway` (Attributes) NatGateway (see [below for nested schema](#nestedatt--nat_gateway))
 
 <a id="nestedatt--nat_gateway"></a>
@@ -72,18 +73,33 @@ variable "natgateway_description" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `nat_gateway_ip_address` (String) NatGatewayIpAddress
-- `state` (String) State
-- `subnet_cidr` (String) SubnetCidr
-- `subnet_id` (String) SubnetId
-- `subnet_name` (String) SubnetName
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) The identifier of the account that owns the NAT gateway.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : NAT Gateway Description
+- `id` (String) The unique identifier of the NAT gateway.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the NAT gateway.
+  - example : NatGatewayName
+- `nat_gateway_ip_address` (String) The IP address of the NAT gateway.
+  - example : 192.167.0.5
+- `state` (String) The current lifecycle state of the NAT gateway.
+  - example : ACTIVE
+- `subnet_cidr` (String) The IP address range of the subnet in CIDR notation.
+  - example : 192.167.1.0/24
+- `subnet_id` (String) The identifier of the subnet that the NAT gateway belongs to.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `subnet_name` (String) The name of the subnet that the NAT gateway belongs to.
+  - example : subnetName
+- `vpc_id` (String) The identifier of the VPC that the NAT gateway belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the NAT gateway belongs to.
+  - example : vpcName

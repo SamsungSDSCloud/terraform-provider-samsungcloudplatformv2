@@ -3,20 +3,21 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -45,113 +46,147 @@ func (r *loadbalancerLbServerGroupResource) Metadata(_ context.Context, req reso
 // Schema defines the schema for the data source.
 func (r *loadbalancerLbServerGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Lb Server Group.",
+		Description: "LB Server Group resource for managing server pools.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the resource.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("LbServerGroup"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Server Group.",
+				Description: "Details of the LB Server Group.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The account ID associated with the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : LB Server Group for web servers\n" +
+							"  - maxLength : 255\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LbMethod"): schema.StringAttribute{
-						Description: "LbMethod",
-						Computed:    true,
+						Description: "The load balancing method.\n" +
+							"  - example : ROUND_ROBIN\n" +
+							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LbName"): schema.StringAttribute{
-						Description: "LbName",
-						Computed:    true,
+						Description: "The name of the LoadBalancer.\n" +
+							"  - example : LoadBalancer01\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-						Description: "LoadbalancerId",
-						Computed:    true,
+						Description: "The LoadBalancer ID associated with the server group.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the LB Server Group.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the LB Server Group.\n" +
+							"  - example : ServerGroup01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "Protocol",
-						Computed:    true,
+						Description: "The protocol for the server group.\n" +
+							"  - example : TCP\n" +
+							"  - pattern : TCP | UDP\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Computed:    true,
+						Description: "The VPC ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Computed:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LbHealthCheckId"): schema.StringAttribute{
-						Description: "LbHealthCheckId",
-						Optional:    true,
+						Description: "The LB Health Check ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 				},
 			},
 			common.ToSnakeCase("LbServerGroupCreate"): schema.SingleNestedAttribute{
-				Description: "Create Lb Server Group.",
+				Description: "Parameters for creating a new LB Server Group.",
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					"tags": tag.ResourceSchema(),
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the LB Server Group.\n" +
+							"  - example : ServerGroup01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "Protocol",
-						Optional:    true,
+						Description: "The protocol for the server group.\n" +
+							"  - example : TCP\n" +
+							"  - pattern : TCP | UDP\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Optional:    true,
+						Description: "The VPC ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Optional:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : LB Server Group for web servers\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LbMethod"): schema.StringAttribute{
-						Description: "LbMethod",
-						Optional:    true,
+						Description: "The load balancing method.\n" +
+							"  - example : ROUND_ROBIN\n" +
+							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LbHealthCheckId"): schema.StringAttribute{
-						Description: "LbHealthCheckId",
-						Optional:    true,
+						Description: "The LB Health Check ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 				},
 			},
@@ -360,5 +395,5 @@ func waitForLbServerGroupStatus(ctx context.Context, loadbalancerClient *loadbal
 			return nil, "", err
 		}
 		return info, string(info.LbServerGroup.State), nil
-	})
+	}, -1, -1, -1, -1)
 }

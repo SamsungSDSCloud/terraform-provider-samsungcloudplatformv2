@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,49 +40,50 @@ func (d *VpcSubnetVipDataSources) Metadata(_ context.Context, req datasource.Met
 // Schema defines the schema for the data source.
 func (d *VpcSubnetVipDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Get list Subnet Vip",
+		Description: "A list of Subnet Vip",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet Id \n" +
+				Description: "The identifier of the subnet that the subnet vip belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "size \n" +
+				Description: "The number of items per page.\n" +
 					"  - example : 20 \n" +
 					"  - minimum : 0",
 				Optional: true,
 				Computed: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "page \n" +
+				Description: "The page number for pagination.\n" +
 					"  - example : 0 \n" +
 					"  - minimum : 0",
 				Optional: true,
 				Computed: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order.\n" +
 					"  - example : created_at:desc",
 				Optional: true,
 				Computed: true,
 			},
 			common.ToSnakeCase("VirtualIpAddress"): schema.StringAttribute{
-				Description: "Virtual IP Address \n" +
+				Description: "The virtual IP address assigned to the resource.\n" +
 					"  - example : 192.168.20.6",
 				Optional: true,
 			},
 			common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
-				Description: "Public IP Address \n" +
+				Description: "The ip address of the Public IP Address \n" +
 					"  - example : 100.112.9.84",
 				Optional: true,
 			},
 
 			// Output
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
-				Description: "count",
-				Computed:    true,
+				Description: "The count of Subnet Vips.\n" +
+					"  - example : 2",
+				Computed: true,
 			},
 			common.ToSnakeCase("SubnetVips"): schema.ListNestedAttribute{
 				Computed:    true,
@@ -90,32 +91,39 @@ func (d *VpcSubnetVipDataSources) Schema(_ context.Context, _ datasource.SchemaR
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("ConnectedPortCount"): schema.Int32Attribute{
-							Description: "Connected Port Count",
-							Computed:    true,
+							Description: "The count of connected ports\n" +
+								"  - example : 2",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "Created At",
-							Computed:    true,
+							Description: "The timestamp when the subnet vip was created in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "Created By",
-							Computed:    true,
+							Description: "The user id that created the subnet vip.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Subnet Vip Id",
-							Computed:    true,
+							Description: "The unique identifier of the subnet vip.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "Modified At",
-							Computed:    true,
+							Description: "The timestamp when the subnet vip was last modified in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "Modified By",
-							Computed:    true,
+							Description: "The user id that modified the subnet vip.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State \n" +
-								"  - enum : CREATING, ACTIVE, DELETING, DELETED, ERROR",
+							Description: "The current lifecycle state of the subnet vip.\n" +
+								"  - enum : CREATING, ACTIVE, DELETING, DELETED, ERROR\n" +
+                                "  - example : ACTIVE",
 							Computed: true,
 						},
 						common.ToSnakeCase("StaticNat"): schema.SingleNestedAttribute{
@@ -124,26 +132,31 @@ func (d *VpcSubnetVipDataSources) Schema(_ context.Context, _ datasource.SchemaR
 							Optional:    true,
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("ExternalIpAddress"): schema.StringAttribute{
-									Description: "Static Nat External Ip Address",
-									Computed:    true,
+									Description: "Static Nat External Ip Address\n" +
+										"  - example : 192.168.0.1",
+									Computed: true,
 								},
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "Static Nat Id",
-									Computed:    true,
+									Description: "The unique identifier of the static nat.\n" +
+										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
 								},
 								common.ToSnakeCase("PublicipId"): schema.StringAttribute{
-									Description: "Publicip ID",
-									Computed:    true,
+									Description: "The identifier of the public IP address.\n" +
+										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
 								},
 								common.ToSnakeCase("State"): schema.StringAttribute{
-									Description: "Static Nat State",
-									Computed:    true,
+									Description: "The current lifecycle state of the static nat.\n" +
+										"  - example : ACTIVE",
+									Computed: true,
 								},
 							},
 						},
 						common.ToSnakeCase("VirtualIpAddress"): schema.StringAttribute{
-							Description: "Virtual IP Address",
-							Computed:    true,
+							Description: "The virtual IP address assigned to the subnet vip.\n" +
+								"  - example : 192.168.0.1",
+							Computed: true,
 						},
 					},
 				},

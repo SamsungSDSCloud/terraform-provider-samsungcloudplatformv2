@@ -68,28 +68,60 @@ variable "budget_prevention" {
 
 ### Optional
 
-- `amount` (Number) Amount
-- `name` (String) Name (between 1 and 64 characters)
-- `notifications` (Attributes) Notification settings for the budget (see [below for nested schema](#nestedatt--notifications))
-- `prevention` (Attributes) Auto generation prevention settings for the budget (see [below for nested schema](#nestedatt--prevention))
-- `start_month` (String) StartMonth
-- `unit` (String) Unit
+- `amount` (Number) The budget amount to set. Must be a positive numeric value.
+
+Example: `1000000`
+- `name` (String) The name of the budget.
+
+Allowed length: 20
+
+Allowed values: English, Korean, numbers and special characters such `as +=, .@, and -`
+
+Example: `bud-1234567890abcdef`
+- `notifications` (Attributes) Settings for budget alerts when usage exceeds defined thresholds. (see [below for nested schema](#nestedatt--notifications))
+- `prevention` (Attributes) Settings to prevent new resource generation when budget usage exceeds the threshold. (see [below for nested schema](#nestedatt--prevention))
+- `start_month` (String) The start month of the budget in YYYY-MM format.
+
+Example: `2024-01`
+- `unit` (String) The budget manage unit.
+
+Allowed values: `MONTHLY` | `OVERALL`
+
+Example: `MONTHLY`
 
 ### Read-Only
 
 - `budget` (Attributes) (see [below for nested schema](#nestedatt--budget))
-- `id` (String) Identifier of the resource.
-- `last_updated` (String) Timestamp of the last Terraform update of the Resource Group
+- `id` (String) The unique identifier of the budget resource.
+
+Example: `bud-1234567890abcdef`
+- `last_updated` (String) The timestamp when the budget was last updated by Terraform.
+
+Example: `Monday, 02 Jan 2006 15:04:05 -0700`
 
 <a id="nestedatt--notifications"></a>
 ### Nested Schema for `notifications`
 
 Optional:
 
-- `is_use_notification` (Boolean) Notification use state
-- `notification_send_period` (String) Notification send period first/daily/none
-- `receivers` (List of String) List of notification recipient email addresses
-- `thresholds` (List of Number) List of threshold percentages for notifications
+- `is_use_notification` (Boolean) Whether to enable budget notifications.
+
+Allowed values:`true`|`false`
+
+Example: `true`
+- `notification_send_period` (String) When to send budget notifications.
+
+Allowed values: `FIRST` | `DAILY` | `NONE`
+
+Example: `FIRST`
+- `receivers` (List of String) Email addresses to receive budget notifications.
+
+Example: `["user@example.com"]`
+- `thresholds` (List of Number) Percentage thresholds at which to send notifications.
+
+Allowed values: `70` | `80` | `90` | `100`
+
+Example: `[80, 100]`
 
 
 <a id="nestedatt--prevention"></a>
@@ -97,9 +129,19 @@ Optional:
 
 Optional:
 
-- `is_use_prevention` (Boolean) Auto Generation prevent use state
-- `receivers` (List of String) List of notification recipient email addresses
-- `threshold` (Number) New Creation prevention thresholds value 70/80/90/100
+- `is_use_prevention` (Boolean) Whether to prevent new resource creation when budget threshold is exceeded.
+
+Allowed values:`true`|`false`
+
+Example: `true`
+- `receivers` (List of String) Email addresses to notify when budget prevention is triggered.
+
+Example: `["admin@example.com"]`
+- `threshold` (Number) Budget threshold percentage to trigger prevention.
+
+Allowed values: One of the numbers `70` | `80` | `90` | `100`
+
+Example: `90`
 
 
 <a id="nestedatt--budget"></a>
@@ -107,13 +149,37 @@ Optional:
 
 Read-Only:
 
-- `amount` (Number) Budget amount
-- `budget_id` (String) Budget id
-- `created_at` (String) Created datetime
-- `created_by` (String) Created user
-- `modified_at` (String) Modified datetime
-- `modified_by` (String) Modified user
-- `name` (String) Budget name
-- `start_month` (String) Budget start month
-- `type` (String) Budget type
-- `unit` (String) Budget management unit
+- `amount` (Number) The budget amount in the specified currency unit.
+
+Example: `1000000`
+- `budget_id` (String) The unique ID of the budget.
+
+Example: `bud-1234567890abcdef`
+- `created_at` (String) The datetime when the budget was created.
+
+Example: `2024-01-15T00:00:00`
+- `created_by` (String) The user who created the budget.
+
+Example: `user@example.com`
+- `modified_at` (String) The datetime when the budget was last modified.
+
+Example: `2024-01-15T00:00:00`
+- `modified_by` (String) The user who last modified the budget.
+
+Example: `user@example.com`
+- `name` (String) The name of the budget.
+
+Example: `Monthly Service Budget`
+- `start_month` (String) The month when the budget period starts.
+
+Example: `2024-01`
+- `type` (String) The type of the budget. Default type is  `COST`
+
+Allowed values: `COST`
+
+Example: `COST`
+- `unit` (String) The budget manage unit.
+
+Allowed values: `MONTHLY` | `OVERALL`
+
+Example: `MONTHLY`

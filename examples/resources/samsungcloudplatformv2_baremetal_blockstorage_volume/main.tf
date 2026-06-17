@@ -1,8 +1,8 @@
 provider "samsungcloudplatformv2" {
+  default_region = "kr-west1"
 }
 
 resource "samsungcloudplatformv2_baremetal_blockstorage_volume" "volume"{
-  region = var.region
   name = var.block_storage_name
   disk_type = var.disk_type
   size_gb = var.size_gb

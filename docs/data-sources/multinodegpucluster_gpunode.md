@@ -36,6 +36,7 @@ variable "id" {
 ### Required
 
 - `id` (String) GPU Node ID
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -56,7 +57,7 @@ variable "id" {
 - `image_version` (String) Image version
   - example: RHEL 8.7 for BM
 - `init_script` (String) Init script
-  - example: init script
+  - example: #!/bin/bash\necho 'Hello World!'
 - `lock_enabled` (Boolean) Use Lock
   - example: true
 - `modified_at` (String) Modified At

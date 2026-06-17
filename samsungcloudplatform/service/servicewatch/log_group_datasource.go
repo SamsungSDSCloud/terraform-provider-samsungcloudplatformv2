@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -42,55 +42,67 @@ func (d *serviceWatchLogGroupDataSource) Schema(_ context.Context, _ datasource.
 	resp.Schema = schema.Schema{
 		Description: "Log Group Data Source",
 		Attributes: map[string]schema.Attribute{
-			common.ToSnakeCase("LogGroupId"): schema.StringAttribute{
-				Description: "Log group ID",
-				Required:    true,
-			},
+		common.ToSnakeCase("LogGroupId"): schema.StringAttribute{
+			Description: "The unique identifier of the log group.\n" +
+				" - example : bce52822147744b4afe0187164caa2e8\n",
+			Required: true,
+		},
 			common.ToSnakeCase("LogGroup"): schema.SingleNestedAttribute{
-				Description: "Log group",
+				Description: "List of log group.\n" +
+					" - example : {\"id\": \"bce52822147744b4afe0187164caa2e8\", \"name\": \"testlg01\"}\n",
 				Computed:    true,
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Log group ID",
-						Computed:    true,
-					},
+				common.ToSnakeCase("Id"): schema.StringAttribute{
+					Description: "The unique identifier of the log group.\n" +
+						" - example : bce52822147744b4afe0187164caa2e8\n",
+					Computed: true,
+				},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Log group name",
-						Computed:    true,
+						Description: "Log group name.\n" +
+							" - example : testlg01\n",
+						Computed: true,
 					},
-					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID",
-						Computed:    true,
-					},
+				common.ToSnakeCase("AccountId"): schema.StringAttribute{
+					Description: "The unique identifier of the account.\n" +
+						" - example : 1bcf39b344ac41cbaf0466ff0d2bebad\n",
+					Computed: true,
+				},
 					common.ToSnakeCase("RetentionPeriod"): schema.Int32Attribute{
-						Description: "Log group retention period",
-						Computed:    true,
+						Description: "Log group retention period.\n" +
+							" - example : 365\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("RetentionPeriodName"): schema.StringAttribute{
-						Description: "Log group retention period name",
-						Computed:    true,
+						Description: "Log group retention period name.\n" +
+							" - example : 1 year\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Log group status\n" +
-							"Allowed values: ACTIVE, DELETING, DELETED",
+						Description: "Log group status.\n" +
+							"Allowed values: ACTIVE, DELETING, DELETED.\n" +
+							" - example : ACTIVE\n",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created date time",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Creator ID",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified date time",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modifier ID",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 				},
 			},

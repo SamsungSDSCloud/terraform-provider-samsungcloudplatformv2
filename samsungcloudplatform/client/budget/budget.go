@@ -4,8 +4,8 @@ import (
 	"context"
 	"math"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	budget "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/budget/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	budget "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/budget/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

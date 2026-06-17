@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_subnet_vip_nat_ip Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  VPC Subnet VIP NAT IP
+  Resource of Subnet VIP's NAT IP
 ---
 
 # samsungcloudplatformv2_vpc_subnet_vip_nat_ip (Resource)
 
-VPC Subnet VIP NAT IP
+Resource of Subnet VIP's NAT IP
 
 ## Example Usage
 
@@ -55,18 +55,18 @@ variable "publicip_id" {
 
 ### Required
 
-- `nat_type` (String) NAT Type 
+- `nat_type` (String) The type of the NAT.
   - example : PUBLIC
-- `publicip_id` (String) Publicip ID 
+- `publicip_id` (String) The identifier of the public IP address.
   - example: YOUR RESOURCE'S PUBLICIP_ID
-- `subnet_id` (String) Subnet ID 
+- `subnet_id` (String) The identifier of the subnet that the subnet vip nat ip belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
-- `vip_id` (String) Subnet Vip Id 
+- `vip_id` (String) The unique identifier of the subnet vip.
   - example: YOUR RESOURCE'S VIP_ID
 
 ### Read-Only
 
-- `id` (String) Static Nat Id 
+- `id` (String) The unique identifier of the static nat ip.
   - example: YOUR RESOURCE'S ID
-- `state` (String) Static Nat State 
+- `state` (String) The current lifecycle state of the static nat.
   - example : ACTIVE

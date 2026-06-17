@@ -83,26 +83,26 @@ variable "state" {
 
 ### Required
 
-- `direct_connect_id` (String) Direct Connect ID 
+- `direct_connect_id` (String) The identifier of the direct connect.
   - example: YOUR RESOURCE'S DIRECT_CONNECT_ID
 
 ### Optional
 
-- `destination_cidr` (String) Destination CIDR 
+- `destination_cidr` (String) The destination IP address range in CIDR notation. 
   - example : 10.10.10.0/24
-- `destination_type` (String) Destination Type 
-  - example : ON-PREM | VPC
-- `id` (String) Routing Rule ID 
+- `destination_type` (String) The type of the routing destination. In the VPC, the Direct Connect direction is ON_PREMISE, in the opposite direction—from Direct Connect toward the VPC—the direction is VPC.
+  -  example : ON-PREMISE | VPC
+- `id` (String) The unique identifier of the routing rule.
   - example: YOUR RESOURCE'S ID
-- `page` (Number) Page 
+- `page` (Number) The page number for pagination. 
   - example : 0 
   - minimum : 0
-- `size` (Number) Size 
+- `size` (Number) The number of items per page. 
   - example : 20 
   - minimum : 0
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. 
   - example : created_at:desc
-- `state` (String) State 
+- `state` (String) The current lifecycle state of the routing rule. 
   - example : CREATING | ACTIVE | DELETING | ERROR
 
 ### Read-Only
@@ -110,24 +110,41 @@ variable "state" {
 - `routing_rules` (Attributes List) A list of routing rule. (see [below for nested schema](#nestedatt--routing_rules))
 - `sort_final` (List of String) List of sort condition 
   - example : ["created_at:desc"]
-- `total_count` (Number) total count
+- `total_count` (Number) The total number of Direct Connect routing rule.
+  - example : 5
 
 <a id="nestedatt--routing_rules"></a>
 ### Nested Schema for `routing_rules`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `destination_cidr` (String) DestinationCidr
-- `destination_resource_id` (String) DestinationResourceId
-- `destination_resource_name` (String) DestinationResourceName
-- `destination_type` (String) DestinationType
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `owner_id` (String) OwnerId
-- `owner_type` (String) OwnerType
-- `state` (String) State
+- `account_id` (String) The identifier of the account that owns the direct connect.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this routing rule. This help identify the purpose or usage of the resource.
+  - example : Routing Rule description
+  - maxLength : 50
+  - minLength : 1
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
+  - example : 10.10.10.0/24
+- `destination_resource_id` (String) The identifier of the destination resource.When the Destination Type is VPC, provide the VpcId.
+  - example: YOUR RESOURCE'S DESTINATION_RESOURCE_ID
+- `destination_resource_name` (String) The name of the destination resource.When the Destination Type is VPC, provide the Vpc name.
+  - example : Resource Name
+- `destination_type` (String) The type of the routing destination.In the VPC, the Direct Connect direction is ON_PREMISE, in the opposite direction—from Direct Connect toward the VPC—the direction is VPC.
+  -  example : ON-PREMISE | VPC
+- `id` (String) The unique identifier of the routing rule.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `owner_id` (String) The identifier of the routing rule owner.
+  - example: YOUR RESOURCE'S OWNER_ID
+- `owner_type` (String) The type of the routing rule owner.
+  - example : DIRECT_CONNECT
+- `state` (String) The current lifecycle state of the routing rule.
+  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR

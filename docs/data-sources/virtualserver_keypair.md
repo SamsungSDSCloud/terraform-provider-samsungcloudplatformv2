@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_keypair Data Source - samsungcloudplatformv2"
 subcategory: Keypair
 description: |-
-  Keypair.
+  Retrieves keypair information for SSH access to virtual servers.
 ---
 
 # samsungcloudplatformv2_virtualserver_keypair (Data Source)
 
-Keypair.
+Retrieves keypair information for SSH access to virtual servers.
 
 ## Example Usage
 
@@ -57,11 +57,14 @@ variable "keypair_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `name` (String) Name
+- `name` (String) Keypair name.
+  - example: my-keypair
+  - minLength: 1
+  - maxLength: 255
 
 ### Read-Only
 
-- `keypair` (Attributes) Keypair (see [below for nested schema](#nestedatt--keypair))
+- `keypair` (Attributes) Keypair details including name, public key, fingerprint, and type. (see [below for nested schema](#nestedatt--keypair))
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -69,8 +72,11 @@ variable "keypair_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
 
 
 <a id="nestedatt--keypair"></a>
@@ -78,7 +84,7 @@ Required:
 
 Read-Only:
 
-- `fingerprint` (String) Fingerprint
-- `name` (String) Name
-- `public_key` (String) Public key
-- `type` (String) Keypair type
+- `fingerprint` (String) Fingerprint of the public key.
+- `name` (String) Keypair name.
+- `public_key` (String) Public key in OpenSSH format.
+- `type` (String) Keypair type.

@@ -3,12 +3,12 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,31 +35,44 @@ func (d *virtualServerKeypairDataSource) Metadata(_ context.Context, req datasou
 
 func (d *virtualServerKeypairDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Keypair.",
+		Description:         "Retrieves keypair information.",
+		MarkdownDescription: "Retrieves keypair information for SSH access to virtual servers.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "Keypair name.\n" +
+					"  - example: my-keypair\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				MarkdownDescription: "Keypair name.\n" +
+					"  - example: my-keypair\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				Optional: true,
 			},
 			common.ToSnakeCase("Keypair"): schema.SingleNestedAttribute{
-				Description: "Keypair",
-				Computed:    true,
+				Description:         "Keypair details.",
+				MarkdownDescription: "Keypair details including name, public key, fingerprint, and type.",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description:         "Keypair name.",
+						MarkdownDescription: "Keypair name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("PublicKey"): schema.StringAttribute{
-						Description: "Public key",
-						Computed:    true,
+						Description:         "Public key.",
+						MarkdownDescription: "Public key in OpenSSH format.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Fingerprint"): schema.StringAttribute{
-						Description: "Fingerprint",
-						Computed:    true,
+						Description:         "Fingerprint.",
+						MarkdownDescription: "Fingerprint of the public key.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Keypair type",
-						Computed:    true,
+						Description:         "Keypair type.",
+						MarkdownDescription: "Keypair type.",
+						Computed:            true,
 					},
 				},
 			},

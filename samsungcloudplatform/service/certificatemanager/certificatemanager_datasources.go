@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/certificatemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/certificatemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -44,78 +44,87 @@ func (d *certificateManagerDataSource) Schema(_ context.Context, _ datasource.Sc
 		Description: "list of certificate managers.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "id",
-				Optional:    true,
+				Description: "Certificate manager id.\n" +
+					"  - example : 'cert-xxxxxxxxxxxx'",
+				Optional: true,
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size (between 1 and 10000)",
-				Optional:    true,
+				Description: "Maximum number of items to return per page.\n" +
+					"  - example : 20",
+				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "Page number for pagination.\n" +
+					"  - example : 1",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "Sort results as 'field:asc' or 'field:desc'.\n" +
+					"  - example : 'created_at:desc'",
+				Optional: true,
 			},
 			common.ToSnakeCase("IsMine"): schema.BoolAttribute{
-				Description: "IsMine",
-				Optional:    true,
+				Description: "My Certificate Manager.\n" +
+					"  - example : true",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "Certificate manager name.\n" +
+					"  - example : 'test-manager'",
+				Optional: true,
 			},
 			common.ToSnakeCase("Cn"): schema.StringAttribute{
-				Description: "Cn",
-				Optional:    true,
+				Description: "Certificate Common Name.\n" +
+					"  - example : 'test.go.kr'",
+				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.ListAttribute{
 				ElementType: types.StringType,
-				Description: "state",
-				Optional:    true,
+				Description: "Filter by certificate state.\n" +
+					"  - example : 'VALID'",
+				Optional: true,
 			},
 			common.ToSnakeCase("Certificates"): schema.ListNestedAttribute{
-				Description: "A list certificates.",
+				Description: "List of certificates.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("CertKind"): schema.StringAttribute{
-							Description: "Certificate type\n" +
-								"  - Example: PRD",
+							Description: "Certificate type.\n" +
+								"  - example : 'PRD'",
 							Computed: true,
 						},
 						common.ToSnakeCase("Cn"): schema.StringAttribute{
-							Description: "Certificate Common Name\n" +
-								"  - Example: test.go.kr",
+							Description: "Certificate Common Name.\n" +
+								"  - example : 'test.go.kr'",
 							Computed: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Certificate ID",
-							Computed:    true,
+							Description: "Certificate ID.\n" +
+								"  - example : '0fdd87aab8cb46f59xxxxxxxxxxxxxxx'",
+							Computed: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Certificate Name\n" +
-								"  - Example: test-certificate",
+							Description: "Certificate Name.\n" +
+								"  - example : 'test-certificate'",
 							Computed: true,
 						},
 						common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-							Description: "Certificate Expire Date\n" +
-								"  - Example: 2026-02-07T18:07:59",
+							Description: "Certificate Expire Date.\n" +
+								"  - example : '2026-02-07T18:07:59'",
 							Computed: true,
 						},
 						common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
-							Description: "Certificate Start Date\n" +
-								"  - Example: 2025-02-08T18:07:00",
+							Description: "Certificate Start Date.\n" +
+								"  - example : '2025-02-08T18:07:00'",
 							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "Certificate State\n" +
-								"  - Example: VALID",
+							Description: "Certificate State.\n" +
+								"  - example : 'VALID'",
 							Computed: true,
 						},
 					},
@@ -156,7 +165,6 @@ func (d *certificateManagerDataSource) Read(ctx context.Context, req datasource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	fmt.Printf("--------------------Start CALL GetCertificateManagerList")
 
 	data, err := d.client.GetCertificateManagerList(ctx, state)
 	if err != nil {
@@ -168,22 +176,17 @@ func (d *certificateManagerDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	fmt.Printf("--------------------GetCertificateManagerList %v\n", data)
-	fmt.Printf("--------------------GetCertificateManagerList %#v\n", data)
-
 	// Map response body to model
 	for _, igw := range data.Certificates {
-
 		vps := certificatemanager.Certificate{
 			Id:          types.StringValue(igw.Id),
 			Name:        types.StringValue(igw.Name),
-			CertKind:    types.StringValue(*igw.CertKind),
+			CertKind:    types.StringPointerValue(igw.CertKind),
 			Cn:          types.StringValue(igw.Cn),
 			NotBeforeDt: types.StringValue(igw.NotBeforeDt.Format(time.RFC3339)),
 			NotAfterDt:  types.StringValue(igw.NotAfterDt.Format(time.RFC3339)),
 			State:       types.StringValue(igw.State),
 		}
-
 		state.Certificates = append(state.Certificates, vps)
 	}
 

@@ -3,9 +3,10 @@ package multinodegpucluster
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/multinodegpucluster"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/multinodegpucluster"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -97,8 +98,8 @@ func GpuNodeDataSourceSchema() schema.Schema {
 			},
 			"id": schema.StringAttribute{
 				Required:            true,
-				Description:         "GPU Node ID",
-				MarkdownDescription: "GPU Node ID",
+				Description:         "GPU Node ID\n  - example: aaaa8b745fa04852aad2aaa1f9907f2b",
+				MarkdownDescription: "GPU Node ID\n  - example: aaaa8b745fa04852aad2aaa1f9907f2b",
 			},
 			"image_id": schema.StringAttribute{
 				Computed:            true,
@@ -112,8 +113,8 @@ func GpuNodeDataSourceSchema() schema.Schema {
 			},
 			"init_script": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Init script\n  - example: init script",
-				MarkdownDescription: "Init script\n  - example: init script",
+				Description:         "Init script\n  - example: #!/bin/bash\\necho 'Hello World!'",
+				MarkdownDescription: "Init script\n  - example: #!/bin/bash\\necho 'Hello World!'",
 			},
 			"lock_enabled": schema.BoolAttribute{
 				Computed:            true,

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -56,50 +56,52 @@ func (d *iamGroupMemberDataSources) Schema(_ context.Context, _ datasource.Schem
 		Description: "Show Group Members",
 		Attributes: map[string]schema.Attribute{
 			"group_id": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Group ID",
-				MarkdownDescription: "Group ID",
+				Optional: true,
+				Description: "Group ID to filter members.\n" +
+					"  - example : 'group-12345678'",
 			},
 			"size": schema.Int32Attribute{
-				Optional:            true,
-				Description:         "Size (between 1 and 10000)",
-				MarkdownDescription: "Size (between 1 and 10000)",
+				Optional: true,
+				Description: "Size (between 1 and 10000)\n" +
+					"  - example : 100",
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			"page": schema.Int32Attribute{
-				Optional:            true,
-				Description:         "Page (between 0 and 10000)",
-				MarkdownDescription: "Page (between 0 and 10000)",
+				Optional: true,
+				Description: "Page (between 0 and 10000)\n" +
+					"  - example : 0",
 				Validators: []validator.Int32{
 					int32validator.Between(0, 10000),
 				},
 			},
 			"sort": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Sort",
-				MarkdownDescription: "Sort",
+				Optional: true,
+				Description: "Sort order for results.\n" +
+					"  - example : 'created_at,desc'",
 			},
 			"user_name": schema.StringAttribute{
-				Optional:            true,
-				Description:         "User Name",
-				MarkdownDescription: "User Name",
+				Optional: true,
+				Description: "Filter by user name.\n" +
+					"  - example : 'john.doe'",
 			},
 			"user_email": schema.StringAttribute{
-				Optional:            true,
-				Description:         "User Email",
-				MarkdownDescription: "User Email",
+				Optional: true,
+				Description: "Filter by user email.\n" +
+					"  - example : 'user@example.com'",
 			},
 			"creator_name": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Creator Name",
-				MarkdownDescription: "Creator Name",
+				Optional: true,
+				Description: "Name of the user who created this group member.\n" +
+					"  - example : 'John Doe'",
+				MarkdownDescription: "Name of the user who created this group member.\n  - example : 'John Doe'",
 			},
 			"creator_email": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Creator Email",
-				MarkdownDescription: "Creator Email",
+				Optional: true,
+				Description: "Email address of the user who created this group member.\n" +
+					"  - example : 'user@example.com'",
+				MarkdownDescription: "Email address of the user who created this group member.\n  - example : 'user@example.com'",
 			},
 			"group_members": schema.ListNestedAttribute{
 				Optional:            true,
@@ -109,34 +111,46 @@ func (d *iamGroupMemberDataSources) Schema(_ context.Context, _ datasource.Schem
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"created_at": schema.StringAttribute{
-							Computed:            true,
-							Description:         "생성 일시",
-							MarkdownDescription: "생성 일시",
+							Computed: true,
+							Description: "Timestamp when the group member was added.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
+							MarkdownDescription: "Timestamp when the group member was added.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"created_by": schema.StringAttribute{
-							Computed:            true,
-							Description:         "생성자",
-							MarkdownDescription: "생성자",
+							Computed: true,
+							Description: "User who added the group member.\n" +
+								"  - example : 'user@example.com'",
+							MarkdownDescription: "User who added the group member.\n" +
+								"  - example : 'user@example.com'",
 						},
 						"creator_created_at": schema.StringAttribute{
-							Computed:            true,
-							Description:         "생성 일시",
-							MarkdownDescription: "생성 일시",
+							Computed: true,
+							Description: "Timestamp when the creator was created.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
+							MarkdownDescription: "Timestamp when the creator was created.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"creator_email": schema.StringAttribute{
-							Computed:            true,
-							Description:         "생성자 Email",
-							MarkdownDescription: "생성자 Email",
+							Computed: true,
+							Description: "Email of the user who created this group member.\n" +
+								"  - example : 'user@example.com'",
+							MarkdownDescription: "Email of the user who created this group member.\n" +
+								"  - example : 'user@example.com'",
 						},
 						"creator_last_login_at": schema.StringAttribute{
-							Optional:            true,
-							Description:         "생성자 마지막 로그인 일시",
-							MarkdownDescription: "생성자 마지막 로그인 일시",
+							Optional: true,
+							Description: "Timestamp when the creator last logged in.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
+							MarkdownDescription: "Timestamp when the creator last logged in.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"creator_name": schema.StringAttribute{
-							Computed:            true,
-							Description:         "생성자 성, 이름",
-							MarkdownDescription: "생성자 성, 이름",
+							Computed: true,
+							Description: "Name of the user who created this group member.\n" +
+								"  - example : 'John Doe'",
+							MarkdownDescription: "Name of the user who created this group member.\n" +
+								"  - example : 'John Doe'",
 						},
 						"groups": schema.ListNestedAttribute{
 							Computed:            true,
@@ -145,42 +159,44 @@ func (d *iamGroupMemberDataSources) Schema(_ context.Context, _ datasource.Schem
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"id": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Group ID",
-										MarkdownDescription: "Group ID",
+										Computed: true,
+										Description: "Group ID.\n" +
+											"  - example : 'grp-1234567890abcdef'",
 									},
 									"name": schema.StringAttribute{
-										Computed:            true,
-										Description:         "Group Name",
-										MarkdownDescription: "Group Name",
+										Computed: true,
+										Description: "Group Name.\n" +
+											"  - example : 'MyGroup'",
 									},
 								},
 							},
 						},
 						"user_created_at": schema.StringAttribute{
-							Computed:            true,
-							Description:         "생성 일시",
-							MarkdownDescription: "생성 일시",
+							Computed: true,
+							Description: "Timestamp when the user account was created.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"user_email": schema.StringAttribute{
-							Computed:            true,
-							Description:         "User Email",
-							MarkdownDescription: "User Email",
+							Computed: true,
+							Description: "Email address of the user.\n" +
+								"  - example : 'user@example.com'",
 						},
 						"user_id": schema.StringAttribute{
-							Computed:            true,
-							Description:         "User ID",
-							MarkdownDescription: "User ID",
+							Computed: true,
+							Description: "Unique identifier for the user.\n" +
+								"  - example : 'usr-1234567890abcdef'",
 						},
 						"user_last_login_at": schema.StringAttribute{
-							Optional:            true,
-							Description:         "User 마지막 로그인 일시",
-							MarkdownDescription: "User 마지막 로그인 일시",
+							Optional: true,
+							Description: "Timestamp when the user last logged in.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
+							MarkdownDescription: "Timestamp when the user last logged in.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"user_name": schema.StringAttribute{
-							Computed:            true,
-							Description:         "User 성, 이름",
-							MarkdownDescription: "User 성, 이름",
+							Computed: true,
+							Description: "Name of the user.\n" +
+								"  - example : 'Jane Doe'",
 						},
 					},
 				},

@@ -3,10 +3,10 @@ package network_logging
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/networklogging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/networklogging"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -45,7 +45,7 @@ func (d *networkLoggingNetworkLoggingConfigurationDataSource) Schema(_ context.C
 		Description: "List of network logging configurations",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit \n" +
+				Description: " Number of items returned per page. \n" +
 					"  - example : 10 \n" +
 					"  - maximum : 10000 \n" +
 					"  - minimum : 1",
@@ -55,7 +55,7 @@ func (d *networkLoggingNetworkLoggingConfigurationDataSource) Schema(_ context.C
 				},
 			},
 			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker \n" +
+				Description: "Pagination Start ID. \n" +
 					"  - example : 607e0938521643b5b4b266f343fae693 \n" +
 					"  - maxLength : 64 \n" +
 					"  - minLength : 1",
@@ -65,17 +65,17 @@ func (d *networkLoggingNetworkLoggingConfigurationDataSource) Schema(_ context.C
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. \n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("ResourceId"): schema.StringAttribute{
-				Description: "ResourceId \n" +
-					"  - example : xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+				Description: "Identifier of the Resource. \n" +
+				    "  - example : 026ee708da3748a28fca4b8fed43d7ce",
 				Optional: true,
 			},
 			common.ToSnakeCase("ResourceType"): schema.StringAttribute{
-				Description: "ResourceType \n" +
+				Description: "Type of the Resource. \n" +
 					"  - example : FIREWALL | SECURITY_GROUP | NAT",
 				Required: true,
 				Validators: []validator.String{
@@ -83,8 +83,8 @@ func (d *networkLoggingNetworkLoggingConfigurationDataSource) Schema(_ context.C
 				},
 			},
 			common.ToSnakeCase("ResourceName"): schema.StringAttribute{
-				Description: "ResourceName \n" +
-					"  - example : FW_IGW_xxxxxx",
+				Description: "Name of the Resource. \n" +
+					"  - example : FW_IGW_example",
 				Optional: true,
 			},
 			common.ToSnakeCase("NetworkLoggingConfigurations"): schema.ListNestedAttribute{
@@ -93,55 +93,68 @@ func (d *networkLoggingNetworkLoggingConfigurationDataSource) Schema(_ context.C
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
+							Description: "Identifier of the Network Logging Configuration. \n" +
+				                "  - example : 026ee708da3748a28fca4b8fed43d7ce",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
+							Description: "Identifier of the Account. \n" +
+			    	            "  - example : 232a7dbfb3df46ae81dc11a59fc058b0",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ResourceId"): schema.StringAttribute{
-							Description: "ResourceId",
+							Description: "Identifier of Resource. \n" +
+				                "  - example : 026ee708da3748a28fca4b8fed43d7ce",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ResourceType"): schema.StringAttribute{
-							Description: "ResourceType",
+							Description: "Type of the Resource. \n" +
+					            "  - example : FIREWALL | SECURITY_GROUP | NAT",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ResourceName"): schema.StringAttribute{
-							Description: "ResourceName",
+							Description: "Name of the Resource. \n" +
+					            "  - example : FW_IGW_example",
 							Computed:    true,
 						},
 						common.ToSnakeCase("BucketName"): schema.StringAttribute{
-							Description: "BucketName",
+							Description: "Name of the Bucket. \n" +
+				                "  - example : bucket_name",
 							Computed:    true,
 						},
 						common.ToSnakeCase("SecurityGroupLogId"): schema.StringAttribute{
-							Description: "SecurityGroupLogId",
+							Description: "Log Identifier of the SecurityGroup. \n" +
+				                "  - example : neutron-e7211adf-56f0-446d-a302-4fe4eb39a9ea",
 							Computed:    true,
 						},
 						common.ToSnakeCase("UpInterface"): schema.StringAttribute{
-							Description: "UpInterface",
+							Description: "Interface Name of the Up Direction. \n" +
+				                "  - example : IFW1-v1234up",
 							Computed:    true,
 						},
 						common.ToSnakeCase("DownInterface"): schema.StringAttribute{
-							Description: "DownInterface",
+							Description: "Interface Name fo the Down Direction. \n" +
+				                "  - example : IFW1-v1234dn",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
+				            Description: "The timestamp when the resource was created, in ISO 8601 format. \n" +
+                   	            "  - example : 2024-05-17T00:23:17Z",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
+				            Description: "The user id that created the resource. \n" +
+                  	            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
+				            Description: "The timestamp when the resource was last modified, in ISO 8601 format. \n" +
+                   	            "  - example : 2024-05-17T00:23:17Z",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
+				            Description: "The user id that last modified the resource. \n" +
+                                "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 							Computed:    true,
 						},
 					},

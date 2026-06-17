@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_loadbalancer Resource - samsungcloudplatformv2"
 subcategory: Load Balancer
 description: |-
-  Loadbalancer.
+  LoadBalancer resource for distributing traffic.
 ---
 
 # samsungcloudplatformv2_loadbalancer_loadbalancer (Resource)
 
-Loadbalancer.
+LoadBalancer resource for distributing traffic.
 
 ## Example Usage
 
@@ -58,29 +58,45 @@ variable "loadbalancer" {
 
 ### Optional
 
-- `loadbalancer_create` (Attributes) Create Loadbalancer. (see [below for nested schema](#nestedatt--loadbalancer_create))
+- `loadbalancer_create` (Attributes) Parameters for creating a new LoadBalancer. (see [below for nested schema](#nestedatt--loadbalancer_create))
 
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
-- `loadbalancer` (Attributes) A detail of Loadbalancer. (see [below for nested schema](#nestedatt--loadbalancer))
+  - example: YOUR RESOURCE'S ID
+- `loadbalancer` (Attributes) Details of the LoadBalancer. (see [below for nested schema](#nestedatt--loadbalancer))
 
 <a id="nestedatt--loadbalancer_create"></a>
 ### Nested Schema for `loadbalancer_create`
 
 Optional:
 
-- `description` (String) Description
-- `firewall_enabled` (Boolean) FirewallEnabled
-- `firewall_logging_enabled` (Boolean) FirewallLoggingEnabled
-- `health_check_ip_1` (String) HealthCheckIp1
-- `health_check_ip_2` (String) HealthCheckIp2
-- `layer_type` (String) LayerType
-- `name` (String) Name
-- `service_ip` (String) ServiceIp
-- `source_nat_ip` (String) SourceNatIp
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : LoadBalancer for web traffic
+  - maxLength : 255
+- `firewall_enabled` (Boolean) Whether firewall is enabled.
+  - example : true
+- `firewall_logging_enabled` (Boolean) Whether firewall logging is enabled.
+  - example : true
+- `health_check_ip_1` (String) The first health check IP address.
+  - example : 192.168.0.1
+- `health_check_ip_2` (String) The second health check IP address.
+  - example : 192.168.0.2
+- `layer_type` (String) The layer type of the Load Balancer.
+  - example : L7
+  - pattern : L4 | L7
+- `name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
+  - minLength : 1
+  - maxLength : 63
+- `service_ip` (String) The service IP address.
+  - example : 192.168.0.1
+- `source_nat_ip` (String) The source NAT IP address.
+  - example : 192.168.0.1
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 
 <a id="nestedatt--loadbalancer"></a>
@@ -88,18 +104,35 @@ Optional:
 
 Optional:
 
-- `account_id` (String) Account ID
-- `description` (String) Description
-- `layer_type` (String) Layer type
-- `name` (String) Name
-- `state` (String) State
-- `subnet_id` (String) Subnet ID
-- `vpc_id` (String) VPC ID
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : LoadBalancer for web traffic
+  - maxLength : 255
+- `layer_type` (String) The layer type of the Load Balancer.
+  - example : L7
+  - pattern : L4 | L7
+- `name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
+  - minLength : 1
+  - maxLength : 63
+- `state` (String) The current state of the Load Balancer.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
+- `subnet_id` (String) The subnet ID where the LoadBalancer is deployed.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `vpc_id` (String) The VPC ID where the LoadBalancer is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) The unique identifier.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

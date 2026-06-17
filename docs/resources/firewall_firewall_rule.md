@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_firewall_firewall_rule Resource - samsungcloudplatformv2"
 subcategory: Firewall Rule
 description: |-
-  Firewall rule
+  Manages firewall rules to control network traffic.
 ---
 
 # samsungcloudplatformv2_firewall_firewall_rule (Resource)
 
-Firewall rule
+Manages firewall rules to control network traffic.
 
 ## Example Usage
 
@@ -138,41 +138,45 @@ variable "firewall_rule3" {
 
 ### Required
 
-- `firewall_id` (String) Firewall ID 
+- `firewall_id` (String) The identifier of the firewall associated with the resource.
   - example: YOUR RESOURCE'S FIREWALL_ID
 - `firewall_rule_create` (Attributes) Firewall rule create object (see [below for nested schema](#nestedatt--firewall_rule_create))
 
 ### Read-Only
 
-- `firewall_rule` (Attributes) Firewall rule (see [below for nested schema](#nestedatt--firewall_rule))
-- `id` (String) Identifier of the resource.
+- `firewall_rule` (Attributes) Firewall Rule. (see [below for nested schema](#nestedatt--firewall_rule))
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--firewall_rule_create"></a>
 ### Nested Schema for `firewall_rule_create`
 
 Required:
 
-- `action` (String) Action 
-  - example : ALLOW | DENY
-- `destination_address` (List of String) Destination Address 
-  - example : ['10.10.10.10', '20.20.20.20']
-- `direction` (String) Direction 
-  - example : INBOUND | OUTBOUND
-- `service` (Attributes List) Service (see [below for nested schema](#nestedatt--firewall_rule_create--service))
-- `source_address` (List of String) Source Address 
-  - example : ['10.10.10.10', '20.20.20.20']
-- `status` (String) Status 
-  - example : ENABLE | DISABLE
+- `action` (String) The action applied to traffic that matches the rule.
+  - example: ALLOW
+  - valid: ALLOW, DENY
+- `destination_address` (List of String) The destination address the rule applies to.
+  - example: [192.168.0.0/16, 192.169.0.0/16]
+- `direction` (String) The direction of the traffic the rule applies to.
+  - example: INBOUND
+  - valid: INBOUND, OUTBOUND
+- `service` (Attributes List) The service ports the rule applies to. (see [below for nested schema](#nestedatt--firewall_rule_create--service))
+- `source_address` (List of String) The source IP addresses the rule applies to.
+  - example: [10.10.10.0/24, 10.10.11.0/24]
+- `status` (String) The current status of the resource.
+  - example: ENABLE
+  - valid: ENABLE, DISABLE
 
 Optional:
 
-- `description` (String) Description
-  - example : VPC description
-  - maxLength : 100
-  - minLength : 1
-- `order_direction` (String) Order Direction 
-  - example :  BEFORE | AFTER | BOTTOM
-- `order_rule_id` (String) OrderRule ID 
+- `description` (String) A brief explanation or note about this resource.
+  - example: Firewall rule for web tier
+  - constraints: maxLength: 100
+- `order_direction` (String) The type of ordering change applied to the rule.
+  - example: BEFORE
+  - valid: BEFORE, AFTER, BOTTOM
+- `order_rule_id` (String) The target ID used when changing the order of a rule.
   - example: YOUR RESOURCE'S ORDER_RULE_ID
 
 <a id="nestedatt--firewall_rule_create--service"></a>
@@ -180,13 +184,14 @@ Optional:
 
 Required:
 
-- `service_type` (String) Service Type 
-  - example : TCP | UDP | ICMP | IP | TCP_ALL | UDP_ALL | ICMP_ALL | ALL
+- `service_type` (String) The type of the service.
+  - example: TCP
+  - valid: TCP, UDP, ICMP, IP, TCP_ALL, UDP_ALL, ICMP_ALL, ALL
 
 Optional:
 
-- `service_value` (String) Service Value 
-  - example : 443
+- `service_value` (String) The value of the service.
+  - example: 80
 
 
 
@@ -195,30 +200,50 @@ Optional:
 
 Read-Only:
 
-- `action` (String) Action
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `destination_address` (List of String) DestinationAddress
-- `destination_interface` (String) DestinationInterface
-- `direction` (String) Direction
-- `firewall_id` (String) FirewallId
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `sequence` (Number) Sequence
-- `service` (Attributes List) Service (see [below for nested schema](#nestedatt--firewall_rule--service))
-- `source_address` (List of String) SourceAddress
-- `source_interface` (String) SourceInterface
-- `state` (String) State
-- `status` (String) Status
-- `vendor_rule_id` (String) VendorRuleId
+- `action` (String) The action applied to traffic that matches the rule.
+  - example: ALLOW
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example: 2025-01-15T10:30:00Z
+- `created_by` (String) The user ID that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) A brief explanation or note about this resource.
+  - example: Firewall rule for web tier
+- `destination_address` (List of String) The destination address the rule applies to.
+  - example: [192.168.0.0/16, 192.169.0.0/16]
+- `destination_interface` (String) The destination interface the rule applies to.
+  - example: L2FW-DGW2800dn
+- `direction` (String) The direction of the traffic the rule applies to.
+  - example: INBOUND
+- `firewall_id` (String) The identifier of the firewall associated with the resource.
+  - example: YOUR RESOURCE'S FIREWALL_ID
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example: 2025-06-01T14:22:00Z
+- `modified_by` (String) The user ID that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the resource.
+  - example: 0e2b4ece64944d7d8a72983e945b867b
+- `sequence` (Number) The order in which the rule is evaluated.
+  - example: 100
+- `service` (Attributes List) The service ports the rule applies to. (see [below for nested schema](#nestedatt--firewall_rule--service))
+- `source_address` (List of String) The source IP addresses the rule applies to.
+  - example: [10.10.10.0/24, 10.10.11.0/24]
+- `source_interface` (String) The source interface the rule applies to.
+  - example: L2FW-DGW2800up
+- `state` (String) The current state of the resource.
+  - example: ACTIVE
+- `status` (String) The current status of the resource.
+  - example: ENABLE
+- `vendor_rule_id` (String) The firewall device's unique identifier for the rule.
+  - example: YOUR RESOURCE'S VENDOR_RULE_ID
 
 <a id="nestedatt--firewall_rule--service"></a>
 ### Nested Schema for `firewall_rule.service`
 
 Read-Only:
 
-- `service_type` (String) ServiceType
-- `service_value` (String) ServiceValue
+- `service_type` (String) The type of the service.
+  - example: TCP
+- `service_value` (String) The value of the service.
+  - example: 80

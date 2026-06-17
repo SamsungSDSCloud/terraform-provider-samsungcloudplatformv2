@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	scpci "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/configinspection"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	configinspection "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/configinspection/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	scpci "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/configinspection"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	configinspection "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/configinspection/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,39 +39,40 @@ func (d *diagnosisRequestDataSource) Metadata(_ context.Context, req datasource.
 // Schema defines the schema for the data source
 func (d *diagnosisRequestDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Config inspection diagnostic request",
+		Description: "Config inspection diagnostic request.",
 		Attributes: map[string]schema.Attribute{
 			// Input attributes
 			common.ToSnakeCase("AccessKey"): schema.StringAttribute{
-				Description: "Access Key\n" +
-					"  - Example: SAMPLE KEY",
+				Description: "Your API access key.\n" +
+					"  - example : 'b19a2ee194744c218xxxxxxxxxxxxxxx'",
 				Required: true,
 			},
 			common.ToSnakeCase("DiagnosisCheckType"): schema.StringAttribute{
-				Description: "Check type of diagnosis\n" +
-					"  - Example: BP",
+				Description: "Check type of diagnosis.\n" +
+					"  - example : 'BP'\n" +
+					"  - enum : BP | SSI",
 				Required: true,
 			},
 			common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
-				Description: "Id of diagnosis\n" +
-					"  - Example: DIA-943731CB8E3045C289BAECAEC3532097",
+				Description: "Id of diagnosis.\n" +
+					"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 				Required: true,
 			},
 			common.ToSnakeCase("SecretKey"): schema.StringAttribute{
-				Description: "Secret Key\n" +
-					"  - Example: SAMPLE KEY",
+				Description: "Your API secret key.\n" +
+					"  - example : 'SAMPLE KEY'",
 				Required: true,
 			},
 			common.ToSnakeCase("TenantId"): schema.StringAttribute{
-				Description: "Tenant ID\n" +
-					"  - Example: 1234567890",
+				Description: "Your tenant ID.\n" +
+					"  - example : '1234567890'",
 				Required: true,
 			},
 
 			// Output attributes
 			common.ToSnakeCase("Result"): schema.BoolAttribute{
-				Description: "Result of diagnosis request\n" +
-					"  - Example: true | false",
+				Description: "Result of diagnosis request (true, false).\n" +
+					"  - example : true",
 				Computed: true,
 			},
 		},

@@ -3,11 +3,11 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -45,27 +45,27 @@ func (d *loadbalancerLoadbalancerDataSource) Schema(_ context.Context, _ datasou
 		Description: "Show Loadbalancer.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
+				Description: "The unique identifier of the LoadBalancer.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("loadbalancer"): schema.SingleNestedAttribute{
-				Description: "A detail of Loadbalancer.",
+				Description: "Details of the LoadBalancer.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID",
+						Description: "The account ID associated with the resource.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At",
+						Description: "The timestamp when the resource was created, in ISO 8601 format.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By",
+						Description: "The user id that created the resource.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
@@ -78,23 +78,23 @@ func (d *loadbalancerLoadbalancerDataSource) Schema(_ context.Context, _ datasou
 						Optional:    true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID",
+						Description: "The unique identifier.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("LayerType"): schema.StringAttribute{
-						Description: "Layer type",
+						Description: "The layer type of the Load Balancer (L4, L7).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At",
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By",
+						Description: "The user id that last modified the resource.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
+						Description: "The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("PublicNatEnabled"): schema.BoolAttribute{
@@ -110,7 +110,7 @@ func (d *loadbalancerLoadbalancerDataSource) Schema(_ context.Context, _ datasou
 						Optional:    true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
+						Description: "The current state of the Load Balancer (CREATING, ACTIVE, DELETING, ERROR).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
@@ -118,7 +118,7 @@ func (d *loadbalancerLoadbalancerDataSource) Schema(_ context.Context, _ datasou
 						Optional:    true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VPC ID",
+						Description: "The VPC ID where the LoadBalancer is located.",
 						Optional:    true,
 					},
 				},

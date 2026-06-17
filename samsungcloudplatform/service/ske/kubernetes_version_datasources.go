@@ -3,12 +3,13 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.4"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/region"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/ske/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,18 +42,19 @@ func (d *skeKubernetesVersionDataSources) Schema(ctx context.Context, req dataso
 		Attributes: map[string]schema.Attribute{
 			"region": region.DataSourceSchema(),
 			common.ToSnakeCase("KubernetesVersions"): schema.ListNestedAttribute{
-				Description: "Kubernetes Version List",
-				Computed:    true,
+				Description: "Connected File Storage\n" +
+					"  - example:  [{description = 'v1.30.6',kubernetes_version = ''v1.30.6'} ,{description = 'v1.31.8', kubernetes_version = 'v1.31.8'} ,{description = 'v1.32.8', kubernetes_version = 'v1.32.8'} ,{description = 'v1.33.5', kubernetes_version = 'v1.33.5'} ,{description = 'v1.34.3', kubernetes_version = 'v1.34.3'}]",
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description:         "Description\n  - example: v1.29.8",
-							MarkdownDescription: "Description\n  - example: v1.29.8",
+							Description:         "Kubernetes Version Description\n  - example: [v1.31.X|v1.32.X|v1.33.X|v1.34.X]",
+							MarkdownDescription: "Kubernetes Version Description\n  - example: [v1.31.X|v1.32.X|v1.33.X|v1.34.X]",
 							Computed:            true,
 						},
 						common.ToSnakeCase("KubernetesVersion"): schema.StringAttribute{
-							Description:         "Kubernetes Version\n  - example: v1.29.8",
-							MarkdownDescription: "Kubernetes Version\n  - example: v1.29.8",
+							Description:         "Kubernetes Version Description\n  - example: [v1.31.X|v1.32.X|v1.33.X|v1.34.X]",
+							MarkdownDescription: "Kubernetes Version Description\n  - example: [v1.31.X|v1.32.X|v1.33.X|v1.34.X]",
 							Computed:            true,
 						},
 					},
@@ -69,9 +71,6 @@ func (d *skeKubernetesVersionDataSources) Read(ctx context.Context, req datasour
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-	if !state.Region.IsNull() {
-		d.client.Config.Region = state.Region.ValueString()
 	}
 
 	kubernetesVersionListResponse, err := d.clients.Ske.GetKubernetesVersionList(ctx)

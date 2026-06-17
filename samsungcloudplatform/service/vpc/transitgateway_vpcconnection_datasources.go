@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -40,39 +40,47 @@ func (d *tgwVpcConnectionDataSources) Schema(_ context.Context, _ datasource.Sch
 		Description: "List of TGW VPC.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size (between 1 and 10000)",
-				Optional:    true,
+				Description: "The number of items per page.\n" +
+					"  - example : 3",
+				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "The page number for pagination.\n" +
+					"  - example : 1",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order.\n" +
+					"  - example : created_at:asc ",
+				Optional: true,
 			},
 			common.ToSnakeCase("TransitGatewayId"): schema.StringAttribute{
-				Description: "Transit Gateway ID",
-				Required:    true,
+				Description: "The identifier of the transit gateway that the resource belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Required: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "id",
-				Optional:    true,
+				Description: "The unique identifier of the resource.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "vpc id",
-				Optional:    true,
+				Description: "The identifier of the VPC that the resource belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Optional: true,
 			},
 			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description: "Vpc Name",
-				Optional:    true,
+				Description: "The name of the VPC that the resource belongs to.\n" +
+					"  - example : vpcName",
+				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
+				Description: "The current lifecycle state of the resource.\n" +
+					"  - example : ACTIVE",
+				Optional: true,
 			},
 			common.ToSnakeCase("TransitGatewayVpcConnections"): schema.ListNestedAttribute{
 				Description: "A list of TransitGateway VpcConnection.",
@@ -80,45 +88,55 @@ func (d *tgwVpcConnectionDataSources) Schema(_ context.Context, _ datasource.Sch
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Computed:    true,
+							Description: "The identifier of the account that owns the connection.\n" +
+								"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
-						},
-						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Computed:    true,
-						},
+                            Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+                                "  - example : 2024-05-17T00:23:17Z",
+                            Computed: true,
+                        },
+                        common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+                            Description: "The user id that created the resource.\n" +
+                                "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                            Computed: true,
+                        },
+                        common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+                            Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+                                "  - example : 2024-05-17T00:23:17Z",
+                            Computed: true,
+                        },
+                        common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+                            Description: "The user id that modified the resource.\n" +
+                                "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                            Computed: true,
+                        },
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
-						},
-						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
-						},
-						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Computed:    true,
+							Description: "The unique identifier of the connection.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State" +
-								" - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
+							Description: "The current lifecycle state of the connection.\n" +
+								"  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING\n" +
+								"  - example : ACTIVE",
 							Computed: true,
 						},
 						common.ToSnakeCase("TransitGatewayId"): schema.StringAttribute{
-							Description: "Transit Gateway Id",
-							Computed:    true,
+							Description: "The identifier of the transit gateway that the connection belongs to.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "vpc id",
-							Computed:    true,
+							Description: "The identifier of the VPC that the connection belongs to.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("VpcName"): schema.StringAttribute{
-							Description: "Vpc Name",
-							Computed:    true,
+							Description: "The name of the VPC that the connection belongs to.\n" +
+								"  - example : vpcName",
+							Computed: true,
 						},
 					},
 				},

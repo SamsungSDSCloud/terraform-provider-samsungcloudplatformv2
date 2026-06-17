@@ -36,25 +36,38 @@ variable "id" {
 
 ### Required
 
-- `event_rule_id` (String) Event rule ID
+- `event_rule_id` (String) The unique identifier of the event rule.
+ - example: YOUR RESOURCE'S EVENT_RULE_ID
 
 ### Read-Only
 
-- `event_rule` (Attributes) Event rule (see [below for nested schema](#nestedatt--event_rule))
+- `event_rule` (Attributes) List of event rule.
+ - example : {"id": "b73f95c698f540dab18860f72fafd03f", "name": "Event rule 1"} (see [below for nested schema](#nestedatt--event_rule))
 
 <a id="nestedatt--event_rule"></a>
 ### Nested Schema for `event_rule`
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `active_yn` (String) Whether the Event rule is active
-- `created_at` (String) Created date time
-- `created_by` (String) Creator ID
-- `description` (String) Event rule description
-- `id` (String) Event rule ID
-- `modified_at` (String) Modified date time
-- `modified_by` (String) Modifier ID
-- `name` (String) Event rule name
-- `resource_type_id` (String) Resource type ID
-- `service_id` (String) Service ID
+- `account_id` (String) The unique identifier of the account.
+ - example: YOUR RESOURCE'S ACCOUNT_ID
+- `active_yn` (String) Whether the Event rule is active.
+ - example : Y
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+ - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Event rule description.
+ - example : Event rule 1 description
+- `id` (String) The unique identifier of the event rule.
+ - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+ - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) Event rule name.
+ - example : Event rule 1
+- `resource_type_id` (String) The unique identifier of the resource type.
+ - example: YOUR RESOURCE'S RESOURCE_TYPE_ID
+- `service_id` (String) The unique identifier of the service.
+ - example: YOUR RESOURCE'S SERVICE_ID

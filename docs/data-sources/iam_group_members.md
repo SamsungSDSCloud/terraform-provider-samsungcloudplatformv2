@@ -77,41 +77,62 @@ variable "creator_email" {
 
 ### Optional
 
-- `creator_email` (String) Creator Email
-- `creator_name` (String) Creator Name
-- `group_id` (String) Group ID
+- `creator_email` (String) Email address of the user who created this group member.
+  - example : 'user@example.com'
+- `creator_name` (String) Name of the user who created this group member.
+  - example : 'John Doe'
+- `group_id` (String) Group ID to filter members.
+  - example: YOUR RESOURCE'S GROUP_ID
 - `group_members` (Attributes List) Group Members (see [below for nested schema](#nestedatt--group_members))
 - `page` (Number) Page (between 0 and 10000)
+  - example : 0
 - `size` (Number) Size (between 1 and 10000)
-- `sort` (String) Sort
-- `user_email` (String) User Email
-- `user_name` (String) User Name
+  - example : 100
+- `sort` (String) Sort order for results.
+  - example : 'created_at,desc'
+- `user_email` (String) Filter by user email.
+  - example : 'user@example.com'
+- `user_name` (String) Filter by user name.
+  - example : 'john.doe'
 
 <a id="nestedatt--group_members"></a>
 ### Nested Schema for `group_members`
 
 Optional:
 
-- `creator_last_login_at` (String) 생성자 마지막 로그인 일시
-- `user_last_login_at` (String) User 마지막 로그인 일시
+- `creator_last_login_at` (String) Timestamp when the creator last logged in.
+  - example : '2024-01-01T00:00:00Z'
+- `user_last_login_at` (String) Timestamp when the user last logged in.
+  - example : '2024-01-01T00:00:00Z'
 
 Read-Only:
 
-- `created_at` (String) 생성 일시
-- `created_by` (String) 생성자
-- `creator_created_at` (String) 생성 일시
-- `creator_email` (String) 생성자 Email
-- `creator_name` (String) 생성자 성, 이름
+- `created_at` (String) Timestamp when the group member was added.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who added the group member.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `creator_created_at` (String) Timestamp when the creator was created.
+  - example : '2024-01-01T00:00:00Z'
+- `creator_email` (String) Email of the user who created this group member.
+  - example : 'user@example.com'
+- `creator_name` (String) Name of the user who created this group member.
+  - example : 'John Doe'
 - `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--group_members--groups))
-- `user_created_at` (String) 생성 일시
-- `user_email` (String) User Email
-- `user_id` (String) User ID
-- `user_name` (String) User 성, 이름
+- `user_created_at` (String) Timestamp when the user account was created.
+  - example : '2024-01-01T00:00:00Z'
+- `user_email` (String) Email address of the user.
+  - example : 'user@example.com'
+- `user_id` (String) Unique identifier for the user.
+  - example: YOUR RESOURCE'S USER_ID
+- `user_name` (String) Name of the user.
+  - example : 'Jane Doe'
 
 <a id="nestedatt--group_members--groups"></a>
 ### Nested Schema for `group_members.groups`
 
 Read-Only:
 
-- `id` (String) Group ID
-- `name` (String) Group Name
+- `id` (String) Group ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Group Name.
+  - example : 'MyGroup'

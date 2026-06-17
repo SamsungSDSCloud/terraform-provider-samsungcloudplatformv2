@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_health_checks Data Source - samsungcloudplatformv2"
 subcategory: LB Health Check
 description: |-
-  Get List of Lb Health Checks.
+  List all LB Health Checks.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_health_checks (Data Source)
 
-Get List of Lb Health Checks.
+List all LB Health Checks.
 
 ## Example Usage
 
@@ -56,12 +56,12 @@ variable "subnet_id" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `protocol` (List of String) Protocol
-- `size` (Number) Size
-- `sort` (String) Sort
-- `subnet_id` (String) SubnetId
+- `name` (String) The name of the LB Health Check (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `page` (Number) The page number.
+- `protocol` (List of String) The protocol used for the listener (e.g., TCP, HTTP, HTTPS).
+- `size` (Number) The number of items per page.
+- `sort` (String) The sort order.
+- `subnet_id` (String) The subnet ID where the resource is located.
 
 ### Read-Only
 
@@ -72,17 +72,17 @@ variable "subnet_id" {
 
 Optional:
 
-- `health_check_type` (String) HealthCheckType
-- `id` (String) Id
-- `lb_server_group_count` (Number) LbServerGroupCount
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `state` (String) State
-- `subnet_id` (String) SubnetId
+- `health_check_type` (String) The type of health check (DEFAULT, CUSTOM).
+- `id` (String) The unique identifier of the LB Health Check.
+- `lb_server_group_count` (Number) The number of LB Server Groups.
+- `name` (String) The name of the LB Health Check (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `protocol` (String) The protocol for health checks (TCP, HTTP, HTTPS).
+- `state` (String) The current state of the Health Check (CREATING, ACTIVE, DELETING, ERROR).
+- `subnet_id` (String) The subnet ID where the resource is located.
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

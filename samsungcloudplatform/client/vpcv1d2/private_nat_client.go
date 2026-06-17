@@ -3,7 +3,7 @@ package vpcv1d2
 import (
 	"context"
 
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.2"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.2"
 )
 
 func (client *Client) CreatePrivateNat(ctx context.Context, request PrivateNatResource) (*vpc.PrivateNatShowResponseV1Dot2, error) {

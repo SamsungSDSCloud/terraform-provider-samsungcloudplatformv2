@@ -2,11 +2,12 @@ package baremetal
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpbaremetal1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/baremetal/1.1"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"math"
 	"net/http"
+
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpbaremetal1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/baremetal/1.1"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type Client struct {
@@ -51,7 +52,7 @@ func (client *Client) GetBaremetal(ctx context.Context, baremetalId string) (*sc
 	return resp, httpResponse, err
 }
 
-func (client *Client) CreateBaremetal(ctx context.Context, request BaremetalResource) (*scpbaremetal1d1.AsyncResponse, error) {
+func (client *Client) CreateBaremetal(ctx context.Context, request BaremetalResource, draft BaremetalResource) (*scpbaremetal1d1.AsyncResponse, error) {
 	req := client.sdkClient.BaremetalV1BaremetalsAPIsAPI.CreateBaremetals(ctx)
 
 	tags := make([]scpbaremetal1d1.TagRequest, 0)
@@ -111,7 +112,7 @@ func (client *Client) CreateBaremetal(ctx context.Context, request BaremetalReso
 		InitScript:         initScript,
 		LockEnabled:        request.LockEnabled.ValueBoolPointer(),
 		OsUserId:           request.OsUserId.ValueString(),
-		OsUserPassword:     request.OsUserPassword.ValueString(),
+		OsUserPassword:     draft.OsUserPassword.ValueString(),
 		PlacementGroupName: placementGroupName,
 		RegionId:           request.RegionId.ValueString(),
 		ServerDetails:      serverDetails,

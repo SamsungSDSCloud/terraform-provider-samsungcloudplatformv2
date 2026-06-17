@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/certificatemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/certificatemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -42,46 +42,47 @@ func (d *certificateManagerDetailDataSource) Schema(_ context.Context, _ datasou
 		Description: "Detail of certificate manager.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Certificate ID",
-				Optional:    true,
+				Description: "Certificate ID.\n" +
+					"  - example : '0fdd87aab8cb46f59bxxxxxxxxxxxxxx'",
+				Optional: true,
 			},
 			common.ToSnakeCase("Certificate"): schema.SingleNestedAttribute{
 				Description: "A Detail certificate.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CertKind"): schema.StringAttribute{
-						Description: "Certificate type\n" +
-							"  - Example: DEV",
+						Description: "Certificate type.\n" +
+							"  - example : 'DEV'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Cn"): schema.StringAttribute{
-						Description: "Certificate Common Name\n" +
-							"  - Example: test.go.kr",
+						Description: "Certificate Common Name.\n" +
+							"  - example : 'test.go.kr'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID\n" +
-							"  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+						Description: "Certificate ID.\n" +
+							"  - example : '0fdd87aab8cb46f59bxxxxxxxxxxxxxx'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Certificate Name\n" +
-							"  - Example: test-certificate",
+						Description: "Certificate Name.\n" +
+							"  - example : 'test-certificate'",
 						Computed: true,
 					},
 					common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-						Description: "Certificate Expire Date\n" +
-							"  - Example: 2026-02-07T18:07:59",
+						Description: "Certificate Expire Date.\n" +
+							"  - example : '2026-02-07T18:07:59'",
 						Computed: true,
 					},
 					common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
-						Description: "Certificate Start Date\n" +
-							"  - Example: 2025-02-08T18:07:00",
+						Description: "Certificate Start Date.\n" +
+							"  - example : '2025-02-08T18:07:00'",
 						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "Certificate State\n" +
-							"  - Example: VALID",
+						Description: "Certificate State.\n" +
+							"  - example : 'VALID'",
 						Computed: true,
 					},
 				},
@@ -136,7 +137,7 @@ func (d *certificateManagerDetailDataSource) Read(ctx context.Context, req datas
 	certificate := certificatemanager.Certificate{
 		Id:          types.StringValue(data.Certificate.Id),
 		Name:        types.StringValue(data.Certificate.Name),
-		CertKind:    types.StringValue(*data.Certificate.CertKind),
+		CertKind:    types.StringPointerValue(data.Certificate.CertKind),
 		Cn:          types.StringValue(data.Certificate.Cn),
 		NotBeforeDt: types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339)),
 		NotAfterDt:  types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339)),

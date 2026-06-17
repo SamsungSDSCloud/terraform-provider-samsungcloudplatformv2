@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	directconnectv1d1 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnectv1d1"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	directconnectv1d1 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/directconnectv1d1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,52 +44,53 @@ func (d *networkDirectConnectRoutingRuleDataSource) Schema(_ context.Context, _ 
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size \n" +
+				Description: "The number of items per page. \n" +
 					"  - example : 20 \n" +
 					"  - minimum : 0",
 				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page \n" +
+				Description: "The page number for pagination. \n" +
 					"  - example : 0 \n" +
 					"  - minimum : 0",
 				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. \n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("DirectConnectId"): schema.StringAttribute{
-				Description: "Direct Connect ID \n" +
+				Description: "The identifier of the direct connect.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Routing Rule ID \n" +
+				Description: "The unique identifier of the routing rule.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("DestinationType"): schema.StringAttribute{
-				Description: "Destination Type \n" +
-					"  - example : ON-PREM | VPC",
+				Description: "The type of the routing destination. In the VPC, the Direct Connect direction is ON_PREMISE, in the opposite direction—from Direct Connect toward the VPC—the direction is VPC.\n" +
+					"  -  example : ON-PREMISE | VPC",
 				Optional: true,
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-				Description: "Destination CIDR \n" +
+				Description: "The destination IP address range in CIDR notation. \n" +
 					"  - example : 10.10.10.0/24",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State \n" +
+				Description: "The current lifecycle state of the routing rule. \n" +
 					"  - example : CREATING | ACTIVE | DELETING | ERROR",
 				Optional: true,
 			},
 
 			// Output
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
-				Description: "total count",
-				Computed:    true,
+				Description: "The total number of Direct Connect routing rule.\n" +
+					"  - example : 5",
+				Computed: true,
 			},
 			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
 				Description: "List of sort condition \n" +
@@ -103,60 +104,76 @@ func (d *networkDirectConnectRoutingRuleDataSource) Schema(_ context.Context, _ 
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
+							Description: "The unique identifier of the routing rule.\n" +
+								"  - example : fe860e0af0c04dcd8182b84f907f31f4",
+							Computed: true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Computed:    true,
+							Description: "The identifier of the account that owns the direct connect.\n" +
+								"  - example : 27bb070b564349f8a31cc60734cc36a5",
+							Computed: true,
 						},
 						common.ToSnakeCase("OwnerId"): schema.StringAttribute{
-							Description: "OwnerId",
-							Computed:    true,
+							Description: "The identifier of the routing rule owner.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+							Computed: true,
 						},
 						common.ToSnakeCase("OwnerType"): schema.StringAttribute{
-							Description: "OwnerType",
-							Computed:    true,
+							Description: "The type of the routing rule owner.\n" +
+								"  - example : DIRECT_CONNECT",
+							Computed: true,
 						},
 						common.ToSnakeCase("DestinationType"): schema.StringAttribute{
-							Description: "DestinationType",
-							Computed:    true,
+							Description: "The type of the routing destination.In the VPC, the Direct Connect direction is ON_PREMISE, in the opposite direction—from Direct Connect toward the VPC—the direction is VPC.\n" +
+								"  -  example : ON-PREMISE | VPC",
+							Computed: true,
 						},
 						common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-							Description: "DestinationCidr",
-							Computed:    true,
+							Description: "The destination IP address range in CIDR notation.\n" +
+								"  - example : 10.10.10.0/24",
+							Computed: true,
 						},
 						common.ToSnakeCase("DestinationResourceId"): schema.StringAttribute{
-							Description: "DestinationResourceId",
-							Computed:    true,
+							Description: "The identifier of the destination resource.When the Destination Type is VPC, provide the VpcId.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("DestinationResourceName"): schema.StringAttribute{
-							Description: "DestinationResourceName",
-							Computed:    true,
+							Description: "The name of the destination resource.When the Destination Type is VPC, provide the Vpc name.\n" +
+								"  - example : Resource Name",
+							Computed: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Computed:    true,
+							Description: "Enter a brief explanation or note about this routing rule. This help identify the purpose or usage of the resource.\n" +
+								"  - example : Routing Rule description\n" +
+								"  - maxLength : 50\n" +
+								"  - minLength : 1",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Computed:    true,
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Computed:    true,
+							Description: "The current lifecycle state of the routing rule.\n" +
+								"  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR",
+							Computed: true,
 						},
 					},
 				},

@@ -17,7 +17,7 @@ The provider needs to be configured with the proper credentials before it can be
 terraform {
   required_providers {
     samsungcloudplatformv2 = {
-      version = "3.3.2"
+      version = "4.0.0"
       source = "SamsungSDSCloud/samsungcloudplatformv2"
     }
   }

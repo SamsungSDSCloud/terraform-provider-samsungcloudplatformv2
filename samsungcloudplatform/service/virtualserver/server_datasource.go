@@ -3,18 +3,19 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 var (
@@ -38,223 +39,273 @@ func (d *virtualServerServerDataSource) Metadata(_ context.Context, req datasour
 
 func (d *virtualServerServerDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of servers.",
+		Description:         "Retrieves virtual server information.",
+		MarkdownDescription: "Retrieves information about a single virtual server.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "ID",
-				Optional:    true,
+				Description:         "Server ID to query.\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+				MarkdownDescription: "Server ID to query.\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description:         "Server name to query.\n  - example: my-server\n  - minLength: 1\n  - maxLength: 255",
+				MarkdownDescription: "Server name to query.\n  - example: my-server\n  - minLength: 1\n  - maxLength: 255",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Ip"): schema.StringAttribute{
-				Description: "Ip",
-				Optional:    true,
+				Description:         "IP address to filter servers.\n  - example: 192.168.1.100",
+				MarkdownDescription: "IP address to filter servers.\n  - example: 192.168.1.100",
+				Optional:            true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
+				Description:         "Server state to filter.\n  - Available values: ACTIVE, SHUTOFF, ERROR",
+				MarkdownDescription: "Server state to filter.\n  - Available values: ACTIVE, SHUTOFF, ERROR",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ProductCategory"): schema.StringAttribute{
-				Description: "Product category",
-				Optional:    true,
+				Description:         "Product category.\n  - Available values: compute, container",
+				MarkdownDescription: "Product category.\n  - Available values: compute, container",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ProductOffering"): schema.StringAttribute{
-				Description: "Product offering",
-				Optional:    true,
+				Description:         "Product offering.\n  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm",
+				MarkdownDescription: "Product offering.\n  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm\n  - note: Use gpu_server for GPU instances",
+				Optional:            true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID",
-				Optional:    true,
+				Description:         "VPC ID.\n  - example: cc976b621087484ea5fd527f4b78708b",
+				MarkdownDescription: "VPC ID.\n  - example: cc976b621087484ea5fd527f4b78708b",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ServerTypeId"): schema.StringAttribute{
-				Description: "Server type ID",
-				Optional:    true,
+				Description:         "Server type ID.\n  - example: s1v1m2",
+				MarkdownDescription: "Server type ID.\n  - example: s1v1m2",
+				Optional:            true,
 			},
 			common.ToSnakeCase("AutoScalingGroupId"): schema.StringAttribute{
-				Description: "Auto scaling group ID",
-				Optional:    true,
+				Description:         "Auto Scaling Group ID.\n  - example: 52613bd852b04b39adcb15a8364d856d",
+				MarkdownDescription: "Auto Scaling Group ID.\n  - example: 52613bd852b04b39adcb15a8364d856d",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Server"): schema.SingleNestedAttribute{
-				Description: "Server.",
-				Computed:    true,
+				Description:         "Retrieved server information.",
+				MarkdownDescription: "Retrieved server information including configuration and status.",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID",
-						Computed:    true,
+						Description:         "Account ID.",
+						MarkdownDescription: "Account ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Addresses"): schema.ListNestedAttribute{
-						Description: "Addresses",
-						Computed:    true,
+						Description:         "Network address list.",
+						MarkdownDescription: "Network address list.",
+						Computed:            true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("IpAddresses"): schema.ListNestedAttribute{
-									Description: "IP addresses",
-									Computed:    true,
+									Description:         "IP address list.",
+									MarkdownDescription: "IP address list.",
+									Computed:            true,
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											common.ToSnakeCase("IpAddress"): schema.StringAttribute{
-												Description: "IP address",
-												Computed:    true,
+												Description:         "IP address.",
+												MarkdownDescription: "IP address.",
+												Computed:            true,
 											},
 											common.ToSnakeCase("Version"): schema.Int32Attribute{
-												Description: "Version",
-												Computed:    true,
+												Description:         "IP version.",
+												MarkdownDescription: "IP version.",
+												Computed:            true,
 											},
 										},
 									},
 								},
 								common.ToSnakeCase("SubnetName"): schema.StringAttribute{
-									Description: "Subnet name",
-									Computed:    true,
+									Description:         "Subnet name.",
+									MarkdownDescription: "Subnet name.",
+									Computed:            true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("AutoScalingGroupId"): schema.StringAttribute{
-						Description: "Auto scaling group ID",
-						Computed:    true,
+						Description:         "Auto Scaling Group ID.",
+						MarkdownDescription: "Auto Scaling Group ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created at",
-						Computed:    true,
+						Description:         "Creation timestamp.",
+						MarkdownDescription: "Creation timestamp.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created by",
-						Computed:    true,
+						Description:         "Creator ID.",
+						MarkdownDescription: "Creator ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("DiskConfig"): schema.StringAttribute{
-						Description: "Disk config",
-						Computed:    true,
+						Description:         "Disk configuration mode.",
+						MarkdownDescription: "Disk configuration mode.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID",
-						Computed:    true,
+						Description:         "Server ID.",
+						MarkdownDescription: "Server ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ImageId"): schema.StringAttribute{
-						Description: "Image ID",
-						Computed:    true,
+						Description:         "Image ID.",
+						MarkdownDescription: "Image ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("KeypairName"): schema.StringAttribute{
-						Description: "Keypair name",
-						Computed:    true,
+						Description:         "Keypair name.",
+						MarkdownDescription: "Keypair name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("LaunchConfigurationId"): schema.StringAttribute{
-						Description: "Launch Configuration ID",
-						Computed:    true,
+						Description:         "Launch Configuration ID.",
+						MarkdownDescription: "Launch Configuration ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Locked"): schema.BoolAttribute{
-						Description: "Locked",
-						Computed:    true,
+						Description:         "Lock status.",
+						MarkdownDescription: "Lock status.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Metadata"): schema.MapAttribute{
-						Description: "Metadata",
-						Computed:    true,
-						ElementType: types.StringType,
+						Description:         "Metadata.",
+						MarkdownDescription: "Metadata.",
+						Computed:            true,
+						ElementType:         types.StringType,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified at",
-						Computed:    true,
+						Description:         "Modification timestamp.",
+						MarkdownDescription: "Modification timestamp.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description:         "Server name.",
+						MarkdownDescription: "Server name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("PlannedComputeOsType"): schema.StringAttribute{
-						Description: "Planned compute os type",
-						Computed:    true,
+						Description:         "Planned compute OS type.",
+						MarkdownDescription: "Planned compute OS type.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ProductCategory"): schema.StringAttribute{
-						Description: "Product category",
-						Computed:    true,
+						Description:         "Product category.",
+						MarkdownDescription: "Product category.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ProductOffering"): schema.StringAttribute{
-						Description: "Product offering",
-						Computed:    true,
+						Description:         "Product offering.",
+						MarkdownDescription: "Product offering.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("SecurityGroups"): schema.ListNestedAttribute{
-						Description: "Security groups",
-						Computed:    true,
+						Description:         "Security group list.",
+						MarkdownDescription: "Security group list.",
+						Computed:            true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Name"): schema.StringAttribute{
-									Description: "Name",
-									Computed:    true,
+									Description:         "Security group name.",
+									MarkdownDescription: "Security group name.",
+									Computed:            true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-						Description: "Server group ID",
-						Computed:    true,
+						Description:         "Server group ID.",
+						MarkdownDescription: "Server group ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ServerType"): schema.SingleNestedAttribute{
-						Description: "Server type",
-						Computed:    true,
+						Description:         "Server type information.",
+						MarkdownDescription: "Server type information.",
+						Computed:            true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("Disk"): schema.Int32Attribute{
-								Description: "Disk",
-								Computed:    true,
+								Description:         "Disk size (GB).",
+								MarkdownDescription: "Disk size (GB).",
+								Computed:            true,
 							},
 							common.ToSnakeCase("Ephemeral"): schema.Int32Attribute{
-								Description: "Ephemeral",
-								Computed:    true,
+								Description:         "Ephemeral disk size (GB).",
+								MarkdownDescription: "Ephemeral disk size (GB).",
+								Computed:            true,
 							},
 							common.ToSnakeCase("ExtraSpecs"): schema.MapAttribute{
-								Description: "Extra specs",
-								Computed:    true,
-								ElementType: types.StringType,
+								Description:         "Extra specifications.",
+								MarkdownDescription: "Extra specifications.",
+								Computed:            true,
+								ElementType:         types.StringType,
 							},
 							common.ToSnakeCase("Id"): schema.StringAttribute{
-								Description: "ID",
-								Computed:    true,
+								Description:         "Server type ID.",
+								MarkdownDescription: "Server type ID.",
+								Computed:            true,
 							},
 							common.ToSnakeCase("Name"): schema.StringAttribute{
-								Description: "Name",
-								Computed:    true,
+								Description:         "Server type name.",
+								MarkdownDescription: "Server type name.",
+								Computed:            true,
 							},
 							common.ToSnakeCase("Ram"): schema.Int32Attribute{
-								Description: "Ram",
-								Computed:    true,
+								Description:         "RAM size (MB).",
+								MarkdownDescription: "RAM size (MB).",
+								Computed:            true,
 							},
 							common.ToSnakeCase("Swap"): schema.Int32Attribute{
-								Description: "Swap",
-								Computed:    true,
+								Description:         "Swap size (MB).",
+								MarkdownDescription: "Swap size (MB).",
+								Computed:            true,
 							},
 							common.ToSnakeCase("Vcpus"): schema.Int32Attribute{
-								Description: "Vcpus",
-								Computed:    true,
+								Description:         "Number of vCPUs.",
+								MarkdownDescription: "Number of vCPUs.",
+								Computed:            true,
 							},
 						},
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description:         "Server state.",
+						MarkdownDescription: "Server state.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Volumes"): schema.ListNestedAttribute{
-						Description: "Volumes",
-						Computed:    true,
+						Description:         "Attached volume list.",
+						MarkdownDescription: "Attached volume list.",
+						Computed:            true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("DeleteOnTermination"): schema.BoolAttribute{
-									Description: "Delete on termination",
-									Computed:    true,
+									Description:         "Whether to delete volume when server is terminated.",
+									MarkdownDescription: "Whether to delete volume when server is terminated.",
+									Computed:            true,
 								},
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "ID",
-									Computed:    true,
+									Description:         "Volume ID.",
+									MarkdownDescription: "Volume ID.",
+									Computed:            true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "Vpc ID",
-						Computed:    true,
+						Description:         "VPC ID.",
+						MarkdownDescription: "VPC ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("PartitionNumber"): schema.Int32Attribute{
-						Description: "Partition Number",
-						Computed:    true,
+						Description:         "Partition number.",
+						MarkdownDescription: "Partition number.",
+						Computed:            true,
 					},
 				},
 			},

@@ -3,18 +3,19 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -43,116 +44,149 @@ func (r *loadbalancerLoadbalancerResource) Metadata(_ context.Context, req resou
 // Schema defines the schema for the data source.
 func (r *loadbalancerLoadbalancerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Loadbalancer.",
+		Description: "LoadBalancer resource for distributing traffic.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the resource.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Loadbalancer"): schema.SingleNestedAttribute{
-				Description: "A detail of Loadbalancer.",
+				Description: "Details of the LoadBalancer.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID",
-						Optional:    true,
+						Description: "The account ID associated with the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : LoadBalancer for web traffic\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID",
-						Computed:    true,
+						Description: "The unique identifier.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LayerType"): schema.StringAttribute{
-						Description: "Layer type",
-						Optional:    true,
+						Description: "The layer type of the Load Balancer.\n" +
+							"  - example : L7\n" +
+							"  - pattern : L4 | L7\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the LoadBalancer.\n" +
+							"  - example : LoadBalancer01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Optional:    true,
+						Description: "The current state of the Load Balancer.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "Subnet ID",
-						Optional:    true,
+						Description: "The subnet ID where the LoadBalancer is deployed.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VPC ID",
-						Optional:    true,
+						Description: "The VPC ID where the LoadBalancer is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 				},
 			},
 			common.ToSnakeCase("LoadbalancerCreate"): schema.SingleNestedAttribute{
-				Description: "Create Loadbalancer.",
+				Description: "Parameters for creating a new LoadBalancer.",
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : LoadBalancer for web traffic\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("FirewallEnabled"): schema.BoolAttribute{
-						Description: "FirewallEnabled",
-						Optional:    true,
+						Description: "Whether firewall is enabled.\n" +
+							"  - example : true\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("FirewallLoggingEnabled"): schema.BoolAttribute{
-						Description: "FirewallLoggingEnabled",
-						Optional:    true,
+						Description: "Whether firewall logging is enabled.\n" +
+							"  - example : true\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LayerType"): schema.StringAttribute{
-						Description: "LayerType",
-						Optional:    true,
+						Description: "The layer type of the Load Balancer.\n" +
+							"  - example : L7\n" +
+							"  - pattern : L4 | L7\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the LoadBalancer.\n" +
+							"  - example : LoadBalancer01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ServiceIp"): schema.StringAttribute{
-						Description: "ServiceIp",
-						Optional:    true,
+						Description: "The service IP address.\n" +
+							"  - example : 192.168.0.1\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Optional:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Optional:    true,
+						Description: "The VPC ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SourceNatIp"): schema.StringAttribute{
-						Description: "SourceNatIp",
-						Optional:    true,
+						Description: "The source NAT IP address.\n" +
+							"  - example : 192.168.0.1\n",
+						Optional: true,
 					},
 					"health_check_ip_1": schema.StringAttribute{
-						Description: "HealthCheckIp1",
-						Optional:    true,
+						Description: "The first health check IP address.\n" +
+							"  - example : 192.168.0.1\n",
+						Optional: true,
 					},
 					"health_check_ip_2": schema.StringAttribute{
-						Description: "HealthCheckIp2",
-						Optional:    true,
+						Description: "The second health check IP address.\n" +
+							"  - example : 192.168.0.2\n",
+						Optional: true,
 					},
 				},
 			},

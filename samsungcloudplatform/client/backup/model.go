@@ -2,7 +2,7 @@ package backup
 
 import (
 	"context"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -15,7 +15,6 @@ type BackupDataSourceIds struct {
 	ServerName types.String    `tfsdk:"server_name"`
 	Filter     []filter.Filter `tfsdk:"filter"`
 	Ids        []types.String  `tfsdk:"ids"`
-	Region     types.String    `tfsdk:"region"`
 }
 
 type BackupDataSource struct {
@@ -24,7 +23,6 @@ type BackupDataSource struct {
 	ServerName types.String    `tfsdk:"server_name"`
 	Filter     []filter.Filter `tfsdk:"filter"`
 	Backup     types.Object    `tfsdk:"backup"`
-	Region     types.String    `tfsdk:"region"`
 }
 
 type BackupResource struct {
@@ -38,7 +36,6 @@ type BackupResource struct {
 	RetentionPeriod types.String `tfsdk:"retention_period"`
 	Schedules       []Schedule   `tfsdk:"schedules"`
 	Tags            types.Map    `tfsdk:"tags"`
-	Region          types.String `tfsdk:"region"`
 }
 
 type Schedule struct {

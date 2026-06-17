@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/virtualserver/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -41,138 +42,197 @@ func (r *virtualServerImageResource) Metadata(_ context.Context, req resource.Me
 
 func (r *virtualServerImageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "image",
+		Description: "Image resource.\n\n" +
+			"**Image Creation Methods:**\n" +
+			"- URL-based creation: Specify the URL of a qcow2 image file uploaded to Object Storage\n" +
+			"- Server snapshot: Create an image from an existing server snapshot (specify instance_id)\n\n",
+		MarkdownDescription: "Image resource for virtual servers.\n\n" +
+			"**Image Creation Methods:**\n" +
+			"- URL-based creation: Specify the URL of a qcow2 image file uploaded to Object Storage\n" +
+			"- Server snapshot: Create an image from an existing server snapshot (specify instance_id)\n\n",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Resource ID.",
+				MarkdownDescription: "Resource ID.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("InstanceId"): schema.StringAttribute{
-				Description: "Instance Id",
-				Optional:    true,
+				Description: "Server ID. Specify when creating an image from an existing server.\n" +
+					"  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f\n" +
+					"  - note: Do not specify when creating an image via URL.",
+				MarkdownDescription: "Server ID. Specify when creating an image from an existing server.\n" +
+					"  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f\n" +
+					"  - note: Do not specify when creating an image via URL.",
+				Optional: true,
 			},
 			common.ToSnakeCase("Volumes"): schema.StringAttribute{
-				Description: "Volumes",
-				Computed:    true,
+				Description:         "Volume information.",
+				MarkdownDescription: "Volume information.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Checksum"): schema.StringAttribute{
-				Description: "Checksum",
-				Computed:    true,
+				Description:         "MD5 checksum of image data. Used for image integrity verification.",
+				MarkdownDescription: "MD5 checksum of image data. Used for image integrity verification.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ContainerFormat"): schema.StringAttribute{
-				Description: "Container format",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Container format.",
+				MarkdownDescription: "Container format.\n  - example: bare",
+				Optional:            true,
+				Computed:            true,
 			},
 			common.ToSnakeCase("DiskFormat"): schema.StringAttribute{
-				Description: "Disk format",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Disk format.",
+				MarkdownDescription: "Disk format.\n  - example: qcow2",
+				Optional:            true,
+				Computed:            true,
 			},
 			common.ToSnakeCase("File"): schema.StringAttribute{
-				Description: "File",
-				Computed:    true,
+				Description:         "Image file URL.",
+				MarkdownDescription: "Image file URL.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("MinDisk"): schema.Int32Attribute{
-				Description: "Min disk",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Minimum disk size (GB).",
+				MarkdownDescription: "Minimum disk size (GB).\n  - example: 100",
+				Optional:            true,
+				Computed:            true,
 			},
 			common.ToSnakeCase("MinRam"): schema.Int32Attribute{
-				Description: "Min ram",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Minimum RAM size (MB).",
+				MarkdownDescription: "Minimum RAM size (MB).\n  - example: 2048",
+				Optional:            true,
+				Computed:            true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Required:    true,
+				Description: "Image name.\n" +
+					"  - example: ubuntu-22.04\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				MarkdownDescription: "Image name.\n" +
+					"  - example: ubuntu-22.04\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				Required: true,
 			},
 			common.ToSnakeCase("OsDistro"): schema.StringAttribute{
-				Description: "OS Distro",
-				Optional:    true,
-				Computed:    true,
+				Description: "OS distribution.\n" +
+					"  - example: ubuntu\n" +
+					"  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle",
+				MarkdownDescription: "OS distribution.\n" +
+					"  - example: ubuntu\n" +
+					"  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("OsHashAlgo"): schema.StringAttribute{
-				Description: "OS Hash algo",
-				Computed:    true,
+				Description:         "Hash algorithm for image integrity verification.",
+				MarkdownDescription: "Hash algorithm for image integrity verification.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("OsHashValue"): schema.StringAttribute{
-				Description: "OS Hash value",
-				Computed:    true,
+				Description:         "Hash value of image binary.",
+				MarkdownDescription: "Hash value of image binary.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("OsHidden"): schema.BoolAttribute{
-				Description: "OS hidden",
-				Computed:    true,
+				Description:         "Image hidden status.",
+				MarkdownDescription: "Image hidden status.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Owner"): schema.StringAttribute{
-				Description: "Owner",
-				Computed:    true,
+				Description:         "Owner account ID.",
+				MarkdownDescription: "Owner account ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("OwnerAccountName"): schema.StringAttribute{
-				Description: "Owner account name",
-				Computed:    true,
+				Description:         "Owner account name.",
+				MarkdownDescription: "Owner account name.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("OwnerUserName"): schema.StringAttribute{
-				Description: "Owner user name",
-				Computed:    true,
+				Description:         "Owner user name.",
+				MarkdownDescription: "Owner user name.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Protected"): schema.BoolAttribute{
-				Description: "Protected",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Deletion protection. When set to true, prevents image deletion.",
+				MarkdownDescription: "Deletion protection. When set to true, prevents image deletion.\n  - example: false",
+				Optional:            true,
+				Computed:            true,
 			},
 			common.ToSnakeCase("RootDeviceName"): schema.StringAttribute{
-				Description: "Root device name",
-				Computed:    true,
+				Description:         "Root device name.",
+				MarkdownDescription: "Root device name.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ScpImageType"): schema.StringAttribute{
-				Description: "SCP Image type",
-				Computed:    true,
+				Description:         "SCP image type.",
+				MarkdownDescription: "SCP image type.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ScpK8sVersion"): schema.StringAttribute{
-				Description: "SCP K8s version",
-				Computed:    true,
+				Description:         "K8S version. Only has value for K8S images.",
+				MarkdownDescription: "K8S version. Only has value for K8S images.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ScpOriginalImageType"): schema.StringAttribute{
-				Description: "SCP original Image type",
-				Computed:    true,
+				Description:         "Original image type.",
+				MarkdownDescription: "Original image type.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ScpOsVersion"): schema.StringAttribute{
-				Description: "SCP OS version",
-				Computed:    true,
+				Description:         "OS version.",
+				MarkdownDescription: "OS version.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Size"): schema.Int64Attribute{
-				Description: "Size",
-				Computed:    true,
+				Description:         "Image size (bytes).",
+				MarkdownDescription: "Image size (bytes).",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Status"): schema.StringAttribute{
-				Description: "Status",
-				Computed:    true,
+				Description:         "Image status.",
+				MarkdownDescription: "Image status.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("VirtualSize"): schema.Int64Attribute{
-				Description: "Virtual size",
-				Computed:    true,
+				Description:         "Virtual disk size (bytes).",
+				MarkdownDescription: "Virtual disk size (bytes).",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Visibility"): schema.StringAttribute{
-				Description: "Visibility",
-				Optional:    true,
-				Computed:    true,
+				Description: "Image visibility.\n" +
+					"  - example: private\n" +
+					"  - Available values: shared, private",
+				MarkdownDescription: "Image visibility.\n" +
+					"  - example: private\n" +
+					"  - Available values: shared, private",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("Url"): schema.StringAttribute{
-				Description: "Url",
-				Optional:    true,
-				Computed:    true,
+				Description: "Object Storage URL. Only qcow2 format is allowed.\n" +
+					"  - example: https://object-store.kr-west1.s.samsungsdscloud.com/bucket/image.qcow2\n" +
+					"  - note: Specify only when creating an image via URL.",
+				MarkdownDescription: "Object Storage URL. Only qcow2 format is allowed.\n" +
+					"  - example: https://object-store.kr-west1.s.samsungsdscloud.com/bucket/image.qcow2\n" +
+					"  - note: Specify only when creating an image via URL.",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created at",
-				Computed:    true,
+				Description:         "Creation timestamp.",
+				MarkdownDescription: "Creation timestamp.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("UpdatedAt"): schema.StringAttribute{
-				Computed:    true,
-				Description: "Updated at",
+				Description:         "Update timestamp.",
+				MarkdownDescription: "Update timestamp.",
+				Computed:            true,
 			},
 			"tags": tag.ResourceSchema(),
 		},
@@ -495,4 +555,12 @@ func (r *virtualServerImageResource) Delete(ctx context.Context, req resource.De
 		)
 		return
 	}
+}
+
+func (r *virtualServerImageResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

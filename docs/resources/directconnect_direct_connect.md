@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_directconnect_direct_connect Resource - samsungcloudplatformv2"
 subcategory: Direct Connect
 description: |-
-  direct connect
+  Direct Connect for connect between a customer's premises and a vpc.
 ---
 
 # samsungcloudplatformv2_directconnect_direct_connect (Resource)
 
-direct connect
+Direct Connect for connect between a customer's premises and a vpc.
 
 ## Example Usage
 
@@ -54,22 +54,22 @@ variable "dcon_description" {
 
 ### Required
 
-- `bandwidth` (Number) Type 
+- `bandwidth` (Number) The bandwidth capacity(1Gpbs, 10Gpbs, 20Gpbs or 40Gpbs) of the connection.
   - example : 1 | 10 | 20 | 40
-- `name` (String) Direct Connect Name 
-  - example : directConnectName
-- `vpc_id` (String) VPC ID 
-  - example: YOUR RESOURCE'S VPC_ID
+- `name` (String) The name of the direct connect.
+- example : directConnectName
+- `vpc_id` (String) The identifier of the VPC that the direct connect belongs to.
+- example: YOUR RESOURCE'S VPC_ID
 
 ### Optional
 
-- `description` (String) Description
+- `description` (String) Enter a brief explanation or note about this direct connect. This help identify the purpose or usage of the resource. 
   - example : Direct Connect description
   - maxLength : 50
   - minLength : 1
-- `firewall_enabled` (Boolean) Firewall Enabled 
+- `firewall_enabled` (Boolean) Whether the firewall is enabled for the direct connect.(firewall Enable : true, firewall Diable : false)
   - example : true | false
-- `firewall_loggable` (Boolean) Firewall Loggable 
+- `firewall_loggable` (Boolean) Whether firewall logging is enabled for the direct connect.(firewall logging Enable : true, firewall logging Diable : false) 
   - example : true | false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -78,23 +78,39 @@ variable "dcon_description" {
 ### Read-Only
 
 - `direct_connect` (Attributes) DirectConnect (see [below for nested schema](#nestedatt--direct_connect))
-- `id` (String) Identifier of the resource.
+- `id` (String) Identifier of the direct connect.
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--direct_connect"></a>
 ### Nested Schema for `direct_connect`
 
 Read-Only:
 
-- `account_id` (String) account id
-- `bandwidth` (Number) bandwidth
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `description` (String) description
-- `firewall_id` (String) firewall id
-- `id` (String) id
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `name` (String) name
-- `state` (String) state
-- `vpc_id` (String) vpc id
-- `vpc_name` (String) vpc name
+- `account_id` (String) The identifier of the account that owns the direct connect.
+   - example: YOUR RESOURCE'S ACCOUNT_ID
+- `bandwidth` (Number) The bandwidth capacity(1Gpbs, 10Gpbs, 20Gpbs or 40Gpbs) of the connection.
+  - example : 1 | 10 | 20 | 40
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this direct connect. This help identify the purpose or usage of the resource. 
+  - example : Direct Connect description
+  - maxLength : 50
+  - minLength : 1
+- `firewall_id` (String) The identifier of the firewall associated with the direct connect.
+  - example: YOUR RESOURCE'S FIREWALL_ID
+- `id` (String) Identifier of the direct connect.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the direct connect.
+  - example : directConnectName
+- `state` (String) The current lifecycle state of the direct connect. 
+  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
+- `vpc_id` (String) The identifier of the VPC that the direct connect belongs to.
+- example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the direct connect belongs to.
+  - example : vpc-prod-01

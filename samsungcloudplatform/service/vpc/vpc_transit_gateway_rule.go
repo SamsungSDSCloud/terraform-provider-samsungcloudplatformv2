@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -47,19 +47,20 @@ func (v *vpcTgwRuleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 		Description: "Transit gateway rule",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the transit gateway rule.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("TransitGatewayId"): schema.StringAttribute{
-				Description: "Transit Gateway Id ID \n" +
+				Description: "The identifier of the transit gateway that the rule belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
+				Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
 					"  - example : Routing Rule description\n" +
 					"  - maxLength : 50",
 				Optional: true,
@@ -67,17 +68,17 @@ func (v *vpcTgwRuleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Default:  stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-				Description: "Destination CIDR \n" +
+				Description: "The destination IP address range in CIDR notation.\n" +
 					"  - example : 10.10.10.0/24",
 				Required: true,
 			},
 			common.ToSnakeCase("DestinationType"): schema.StringAttribute{
-				Description: "Destination Type \n" +
+				Description: "The type of the destination.\n" +
 					"  - example : VPC | TGW",
 				Required: true,
 			},
 			common.ToSnakeCase("TgwConnectionVpcId"): schema.StringAttribute{
-				Description: "Tgw Connection Vpc ID \n" +
+				Description: "The identifier of the VPC that the transit gateway connection belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
@@ -86,72 +87,90 @@ func (v *vpcTgwRuleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the routing rule.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
-					},
-					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
-					},
+                        Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+                            "  - example : 2024-05-17T00:23:17Z",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+                        Description: "The user id that created the resource.\n" +
+                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+                        Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+                            "  - example : 2024-05-17T00:23:17Z",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+                        Description: "The user id that modified the resource.\n" +
+                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                        Computed: true,
+                    },
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
+							"  - example : resourceDescription",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-						Description: "DestinationCidr",
-						Computed:    true,
+						Description: "The destination IP address range in CIDR notation.\n" +
+							"  - example : 10.10.10.0/24",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationResourceId"): schema.StringAttribute{
-						Description: "DestinationResourceId",
-						Computed:    true,
+						Description: "The identifier of the destination resource.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationResourceName"): schema.StringAttribute{
-						Description: "DestinationResourceName",
-						Computed:    true,
+						Description: "The name of the destination resource.\n" +
+							"  - example : resourcaName",
+						Computed: true,
 					},
 					common.ToSnakeCase("DestinationType"): schema.StringAttribute{
-						Description: "DestinationType",
-						Computed:    true,
+						Description: "The type of the destination.\n" +
+							"  - example : ON-PREM | VPC",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "id",
-						Computed:    true,
-					},
-					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
-					},
-					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The unique identifier of the routing rule.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("SourceResourceId"): schema.StringAttribute{
-						Description: "SourceResourceId",
-						Computed:    true,
+						Description: "The identifier of the source resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("SourceResourceName"): schema.StringAttribute{
-						Description: "SourceResourceName",
-						Computed:    true,
+						Description: "The name of the source resource.\n" +
+							"  - example : resourcaName",
+						Computed: true,
 					},
 					common.ToSnakeCase("SourceType"): schema.StringAttribute{
-						Description: "SourceType",
-						Computed:    true,
+						Description: "The type of the source.\n" +
+							"  - enum :VPC, TGW\n" +
+							"  - example:VPC",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current lifecycle state of the routing rule.\n" +
+							"  - example : ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("TgwConnectionVpcId"): schema.StringAttribute{
-						Description: "TgwConnectionVpcId",
-						Computed:    true,
+						Description: "The identifier of the VPC that the transit gateway connection belongs to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("TgwConnectionVpcName"): schema.StringAttribute{
-						Description: "TgwConnectionVpcName",
-						Computed:    true,
+						Description: "The name of the VPC that the transit gateway connection belongs to.\n" +
+							"  - example : resourceName",
+						Computed: true,
 					},
 				},
 			},
@@ -336,5 +355,5 @@ func waitForRoutingRuleStatus(ctx context.Context, routingRuleClient *vpc.Client
 			return info, "DELETED", nil
 		}
 		return info, string(info.TransitGatewayRules[0].State), nil
-	})
+	}, -1, -1, -1, -1)
 }

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -43,86 +43,104 @@ func (d *iamAccessKeyDataSource) Metadata(_ context.Context, req datasource.Meta
 // Schema defines the schema for the data source.
 func (d *iamAccessKeyDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of access key.",
+		Description: "Show IAM Access Keys",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit (between 1 and 10000)",
-				Optional:    true,
+				Description: "Maximum number of results to return.\n" +
+					"  - example : 100\n" +
+					"  - min: 1, max: 10000",
+				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker (between 1 and 64 characters)",
-				Optional:    true,
+				Description: "Marker for pagination (cursor for next page of results).\n" +
+					"  - example : 'page-2'",
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 64),
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "Sort order for results (e.g., 'createdAt,desc').\n" +
+					"  - example : 'createdAt,desc'",
+				Optional: true,
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "Account Id",
-				Optional:    true,
+				Description: "Account ID to filter access keys.\n" +
+					"  - example : '123456789012'",
+				Optional: true,
 			},
 			common.ToSnakeCase("AccessKeys"): schema.ListNestedAttribute{
-				Description: "A list of access key.",
+				Description: "A list of access keys.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("AccessKey"): schema.StringAttribute{
-							Description: "AccessKey",
-							Computed:    true,
+							Description: "The access key string value.\n" +
+								"  - example : 'ak-example-access-key-id'",
+							Computed: true,
 						},
 						common.ToSnakeCase("AccessKeyType"): schema.StringAttribute{
-							Description: "AccessKeyType",
-							Computed:    true,
+							Description: "Type of access key determining its expiration policy.\n" +
+								"  - example : 'PERMANENT' | 'TEMPORARY' | 'SECRET_VAULT_TEMPORARY'",
+							Computed: true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Computed:    true,
+							Description: "Account ID that owns the access key.\n" +
+								"  - example : '123456789012'",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
+							Description: "Timestamp when the access key was created.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Computed:    true,
+							Description: "User who created the access key.\n" +
+								"  - example : 'user@example.com'",
+							Computed: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Computed:    true,
+							Description: "Human-readable description of the access key.\n" +
+								"  - example : 'My Access Key'",
+							Computed: true,
 						},
 						common.ToSnakeCase("ExpirationTimestamp"): schema.StringAttribute{
-							Description: "ExpirationTimestamp",
-							Computed:    true,
+							Description: "Timestamp when the access key expires (for temporary keys).\n" +
+								"  - example : '2024-01-02T00:00:00Z'",
+							Computed: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
+							Description: "Unique identifier of the access key.\n" +
+								"  - example : '12345678-1234-1234-1234-1234567890ab'",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
+							Description: "Timestamp when the access key was last modified.\n" +
+								"  - example : '2024-01-01T00:00:00Z'",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Computed:    true,
+							Description: "User who last modified the access key.\n" +
+								"  - example : 'user@example.com'",
+							Computed: true,
 						},
 						common.ToSnakeCase("ParentAccessKeyId"): schema.StringAttribute{
-							Description: "ParentAccessKeyId",
-							Computed:    true,
+							Description: "Parent access key ID if this is a derived key.\n" +
+								"  - example : '12345678-1234-1234-1234-1234567890ab'",
+							Computed: true,
 						},
 						common.ToSnakeCase("SecretKey"): schema.StringAttribute{
-							Description: "SecretKey",
-							Computed:    true,
+							Description: "The secret key string value.\n" +
+								"  - example : 'sk-example-secret-key-value'",
+							Computed: true,
 						},
 						common.ToSnakeCase("IsEnabled"): schema.BoolAttribute{
-							Description: "Is enabled",
-							Computed:    true,
+							Description: "Whether the access key is enabled/active.\n" +
+								"  - example : true",
+							Computed: true,
 						},
 					},
 				},

@@ -36,7 +36,8 @@ variable "id" {
 
 ### Required
 
-- `id` (String) Id
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -47,64 +48,56 @@ variable "id" {
 
 Read-Only:
 
-- `account_id` (String) AccountId 
+- `account_id` (String) The account ID associated with the resource.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `created_at` (String) CreatedAt 
- - example : 2024-05-17T00:23:17Z
-- `created_by` (String) CreatedBy 
- - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Description 
- - example : Example Description for VPN Tunnel
-- `id` (String) Id 
- - example: YOUR RESOURCE'S ID
-- `modified_at` (String) ModifiedAt 
- - example : 2024-05-17T00:23:17Z
-- `modified_by` (String) ModifiedBy 
- - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) Name 
- - example: ExampleVpnTunnel1
-- `phase1` (Attributes) Phase1 (see [below for nested schema](#nestedatt--vpn_tunnel--phase1))
-- `phase2` (Attributes) Phase2 (see [below for nested schema](#nestedatt--vpn_tunnel--phase2))
-- `state` (String) State 
- - example: ACTIVE
-- `status` (String) Status 
- - example : DOWN
-- `vpc_id` (String) VpcId
- - example: YOUR RESOURCE'S VPC_ID
-- `vpc_name` (String) VpcName 
- - example: ExampleVPC1
-- `vpn_gateway_id` (String) VpnGatewayId 
-- example: YOUR RESOURCE'S VPN_GATEWAY_ID
-- `vpn_gateway_ip_address` (String) VpnGatewayIpAddress 
- - example: 123.0.0.1
-- `vpn_gateway_name` (String) VpnGatewayName 
- - example: ExampleVpnGW1
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example: 2025-01-15T10:30:00Z
+- `created_by` (String) The user ID that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) A brief explanation or note about this resource.
+  - example: VPN test
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example: 2025-06-01T14:22:00Z
+- `modified_by` (String) The user ID that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the resource.
+  - example: vpnGWProd
+- `phase1` (Attributes) The IKE phase 1 negotiation settings of the VPN tunnel. (see [below for nested schema](#nestedatt--vpn_tunnel--phase1))
+- `phase2` (Attributes) The IKE phase 2 negotiation settings of the VPN tunnel. (see [below for nested schema](#nestedatt--vpn_tunnel--phase2))
+- `state` (String) The current state of the resource.
+  - example: ACTIVE
+- `status` (String) The current status of the vpn tunnel.
+  - example: UP
+- `vpc_id` (String) The identifier of the VPC that the resource belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the resource belongs to.
+  - example: vpcProd01
+- `vpn_gateway_id` (String) The identifier of the VPN gateway that the resource belongs to.
+  - example: YOUR RESOURCE'S VPN_GATEWAY_ID
+- `vpn_gateway_ip_address` (String) The IP address of the VPN gateway.
+  - example: 10.0.0.0/24
+- `vpn_gateway_name` (String) The name of the VPN gateway that the resource belongs to.
+  - example: vpnGWProd
 
 <a id="nestedatt--vpn_tunnel--phase1"></a>
 ### Nested Schema for `vpn_tunnel.phase1`
 
 Read-Only:
 
-- `diffie_hellman_groups` (List of Number) VPN Tunnel ISAKMP Diffie-Hellman Group 목록 
- - example : [
-   "30",
-    "31",
-   "32"
-  ]
-- `dpd_retry_interval` (Number) DpdRetryInterval 
- - example: 60
-- `encryptions` (List of String) VPN Tunnel ISAKMP Proposal 목록 
- - example : [
-   "null-md5",
-    "aes128gcm",
-   "chacha20poly1305"
-  ]
-- `ike_version` (Number) IkeVersion 
- - example: 2
-- `life_time` (Number) LifeTime 
- - example: 86400
-- `peer_gateway_ip` (String) PeerGatewayIp 
- - example: 123.0.0.2
+- `diffie_hellman_groups` (List of Number) The list of Diffie-Hellman groups for IKE phase 1.
+  - example: [30, 31, 32]
+- `dpd_retry_interval` (Number) The Dead Peer Detection retry interval in seconds.
+  - example: 60
+- `encryptions` (List of String) The list of encryption algorithms for IKE phase 1.
+  - example: ["null-md5", "aes128gcm", "chacha20poly1305"]
+- `ike_version` (Number) The IKE (Internet Key Exchange) protocol version.
+  - example: 2
+- `life_time` (Number) The lifetime of the IKE phase 1 security association in seconds.
+  - example: 86400
+- `peer_gateway_ip` (String) The IP address of the peer VPN gateway.
+  - example: 123.0.0.2
 
 
 <a id="nestedatt--vpn_tunnel--phase2"></a>
@@ -112,25 +105,13 @@ Read-Only:
 
 Read-Only:
 
-- `diffie_hellman_groups` (List of Number) VPN Tunnel ISAKMP Diffie-Hellman Group 목록 
- - example : [
-   "30",
-    "31",
-   "32"
-  ]
-- `encryptions` (List of String) VPN Tunnel ISAKMP Proposal 목록 
- - example : [
-   "null-md5",
-    "aes128gcm",
-   "chacha20poly1305"
-  ]
-- `life_time` (Number) LifeTime 
- - example: 86400
-- `perfect_forward_secrecy` (String) PerfectForwardSecrecy 
- - example: ENABLE
-- `remote_subnets` (List of String) VPN Tunnel IPSec Remote Subnets 
- - example : [
-   "10.1.1.0/24",
-    "10.1.2.0/24",
-   "10.1.3.0/24"
-  ]
+- `diffie_hellman_groups` (List of Number) The list of Diffie-Hellman groups for IKE phase 2.
+  - example: [30, 31, 32]
+- `encryptions` (List of String) The list of encryption algorithms for IKE phase 2.
+  - example: ["null-md5", "aes128gcm", "chacha20poly1305"]
+- `life_time` (Number) The lifetime of the IKE phase 2 security association in seconds.
+  - example: 86400
+- `perfect_forward_secrecy` (String) The Perfect Forward Secrecy setting for IKE phase 2.
+  - example: ENABLE
+- `remote_subnets` (List of String) The list of remote subnets for IKE phase 2.
+  - example: ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]

@@ -3,10 +3,10 @@ package network_logging
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/networklogging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/networklogging"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -46,18 +46,20 @@ func (r *networkLoggingNetworkLoggingStorageResource) Schema(_ context.Context, 
 		Description: "Network logging storage",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
+				Description: "Identifier of the Resource. \n" +
+				    "  - example : 026ee708da3748a28fca4b8fed43d7ce",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "AccountId",
+				Description: "Identifier of the Account. \n" +
+			    	"  - example : 232a7dbfb3df46ae81dc11a59fc058b0",
 				Computed:    true,
 			},
 			common.ToSnakeCase("ResourceType"): schema.StringAttribute{
-				Description: "ResourceType \n" +
+				Description: "Type of the Resource. \n" +
 					"  - example : FIREWALL | SECURITY_GROUP | NAT",
 				Required: true,
 				Validators: []validator.String{
@@ -65,24 +67,28 @@ func (r *networkLoggingNetworkLoggingStorageResource) Schema(_ context.Context, 
 				},
 			},
 			common.ToSnakeCase("BucketName"): schema.StringAttribute{
-				Description: "BucketName \n" +
+				Description: "Name of the Bucket. \n" +
 				    "  - example : bucket_name",
 				Required:    true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "CreatedAt",
+				Description: "The timestamp when the resource was created, in ISO 8601 format. \n" +
+                   	"  - example : 2024-05-17T00:23:17Z",
 				Computed:    true,
 			},
 			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description: "CreatedBy",
+				Description: "The user id that created the resource. \n" +
+                  	"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 				Computed:    true,
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-				Description: "ModifiedAt",
+				Description: "The timestamp when the resource was last modified, in ISO 8601 format. \n" +
+                   	"  - example : 2024-05-17T00:23:17Z",
 				Computed:    true,
 			},
 			common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-				Description: "ModifiedBy",
+				Description: "The user id that last modified the resource. \n" +
+                    "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 				Computed:    true,
 			},
 		},

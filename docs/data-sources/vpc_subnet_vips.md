@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_subnet_vips Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  Get list Subnet Vip
+  A list of Subnet Vip
 ---
 
 # samsungcloudplatformv2_vpc_subnet_vips (Data Source)
 
-Get list Subnet Vip
+A list of Subnet Vip
 
 ## Example Usage
 
@@ -72,28 +72,29 @@ variable "public_ip_address" {
 
 ### Required
 
-- `subnet_id` (String) Subnet Id 
+- `subnet_id` (String) The identifier of the subnet that the subnet vip belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
 
 ### Optional
 
-- `page` (Number) page 
+- `page` (Number) The page number for pagination.
   - example : 0 
   - minimum : 0
-- `public_ip_address` (String) Public IP Address 
+- `public_ip_address` (String) The ip address of the Public IP Address 
   - example : 100.112.9.84
-- `size` (Number) size 
+- `size` (Number) The number of items per page.
   - example : 20 
   - minimum : 0
-- `sort` (String) sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order.
   - example : created_at:desc
-- `virtual_ip_address` (String) Virtual IP Address 
+- `virtual_ip_address` (String) The virtual IP address assigned to the resource.
   - example : 192.168.20.6
 
 ### Read-Only
 
 - `subnet_vips` (Attributes List) List of Subnet Vips (see [below for nested schema](#nestedatt--subnet_vips))
-- `total_count` (Number) count
+- `total_count` (Number) The count of Subnet Vips.
+  - example : 2
 
 <a id="nestedatt--subnet_vips"></a>
 ### Nested Schema for `subnet_vips`
@@ -104,15 +105,23 @@ Optional:
 
 Read-Only:
 
-- `connected_port_count` (Number) Connected Port Count
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `id` (String) Subnet Vip Id
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `state` (String) State 
+- `connected_port_count` (Number) The count of connected ports
+  - example : 2
+- `created_at` (String) The timestamp when the subnet vip was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the subnet vip.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) The unique identifier of the subnet vip.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the subnet vip was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the subnet vip.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `state` (String) The current lifecycle state of the subnet vip.
   - enum : CREATING, ACTIVE, DELETING, DELETED, ERROR
-- `virtual_ip_address` (String) Virtual IP Address
+  - example : ACTIVE
+- `virtual_ip_address` (String) The virtual IP address assigned to the subnet vip.
+  - example : 192.168.0.1
 
 <a id="nestedatt--subnet_vips--static_nat"></a>
 ### Nested Schema for `subnet_vips.static_nat`
@@ -120,6 +129,10 @@ Read-Only:
 Read-Only:
 
 - `external_ip_address` (String) Static Nat External Ip Address
-- `id` (String) Static Nat Id
-- `publicip_id` (String) Publicip ID
-- `state` (String) Static Nat State
+  - example : 192.168.0.1
+- `id` (String) The unique identifier of the static nat.
+  - example: YOUR RESOURCE'S ID
+- `publicip_id` (String) The identifier of the public IP address.
+  - example: YOUR RESOURCE'S PUBLICIP_ID
+- `state` (String) The current lifecycle state of the static nat.
+  - example : ACTIVE

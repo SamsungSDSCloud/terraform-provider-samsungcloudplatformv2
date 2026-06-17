@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,38 +40,38 @@ func (r *VPCSubnetVipNatIpResource) Metadata(_ context.Context, req resource.Met
 // Schema defines the schema for the resource.
 func (r *VPCSubnetVipNatIpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "VPC Subnet VIP NAT IP",
+		Description: "Resource of Subnet VIP's NAT IP",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID \n" +
+				Description: "The identifier of the subnet that the subnet vip nat ip belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
 			},
 			common.ToSnakeCase("VipId"): schema.StringAttribute{
-				Description: "Subnet Vip Id \n" +
+				Description: "The unique identifier of the subnet vip.\n" +
 					"  - example : 0466a9448d9a4411a86055939e451c8f",
 				Required: true,
 			},
 			common.ToSnakeCase("PublicipId"): schema.StringAttribute{
-				Description: "Publicip ID \n" +
+				Description: "The identifier of the public IP address.\n" +
 					"  - example : 12f56e27070248a6a240a497e43fbe18",
 				Required: true,
 			},
 			common.ToSnakeCase("NatType"): schema.StringAttribute{
-				Description: "NAT Type \n" +
+				Description: "The type of the NAT.\n" +
 					"  - example : PUBLIC",
 				Required: true,
 			},
 
 			// Output
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Static Nat Id \n" +
+				Description: "The unique identifier of the static nat ip.\n" +
 					"  - example : 0009e49548154745948e9722adefbf40",
 				Computed: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "Static Nat State \n" +
+				Description: "The current lifecycle state of the static nat.\n" +
 					"  - example : ACTIVE",
 				Computed: true,
 			},
@@ -241,5 +241,5 @@ func waitForVpcSubnetNatIpStatus(ctx context.Context, vpcClient *vpcv1d2.Client,
 			}
 		}
 		return info, "DELETED", nil
-	})
+	}, -1, -1, -1, -1)
 }

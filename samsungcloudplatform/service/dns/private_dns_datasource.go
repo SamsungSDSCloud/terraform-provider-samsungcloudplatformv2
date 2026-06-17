@@ -3,10 +3,10 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -38,76 +38,92 @@ func (d *dnsPrivateDnsDataSource) Metadata(_ context.Context, req datasource.Met
 // Schema defines the schema for the data source.
 func (d *dnsPrivateDnsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "Show PrivateDns.",
+		Description: "Provides details about a specific private DNS.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Optional:    true,
+				Description: "The unique identifier of the private DNS to query.\n" +
+					"  - example : 10fjkewefprivatedns3193rud543 ",
+				Optional: true,
 			},
 			common.ToSnakeCase("PrivateDnsDetail"): schema.SingleNestedAttribute{
-				Description: "A detail of PrivateDns.",
+				Description: "Detailed information about the private DNS.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AuthDnsName"): schema.StringAttribute{
-						Description: "AuthDnsName",
-						Optional:    true,
+						Description: "The authoritative DNS name of the private DNS.\n" +
+							"  - example : auth.dns.example.com ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ConnectedVpcIds"): schema.ListAttribute{
 						ElementType: types.StringType,
-						Description: "ConnectedVpcIds",
-						Optional:    true,
+						Description: "The list of VPC identifiers connected to this private DNS.Only VPCs that are connected to the DNS can query the domain information registered in it.\n" +
+							"  - example : ['vpc-12345678', 'vpc-87654321'] ",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Optional:    true,
+						Description: "The unique identifier of the private DNS.\n" +
+							"  - example : 10fjkewefprivatedns3193rud543 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the private DNS.\n" +
+							"  - example : private-dns01 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PoolId"): schema.StringAttribute{
-						Description: "PoolId",
-						Optional:    true,
+						Description: "The resource pool identifier associated with the private DNS.\n" +
+							"  - example : 10fjksdpooliddfsi12389esfdslkdsr32 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PoolName"): schema.StringAttribute{
-						Description: "PoolName",
-						Optional:    true,
+						Description: "The name of the resource pool.\n" +
+							"  - example : pool-01 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("RegisteredRegion"): schema.StringAttribute{
-						Description: "RegisteredRegion",
-						Optional:    true,
+						Description: "The region where the private DNS is registered.\n" +
+							"  - example : KR-WEST1 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ResolverIp"): schema.StringAttribute{
-						Description: "ResolverIp",
-						Optional:    true,
+						Description: "The IP address of the DNS resolver.\n" +
+							"  - example : 198.19.0.101 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ResolverName"): schema.StringAttribute{
-						Description: "ResolverName",
-						Optional:    true,
+						Description: "The name of the DNS resolver.\n" +
+							"  - example : resolver-01 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Optional:    true,
+						Description: "The current state of the private DNS.\n" +
+							"  - example : ACTIVE ",
+						Optional: true,
 					},
 				},
 			},

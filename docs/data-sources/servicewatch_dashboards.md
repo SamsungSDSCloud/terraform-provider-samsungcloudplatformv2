@@ -42,24 +42,40 @@ variable "favorite_enabled" {
 
 ### Optional
 
-- `favorite_enabled` (Boolean) Whether it is a favorite dashboard
-- `name` (String) Dashboard name
-- `name_like` (String) Wildcard search for dashboard names
-- `service_code` (String) Associated service code
-- `type` (String) Dashboard type
+- `favorite_enabled` (Boolean) Whether it is a favorite dashboard.
+ - example : true
+- `name` (String) The name of dashboard.
+ - example : Production-Web-Servers
+ - minLength: 3
+ - maxLength: 512
+- `name_like` (String) Wildcard search for dashboard names.
+ - example : Production
+- `service_code` (String) Associated service code.
+ - example : scp-compute
+- `type` (String) Dashboard type.
+ - example : Custom
 
 ### Read-Only
 
-- `dashboards` (Attributes List) Dashboards (see [below for nested schema](#nestedatt--dashboards))
+- `dashboards` (Attributes List) List of dashboards.
+ - example : [{"id": "b48e730a70e74f6aa3d2555000b5c22b", "name": "Production-Web-Servers"}] (see [below for nested schema](#nestedatt--dashboards))
 
 <a id="nestedatt--dashboards"></a>
 ### Nested Schema for `dashboards`
 
 Read-Only:
 
-- `created_at` (String) Created date time
-- `favorite_enabled` (Boolean) Whether it is a favorite dashboard
-- `id` (String) Dashboard ID
-- `modified_at` (String) Modified date time
-- `name` (String) Dashboard name
-- `type` (String) Dashboard type
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `favorite_enabled` (Boolean) Whether it is a favorite dashboard.
+ - example : true
+- `id` (String) The unique identifier of the dashboard.
+ - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `name` (String) The name of the dashboard.
+ - example : Production-Web-Servers
+ - minLength: 3
+ - maxLength: 512
+- `type` (String) Dashboard type.
+ - example : Custom

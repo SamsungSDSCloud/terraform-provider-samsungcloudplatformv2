@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_volumes Data Source - samsungcloudplatformv2"
 subcategory: Virtual Server Volume
 description: |-
-  list of volumes.
+  Retrieves a list of block storage volumes for virtual servers.
 ---
 
 # samsungcloudplatformv2_virtualserver_volumes (Data Source)
 
-list of volumes.
+Retrieves a list of block storage volumes for virtual servers.
 
 ## Example Usage
 
@@ -55,14 +55,19 @@ variable "volumes_filter_use_regex" {
 
 ### Optional
 
-- `bootable` (Boolean) Bootable
+- `bootable` (Boolean) Whether the volume is bootable.
+  - example: false
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `name` (String) Name
-- `state` (String) State
+- `name` (String) Volume name.
+  - example: my-volume
+  - minLength: 1
+  - maxLength: 255
+- `state` (String) Volume state.
+  - Available values: available, reserved, attaching, detaching, in-use, awaiting-transfer, error, etc.
 
 ### Read-Only
 
-- `ids` (List of String) Server ID List
+- `ids` (List of String) List of volume IDs.
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -70,5 +75,8 @@ variable "volumes_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

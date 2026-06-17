@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_filestorage_volume Data Source - samsungcloudplatformv2"
 subcategory: File Storage Volume
 description: |-
-  
+  Retrieves details of a File Storage Volume on Samsung Cloud Platform.
 ---
 
 # samsungcloudplatformv2_filestorage_volume (Data Source)
 
-
+Retrieves details of a File Storage Volume on Samsung Cloud Platform.
 
 ## Example Usage
 
@@ -34,7 +34,7 @@ variable "id" {
 
 ### Required
 
-- `id` (String) ID 
+- `id` (String) Identifier of the resource. 
   - example: YOUR RESOURCE'S ID
 
 ### Read-Only
@@ -42,25 +42,28 @@ variable "id" {
 - `account_id` (String) Account ID 
   - example: YOUR RESOURCE'S ACCOUNT_ID
 - `created_at` (String) Created At 
-  - example : '2024-07-30T04:54:33.219373'
+  - example: '2024-07-30T04:54:33.219373Z'
 - `encryption_enabled` (Boolean) Volume Encryption Enabled 
-  - example : 'true'
-- `endpoint_path` (String) Volume Endpoint Path 
-  - example : 'xxx.xx.xxx.xxx'
-- `file_unit_recovery_enabled` (Boolean)
+  - example: true
+- `endpoint_path` (String) The network endpoint path used to mount and access the file storage volume. 
+  - example: 'xxx.xx.xxx.xxx'
+- `file_unit_recovery_enabled` (Boolean) Indicates whether file unit recovery is enabled for the volume. 
+  - example: true
 - `name` (String) Volume Name 
-  - example : 'my_volume'
+  - example: 'my_volume'
 - `path` (String) Volume Mount Path 
-  - example : 'xxx.xx.xxx.xxx'
+  - example: 'xxx.xx.xxx.xxx'
 - `protocol` (String) Protocol 
-  - example : 'NFS'
-- `purpose` (String) Volume Purpose 
-  - example : 'none'
-- `state` (String) Volume State 
-  - example : 'available'
-- `type_id` (String) Volume Type ID 
+  - example: 'NFS' 
+  - pattern: `^(NFS|CIFS)$`
+- `purpose` (String) The designated purpose or workload type of the volume (e.g., general, backup). 
+  - example: 'none'
+- `state` (String) The current lifecycle state of the volume. Valid values: creating, available, error, deleting. 
+  - example: 'available'
+- `type_id` (String) The unique identifier of the storage tier (volume type) assigned to this volume. 
   - example: YOUR RESOURCE'S TYPE_ID
 - `type_name` (String) Volume Type Name 
-  - example : 'HDD'
-- `usage` (Number) Volume Usage 
-  - example : '100000'
+  - example: 'HDD' 
+  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$`
+- `usage` (Number) The current usage of the volume in GiB. 
+  - example: 100000

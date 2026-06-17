@@ -3,11 +3,11 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,42 +40,42 @@ func (d *loadBalancerLbMemberDataSource) Metadata(_ context.Context, req datasou
 // Schema defines the schema for the data source.
 func (d *loadBalancerLbMemberDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Show Lb Member.",
+		Description: "Retrieve details of a specific LB Member.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
+				Description: "The unique identifier of the LB Member.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("LbServerGroupId"): schema.StringAttribute{
-				Description: "LbServerGroupId",
+				Description: "The LB Server Group ID.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("LbMember"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Member.",
+				Description: "Details of the LB Member.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
+						Description: "The timestamp when the resource was created, in ISO 8601 format.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
+						Description: "The user id that created the resource.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
+						Description: "The user id that last modified the resource.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
+						Description: "The current state of the LB Member (CREATING, ACTIVE, DELETING, EDITING, ERROR).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
+						Description: "The subnet ID where the resource is located.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Uuid"): schema.StringAttribute{
@@ -83,35 +83,35 @@ func (d *loadBalancerLbMemberDataSource) Schema(_ context.Context, _ datasource.
 						Optional:    true,
 					},
 					common.ToSnakeCase("ObjectId"): schema.StringAttribute{
-						Description: "ObjectId",
+						Description: "The object ID.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-						Description: "ObjectType",
+						Description: "The object type (VM, BM, MANUAL, MNGC).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("MemberWeight"): schema.Int32Attribute{
-						Description: "MemberWeight",
+						Description: "The weight of the member (1-1000).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("MemberState"): schema.StringAttribute{
-						Description: "MemberState",
+						Description: "The state of the member (ENABLE, DISABLE).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("MemberPort"): schema.Int32Attribute{
-						Description: "MemberPort",
+						Description: "The port number of the member (1-65534).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("MemberIp"): schema.StringAttribute{
-						Description: "MemberIp",
+						Description: "The IP address of the member.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
+						Description: "The name of the LB Member (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("LbServerGroupId"): schema.StringAttribute{
-						Description: "LbServerGroupId",
+						Description: "The LB Server Group ID.",
 						Optional:    true,
 					},
 				},

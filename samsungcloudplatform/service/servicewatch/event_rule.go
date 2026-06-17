@@ -3,19 +3,19 @@ package servicewatch
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/servicewatch/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
 )
 
@@ -46,114 +46,138 @@ func (r *serviceWatchEventRuleResource) Schema(_ context.Context, _ resource.Sch
 	resp.Schema = schema.Schema{
 		Description: "Event Rule Resource",
 		Attributes: map[string]schema.Attribute{
-		    "last_updated": schema.StringAttribute{
-				Description: "Timestamp of the last Terraform update of the Resource Group",
-				Computed:    true,
+			"last_updated": schema.StringAttribute{
+				Description: "Timestamp of the last Terraform update of the Resource Group.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
-            common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Event Rule ID",
-				Computed:    true,
+			common.ToSnakeCase("Id"): schema.StringAttribute{
+				Description: "The unique identifier of the event Rule.\n" +
+					" - example : b73f95c698f540dab18860f72fafd03f\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Optional:            true,
-				Description:         "Event rule description",
+				Optional: true,
+				Description: "Event rule description.\n" +
+					" - example : Event rule 1 description\n",
 			},
 			common.ToSnakeCase("EventIds"): schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Description:         "List of Event IDs",
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "List of Event IDs.\n" +
+					" - example : [\"EVENT-001\", \"EVENT-002\"]\n",
 			},
 			common.ToSnakeCase("EventRuleId"): schema.StringAttribute{
-				Optional:            true,
-				Description:         "Event rule ID",
+				Optional: true,
+				Description: "The unique identifier of the event rule.\n" +
+					" - example : b73f95c698f540dab18860f72fafd03f\n",
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Optional:            true,
-				Description:         "Event rule name",
+				Optional: true,
+				Description: "The name of the event rule.\n" +
+					" - example : Event rule 1\n",
 			},
 			common.ToSnakeCase("RecipientIds"): schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Description:         "Notification recipient IDs",
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Notification recipient IDs.\n" +
+					" - example : [\"user-abc\", \"user-def\"]\n",
 			},
 			common.ToSnakeCase("ResourceTypeId"): schema.StringAttribute{
-				Optional:            true,
-				Description:         "Resource type ID",
+				Optional: true,
+				Description: "The unique identifier of the resource type.\n" +
+					" - example : 596bf16709e84e27b7df397bf59b877c\n",
 			},
 			common.ToSnakeCase("ServiceId"): schema.StringAttribute{
-				Required:            true,
-				Description:         "Service ID",
+				Required: true,
+				Description: "The unique identifier of the service.\n" +
+					" - example : 2778de83d7e247609445bbd570a4eba9\n",
 			},
 			common.ToSnakeCase("SrnList"): schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Description:         "List of SDS cloud Resource Names",
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "List of SDS cloud Resource Names.\n" +
+					" - example : [\"srn:dev2::account-id:region::scp-servicewatch:event-rule/rule-id\"]\n",
 			},
-        	common.ToSnakeCase("ActiveYn"): schema.StringAttribute{
-				Optional:            true,
-				Description:         "ActiveYn",
+			common.ToSnakeCase("ActiveYn"): schema.StringAttribute{
+				Optional: true,
+				Description: "Whether the Alert is activated or not.\n" +
+					" - example : Y\n",
 				Validators: []validator.String{
-				    stringvalidator.OneOf("Y", "N"),
+					stringvalidator.OneOf("Y", "N"),
 				},
 			},
-            common.ToSnakeCase("NoneAttributes"): schema.ListAttribute{
-                ElementType:         types.StringType,
-				Optional:            true,
-				Description:         "List of attributes to assign to None",
+			common.ToSnakeCase("NoneAttributes"): schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "List of attributes to assign to None.\n" +
+					" - example : [\"attribute1\", \"attribute2\"]\n",
 			},
-            "tags": tag.ResourceSchema(),
+			"tags": tag.ResourceSchema(),
 			"event_rule": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"account_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Account ID",
+						Computed: true,
+						Description: "The unique identifier of the account.\n" +
+							" - example : 1bcf39b344ac41cbaf0466ff0d2bebad\n",
 					},
 					"active_yn": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Whether the Event rule is active",
+						Computed: true,
+						Description: "Whether the Event rule is active.\n" +
+							" - example : Y\n",
 					},
 					"created_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Created date time",
+						Computed: true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
 					},
 					"created_by": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Creator ID",
+						Computed: true,
+						Description: "The user id that created the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
 					},
 					"description": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Event rule description",
+						Computed: true,
+						Description: "Event rule description.\n" +
+							" - example : Event rule 1 description\n",
 					},
 					"id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Event rule ID",
+						Computed: true,
+						Description: "The unique identifier of the event rule.\n" +
+							" - example : b73f95c698f540dab18860f72fafd03f\n",
 					},
 					"modified_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modified date time",
+						Computed: true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
 					},
 					"modified_by": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modifier ID",
+						Computed: true,
+						Description: "The user id that last modified the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
 					},
 					"name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Event rule name",
+						Computed: true,
+						Description: "The name of the event rule.\n" +
+							" - example : Event rule 1\n",
 					},
 					"resource_type_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Resource type ID",
+						Computed: true,
+						Description: "The unique identifier of the resource type.\n" +
+							" - example : 596bf16709e84e27b7df397bf59b877c\n",
 					},
 					"service_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Service ID",
+						Computed: true,
+						Description: "The unique identifier of the service.\n" +
+							" - example : 2778de83d7e247609445bbd570a4eba9\n",
 					},
 				},
-				Computed:            true,
-				Description:         "Event rule",
+				Computed: true,
+				Description: "List of event rule.\n" +
+					" - example : {\"id\": \"b73f95c698f540dab18860f72fafd03f\", \"name\": \"Event rule 1\"}\n",
 			},
 		},
 	}
@@ -331,16 +355,16 @@ func (r *serviceWatchEventRuleResource) Delete(ctx context.Context, req resource
 
 func convertEventRule(eventRuleResp *servicewatch2.EventRuleDTO) servicewatch.EventRule {
 	return servicewatch.EventRule{
-    	AccountId:           types.StringValue(eventRuleResp.AccountId),
-	    ActiveYn:            types.StringValue(string(eventRuleResp.ActiveYn)),
-	    CreatedAt:           types.StringValue(eventRuleResp.CreatedAt.Format("2006-01-02 15:04:05")),
-		CreatedBy:           types.StringValue(eventRuleResp.CreatedBy),
-	    Description:         types.StringPointerValue(eventRuleResp.Description.Get()),
-		Id:                  types.StringValue(eventRuleResp.Id),
-		ModifiedAt:          types.StringValue(eventRuleResp.ModifiedAt.Format("2006-01-02 15:04:05")),
-		ModifiedBy:          types.StringValue(eventRuleResp.ModifiedBy),
-		Name:                types.StringValue(eventRuleResp.Name),
-		ResourceTypeId:      types.StringPointerValue(eventRuleResp.ResourceTypeId.Get()),
-		ServiceId:           types.StringValue(eventRuleResp.ServiceId),
+		AccountId:      types.StringValue(eventRuleResp.AccountId),
+		ActiveYn:       types.StringValue(string(eventRuleResp.ActiveYn)),
+		CreatedAt:      types.StringValue(eventRuleResp.CreatedAt.Format("2006-01-02 15:04:05")),
+		CreatedBy:      types.StringValue(eventRuleResp.CreatedBy),
+		Description:    types.StringPointerValue(eventRuleResp.Description.Get()),
+		Id:             types.StringValue(eventRuleResp.Id),
+		ModifiedAt:     types.StringValue(eventRuleResp.ModifiedAt.Format("2006-01-02 15:04:05")),
+		ModifiedBy:     types.StringValue(eventRuleResp.ModifiedBy),
+		Name:           types.StringValue(eventRuleResp.Name),
+		ResourceTypeId: types.StringPointerValue(eventRuleResp.ResourceTypeId.Get()),
+		ServiceId:      types.StringValue(eventRuleResp.ServiceId),
 	}
 }

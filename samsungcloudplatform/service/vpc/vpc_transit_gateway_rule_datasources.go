@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -38,49 +38,56 @@ func (d *tgwRoutingRuleDataSources) Metadata(_ context.Context, req datasource.M
 
 func (d *tgwRoutingRuleDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "List of vpc transit gateway rule.",
+		Description: "List of transit gateway rule.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("TransitGatewayId"): schema.StringAttribute{
-				Description: "transit gateway id",
-				Required:    true,
+				Description: "The identifier of the transit gateway that the rule belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Required: true,
 			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size (between 1 and 10000)",
-				Optional:    true,
+				Description: "The number of items per page.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			common.ToSnakeCase("page"): schema.Int32Attribute{
-				Optional:            true,
-				Description:         "page",
-				MarkdownDescription: "page",
+				Optional: true,
+				Description: "The page number for pagination.\n" +
+					"  - example : 2",
+				MarkdownDescription: "The page number for pagination.\n" +
+                    "  - example : 2",
 				Validators: []validator.Int32{
 					int32validator.Between(0, 99999),
 				},
-			},
-			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+			},			common.ToSnakeCase("Sort"): schema.StringAttribute{
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order.\n" +
 					"  - example : created_at:desc",
-				MarkdownDescription: "Sort \n" +
+				MarkdownDescription: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order.\n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "id",
-				Optional:    true,
+				Description: "The unique identifier of the rule.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Optional: true,
 			},
 			common.ToSnakeCase("TgwConnectionVpcId"): schema.StringAttribute{
-				Description: "tgw connection vpc id",
-				Optional:    true,
+				Description: "The identifier of the VPC that the transit gateway connection belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Optional: true,
 			},
 			common.ToSnakeCase("TgwConnectionVpcName"): schema.StringAttribute{
-				Description: "tgw connection vpc name",
-				Optional:    true,
+				Description: "The name of the VPC that the transit gateway connection belongs to.\n" +
+					"  - example : vpcName",
+				Optional: true,
 			},
 			common.ToSnakeCase("SourceType"): schema.StringAttribute{
-				Description: "source type" +
-					" - enum(VPC, TGW)",
+				Description: "The type of the source\n" +
+					"  - enum:VPC, TGW\n" +
+					"  - example:VPC",
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -90,8 +97,8 @@ func (d *tgwRoutingRuleDataSources) Schema(_ context.Context, _ datasource.Schem
 				},
 			},
 			common.ToSnakeCase("DestinationType"): schema.StringAttribute{
-				Description: "destination type" +
-					" - enum(VPC, TGW)",
+				Description: "The type of the destination.\n" +
+					"  - example : VPC | TGW",
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -101,13 +108,18 @@ func (d *tgwRoutingRuleDataSources) Schema(_ context.Context, _ datasource.Schem
 				},
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-				Description: "destination cidr",
-				Optional:    true,
+				Description: "The destination IP address range in CIDR notation.\n" +
+					"  - example : 10.10.10.0/24",
+				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description:         " - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
-				MarkdownDescription: " - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
-				Optional:            true,
+				Description: "The current lifecycle state of the rule.\n" +
+					"  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING\n" +
+					"  - example:ACTIVE",
+				MarkdownDescription: "The current lifecycle state of the rule.\n" +
+					"  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING\n" +
+					"  - example:ACTIVE",
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"CREATING",
@@ -125,8 +137,9 @@ func (d *tgwRoutingRuleDataSources) Schema(_ context.Context, _ datasource.Schem
 				MarkdownDescription: "count\n  - example: 20",
 			},
 			common.ToSnakeCase("rule_type"): schema.StringAttribute{
-				Description: "Rule type" +
-					" - enum: TGW_VPC, TGW_UPLINK",
+				Description: "The type of the rule.\n" +
+					"  - enum: TGW_VPC, TGW_UPLINK\n" +
+					"  - example:TGW_VPC",
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -136,77 +149,94 @@ func (d *tgwRoutingRuleDataSources) Schema(_ context.Context, _ datasource.Schem
 				},
 			},
 			common.ToSnakeCase("RoutingRules"): schema.ListNestedAttribute{
-				Description: "transit gateway rules",
+				Description: "Routing rules",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Computed:    true,
+							Description: "The identifier of the account that owns the rule.\n" +
+								"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
-						},
-						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Computed:    true,
-						},
+                            Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+                                "  - example : 2024-05-17T00:23:17Z",
+                            Computed: true,
+                        },
+                        common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+                            Description: "The user id that created the resource.\n" +
+                                "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                            Computed: true,
+                        },
+                        common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+                            Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+                                "  - example : 2024-05-17T00:23:17Z",
+                            Computed: true,
+                        },
+                        common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+                            Description: "The user id that modified the resource.\n" +
+                                "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                            Computed: true,
+                        },
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Computed:    true,
+							Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
+								"  - example : description",
+							Computed: true,
 						},
 						common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
-							Description: "DestinationCidr",
-							Computed:    true,
+							Description: "The destination IP address range in CIDR notation.\n" +
+								"  - example : 10.10.10.0/24",
+							Computed: true,
 						},
 						common.ToSnakeCase("DestinationResourceId"): schema.StringAttribute{
-							Description: "DestinationResourceId",
-							Computed:    true,
+							Description: "The identifier of the destination resource.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("DestinationResourceName"): schema.StringAttribute{
-							Description: "DestinationResourceName",
-							Computed:    true,
+							Description: "The name of the destination resource.\n" +
+								"  - example : resourcename",
+							Computed: true,
 						},
 						common.ToSnakeCase("DestinationType"): schema.StringAttribute{
-							Description: "DestinationType",
-							Computed:    true,
+							Description: "The type of the destination.\n" +
+								"  - example : VPC | TGW",
+							Computed: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "id",
-							Computed:    true,
-						},
-						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
-						},
-						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Computed:    true,
+							Description: "The unique identifier of the rule.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("SourceResourceId"): schema.StringAttribute{
-							Description: "SourceResourceId",
-							Computed:    true,
+							Description: "The identifier of the source resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("SourceResourceName"): schema.StringAttribute{
-							Description: "SourceResourceName",
-							Computed:    true,
+							Description: "The name of the source resource.\n" +
+								"  - example : sourceName",
+							Computed: true,
 						},
 						common.ToSnakeCase("SourceType"): schema.StringAttribute{
-							Description: "SourceType",
-							Computed:    true,
+							Description: "The type of the source.\n" +
+								"  - example : VPC | TGW",
+							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Computed:    true,
+							Description: "The current lifecycle state of the rule.\n" +
+								"  - example : ACTIVE",
+							Computed: true,
 						},
 						common.ToSnakeCase("TgwConnectionVpcId"): schema.StringAttribute{
-							Description: "TgwConnectionVpcId",
-							Computed:    true,
+							Description: "The identifier of the VPC that the transit gateway connection belongs to.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("TgwConnectionVpcName"): schema.StringAttribute{
-							Description: "TgwConnectionVpcName",
-							Computed:    true,
+							Description: "The name of the VPC that the transit gateway connection belongs to.\n" +
+								"  - example : vpcName",
+							Computed: true,
 						},
 					},
 				},

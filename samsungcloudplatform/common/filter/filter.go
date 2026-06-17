@@ -2,7 +2,7 @@ package filter
 
 import (
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"log"
@@ -24,16 +24,16 @@ func DataSourceSchema() schema.ListNestedBlock {
 		NestedObject: schema.NestedBlockObject{
 			Attributes: map[string]schema.Attribute{
 				"name": schema.StringAttribute{
-					Description: "Filtering target name",
+					Description: "Filtering target name\n  - example: name",
 					Required:    true,
 				},
 				"values": schema.ListAttribute{
 					ElementType: types.StringType,
-					Description: "Filtering values. Each matching value is appended. (OR rule)",
+					Description: "Filtering values. Each matching value is appended. (OR rule)\n  - example: ['values']",
 					Required:    true,
 				},
 				"use_regex": schema.BoolAttribute{
-					Description: "Enable regex match for values",
+					Description: "Enable regex match for values\n  - example: true",
 					Required:    true,
 				},
 			},

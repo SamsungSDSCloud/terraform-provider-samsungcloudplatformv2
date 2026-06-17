@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_dns_hosted_zones Data Source - samsungcloudplatformv2"
 subcategory: DNS
 description: |-
-  list of hosted zone.
+  Provides a list of hosted zones.
 ---
 
 # samsungcloudplatformv2_dns_hosted_zones (Data Source)
 
-list of hosted zone.
+Provides a list of hosted zones.
 
 ## Example Usage
 
@@ -34,32 +34,51 @@ variable "size" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
-- `status` (String) Status
-- `type` (String) Type
+- `name` (String) The name to filter hosted zones by.
+  - example : my-zone.com
+- `page` (Number) The page number for pagination.
+  - example : 0
+- `size` (Number) The number of items per page.
+  - example : 20
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : created_at:asc
+- `status` (String) The status to filter hosted zones by.
+  - example : ACTIVE
+- `type` (String) The type to filter hosted zones by (PUBLIC or PRIVATE).
+  - example : private
 
 ### Read-Only
 
-- `hosted_zones` (Attributes List) A list of HostedZone. (see [below for nested schema](#nestedatt--hosted_zones))
+- `hosted_zones` (Attributes List) List of hosted zones matching the query. (see [below for nested schema](#nestedatt--hosted_zones))
 
 <a id="nestedatt--hosted_zones"></a>
 ### Nested Schema for `hosted_zones`
 
 Optional:
 
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `hosted_zone_type` (String) HostedZoneType
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `pool_id` (String) PoolId
-- `private_dns_id` (String) PrivateDnsId
-- `private_dns_name` (String) PrivateDnsName
-- `status` (String) Status
-- `ttl` (Number) Ttl
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `hosted_zone_type` (String) The type of the hosted zone (e.g., PUBLIC or PRIVATE).
+  - example : PRIVATE
+- `id` (String) The unique identifier of the hosted zone.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.
+  - example : my-zone.com
+- `pool_id` (String) The resource pool identifier associated with the hosted zone.
+  - example: YOUR RESOURCE'S POOL_ID
+- `private_dns_id` (String) The DNS server ID for registering a Hosted Zone.For a Public‑type Hosted Zone, display it as an empty value.
+  - example: YOUR RESOURCE'S PRIVATE_DNS_ID
+- `private_dns_name` (String) The DNS server name for registering a Hosted Zone.For a Public‑type Hosted Zone, display it as an empty value.
+  - example : private-dns01
+- `status` (String) The current status of the hosted zone (e.g., ACTIVE, CREATING, DELETING).
+  - example : ACTIVE
+- `ttl` (Number) The Time-To-Live (TTL) value in seconds for DNS records in this zone.
+  - example : 3600

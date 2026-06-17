@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_servers Data Source - samsungcloudplatformv2"
 subcategory: Virtual Server
 description: |-
-  list of servers.
+  Retrieves a list of virtual server IDs matching the specified criteria.
 ---
 
 # samsungcloudplatformv2_virtualserver_servers (Data Source)
 
-list of servers.
+Retrieves a list of virtual server IDs matching the specified criteria.
 
 ## Example Usage
 
@@ -92,19 +92,30 @@ variable "servers_filter_use_regex" {
 
 ### Optional
 
-- `auto_scaling_group_id` (String) Auto scaling group ID
+- `auto_scaling_group_id` (String) Auto Scaling Group ID.
+  - example: YOUR RESOURCE'S AUTO_SCALING_GROUP_ID
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `ip` (String) Ip
-- `name` (String) Name
-- `product_category` (String) Product category
-- `product_offering` (String) Product offering
-- `server_type_id` (String) Server type ID
-- `state` (String) State
-- `vpc_id` (String) VPC ID
+- `ip` (String) IP address to filter servers.
+  - example: 192.168.1.100
+- `name` (String) Server name to filter by.
+  - example: my-server
+  - minLength: 1
+  - maxLength: 255
+- `product_category` (String) Product category.
+  - Available values: compute, container
+- `product_offering` (String) Product offering.
+  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm
+  - note: Use gpu_server for GPU instances
+- `server_type_id` (String) Server type ID.
+  - example: YOUR RESOURCE'S SERVER_TYPE_ID
+- `state` (String) Server state to filter.
+  - Available values: ACTIVE, SHUTOFF, ERROR
+- `vpc_id` (String) VPC ID.
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
-- `ids` (List of String) Server ID List
+- `ids` (List of String) List of retrieved server IDs.
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -112,5 +123,8 @@ variable "servers_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

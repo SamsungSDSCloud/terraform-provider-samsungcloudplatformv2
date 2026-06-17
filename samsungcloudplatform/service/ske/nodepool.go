@@ -3,16 +3,18 @@ package ske
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"reflect"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/service/ske/converter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/service/ske/converter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -24,8 +26,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &skeNodepoolResource{}
-	_ resource.ResourceWithConfigure = &skeNodepoolResource{}
+	_ resource.Resource                = &skeNodepoolResource{}
+	_ resource.ResourceWithConfigure   = &skeNodepoolResource{}
+	_ resource.ResourceWithImportState = &skeClusterResource{}
 )
 
 func NewSkeNodepoolResource() resource.Resource {
@@ -105,8 +108,8 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 					},
 				},
 				Optional:            true,
-				Description:         "Node Pool Advanced Settings",
-				MarkdownDescription: "Node Pool Advanced Settings",
+				Description:         "Node Pool Advanced Settings\n  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'}",
+				MarkdownDescription: "Node Pool Advanced Settings\n  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'}",
 			},
 			"cluster_id": schema.StringAttribute{
 				Required:            true,
@@ -126,13 +129,13 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 			},
 			"image_os": schema.StringAttribute{
 				Required:            true,
-				Description:         "Image OS\n  - example: ubuntu",
-				MarkdownDescription: "Image OS\n  - example: ubuntu",
+				Description:         "Image OS\n  - pattern: ubuntu|rhel\n  - example: ubuntu",
+				MarkdownDescription: "Image OS\n  - pattern: ubuntu|rhel\n  - example: ubuntu",
 			},
 			"image_os_version": schema.StringAttribute{
 				Required:            true,
-				Description:         "Image OS Version\n  - example: 22.04",
-				MarkdownDescription: "Image OS Version\n  - example: 22.04",
+				Description:         "Image OS Version\n  - pattern(for ubuntu): 22.04\n  - pattern(for rhel): 8.10|9.4 \n  - example: 22.04",
+				MarkdownDescription: "Image OS Version\n  - pattern(for ubuntu): 22.04\n  - pattern(for rhel): 8.10|9.4 \n  - example: 22.04",
 			},
 			"is_auto_recovery": schema.BoolAttribute{
 				Required:            true,
@@ -146,8 +149,8 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 			},
 			"keypair_name": schema.StringAttribute{
 				Required:            true,
-				Description:         "Keypair Name\n  - example: test_keypair",
-				MarkdownDescription: "Keypair Name\n  - example: test_keypair",
+				Description:         "Keypair Name for create node\n  - example: test_keypair",
+				MarkdownDescription: "Keypair Name for create node\n  - example: test_keypair",
 			},
 			"kubernetes_version": schema.StringAttribute{
 				Required:            true,
@@ -178,9 +181,11 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 						},
 					},
 				},
-				Optional:            true,
-				Description:         "Node Pool Labels",
-				MarkdownDescription: "Node Pool Labels",
+				Optional: true,
+				Description: "Node Pool Labels\n" +
+					"  - example: {key='test', value='test'}",
+				MarkdownDescription: "Node Pool Labels\n" +
+					"  - example: {key='test', value='test'}",
 			},
 			"linked_resources": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -197,12 +202,16 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 						},
 						"type": schema.StringAttribute{
 							Required:            true,
-							Description:         "Linked Resource Type (fs/obs)\n  - example: fs",
-							MarkdownDescription: "Linked Resource Type (fs/obs)\n  - example: fs",
+							Description:         "Linked Resource Type (fs/obs)\n  - pattern: fs|obs\n  - example: fs",
+							MarkdownDescription: "Linked Resource Type (fs/obs)\n  - pattern: fs|obs\n  - example: fs",
 						},
 					},
 				},
 				Optional: true,
+				Description: "Linked Resources\n" +
+					"  - example: {id='res-12345678', name='my-resource', type='fs'}",
+				MarkdownDescription: "Linked Resources\n" +
+					"  - example: {id='res-12345678', name='my-resource', type='fs'}",
 			},
 			"max_node_count": schema.Int32Attribute{
 				Optional:            true,
@@ -272,8 +281,8 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 							},
 						},
 						Computed:            true,
-						Description:         "Node Pool Advanced Settings",
-						MarkdownDescription: "Node Pool Advanced Settings",
+						Description:         "Node Pool Advanced Settings\n  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'}",
+						MarkdownDescription: "Node Pool Advanced Settings\n  - example: {max_pods: 110, image_gc_high_threshold: 85, image_gc_low_threshold: 80, container_log_max_size: 10, container_log_max_files: 5, pod_max_pids: 4096, allowed_unsafe_sysctls: 'kernel.msg*'}",
 					},
 					"auto_recovery_enabled": schema.BoolAttribute{
 						Computed:            true,
@@ -343,9 +352,11 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 								Computed: true,
 							},
 						},
-						Computed:            true,
-						Description:         "Image",
-						MarkdownDescription: "Image",
+						Computed: true,
+						Description: "Image\n" +
+							"  - example: {custom_image_name='res-12345678', os='my-resource', os_version='fs', scp_gpu_driver='ND_535.183.06'}",
+						MarkdownDescription: "Image\n" +
+							"  - example: {custom_image_name='res-12345678', os='my-resource', os_version='fs', scp_gpu_driver='ND_535.183.06'}",
 					},
 					"keypair": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -355,9 +366,11 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 								MarkdownDescription: "Keypair Name\n  - example: test_keypair",
 							},
 						},
-						Computed:            true,
-						Description:         "Keypair Name",
-						MarkdownDescription: "Keypair Name",
+						Computed: true,
+						Description: "Keypair Name\n" +
+							"  - example: {name='test_keypair'}",
+						MarkdownDescription: "Keypair Name\n" +
+							"  - example: {name='test_keypair'}",
 					},
 					"kubernetes_version": schema.StringAttribute{
 						Computed:            true,
@@ -368,43 +381,55 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"key": schema.StringAttribute{
+									Optional:            true,
 									Computed:            true,
 									Description:         "Node Pool Label Key\n  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$\n  - example: example.com/my-app",
 									MarkdownDescription: "Node Pool Label Key\n  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$\n  - example: example.com/my-app",
 								},
 								"value": schema.StringAttribute{
+									Optional:            true,
 									Computed:            true,
 									Description:         "Node Pool Label Value\n  - maxLength: 63\n  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$\n  - example: bar",
 									MarkdownDescription: "Node Pool Label Value\n  - maxLength: 63\n  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$\n  - example: bar",
-									Default:             stringdefault.StaticString(""),
 								},
 							},
 						},
-						Computed:            true,
-						Description:         "Node Pool Labels",
-						MarkdownDescription: "Node Pool Labels",
+						Optional: true,
+						Computed: true,
+						Description: "Node Pool Labels\n" +
+							"  - example: {key='test', value='test'}",
+						MarkdownDescription: "Node Pool Labels\n" +
+							"  - example: {key='test', value='test'}",
 					},
 					"linked_resources": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
+									Optional:            true,
 									Computed:            true,
 									Description:         "Linked Resource ID\n  - example: res-12345678",
 									MarkdownDescription: "Linked Resource ID\n  - example: res-12345678",
 								},
 								"name": schema.StringAttribute{
+									Optional:            true,
 									Computed:            true,
 									Description:         "Linked Resource Name\n  - example: my-resource",
 									MarkdownDescription: "Linked Resource Name\n  - example: my-resource",
 								},
 								"type": schema.StringAttribute{
+									Optional:            true,
 									Computed:            true,
 									Description:         "Linked Resource Type (fs/obs)\n  - example: fs",
 									MarkdownDescription: "Linked Resource Type (fs/obs)\n  - example: fs",
 								},
 							},
 						},
+						Optional: true,
 						Computed: true,
+						Description: "Linked Resources\n" +
+							"  - example: {id='res-12345678', name='my-resource', type='fs'}",
+						MarkdownDescription: "Linked Resources\n" +
+							"  - example: {id='res-12345678', name='my-resource', type='fs'}",
 					},
 					"max_node_count": schema.Int32Attribute{
 						Computed:            true,
@@ -455,18 +480,20 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 					},
 					"status": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Node Pool Status\n  - example: Running",
-						MarkdownDescription: "Node Pool Status\n  - example: Running",
+						Description:         "Nodepool Status\n  - pattern: RUNNING|CREATING|SCALINGUP|SCALINGDOWN|DELETING\n  - example: RUNNING",
+						MarkdownDescription: "Nodepool Status\n  - pattern: RUNNING|CREATING|SCALINGUP|SCALINGDOWN|DELETING\n  - example: RUNNING",
 					},
 					"taints": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"effect": schema.StringAttribute{
+									Optional:            true,
 									Computed:            true,
-									Description:         "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]",
-									MarkdownDescription: "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]",
+									Description:         "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]\n  - example: NoSchedule",
+									MarkdownDescription: "- enum: [\"NoSchedule\",\"NoExecute\",\"PreferNoSchedule\"]\n  - example: NoSchedule",
 								},
 								"key": schema.StringAttribute{
+									Optional:            true,
 									Computed:            true,
 									Description:         "Node Pool Taint Key\n  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$\n  - example: example.com/my-app",
 									MarkdownDescription: "Node Pool Taint Key\n  - pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$\n  - example: example.com/my-app",
@@ -475,13 +502,15 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 									Computed:            true,
 									Description:         "Node Pool Taint Value\n  - maxLength: 63\n  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$\n  - example: bar",
 									MarkdownDescription: "Node Pool Taint Value\n  - maxLength: 63\n  - pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$\n  - example: bar",
-									Default:             stringdefault.StaticString(""),
 								},
 							},
 						},
-						Computed:            true,
-						Description:         "Node Pool Taints",
-						MarkdownDescription: "Node Pool Taints",
+						Optional: true,
+						Computed: true,
+						Description: "Node Pool Taints\n" +
+							"  - example: {effect='NoSchedule', key='example.com/my-app', value='bar'}",
+						MarkdownDescription: "Node Pool Taints\n" +
+							"  - example: {effect='NoSchedule', key='example.com/my-app', value='bar'}",
 					},
 					"volume_max_iops": schema.Int32Attribute{
 						Computed: true,
@@ -508,8 +537,8 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 							},
 							"name": schema.StringAttribute{
 								Computed:            true,
-								Description:         "Volume Type Name\n  - example: SSD",
-								MarkdownDescription: "Volume Type Name\n  - example: SSD",
+								Description:         "Volume Type Name\n  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned\n  - example: SSD",
+								MarkdownDescription: "Volume Type Name\n  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned\n  - example: SSD",
 							},
 						},
 						Computed:            true,
@@ -517,21 +546,25 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 						MarkdownDescription: "Volume Type",
 					},
 				},
-				Computed: true,
+				Computed:            true,
+				Description:         "Nodepool\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_nodepool#nested-schema-for-nodepool",
+				MarkdownDescription: "Nodepool\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_nodepool#nested-schema-for-nodepool",
 			},
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
+				Description: "Identifier of the resource.\n - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"scp_gpu_driver": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				Description:         "Gpu Driver Version For Ubuntu\n  - pattern: 535.183.06\n  - example: 535.183.06",
+				MarkdownDescription: "Gpu Driver Version For Ubuntu\n  - pattern: 535.183.06\n  - example: 535.183.06",
 			},
 			"server_group_id": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Server Group ID\n  - example: 2b8d33d5-4de5-40a5-a34c-7e30204133xc",
+				Description:         "Server Group ID For \n  - example: 2b8d33d5-4de5-40a5-a34c-7e30204133xc",
 				MarkdownDescription: "Server Group ID\n  - example: 2b8d33d5-4de5-40a5-a34c-7e30204133xc",
 			},
 			"server_type_id": schema.StringAttribute{
@@ -575,21 +608,27 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 						},
 					},
 				},
-				Optional:            true,
-				Description:         "Node Pool Taints",
-				MarkdownDescription: "Node Pool Taints",
+				Optional: true,
+				Description: "Node Pool Taints\n" +
+					"  - example: {effect='NoSchedule', key='example.com/my-app', value='bar'}",
+				MarkdownDescription: "Node Pool Taints\n" +
+					"  - example: {effect='NoSchedule', key='example.com/my-app', value='bar'}",
 			},
 			"volume_max_iops": schema.Int32Attribute{
 				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.Between(5000, 20000),
 				},
+				Description:         "Volume Max Iops\n  - example: 5000",
+				MarkdownDescription: "Volume Max iops\n  - example: 5000",
 			},
 			"volume_max_throughput": schema.Int32Attribute{
 				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.Between(250, 1000),
 				},
+				Description:         "Volume Type Name\n  - example: 250",
+				MarkdownDescription: "Volume Type Name\n  - example: 250",
 			},
 			"volume_size": schema.Int32Attribute{
 				Required:            true,
@@ -598,8 +637,8 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 			},
 			"volume_type_name": schema.StringAttribute{
 				Required:            true,
-				Description:         "Volume Type Name\n  - example: SSD",
-				MarkdownDescription: "Volume Type Name\n  - example: SSD",
+				Description:         "Volume Type Name\n  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned\n  - example: SSD",
+				MarkdownDescription: "Volume Type Name\n  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned\n  - example: SSD",
 			},
 		},
 	}
@@ -631,7 +670,7 @@ func (r *skeNodepoolResource) Configure(_ context.Context, req resource.Configur
 func (r *skeNodepoolResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan ske.NodepoolResource
-	diags := req.Config.Get(ctx, &plan)
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -693,8 +732,12 @@ func (r *skeNodepoolResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// Get refreshed value from Nodepool
-	data, _, err := r.client.GetNodepool(ctx, state.Id.ValueString())
+	data, httpStatus, err := r.client.GetNodepool(ctx, state.Id.ValueString())
 	if err != nil {
+		if httpStatus == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Nodepool",
@@ -707,6 +750,30 @@ func (r *skeNodepoolResource) Read(ctx context.Context, req resource.ReadRequest
 
 	nodepoolObjectValue, diags := types.ObjectValueFrom(ctx, nodepoolModel.AttributeTypes(), nodepoolModel)
 	state.Nodepool = nodepoolObjectValue
+
+	/* import state (determined by state.Name) root level setting start*/
+	if state.Name.IsNull() {
+		state.Name = nodepoolModel.Name
+		state.AdvancedSettings = nodepoolModel.AdvancedSettings
+		state.CustomImageId = nodepoolModel.Image.CustomImageName
+		state.DesiredNodeCount = nodepoolModel.DesiredNodeCount
+		state.ImageOs = nodepoolModel.Image.Os
+		state.ImageOsVersion = nodepoolModel.Image.OsVersion
+		state.IsAutoScale = nodepoolModel.AutoScaleEnabled
+		state.IsAutoRecovery = nodepoolModel.AutoRecoveryEnabled
+		state.KeypairName = nodepoolModel.Keypair.Name
+		state.KubernetesVersion = nodepoolModel.KubernetesVersion
+		state.Labels = nodepoolModel.Labels
+		state.LinkedResources = nodepoolModel.LinkedResources
+		state.MaxNodeCount = nodepoolModel.MaxNodeCount
+		state.MinNodeCount = nodepoolModel.MinNodeCount
+		state.ScpGpuDriver = nodepoolModel.Image.ScpGpuDriver
+		state.ServerGroupId = nodepoolModel.ServerGroupId
+		state.ServerTypeId = nodepoolModel.ServerType.Id
+		state.Taints = nodepoolModel.Taints
+		state.VolumeSize = nodepoolModel.VolumeSize
+		state.VolumeTypeName = nodepoolModel.VolumeType.Name
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -918,5 +985,13 @@ func waitForNodepoolStatus(ctx context.Context, skeClient *ske.Client, id string
 		}
 
 		return info, info.GetNodepool().Status, nil
-	})
+	}, -1, -1, -1, -1)
+}
+
+func (r *skeNodepoolResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp) // 유니크한 스키마 입력
 }

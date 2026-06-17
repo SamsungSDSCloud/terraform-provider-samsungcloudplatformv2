@@ -3,10 +3,10 @@ package vpn
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,68 +41,84 @@ func (d *vpnVpnGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaR
 		Description: "VPN Gateway",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Required:    true,
+				Description: "The unique identifier of the resource.\n" +
+					"  - example: 6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d",
+				Required: true,
 			},
 			common.ToSnakeCase("VpnGateway"): schema.SingleNestedAttribute{
-				Description: "VPN Gateway",
-				Computed:    true,
+				Description: "The identifier of the VPN gateway that the resource belongs to.\n" +
+					"  - example: 01c543eb4b8d42a9a3502345d4025147",
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The account ID associated with the resource.\n" +
+							"  - example: 297615908b8e4ec69520a99a6777add3",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example: 2025-01-15T10:30:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user ID that created the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "A brief explanation or note about this resource.\n" +
+							"  - example: VPN test",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the resource.\n" +
+							"  - example: 6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("IpAddress"): schema.StringAttribute{
-						Description: "IpAddress",
-						Computed:    true,
+						Description: "The IP address assigned to the resource.\n" +
+							"  - example: 10.0.0.0/24",
+						Computed: true,
 					},
 					common.ToSnakeCase("IpId"): schema.StringAttribute{
-						Description: "IpId",
-						Computed:    true,
+						Description: "The identifier of the IP address assigned to the resource.\n" +
+							"  - example: bd07e102fe574edf8a1748957c45bdbf",
+						Computed: true,
 					},
 					common.ToSnakeCase("IpType"): schema.StringAttribute{
-						Description: "IpType",
-						Computed:    true,
+						Description: "The type of the IP address assigned to the resource.\n" +
+							"  - example: PUBLIC",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example: 2025-06-01T14:22:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The user ID that modified the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the resource.\n" +
+							"  - example: vpnGWProd",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the resource.\n" +
+							"  - example: ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Computed:    true,
+						Description: "The identifier of the VPC that the resource belongs to.\n" +
+							"  - example: f32265726b694b32920aa3b111f4c715",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "VpcName",
-						Computed:    true,
+						Description: "The name of the VPC that the resource belongs to.\n" +
+							"  - example: vpcProd01",
+						Computed: true,
 					},
 				},
 			},

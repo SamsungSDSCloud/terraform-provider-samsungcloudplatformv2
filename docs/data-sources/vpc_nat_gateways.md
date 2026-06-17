@@ -105,25 +105,25 @@ variable "state" {
 
 ### Optional
 
-- `name` (String) NAT Gateway Name 
+- `name` (String) The name of the resource.
   - example : NatGatewayName
-- `nat_gateway_ip_address` (String) NAT Gateway IP Address 
+- `nat_gateway_ip_address` (String) The IP address of the NAT gateway.
   - example : 192.167.0.5
-- `page` (Number) Page 
+- `page` (Number) The page number for pagination. 
   - example : 0
-- `size` (Number) Size 
+- `size` (Number) The number of items per page. 
   - example : 20
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order. 
   - example : created_at:desc
-- `state` (String) NAT Gateway State 
+- `state` (String) The current lifecycle state of the NAT gateway.
   - example : CREATING | ACTIVE | DELETING | DELETED | ERROR
-- `subnet_id` (String) Subnet ID 
+- `subnet_id` (String) The identifier of the subnet that the NAT gateway belongs to. 
   - example: YOUR RESOURCE'S SUBNET_ID
-- `subnet_name` (String) Subnet Name 
+- `subnet_name` (String) The name of the subnet that the NAT gateway belongs to.
   - example : subnetName
-- `vpc_id` (String) VPC ID 
+- `vpc_id` (String) The identifier of the VPC that the NAT gateway belongs to.
   - example: YOUR RESOURCE'S VPC_ID
-- `vpc_name` (String) VPC Name 
+- `vpc_name` (String) The name of the VPC that the NAT gateway belongs to. 
   - example : vpcName
 
 ### Read-Only
@@ -131,26 +131,43 @@ variable "state" {
 - `nat_gateways` (Attributes List) A list of NAT Gateways. (see [below for nested schema](#nestedatt--nat_gateways))
 - `sort_final` (List of String) List of sort condition 
   - example : ["created_at:desc"]
-- `total_count` (Number) Count
+- `total_count` (Number) The total number of nat gateways.
+  - example : 2
 
 <a id="nestedatt--nat_gateways"></a>
 ### Nested Schema for `nat_gateways`
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `description` (String) NAT Gateway Description
-- `id` (String) NAT Gateway ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `name` (String) NAT Gateway Name
-- `nat_gateway_ip_address` (String) NAT Gateway IP Address
-- `publicip_id` (String) PublicIP ID
-- `state` (String) NAT Gateway State
-- `subnet_cidr` (String) Subnet CIDR
-- `subnet_id` (String) Subnet ID
-- `subnet_name` (String) Subnet Name
-- `vpc_id` (String) VPC ID
-- `vpc_name` (String) VPC Name
+- `account_id` (String) The identifier of the account that owns the NAT gateway.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : NAT Gateway Description
+- `id` (String) The unique identifier of the NAT gateway.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the NAT gateway.
+  - example : NatGatewayName
+- `nat_gateway_ip_address` (String) The IP address of the NAT gateway.
+  - example : 192.167.0.5
+- `publicip_id` (String) The identifier of the public IP address.
+  - example: YOUR RESOURCE'S PUBLICIP_ID
+- `state` (String) The current lifecycle state of the NAT gateway.
+  - example : ACTIVE
+- `subnet_cidr` (String) The IP address range of the subnet in CIDR notation.
+  - example : 192.167.1.0/24
+- `subnet_id` (String) The identifier of the subnet that the NAT gateway belongs to.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `subnet_name` (String) The name of the subnet that the NAT gateway belongs to.
+  - example : subnetName
+- `vpc_id` (String) The identifier of the VPC that the NAT gateway belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the NAT gateway belongs to.
+  - example : vpcName

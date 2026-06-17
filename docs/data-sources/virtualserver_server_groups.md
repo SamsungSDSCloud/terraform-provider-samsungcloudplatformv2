@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_server_groups Data Source - samsungcloudplatformv2"
 subcategory: Server Group
 description: |-
-  list of server groups.
+  Retrieves a list of server groups for managing virtual server placement policies.
 ---
 
 # samsungcloudplatformv2_virtualserver_server_groups (Data Source)
 
-list of server groups.
+Retrieves a list of server groups for managing virtual server placement policies.
 
 ## Example Usage
 
@@ -52,7 +52,7 @@ variable "server_groups_filter_use_regex" {
 
 ### Read-Only
 
-- `ids` (List of String) Server Group ID List
+- `ids` (List of String) List of server group IDs.
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -60,5 +60,8 @@ variable "server_groups_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

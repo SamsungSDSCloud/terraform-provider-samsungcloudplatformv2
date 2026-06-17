@@ -106,50 +106,63 @@ variable "type" {
 
 ### Optional
 
-- `attached_resource_id` (String) PublicIP Attached Resource ID 
+- `attached_resource_id` (String) The identifier of the resource that this public ip is attached to.
   - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
-- `attached_resource_name` (String) PublicIP Attached Resource Name 
+- `attached_resource_name` (String) The name of the resource that this public ip is attached to.
   - example : Attached NAT Gateway Name
-- `attached_resource_type` (String) PublicIP Attached Resource Type 
+- `attached_resource_type` (String) The type of the resource that this public ip is attached to.
   - example : VM | ALB | LB | BM | DB | NAT_GW | GPU_NODE | VPN | GPU_SERVER | EPAS | POSTGRESQL | MARIADB | SQLSERVER | CACHESTORE | SCALABLEDB | EVENTSTREAMS | SEARCHENGINE | VERTICA | SUBNET | MYSQL
-- `ip_address` (String) IP Address 
+- `ip_address` (String) The IP address assigned to the resource.
   - example : 192.167.0.5
-- `page` (Number) Page 
+- `page` (Number) The page number for pagination.
   - example : 0 
   - minimum : 0
-- `size` (Number) Size 
+- `size` (Number) The number of items per page.
   - example : 20 
   - minimum : 0
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order.
   - example : created_at:desc
-- `state` (String) PublicIP State 
+- `state` (String) The current lifecycle state of the public ip.
   - example : RESERVED | ATTACHED | DELETED
-- `type` (String) PublicIP Type 
+- `type` (String) The type of the public ip.
   - example : IGW | GGW | SIGW
-- `vpc_id` (String) VPC ID 
+- `vpc_id` (String) The identifier of the VPC that the public ip belongs to.
   - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
 - `publicips` (Attributes List) A list of public IPs. (see [below for nested schema](#nestedatt--publicips))
-- `total_count` (Number) Count 
-  - example : 20
+- `total_count` (Number) The total number of publicIPs.
+  - example : 2
 
 <a id="nestedatt--publicips"></a>
 ### Nested Schema for `publicips`
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `attached_resource_id` (String) PublicIP Attached Resource ID
-- `attached_resource_name` (String) PublicIP Attached Resource Name
-- `attached_resource_type` (String) PublicIP Attached Resource Type
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `description` (String) PublicIP Description
-- `id` (String) PublicIP ID
-- `ip_address` (String) IP Address
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `state` (String) PublicIP State
-- `type` (String) PublicIP Type
+- `account_id` (String) The identifier of the account that owns the public ip.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `attached_resource_id` (String) The identifier of the resource that this public ip is attached to.
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
+- `attached_resource_name` (String) The name of the resource that this public ip is attached to.
+  - example : resourceName
+- `attached_resource_type` (String) The type of the resource that this public ip is attached to.
+  - example : VM | BM
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : resourceDescription
+- `id` (String) The unique identifier of the public ip.
+  - example: YOUR RESOURCE'S ID
+- `ip_address` (String) The IP address assigned to the resource.
+  - example : 192.167.0.5
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `state` (String) The current lifecycle state of the public ip.
+  - example : RESERVED | ATTACHED | DELETED
+- `type` (String) The type of the public ip.
+  - example : IGW | GGW | SIGW

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/loadbalancer"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,186 +40,186 @@ func (d *loadbalancerLbListenerDataSource) Metadata(_ context.Context, req datas
 // Schema defines the schema for the data source.
 func (d *loadbalancerLbListenerDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "Show Lb Listener.",
+		Description: "Retrieve details of a specific LB Listener.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
+				Description: "The unique identifier of the LB Listener.",
 				Optional:    true,
 			},
 			common.ToSnakeCase("LbListener"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Listener.",
+				Description: "Details of the LB Listener.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "id",
+						Description: "The unique identifier.",
 						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
+						Description: "The timestamp when the resource was created, in ISO 8601 format.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
+						Description: "The user id that created the resource.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
+						Description: "The user id that last modified the resource.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
+						Description: "Enter a brief explanation or note about this resource (max 255 characters). This helps identify the purpose or usage of the resource.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("InsertClientIp"): schema.BoolAttribute{
-						Description: "InsertClientIp",
+						Description: "Whether to insert client IP in the header using Proxy Protocol v1.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
+						Description: "The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Persistence"): schema.StringAttribute{
-						Description: "Persistence",
+						Description: "Session persistence configuration (e.g., 'source-ip', 'cookie').",
 						Optional:    true,
 					},
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "Protocol",
+						Description: "The protocol used for the listener (TCP, UDP, HTTP, HTTPS, TLS, TCP_PROXY).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-						Description: "ServerGroupId",
+						Description: "The ID of the server group associated with the listener. Required for TCP, UDP, and TLS protocols. This field is optional.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ServerGroupName"): schema.StringAttribute{
-						Description: "ServerGroupName",
+						Description: "The server group name for the listener.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
-						Description: "ServicePort",
+						Description: "The service port number for the listener.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ResponseTimeout"): schema.Int32Attribute{
-						Description: "ResponseTimeout",
+						Description: "The response timeout in seconds (1-120). Only for L7 protocols (HTTP/HTTPS). Cannot be used with idle_timeout.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("SessionDurationTime"): schema.Int32Attribute{
-						Description: "SessionDurationTime",
+						Description: "The session duration time in seconds. Required for L4 protocols (TCP/UDP). L7: 1-120, TCP/TLS: 60-3600 (60-second increments), UDP: 60-180 (60-second increments). Cannot be used with idle_timeout for L7.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("SslCertificate"): schema.SingleNestedAttribute{
-						Description: "SslCertificate",
+						Description: "SSL certificate configuration for the listener.",
 						Optional:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("ClientCertId"): schema.StringAttribute{
-								Description: "ClientCertId",
+								Description: "The client certificate ID.",
 								Optional:    true,
 							},
 							common.ToSnakeCase("ClientCertLevel"): schema.StringAttribute{
-								Description: "ClientCertLevel",
+								Description: "The client certificate validation level (LOW, NORMAL, HIGH).",
 								Optional:    true,
 							},
 							common.ToSnakeCase("ServerCertLevel"): schema.StringAttribute{
-								Description: "ServerCertLevel",
+								Description: "The server certificate validation level (LOW, NORMAL, HIGH).",
 								Optional:    true,
 							},
 						},
 					},
 					common.ToSnakeCase("SniCertificate"): schema.ListNestedAttribute{
-						Description: "SniCertificate",
+						Description: "SNI certificate configuration for multiple domains.",
 						Optional:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("SniCertId"): schema.StringAttribute{
-									Description: "SniCertId",
+									Description: "The SNI certificate ID.",
 									Optional:    true,
 								},
 								common.ToSnakeCase("DomainName"): schema.StringAttribute{
-									Description: "DomainName",
+									Description: "The domain name for SNI certificate (1-63 characters, alphanumeric with dots and hyphens, must start and end with alphanumeric). Must be unique within the listener.",
 									Optional:    true,
 								},
 								common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-									Description: "NotAfterDt",
+									Description: "The expiration date and time of the certificate (e.g., '2024-12-31T23:59:59Z'). Read-only.",
 									Optional:    true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
+						Description: "The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).",
 						Computed:    true,
 					},
 					common.ToSnakeCase("UrlHandler"): schema.ListNestedAttribute{
-						Description: "UrlHandler",
+						Description: "URL handler configuration for routing (max 20 entries). Only for L7 protocols (HTTP/HTTPS). Requires at least one default rule (seq=0, url_pattern='default').",
 						Optional:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("UrlPattern"): schema.StringAttribute{
-									Description: "UrlPattern",
+									Description: "The URL pattern for routing (1-63 characters). For URL_PATH condition: alphanumeric with /_-., for HOST_HEADER condition: alphanumeric with .-. Example: '/api/v1' or 'example.com'.",
 									Optional:    true,
 								},
 								common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-									Description: "ServerGroupId",
+									Description: "The ID of the server group to route traffic to when the URL pattern matches. Required in url_handler.",
 									Optional:    true,
 								},
 								common.ToSnakeCase("Seq"): schema.Int32Attribute{
-									Description: "Seq",
+									Description: "The sequence number for routing priority. 0 is reserved for default rule. Example: 1, 2, 3...",
 									Optional:    true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("HttpsRedirection"): schema.SingleNestedAttribute{
-						Description: "HttpsRedirection",
+						Description: "HTTPS redirection configuration. Only for HTTP protocol listeners.",
 						Optional:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("Protocol"): schema.StringAttribute{
-								Description: "Protocol",
+								Description: "The protocol to redirect to. Must be 'HTTPS'.",
 								Optional:    true,
 							},
 							common.ToSnakeCase("Port"): schema.StringAttribute{
-								Description: "Port",
+								Description: "The port number to redirect to (1-65534).",
 								Optional:    true,
 							},
 							common.ToSnakeCase("ResponseCode"): schema.StringAttribute{
-								Description: "ResponseCode",
+								Description: "The HTTP response code for redirection. Must be '301'.",
 								Optional:    true,
 							},
 						},
 					},
 					common.ToSnakeCase("UrlRedirection"): schema.StringAttribute{
-						Description: "UrlRedirection",
+						Description: "URL redirection configuration (max 8 entries).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("XForwardedFor"): schema.BoolAttribute{
-						Description: "XForwardedFor",
+						Description: "X-Forwarded-For header configuration.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("XForwardedPort"): schema.BoolAttribute{
-						Description: "XForwardedPort",
+						Description: "X-Forwarded-Port header configuration.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("XForwardedProto"): schema.BoolAttribute{
-						Description: "XForwardedProto",
+						Description: "X-Forwarded-Proto header configuration.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("RoutingAction"): schema.StringAttribute{
-						Description: "RoutingAction",
+						Description: "The routing action type. 'LB_SERVER_GROUP' for URL handler routing, 'URL_REDIRECT' for HTTPS/URL redirection. Required for L4 protocols. Set only during creation.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("ConditionType"): schema.StringAttribute{
-						Description: "ConditionType",
+						Description: "The condition type for routing. 'URL_PATH' or 'HOST_HEADER' for URL handler, 'PROTOCOL_PORT' for HTTPS redirection. Only for L7 protocols. Cannot be modified when changing url_handler.",
 						Optional:    true,
 					},
 					common.ToSnakeCase("IdleTimeout"): schema.Int32Attribute{
-						Description: "IdleTimeout",
+						Description: "The idle timeout in seconds (60-3600, in 60-second increments). Only applicable for L7 protocols (HTTP, HTTPS).",
 						Optional:    true,
 					},
 					common.ToSnakeCase("HstsMaxAge"): schema.Int32Attribute{
-						Description: "HstsMaxAge",
+						Description: "HSTS max age in seconds.",
 						Optional:    true,
 					},
 				},

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -46,24 +46,24 @@ func (r *vpcVpcResource) Metadata(_ context.Context, req resource.MetadataReques
 // Schema defines the schema for the data source.
 func (r *vpcVpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "vpc",
+		Description: "Resource of vpc",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Cidr"): schema.StringAttribute{
-				Description: "VPC CIDR\n" +
+				Description: "The IP address range of the network in CIDR notation.\n" +
 					"  - example : 192.167.0.0/18\n" +
 					"  - maxMask : /24\n" +
 					"  - minMask : /16",
-				MarkdownDescription: "VPC CIDR\n" +
+				MarkdownDescription: "The IP address range of the network in CIDR notation.\n" +
 					"  - example : 192.167.0.0/18\n" +
 					"  - maxMask : /24\n" +
 					"  - minMask : /16",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
+				Description: "Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.\n" +
 					"  - example : VPC description\n" +
 					"  - maxLength : 50",
-				MarkdownDescription: "Description\n" +
+				MarkdownDescription: "Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.\n" +
 					"  - example : VPC description\n" +
 					"  - maxLength : 50",
 				Validators: []validator.String{
@@ -74,110 +74,150 @@ func (r *vpcVpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 				Default:  stringdefault.StaticString(""),
 			},
 			"id": schema.StringAttribute{
-				Description:         "Identifier of the resource.",
-				MarkdownDescription: "Identifier of the resource.",
-				Computed:            true,
-				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Description: "The unique identifier of the vpc.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				MarkdownDescription: "The unique identifier of the vpc.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "VPC Name \n" +
+				Description: "The name of the vpc.\n" +
 					"  - example : vpcName\n" +
 					"  - maxLength : 20\n" +
 					"  - minLength : 3\n" +
 					"  - pattern : ^[a-zA-Z0-9-]+$",
-				MarkdownDescription: "VPC Name \n" +
+				MarkdownDescription: "The name of the vpc.\n" +
 					"  - example : vpcName\n" +
 					"  - maxLength : 20\n" +
 					"  - minLength : 3\n" +
 					"  - pattern : ^[a-zA-Z0-9-]+$",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(3, 20),
-					stringvalidator.RegexMatches(regexp.MustCompile("^[a-zA-Z0-9-]*$"), "Enter 3 -20 chars. (English, number, hyphen)"),
+					stringvalidator.RegexMatches(regexp.MustCompile("^[a-zA-Z0-9-]*$"), "Enter 3-20 chars. (English, number, hyphen)"),
 				},
 				Required: true,
 			},
 			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("Vpc"): schema.SingleNestedAttribute{
-				Description:         "Vpc",
-				MarkdownDescription: "Vpc",
+				Description:         "Detail information about Vpc.",
+				MarkdownDescription: "Detail information about Vpc.",
 				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description:         "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
-						MarkdownDescription: "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
-						Computed:            true,
+						Description: "The identifier of the account that owns the vpc.\n" +
+							"  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+						MarkdownDescription: "The identifier of the account that owns the vpc.\n" +
+							"  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("CidrCount"): schema.Int32Attribute{
-						Description:         "Cidr Count\n  - example: 20",
-						MarkdownDescription: "Cidr Count\n  - example: 20",
-						Computed:            true,
+						Description: "The number of CIDR blocks associated with the vpc.\n" +
+							"  - example: 20",
+						MarkdownDescription: "The number of CIDR blocks associated with the vpc.\n" +
+							"  - example: 20",
+						Computed: true,
 					},
 					common.ToSnakeCase("cidrs"): schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"cidr": schema.StringAttribute{
-									Computed:            true,
-									Description:         "VPC Cidr\n  - example: 192.167.0.0/18",
-									MarkdownDescription: "VPC Cidr\n  - example: 192.167.0.0/18",
+									Computed: true,
+									Description: "The IP address range of the network in CIDR notation.\n" +
+										"  - example: 192.167.0.0/18",
+									MarkdownDescription: "The IP address range of the network in CIDR notation.\n" +
+										"  - example: 192.167.0.0/18",
 								},
 								"created_at": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
-									MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+									Computed: true,
+									Description: "The timestamp when the vpc was created in ISO 8601 format.\n" +
+										"  - example: 2024-05-17T00:23:17Z",
+									MarkdownDescription: "The timestamp when the vpc was created in ISO 8601 format.\n" +
+										"  - example: 2024-05-17T00:23:17Z",
 								},
 								"created_by": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Created By\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
-									MarkdownDescription: "Created By\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
+									Description: "The user id that created the vpc.\n" +
+										"  - example: 7df8abb4912e4709b1cb237daccca7a8",
+									MarkdownDescription: "The user id that created the vpc.\n" +
+										"  - example: 7df8abb4912e4709b1cb237daccca7a8",
 								},
 								"id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Cidr ID\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
-									MarkdownDescription: "Cidr ID\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+									Computed: true,
+									Description: "The unique identifier of the vpc.\n" +
+										"  - example: 7df8abb4912e4709b1cb237daccca7a8",
+									MarkdownDescription: "The unique identifier of the vpc.\n" +
+										"  - example: 7df8abb4912e4709b1cb237daccca7a8",
 								},
 							},
 						},
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
-						MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
-						Computed:            true,
+						Description: "The timestamp when the vpc was created in ISO 8601 format.\n" +
+							"  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "The timestamp when the vpc was created in ISO 8601 format.\n" +
+							"  - example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description:         "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
-						MarkdownDescription: "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
-						Computed:            true,
+						Description: "The user id that created the vpc.\n" +
+							"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "The user id that created the vpc.\n" +
+							"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description:         "Description\n  - maxLength: 50\n  - example: vpcDescription",
-						MarkdownDescription: "Description\n  - maxLength: 50\n  - example: vpcDescription",
-						Computed:            true,
+						Description: "Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.\n" +
+							"  - example: vpcDescription\n" +
+							"  - maxLength: 50",
+						MarkdownDescription: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the vpc.\n" +
+							"  - example: vpcDescription\n" +
+							"  - maxLength: 50",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description:         "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
-						MarkdownDescription: "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
-						Computed:            true,
+						Description: "The unique identifier of the vpc.\n" +
+							"  - example: 7df8abb4912e4709b1cb237daccca7a8",
+						MarkdownDescription: "The unique identifier of the vpc.\n" +
+							"  - example: 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
-						MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
-						Computed:            true,
+						Description: "The timestamp when the vpc was last modified in ISO 8601 format.\n" +
+							"  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "The timestamp when the vpc was last modified in ISO 8601 format.\n" +
+							"  - example: 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description:         "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
-						MarkdownDescription: "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
-						Computed:            true,
+						Description: "The user id that last modified the vpc.\n" +
+							"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "The user id that last modified the vpc.\n" +
+							"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description:         "VPC Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: vpcName",
-						MarkdownDescription: "VPC Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: vpcName",
-						Computed:            true,
+						Description: "The name of the vpc.\n" +
+							"  - maxLength: 20\n" +
+							"  - minLength: 3\n" +
+							"  - pattern: `^[a-zA-Z0-9-]*$`\n" +
+							"  - example: vpcName",
+						MarkdownDescription: "The name of the vpc.\n" +
+							"  - maxLength: 20\n" +
+							"  - minLength: 3\n" +
+							"  - pattern: `^[a-zA-Z0-9-]*$`\n" +
+							"  - example: vpcName",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETED\",\"ERROR\"]",
-						MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETED\",\"ERROR\"]",
-						Computed:            true,
+						Description: "The current lifecycle state of the vpc.\n" +
+							"  - enum: [\"ACTIVE\",\"ERROR\"]\n" +
+                            "  - example : ACTIVE",
+						MarkdownDescription: "The current lifecycle state of the vpc.\n" +
+							"  - enum: [\"ACTIVE\",\"ERROR\"]\n" +
+                            "  - example : ACTIVE",
+						Computed: true,
 					},
 				},
 			},
@@ -207,7 +247,7 @@ func (r *vpcVpcResource) Configure(_ context.Context, req resource.ConfigureRequ
 	r.clients = inst.Client
 }
 
-// Create creates the resource and sets the initial Terraform state.
+// Create creates the vpc and sets the initial Terraform state.
 func (r *vpcVpcResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan vpc.VpcResource
@@ -277,7 +317,7 @@ func (r *vpcVpcResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 }
 
-// Update updates the resource and sets the updated Terraform state on success.
+// Update updates the vpc and sets the updated Terraform state on success.
 func (r *vpcVpcResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
 	var state vpc.VpcResource
@@ -320,7 +360,7 @@ func (r *vpcVpcResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 }
 
-// Delete deletes the resource and removes the Terraform state on success.
+// Delete deletes the vpc and removes the Terraform state on success.
 func (r *vpcVpcResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
 	var state vpc.VpcResource

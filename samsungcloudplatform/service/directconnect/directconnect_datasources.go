@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	directconnectv1d1 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/directconnectv1d1"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	directconnectv1d1 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/directconnectv1d1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,51 +44,52 @@ func (d *directConnectDirectConnectDataSource) Schema(_ context.Context, _ datas
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "size \n" +
+				Description: "The number of items per page. \n" +
 					"  - example : 20 \n" +
 					"  - minimum : 0",
 				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "page \n" +
+				Description: "The page number for pagination. \n" +
 					"  - example : 0 \n" +
 					"  - minimum : 0",
 				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. \n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Direct Connect ID \n" +
+				Description: "The unique identifier of the direct connect. \n" +
 					"  - example : fe860e0af0c04dcd8182b84f907f31f4",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Direct Connect Name \n" +
+				Description: "The name of the direct connect. \n" +
 					"  - example : directConnectName",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State \n" +
+				Description: "The current lifecycle state of the direct connect. \n" +
 					"  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
+				Description: "The identifier of the VPC that the direct connect belongs to. \n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description: "VPC Name \n" +
+				Description: "The name of the VPC that the direct connect belongs to. \n" +
 					"  - example : vpcName",
 				Optional: true,
 			},
 
 			// Output
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
-				Description: "total count",
+				Description: "The total number of Direct Connect.\n" +
+                    "  - example : 5",
 				Computed:    true,
 			},
 			// Output
@@ -104,55 +105,70 @@ func (d *directConnectDirectConnectDataSource) Schema(_ context.Context, _ datas
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Direct Connect Id",
+							Description: "Identifier of the direct connect.\n" +
+								"  - example : fe860e0af0c04dcd8182b84f907f31f4",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Direct Connect Name",
+							Description: "The name of the direct connect.\n" +
+								"  - example : directConnectName",
 							Computed:    true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "account id",
+							Description: "The identifier of the account that owns the direct connect.\n" +
+								"  - example : 27bb070b564349f8a31cc60734cc36a5",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "description",
+							Description: "Enter a brief explanation or note about this direct connect. This help identify the purpose or usage of the resource.\n" +
+								"  - example : Direct Connect description\n" +
+								"  - maxLength : 50\n" +
+								"  - minLength : 1",
 							Computed:    true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "vpc id",
+							Description: "The identifier of the VPC that the direct connect belongs to.\n" +
+								"  - example : 023c57b14f11483689338d085e061492",
 							Computed:    true,
 						},
 						common.ToSnakeCase("VpcName"): schema.StringAttribute{
-							Description: "vpc name",
+							Description: "The name of the VPC that the direct connect belongs to.\n" +
+								"  - example : vpc-prod-01",
 							Computed:    true,
 						},
 						common.ToSnakeCase("Bandwidth"): schema.Int32Attribute{
-							Description: "bandwidth",
+							Description: "The bandwidth capacity(1Gpbs, 10Gpbs, 20Gpbs or 40Gpbs) of the connection.\n" +
+								"  - example : 1 | 10 | 20 | 40",
 							Computed:    true,
 						},
 						common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-							Description: "firewall id",
+							Description: "The identifier of the firewall associated with the direct connect.\n" +
+								"  - example : 68db67f78abd405da98a6056a8ee42af",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "created at",
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+                                "  - example : 2024-05-17T00:23:17Z",
 							Computed:    true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "created by",
+							Description: "The user id that created the resource.\n" +
+                                "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "modified at",
+						    Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+                                "  - example : 2024-05-17T00:23:17Z",
 							Computed:    true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "modified by",
+							Description: "The user id that last modified the resource.\n" +
+                                "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 							Computed:    true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "state",
+							Description: "The current lifecycle state of the direct connect.\n" +
+								"  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR",
 							Computed:    true,
 						},
 					},

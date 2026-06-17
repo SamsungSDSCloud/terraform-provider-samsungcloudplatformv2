@@ -3,12 +3,11 @@ package backup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/backup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/backup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,19 +36,21 @@ func (d *backupBackupDataSources) Schema(_ context.Context, _ datasource.SchemaR
 	resp.Schema = schema.Schema{
 		Description: "List of Backups.",
 		Attributes: map[string]schema.Attribute{
-			"region": region.DataSourceSchema(),
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Backup name",
-				Optional:    true,
+				Description: "Backup name \n" +
+					"  - example: 'terraformtestbackup01'",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServerName"): schema.StringAttribute{
-				Description: "Backup server name",
-				Optional:    true,
+				Description: "Backup server name \n" +
+					"  - example: 'terraformbackupserver01'",
+				Optional: true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
-				Description: "Backup ID List",
+				Description: "Backup ID List \n " +
+					"  - example: ['401e7e1489b94a849714195ee50a1918','55f39954c2684d68ae9691ab0a38d86f']",
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -83,10 +84,6 @@ func (d *backupBackupDataSources) Read(ctx context.Context, req datasource.ReadR
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	if !state.Region.IsNull() {
-		d.client.Config.Region = state.Region.ValueString()
 	}
 
 	ids, err := GetBackups(d.clients, state.Name, state.ServerName, state.Filter)

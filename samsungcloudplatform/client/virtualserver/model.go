@@ -3,7 +3,7 @@ package virtualserver
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -214,33 +214,33 @@ type ServerVolume struct {
 }
 
 type ServerResource struct {
-	Id                    types.String         `tfsdk:"id"`
-	AccountId             types.String         `tfsdk:"account_id"`
-	Networks              types.Map            `tfsdk:"networks"`
-	AutoScalingGroupId    types.String         `tfsdk:"auto_scaling_group_id"`
-	CreatedAt             types.String         `tfsdk:"created_at"`
-	CreatedBy             types.String         `tfsdk:"created_by"`
-	DiskConfig            types.String         `tfsdk:"disk_config"`
-	ImageId               types.String         `tfsdk:"image_id"`
-	KeypairName           types.String         `tfsdk:"keypair_name"`
-	LaunchConfigurationId types.String         `tfsdk:"launch_configuration_id"`
-	Lock                  types.Bool           `tfsdk:"lock"`
-	Metadata              types.Map            `tfsdk:"metadata"`
-	ModifiedAt            types.String         `tfsdk:"modified_at"`
-	Name                  types.String         `tfsdk:"name"`
-	PlannedComputeOsType  types.String         `tfsdk:"planned_compute_os_type"`
-	ProductCategory       types.String         `tfsdk:"product_category"`
-	ProductOffering       types.String         `tfsdk:"product_offering"`
-	SecurityGroups        types.List           `tfsdk:"security_groups"`
-	UserData              types.String         `tfsdk:"user_data"`
-	ServerGroupId         types.String         `tfsdk:"server_group_id"`
-	ServerTypeId          types.String         `tfsdk:"server_type_id"`
-	State                 types.String         `tfsdk:"state"`
-	BootVolume            ServerResourceVolume `tfsdk:"boot_volume"`
-	ExtraVolumes          types.Map            `tfsdk:"extra_volumes"`
-	VpcId                 types.String         `tfsdk:"vpc_id"`
-	PartitionNumber       types.Int32          `tfsdk:"partition_number"`
-	Tags                  types.Map            `tfsdk:"tags"`
+	Id                    types.String `tfsdk:"id"`
+	AccountId             types.String `tfsdk:"account_id"`
+	Networks              types.Map    `tfsdk:"networks"`
+	AutoScalingGroupId    types.String `tfsdk:"auto_scaling_group_id"`
+	CreatedAt             types.String `tfsdk:"created_at"`
+	CreatedBy             types.String `tfsdk:"created_by"`
+	DiskConfig            types.String `tfsdk:"disk_config"`
+	ImageId               types.String `tfsdk:"image_id"`
+	KeypairName           types.String `tfsdk:"keypair_name"`
+	LaunchConfigurationId types.String `tfsdk:"launch_configuration_id"`
+	Lock                  types.Bool   `tfsdk:"lock"`
+	Metadata              types.Map    `tfsdk:"metadata"`
+	ModifiedAt            types.String `tfsdk:"modified_at"`
+	Name                  types.String `tfsdk:"name"`
+	PlannedComputeOsType  types.String `tfsdk:"planned_compute_os_type"`
+	ProductCategory       types.String `tfsdk:"product_category"`
+	ProductOffering       types.String `tfsdk:"product_offering"`
+	SecurityGroups        types.List   `tfsdk:"security_groups"`
+	UserData              types.String `tfsdk:"user_data"`
+	ServerGroupId         types.String `tfsdk:"server_group_id"`
+	ServerTypeId          types.String `tfsdk:"server_type_id"`
+	State                 types.String `tfsdk:"state"`
+	BootVolume            types.Object `tfsdk:"boot_volume"`
+	ExtraVolumes          types.Map    `tfsdk:"extra_volumes"`
+	VpcId                 types.String `tfsdk:"vpc_id"`
+	PartitionNumber       types.Int32  `tfsdk:"partition_number"`
+	Tags                  types.Map    `tfsdk:"tags"`
 }
 
 type ServerResourceNetwork struct {

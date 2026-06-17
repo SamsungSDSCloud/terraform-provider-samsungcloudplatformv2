@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_configinspection_diagnoses Data Source - samsungcloudplatformv2"
 subcategory: Config inspection diagnosis
 description: |-
-  Config inspection diagnosis result list
+  Config inspection diagnosis result list.
 ---
 
 # samsungcloudplatformv2_configinspection_diagnoses (Data Source)
 
-Config inspection diagnosis result list
+Config inspection diagnosis result list.
 
 ## Example Usage
 
@@ -29,31 +29,31 @@ output "response" {
 }
 
 variable "with_count" {
-  description = "With count"
+  description = "Whether to include the total item count in the response"
   type        = string
   default     = null
 }
 
 variable "limit" {
-  description = "Limit"
+  description = "Maximum number of items to return per page"
   type        = number
   default     = null
 }
 
 variable "marker" {
-  description = "Marker"
+  description = "Pagination token from a previous response to fetch the next page"
   type        = string
   default     = null
 }
 
 variable "sort" {
-  description = "Sort"
+  description = "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order"
   type        = string
   default     = null
 }
 
 variable "account_id" {
-  description = "Account Id"
+  description = "Account Identifier"
   type        = string
   default     = "ENTER YOUR RESOURCE'S ACCOUNT_ID"
 }
@@ -77,25 +77,25 @@ variable "csp_type" {
 }
 
 variable "diagnosis_state" {
-  description = "Diagnosis state"
+  description = "Status of diagnosis"
   type        = string
   default     = null
 }
 
 variable "start_date" {
-  description = "Start date"
+  description = "Include only items created on or after this date"
   type        = string
   default     = null
 }
 
 variable "end_date" {
-  description = "End date"
+  description = "Include only items created on or before this date"
   type        = string
   default     = null
 }
 
 variable "user_id" {
-  description = "User id"
+  description = "Account owner of this diagnosis"
   type        = string
   default     = "ENTER YOUR RESOURCE'S USER_ID"
 }
@@ -106,73 +106,79 @@ variable "user_id" {
 
 ### Optional
 
-- `account_id` (String) Account Id
-  - Example : 0e3dffc50eb247a1adf4f2e5c82c4f99
-- `csp_type` (String) Type of cloud service provider
-  - Example : SCP
-- `diagnosis_id` (String) Id of diagnosis
-  - Example : DIA-943731CB8E3045C289BAECAEC3532097
-- `diagnosis_name` (String) Name of diagnosis
-  - Example : Sample Diagnosis Name
-- `diagnosis_state` (String) Status of diagnosis
-  - Example : Completed
-- `end_date` (String) End date
-  - Example : 2022-12-31
-- `limit` (Number) Limit
-  - Example : 20
-- `marker` (String) Marker
-  - Example : 607e0938521643b5b4b266f34fae693
-- `sort` (String) Sort
-  - Example : created_at:desc
-- `start_date` (String) Start date
-  - Example : 2022-01-01
-- `user_id` (String) User id
-  - Example : 76b563a009584b1380715c00703a02ff
-- `with_count` (String) With count
-  - Example : true
+- `account_id` (String) Account Identifier.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `csp_type` (String) Type of cloud service provider.
+  - example : 'SCP'
+  - enum : SCP | AWS | Azure
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
+- `diagnosis_name` (String) Name of diagnosis.
+  - example : 'Sample Diagnosis Name'
+  - pattern : `^[a-zA-Z0-9-_]+$`
+- `diagnosis_state` (String) Status of diagnosis.
+  - example : 'Completed'
+- `end_date` (String) Include only items created on or before this date.
+  - example : '2022-12-31'
+- `limit` (Number) Maximum number of items to return per page.
+  - example : 20
+- `marker` (String) Pagination token from a previous response to fetch the next page.
+  - example : '607e0938521643b5bxxxxxxxxxxxxxx'
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : 'created_at:desc'
+- `start_date` (String) Include only items created on or after this date.
+  - example : '2022-01-01'
+- `user_id` (String) Account owner of this diagnosis.
+  - example: YOUR RESOURCE'S USER_ID
+- `with_count` (String) Whether to include the total item count in the response.
+  - example : true
 
 ### Read-Only
 
-- `diagnosis_result_responses` (Attributes List) Diagnosis result responses (see [below for nested schema](#nestedatt--diagnosis_result_responses))
-- `links` (Attributes List) Links (see [below for nested schema](#nestedatt--links))
-- `total_count` (Number) Total count
-  - Example : 20
+- `diagnosis_result_responses` (Attributes List) Diagnosis result responses. (see [below for nested schema](#nestedatt--diagnosis_result_responses))
+- `links` (Attributes List) Collection of hypermedia links to related resources or pages.
+  - example : [{"href": "/api/v1/config-inspection/diagnoses?limit=20&marker=607e0938521643b5bxxxxxxxxxxxxxx", "rel": "self"}] (see [below for nested schema](#nestedatt--links))
+- `total_count` (Number) Total number of items available across all pages.
+  - example : 20
 
 <a id="nestedatt--diagnosis_result_responses"></a>
 ### Nested Schema for `diagnosis_result_responses`
 
 Read-Only:
 
-- `count_check` (Number) Check count
-  - Example : 10
-- `count_error` (Number) Error count
-  - Example : 0
-- `count_fail` (Number) Fail count
-  - Example : 3
-- `count_na` (Number) Na count
-  - Example : 2
-- `count_pass` (Number) Pass count
-  - Example : 5
-- `csp_type` (String) Type of cloud service provider
-  - Example : SCP
-- `diagnosis_account_id` (String) Account Id of diagnosis
-  - Example : 0e3dffc50eb247a1adf4f2e5c82c4f99
-- `diagnosis_check_type` (String) Check type of diagnosis
-  - Example : BP
-- `diagnosis_id` (String) Id of diagnosis
-  - Example : DIA-943731CB8E3045C289BAECAEC3532097
-- `diagnosis_name` (String) Name of diagnosis
-  - Example : Sample Diagnosis Name
-- `diagnosis_request_sequence` (String) Sequence of diagnosis request
-  - Example : 1234567890
-- `diagnosis_result` (String) Diagnosis Result
-  - Example : SUCCESS
-- `diagnosis_total_count` (Number) Diagnosis Total Count
-  - Example : 10
-- `proceed_date` (String) Proceed Date
-  - Example : 2022-01-01T12:00:00Z
-- `total` (Number) Total count
-  - Example : 10
+- `count_check` (Number) Check count.
+  - example : 10
+- `count_error` (Number) Error count.
+  - example : 0
+- `count_fail` (Number) Fail count.
+  - example : 3
+- `count_na` (Number) N/A count.
+  - example : 2
+- `count_pass` (Number) Pass count.
+  - example : 5
+- `csp_type` (String) Type of cloud service provider.
+  - example : 'SCP'
+  - enum : SCP | AWS | Azure
+- `diagnosis_account_id` (String) Account Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ACCOUNT_ID
+- `diagnosis_check_type` (String) Check type of diagnosis.
+  - example : 'BP'
+  - enum : BP | SSI
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
+- `diagnosis_name` (String) Name of diagnosis.
+  - example : 'Sample Diagnosis Name'
+  - pattern : `^[a-zA-Z0-9-_]+$`
+- `diagnosis_request_sequence` (String) Sequence of diagnosis request.
+  - example : 1234567890
+- `diagnosis_result` (String) Overall diagnosis execution status.
+  - example : 'SUCCESS'
+- `diagnosis_total_count` (Number) Total number of diagnosis items.
+  - example : 10
+- `proceed_date` (String) Date the diagnosis was performed.
+  - example : '2022-01-01T12:00:00Z'
+- `total` (Number) Total number of items available across all pages.
+  - example : 10
 
 
 <a id="nestedatt--links"></a>
@@ -180,7 +186,7 @@ Read-Only:
 
 Read-Only:
 
-- `href` (String) Href
-  - Example : /api/v1/config-inspection/diagnoses?limit=20&marker=607e0938521643b5b4b266f34fae693
-- `rel` (String) Rel
-  - Example : self
+- `href` (String) URL of the linked resource.
+  - example : '/api/v1/config-inspection/diagnoses?limit=20&marker=607e0938521643b5bxxxxxxxxxxxxxx'
+- `rel` (String) Relationship type of the link.
+  - example : 'self'

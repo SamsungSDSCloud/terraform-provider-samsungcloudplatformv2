@@ -3,11 +3,11 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/loadbalancer"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -58,47 +58,47 @@ func (d *loadbalancerLoadbalancerPrivateNatIpDataSource) Schema(_ context.Contex
 				Attributes: map[string]schema.Attribute{
 
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
+						Description: "The timestamp when the resource was created, in ISO 8601 format.",
 						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
+						Description: "The user id that created the resource.",
 						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
 						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
+						Description: "The user id that last modified the resource.",
 						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("ExternalIpAddress"): schema.StringAttribute{
-						Description: "ExternalIpAddress",
+						Description: "The external IP address.",
 						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
+						Description: "The unique identifier of the Private NAT IP.",
 						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("InternalIpAddress"): schema.StringAttribute{
-						Description: "InternalIpAddress",
+						Description: "The internal IP address.",
 						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("PrivateNatIpId"): schema.StringAttribute{
-						Description: "PrivateNatIpId",
+						Description: "The private NAT IP ID.",
 						Optional:    true,
 						Computed:    true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
+						Description: "The current state of the Private NAT IP (CREATING, ACTIVE, DELETING, ERROR).",
 						Optional:    true,
 						Computed:    true,
 					},

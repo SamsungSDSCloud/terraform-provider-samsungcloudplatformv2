@@ -3,12 +3,12 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/dns/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,127 +40,154 @@ func (d *dnsRecordDataSources) Metadata(_ context.Context, req datasource.Metada
 // Schema defines the schema for the data source.
 func (d *dnsRecordDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of record.",
+		Description: "Provides a list of DNS records.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Limit"): schema.Int32Attribute{
-				Description: "Limit",
-				Optional:    true,
+				Description: "The maximum number of items to return.\n" +
+					"  - example : 10 ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Marker"): schema.StringAttribute{
-				Description: "Marker",
-				Optional:    true,
+				Description: "The last record ID of the previous page.\n" +
+					"  - example : 6ed7bc1-4b05-3cc7-7105-c1b71f7f30a7 ",
+				Optional: true,
 			},
 			common.ToSnakeCase("SortDir"): schema.StringAttribute{
-				Description: "SortDir",
-				Optional:    true,
+				Description: "The sort direction for the list (ASC or DESC).\n" +
+					"  - example : ASC ",
+				Optional: true,
 			},
 			common.ToSnakeCase("SortKey"): schema.StringAttribute{
-				Description: "SortKey",
-				Optional:    true,
+				Description: "The field to sort by.\n" +
+					"  - example : name ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "The name to filter DNS records by.\n" +
+					"  - example : test.app ",
+				Optional: true,
 			},
 			common.ToSnakeCase("ExactName"): schema.StringAttribute{
-				Description: "ExactName",
-				Optional:    true,
+				Description: "Filter by exact name match.\n" +
+					"  - example : exact-record-name ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Type",
-				Optional:    true,
+				Description: "The type of the DNS record (e.g., A, AAAA, CNAME, MX, TXT, SPF).\n" +
+					"  - example : A ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Data"): schema.StringAttribute{
-				Description: "Data",
-				Optional:    true,
+				Description: "The data to filter DNS records by.\n" +
+					"  - example : 192.168.1.1 ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Status"): schema.StringAttribute{
-				Description: "Status",
-				Optional:    true,
+				Description: "The status to filter DNS records by.\n" +
+					"  - example : ACTIVE ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description",
-				Optional:    true,
+				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+					"  - example : This is description ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Ttl"): schema.Int32Attribute{
-				Description: "Ttl",
-				Optional:    true,
+				Description: "The Time-To-Live (TTL) value in seconds for the DNS record.\n" +
+					"  - example : 3600 ",
+				Optional: true,
 			},
 			common.ToSnakeCase("HostedZoneId"): schema.StringAttribute{
-				Description: "HostedZoneId",
-				Optional:    true,
+				Description: "ID for the zone that contains this record\n" +
+					"  - example : 3432012nfdksdf03ktrld9234lgfg ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Records"): schema.ListNestedAttribute{
-				Description: "A list of Record.",
+				Description: "List of DNS records matching the query.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Action"): schema.StringAttribute{
-							Description: "Action",
-							Optional:    true,
+							Description: "The action performed on the DNS record.\n" +
+								"  - example : NONE ",
+							Optional: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Optional:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z ",
+							Optional: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description",
-							Optional:    true,
+							Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+								"  - example : This is description ",
+							Optional: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Optional:    true,
+							Description: "The unique identifier of the DNS record.\n" +
+                                "  - example : 6ed7bc1-4b05-3cc7-7105-c1b71f7f30a7 ",
+							Optional: true,
 						},
 						common.ToSnakeCase("Links"): schema.SingleNestedAttribute{
-							Description: "Links",
+							Description: "The links related to the DNS record.",
 							Computed:    true,
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Self"): schema.StringAttribute{
-									Description: "Self",
-									Optional:    true,
+									Description: "The self-referential link of the DNS record.\n" +
+										"  - example : https://api.samsungsdscloud.com/dns/v1/records/3432012nfdksdf03ktrld9234lgfg ",
+									Optional: true,
 								},
 							},
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Optional:    true,
+							Description: "The name of the DNS record.\n" +
+								"  - example : test.app ",
+							Optional: true,
 						},
 						common.ToSnakeCase("ProjectId"): schema.StringAttribute{
-							Description: "ProjectId",
-							Optional:    true,
+							Description: "The project identifier associated with the DNS record.\n" +
+								"  - example : 003dffc50eb123a1cbf4f2e5c71d4f15 ",
+							Optional: true,
 						},
 						common.ToSnakeCase("Records"): schema.ListAttribute{
 							ElementType: types.StringType,
-							Description: "Records",
-							Optional:    true,
+							Description: "The list of record values for this DNS record.\n" +
+								"  - example : [\"12.34.45.67\"]",
+							Optional: true,
 						},
 						common.ToSnakeCase("Status"): schema.StringAttribute{
-							Description: "Status",
-							Optional:    true,
+							Description: "The current status of the DNS record.\n" +
+								"  - example : ACTIVE ",
+							Optional: true,
 						},
 						common.ToSnakeCase("Ttl"): schema.Int32Attribute{
-							Description: "Ttl",
-							Optional:    true,
+							Description: "The Time-To-Live (TTL) value in seconds for the DNS record.\n" +
+								"  - example : 3600 ",
+							Optional: true,
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Type",
-							Optional:    true,
+							Description: "The type of the DNS record (e.g., A, AAAA, CNAME, MX, TXT, SPF).\n" +
+								"  - example : A ",
+							Optional: true,
 						},
 						common.ToSnakeCase("UpdatedAt"): schema.StringAttribute{
-							Description: "UpdatedAt",
-							Optional:    true,
+							Description: "The timestamp when the resource was last updated, in ISO 8601 format.\n" +
+								"  - example : 2026-02-09T08:00:40Z ",
+							Optional: true,
 						},
 						common.ToSnakeCase("Version"): schema.Int32Attribute{
-							Description: "Version",
-							Optional:    true,
+							Description: "The version of the DNS record.\n" +
+								"  - example : 1 ",
+							Optional: true,
 						},
 						common.ToSnakeCase("ZoneId"): schema.StringAttribute{
-							Description: "ZoneId",
-							Optional:    true,
+							Description: "The zone identifier of the DNS record.\n" +
+								"  - example : 3432012nfdksdf03ktrld9234lgfg ",
+							Optional: true,
 						},
 						common.ToSnakeCase("ZoneName"): schema.StringAttribute{
-							Description: "ZoneName",
-							Optional:    true,
+							Description: "The name of the zone containing the DNS record.\n" +
+								"  - example : my-zone.com ",
+							Optional: true,
 						},
 					},
 				},

@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -65,13 +65,13 @@ func (r *vpcTgwUplinkRuleResource) Configure(_ context.Context, req resource.Con
 
 func (r *vpcTgwUplinkRuleResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "vpc",
+		Description: "The uplink rule of the VPC Transit Gateway",
 		Attributes: map[string]schema.Attribute{
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Description:         "Description\n  - maxLength: 50\n  - example: Routing Rule Description",
-				MarkdownDescription: "Description\n  - maxLength: 50\n  - example: Routing Rule Description",
+				Description:         "Enter a brief explanation or note about this uplink rule. This help identify the purpose or usage of the resource.\n  - maxLength: 50\n  - example: Uplink Rule Description",
+				MarkdownDescription: "Enter a brief explanation or note about this uplink rule. This help identify the purpose or usage of the resource.\n  - maxLength: 50\n  - example: Uplink Rule Description",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(50),
 				},
@@ -82,16 +82,20 @@ func (r *vpcTgwUplinkRuleResource) Schema(ctx context.Context, _ resource.Schema
 			},
 			"destination_cidr": schema.StringAttribute{
 				Required:            true,
-				Description:         "Destination CIDR\n  - example: 192.167.5.0/24",
-				MarkdownDescription: "Destination CIDR\n  - example: 192.167.5.0/24",
+				Description:         "The destination IP address range in CIDR notation.\n  - example: 192.167.5.0/24",
+				MarkdownDescription: "The destination IP address range in CIDR notation.\n  - example: 192.167.5.0/24",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"destination_type": schema.StringAttribute{
-				Required:            true,
-				Description:         "- enum: [\"TGW\",\"ON_PREMISE\"]",
-				MarkdownDescription: "- enum: [\"TGW\",\"ON_PREMISE\"]",
+				Required: true,
+				Description: "The type of the destination.\n" +
+					"  - enum: TGW | ON_PREMISE\n" +
+					"  - example:TGW",
+				MarkdownDescription: "The type of the destination.\n" +
+					"  - enum: TGW | ON_PREMISE\n" +
+					"  - example:TGW",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"TGW",
@@ -104,38 +108,47 @@ func (r *vpcTgwUplinkRuleResource) Schema(ctx context.Context, _ resource.Schema
 			},
 			"transit_gateway_id": schema.StringAttribute{
 				Required:            true,
-				Description:         "Transit Gateway ID\n  - example: fe860e0af0c04dcd8182b84f907f31f4",
-				MarkdownDescription: "Transit Gateway ID\n  - example: fe860e0af0c04dcd8182b84f907f31f4",
+				Description:         "The identifier of the transit gateway that the uplink rule belongs to.\n  - example: fe860e0af0c04dcd8182b84f907f31f4",
+				MarkdownDescription: "The identifier of the transit gateway that the uplink rule belongs to.\n  - example: fe860e0af0c04dcd8182b84f907f31f4",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"transit_gateway_rule": schema.SingleNestedAttribute{
+				Description: "The rule of the transit gateway.",
 				Attributes: map[string]schema.Attribute{
 					"description": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Description\n  - example: Routing Rule Description",
-						MarkdownDescription: "Description\n  - example: Routing Rule Description",
+						Description:         "Enter a brief explanation or note about this transit gateway rule. This help identify the purpose or usage of the resource.\n  - example: Transit gateway rule Description",
+						MarkdownDescription: "Enter a brief explanation or note about this transit gateway rule. This help identify the purpose or usage of the resource.\n  - example: Transit gateway rule Description",
 					},
 					"destination_cidr": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Destination CIDR\n  - example: 192.167.5.0/24",
-						MarkdownDescription: "Destination CIDR\n  - example: 192.167.5.0/24",
+						Description:         "The destination IP address range in CIDR notation.\n  - example: 192.167.5.0/24",
+						MarkdownDescription: "The destination IP address range in CIDR notation.\n  - example: 192.167.5.0/24",
 					},
 					"destination_type": schema.StringAttribute{
-						Computed:            true,
-						Description:         "- enum: [\"TGW\",\"ON_PREMISE\"]",
-						MarkdownDescription: "- enum: [\"TGW\",\"ON_PREMISE\"]",
+						Computed: true,
+						Description: "The type of the destination.\n" +
+							"  - enum: [\"TGW\",\"ON_PREMISE\"]\n" +
+							"  - example : TGW",
+						MarkdownDescription: "The type of the destination.\n" +
+							"  - enum: [\"TGW\",\"ON_PREMISE\"]\n" +
+							"  - example : TGW",
 					},
 					"id": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Routing Rule ID\n  - example: 43772aff4539403d9ba74bf1fdaa00c8",
-						MarkdownDescription: "Routing Rule ID\n  - example: 43772aff4539403d9ba74bf1fdaa00c8",
+						Description:         "The unique identifier of the transit gateway rule.\n  - example: 43772aff4539403d9ba74bf1fdaa00c8",
+						MarkdownDescription: "The unique identifier of the transit gateway rule.\n  - example: 43772aff4539403d9ba74bf1fdaa00c8",
 					},
 					"state": schema.StringAttribute{
-						Computed:            true,
-						Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
-						MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
+						Computed: true,
+						Description: "The current lifecycle state of the transit gateway rule.\n" +
+							"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
+							"  - example:ACTIVE",
+						MarkdownDescription: "The current lifecycle state of the transit gateway rule.\n" +
+							"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
+							"  - example:ACTIVE",
 					},
 				},
 				CustomType: vpc.TransitGatewayRuleType{
@@ -297,5 +310,5 @@ func waitForTGWRuleStatus(ctx context.Context, vpcClient *vpc.Client, tgwId stri
 			return "", common.DeletedState, nil
 		}
 		return info, string(info.TransitGatewayRules[0].State), nil
-	})
+	}, -1, -1, -1, -1)
 }

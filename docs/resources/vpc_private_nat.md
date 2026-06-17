@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_private_nat Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  Private NAT.
+  Private NAT resource for the Direct Connect or the Transit Gateway.
 ---
 
 # samsungcloudplatformv2_vpc_private_nat (Resource)
 
-Private NAT.
+Private NAT resource for the Direct Connect or the Transit Gateway.
 
 ## Example Usage
 
@@ -70,18 +70,18 @@ variable "private_nat_tags" {
 
 ### Required
 
-- `cidr` (String) Private NAT IP range 
+- `cidr` (String) The IP address range of the network in CIDR notation.
   - example : 192.167.0.0/24
-- `name` (String) Private NAT Name 
+- `name` (String) The name of the private NAT. 
   - example : PrivateNatName
-- `service_resource_id` (String) Private NAT connected Service Resource ID 
+- `service_resource_id` (String) The identifier of the connected service resource. 
   - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
-- `service_type` (String) Private NAT connected Service Type 
-  - example : DIRECT_CONNECT
+- `service_type` (String) The type of the connected service.
+  - example : DIRECT_CONNECT | TRANSIT_GATEWAY
 
 ### Optional
 
-- `description` (String) Description 
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. 
   - example : PrivateNat Description
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -89,7 +89,7 @@ variable "private_nat_tags" {
 
 ### Read-Only
 
-- `id` (String) Private NAT ID 
+- `id` (String) The unique identifier of the private NAT. 
   - example: YOUR RESOURCE'S ID
 - `private_nat` (Attributes) Private NAT details (see [below for nested schema](#nestedatt--private_nat))
 
@@ -98,29 +98,29 @@ variable "private_nat_tags" {
 
 Read-Only:
 
-- `account_id` (String) Account ID 
+- `account_id` (String) The identifier of the account that owns the private NAT.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `cidr` (String) Private NAT IP range 
+- `cidr` (String) The IP address range of the network in CIDR notation.
   - example : 192.167.0.0/24
-- `created_at` (String) Created At 
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
   - example : 2024-05-17T00:23:17Z
-- `created_by` (String) Created By 
+- `created_by` (String) The user id that created the resource. 
   - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Description 
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. 
   - example : PrivateNat Description
-- `id` (String) Private NAT ID 
+- `id` (String) The unique identifier of the private NAT.
   - example: YOUR RESOURCE'S ID
-- `modified_at` (String) Modified At 
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
   - example : 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified By 
+- `modified_by` (String) The user id that modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) Private NAT Name 
+- `name` (String) The name of the private NAT. 
   - example : PrivateNatName
-- `service_resource_id` (String) Private NAT connected Service Resource ID 
+- `service_resource_id` (String) The identifier of the connected service resource.
   - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
 - `service_resource_name` (String) Private NAT connected Service Resource Name 
   - example : PrivateNatName
-- `service_type` (String) Private NAT connected Service Type 
-  - example : DIRECT_CONNECT
-- `state` (String) Private NAT State 
+- `service_type` (String) The type of the connected service. 
+  - example : DIRECT_CONNECT | TRANSIT_GATEWAY
+- `state` (String) The current lifecycle state of the private NAT.
   - example : ACTIVE

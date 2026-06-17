@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_security_group_security_groups Data Source - samsungcloudplatformv2"
 subcategory: Security Group
 description: |-
-  List of security group
+  List of security groups
 ---
 
 # samsungcloudplatformv2_security_group_security_groups (Data Source)
 
-List of security group
+List of security groups
 
 ## Example Usage
 
@@ -60,17 +60,23 @@ variable "name" {
 
 ### Optional
 
-- `id` (String) Id 
+- `id` (String) The unique identifier of the resource.
   - example: YOUR RESOURCE'S ID
-- `name` (String) Name 
-  - example : sg_0911
-- `page` (Number) Page 
-  - example : 0
-- `size` (Number) Size 
-  - example : 20
-- `sort` (String) Sort 
-  - example : created_at:desc
+- `name` (String) The name of the Security Group.
+  - example: sg-web-prod
+  - valid: All characters except 'default'
+  - constraints: minLength: 1, maxLength: 255, duplicates allowed
+- `page` (Number) The page number for pagination.
+  - example: 1
+  - constraints: min: 1
+- `size` (Number) The number of items per page.
+  - example: 20
+  - constraints: min: 1
+- `sort` (String) The sorting criteria.
+  - example: created_at:desc
+  - valid: field_name:asc or field_name:desc
 
 ### Read-Only
 
-- `ids` (List of String) Security group Id List
+- `ids` (List of String) The list of Security Group identifiers.
+  - example: ['YOUR RESOURCE'S IDS']

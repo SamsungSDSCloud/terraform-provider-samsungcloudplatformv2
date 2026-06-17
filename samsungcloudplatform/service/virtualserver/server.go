@@ -6,15 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/virtualserver/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -38,6 +39,47 @@ func isOsDisk(device string) bool {
 	return false
 }
 
+func bootVolumeToObject(bootVolume virtualserver.ServerResourceVolume) types.Object {
+	obj, _ := types.ObjectValueFrom(context.Background(),
+		map[string]attr.Type{
+			"id":                    types.StringType,
+			"delete_on_termination": types.BoolType,
+			"size":                  types.Int32Type,
+			"type":                  types.StringType,
+			"max_iops":              types.Int32Type,
+			"max_throughput":        types.Int32Type,
+		},
+		bootVolume)
+	return obj
+}
+
+func objectToBootVolume(obj types.Object) (virtualserver.ServerResourceVolume, error) {
+	var bootVolume virtualserver.ServerResourceVolume
+	if obj.IsNull() || obj.IsUnknown() {
+		return bootVolume, nil
+	}
+	attrs := obj.Attributes()
+	if id, ok := attrs["id"]; ok {
+		bootVolume.Id = id.(types.String)
+	}
+	if del, ok := attrs["delete_on_termination"]; ok {
+		bootVolume.DeleteOnTermination = del.(types.Bool)
+	}
+	if size, ok := attrs["size"]; ok {
+		bootVolume.Size = size.(types.Int32)
+	}
+	if volType, ok := attrs["type"]; ok {
+		bootVolume.Type = volType.(types.String)
+	}
+	if maxIops, ok := attrs["max_iops"]; ok {
+		bootVolume.MaxIops = maxIops.(types.Int32)
+	}
+	if maxThroughput, ok := attrs["max_throughput"]; ok {
+		bootVolume.MaxThroughput = maxThroughput.(types.Int32)
+	}
+	return bootVolume, nil
+}
+
 func NewVirtualServerServerResource() resource.Resource {
 	return &virtualServerServerResource{}
 }
@@ -54,225 +96,308 @@ func (r *virtualServerServerResource) Metadata(_ context.Context, req resource.M
 
 func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Server",
+		Description: "Virtual Server resource.\n\n" +
+			"**GPU Server Creation Guide:**\n" +
+			"- GPU Server can only use GPU images (images with `scp_image_type` of `gpu_standard`, 'gpu_custom').\n" +
+			"- GPU Server types, refer to SCP documentation for available options in your environment.",
+		MarkdownDescription: "Virtual Server resource.\n\n" +
+			"**GPU Server Creation Guide:**\n" +
+			"- GPU Server can only use GPU images (images with `scp_image_type` of `gpu_standard`, 'gpu_custom').\n" +
+			"- GPU Server types, refer to SCP documentation for available options in your environment.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Resource ID.",
+				MarkdownDescription: "Resource ID.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "Account ID",
-				Computed:    true,
+				Description:         "Account ID.",
+				MarkdownDescription: "Account ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Networks"): schema.MapNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("PortId"): schema.StringAttribute{
-							Description: "Port ID",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Port ID.",
+							MarkdownDescription: "Port ID.\n  - example: 12345678-1234-1234-1234-123456789012",
+							Optional:            true,
+							Computed:            true,
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-							Description: "Subnet ID",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Subnet ID.",
+							MarkdownDescription: "Subnet ID.\n  - example: ab313c43291e4b678f4bacffe10768ae",
+							Optional:            true,
+							Computed:            true,
 						},
 						common.ToSnakeCase("FixedIp"): schema.StringAttribute{
-							Description: "Fixed IP",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Fixed IP address.",
+							MarkdownDescription: "Fixed IP address.\n  - example: 192.168.1.100",
+							Optional:            true,
+							Computed:            true,
 						},
 						common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
-							Description: "Public IP ID",
-							Optional:    true,
+							Description:         "Public IP ID.",
+							MarkdownDescription: "Public IP ID.\n  - example: a765a07e8d9b46f4918fd7d5ed004654",
+							Optional:            true,
 						},
 						common.ToSnakeCase("StaticNatId"): schema.StringAttribute{
-							Description: "Static NAT ID",
-							Computed:    true,
+							Description:         "Static NAT ID.",
+							MarkdownDescription: "Static NAT ID.",
+							Computed:            true,
 						},
 						common.ToSnakeCase("IsDefault"): schema.BoolAttribute{
-							Description: "Indicates whether this is the default port.",
-							Computed:    true,
+							Description:         "Whether this is the default port.",
+							MarkdownDescription: "Whether this is the default port.",
+							Computed:            true,
 						},
 					},
 				},
-				Required:    true,
-				Description: "Networks",
+				Required: true,
+				Description: "Network settings. Defines network interfaces to attach to the server.\n" +
+					"  - example: {\"network-1\": {\"subnet_id\": \"ab313c43291e4b678f4bacffe10768ae\"}}",
+				MarkdownDescription: "Network settings. Defines network interfaces to attach to the server.\n" +
+					"  - example: {\"network-1\": {\"subnet_id\": \"ab313c43291e4b678f4bacffe10768ae\"}}",
 			},
 			common.ToSnakeCase("AutoScalingGroupId"): schema.StringAttribute{
-				Description: "Auto scaling group ID",
-				Computed:    true,
+				Description:         "Auto Scaling Group ID. Only has value for servers created by Auto Scaling Group.",
+				MarkdownDescription: "Auto Scaling Group ID. Only has value for servers created by Auto Scaling Group.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created at",
-				Computed:    true,
+				Description:         "Creation timestamp.",
+				MarkdownDescription: "Creation timestamp.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description: "Created by",
-				Computed:    true,
+				Description:         "Creator ID.",
+				MarkdownDescription: "Creator ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("DiskConfig"): schema.StringAttribute{
-				Description: "Disk config",
-				Computed:    true,
+				Description:         "Disk configuration mode.",
+				MarkdownDescription: "Disk configuration mode.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ImageId"): schema.StringAttribute{
-				Description: "Image ID",
-				Optional:    true,
-				Computed:    true,
+				Description: "Image ID. Specifies the OS image to use.\n" +
+					"  - example: 70a599e0-31e7-49b7-b260-868f441e862b\n" +
+					"  - note: For GPU Server, only GPU standard images (scp_image_type=gpu_standard, gpu_custom) can be used.",
+				MarkdownDescription: "Image ID. Specifies the OS image to use.\n" +
+					"  - example: 70a599e0-31e7-49b7-b260-868f441e862b\n" +
+					"  - note: For GPU Server, only GPU standard images (scp_image_type=gpu_standard, gpu_custom) can be used.",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("KeypairName"): schema.StringAttribute{
-				Description: "Keypair name",
-				Required:    true,
+				Description:         "Keypair name. Specifies the keypair for SSH access.",
+				MarkdownDescription: "Keypair name. Specifies the keypair for SSH access.\n  - example: my-keypair",
+				Required:            true,
 			},
 			common.ToSnakeCase("LaunchConfigurationId"): schema.StringAttribute{
-				Description: "Launch Configuration ID",
-				Computed:    true,
+				Description:         "Launch Configuration ID. Only has value for servers created by Auto Scaling Group.",
+				MarkdownDescription: "Launch Configuration ID. Only has value for servers created by Auto Scaling Group.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Lock"): schema.BoolAttribute{
-				Description: "Lock",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Lock status. When locked, most user operations are blocked.",
+				MarkdownDescription: "Lock status. When locked, most user operations are blocked.\n  - example: false",
+				Optional:            true,
+				Computed:            true,
 			},
 			common.ToSnakeCase("Metadata"): schema.MapAttribute{
-				Description: "Metadata",
-				Optional:    true,
-				Computed:    true,
-				ElementType: types.StringType,
+				Description:         "Metadata. Specifies key-value pairs to store on the server.",
+				MarkdownDescription: "Metadata. Specifies key-value pairs to store on the server.\n  - example: {\"key\": \"value\"}",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-				Description: "Modified at",
-				Computed:    true,
+				Description:         "Modification timestamp.",
+				MarkdownDescription: "Modification timestamp.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Required:    true,
+				Description: "Server name.\n" +
+					"  - example: my-server\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 63\n" +
+					"  - pattern: ^[a-zA-Z0-9-_ ]*$",
+				MarkdownDescription: "Server name.\n" +
+					"  - example: my-server\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 63\n" +
+					"  - pattern: ^[a-zA-Z0-9-_ ]*$",
+				Required: true,
 			},
 			common.ToSnakeCase("PlannedComputeOsType"): schema.StringAttribute{
-				Description: "Planned compute os type",
-				Computed:    true,
+				Description:         "Planned compute OS type.",
+				MarkdownDescription: "Planned compute OS type.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ProductCategory"): schema.StringAttribute{
-				Description: "Product category",
-				Optional:    true,
-				Computed:    true,
+				Description: "Product category.\n" +
+					"  - example: compute\n" +
+					"  - Available values: compute, container",
+				MarkdownDescription: "Product category.\n" +
+					"  - example: compute\n" +
+					"  - Available values: compute, container",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("ProductOffering"): schema.StringAttribute{
-				Description: "Product offering",
-				Optional:    true,
-				Computed:    true,
+				Description: "Product offering. Determines the server type.\n" +
+					"  - example: virtual_server\n" +
+					"  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm\n",
+				MarkdownDescription: "Product offering. Determines the server type.\n" +
+					"  - example: virtual_server\n" +
+					"  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("SecurityGroups"): schema.ListAttribute{
-				Description: "Security groups",
-				Optional:    true,
-				Computed:    true,
-				ElementType: types.StringType,
+				Description:         "Security group ID list.",
+				MarkdownDescription: "Security group ID list.\n  - example: [\"c09c3f05-03d9-443f-b27a-40e0f973c75f\"]",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
 			},
 			common.ToSnakeCase("UserData"): schema.StringAttribute{
-				Description: "User data",
-				Optional:    true,
+				Description: "User data script. Base64-encoded script to run on server startup.\n" +
+					"  - example: IyEvYmluL2Jhc2gKL2Jpbi9zdQplY2hvICJJIGFtIGluIHlvdSEiCg==\n" +
+					"  - maxLength: 65535 bytes",
+				MarkdownDescription: "User data script. Base64-encoded script to run on server startup.\n" +
+					"  - example: IyEvYmluL2Jhc2gKL2Jpbi9zdQplY2hvICJJIGFtIGluIHlvdSEiCg==\n" +
+					"  - maxLength: 65535 bytes",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-				Description: "Server group ID",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Server group ID. Places the server in a specific server group.",
+				MarkdownDescription: "Server group ID. Places the server in a specific server group.\n  - example: 616fb98f-46ca-475e-917e-2563e5a8cd19",
+				Optional:            true,
+				Computed:            true,
 			},
 			common.ToSnakeCase("ServerTypeId"): schema.StringAttribute{
-				Description: "Server type ID",
-				Required:    true,
+				Description: "Server type ID. Determines CPU, memory, and other server specifications.\n" +
+					"  - example: s1v1m2\n",
+				MarkdownDescription: "Server type ID. Determines CPU, memory, and other server specifications.\n" +
+					"  - example: s1v1m2\n",
+				Required: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
-				Computed:    true,
+				Description: "Server state.\n" +
+					"  - example: ACTIVE\n" +
+					"  - Available values: ACTIVE, SHUTOFF",
+				MarkdownDescription: "Server state.\n" +
+					"  - example: ACTIVE\n" +
+					"  - Available values: ACTIVE, SHUTOFF",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("BootVolume"): schema.SingleNestedAttribute{
-				Description: "Boot Volume",
-				Required:    true,
+				Description:         "Boot volume settings. Defines the root disk where OS is installed.",
+				MarkdownDescription: "Boot volume settings. Defines the root disk where OS is installed.",
+				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID",
-						Computed:    true,
+						Description:         "Volume ID.",
+						MarkdownDescription: "Volume ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("DeleteOnTermination"): schema.BoolAttribute{
-						Description: "Delete on termination",
-						Optional:    true,
-						Computed:    true,
+						Description:         "Whether to delete volume when server is terminated.",
+						MarkdownDescription: "Whether to delete volume when server is terminated.\n  - example: true",
+						Optional:            true,
+						Computed:            true,
 					},
 					common.ToSnakeCase("Size"): schema.Int32Attribute{
-						Description: "Size",
-						Required:    true,
+						Description:         "Volume size (GiB). Must be a multiple of 8.",
+						MarkdownDescription: "Volume size (GiB). Must be a multiple of 8.\n  - example: 104\n  - minimum: 8",
+						Required:            true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Optional:    true,
-						Computed:    true,
+						Description:         "Volume type. Defaults to SSD if not specified.",
+						MarkdownDescription: "Volume type. Defaults to SSD if not specified.\n  - example: SSD",
+						Optional:            true,
+						Computed:            true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
-						Description: "The number of distinct read or write operations a volume can process in a single second.",
-						Optional:    true,
-						Computed:    true,
+						Description:         "Maximum IOPS. Number of read/write operations per second.",
+						MarkdownDescription: "Maximum IOPS. Number of read/write operations per second.\n  - example: 10000",
+						Optional:            true,
+						Computed:            true,
 					},
 					common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
-						Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
-						Optional:    true,
-						Computed:    true,
+						Description:         "Maximum throughput (MB/s). Amount of data transferred per second.",
+						MarkdownDescription: "Maximum throughput (MB/s). Amount of data transferred per second.\n  - example: 500",
+						Optional:            true,
+						Computed:            true,
 					},
 				},
 			},
 			common.ToSnakeCase("ExtraVolumes"): schema.MapNestedAttribute{
-				Description: "Extra Volumes",
-				Computed:    true,
-				Optional:    true,
+				Description:         "Extra volume settings. Defines additional volumes to attach besides boot volume.",
+				MarkdownDescription: "Extra volume settings. Defines additional volumes to attach besides boot volume.",
+				Computed:            true,
+				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "ID",
-							Computed:    true,
+							Description:         "Volume ID.",
+							MarkdownDescription: "Volume ID.",
+							Computed:            true,
 						},
 						common.ToSnakeCase("DeleteOnTermination"): schema.BoolAttribute{
-							Description: "Delete on termination",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Whether to delete volume when server is terminated.",
+							MarkdownDescription: "Whether to delete volume when server is terminated.\n  - example: true",
+							Optional:            true,
+							Computed:            true,
 						},
 						common.ToSnakeCase("Size"): schema.Int32Attribute{
-							Description: "Size",
-							Required:    true,
+							Description:         "Volume size (GiB). Must be a multiple of 8.",
+							MarkdownDescription: "Volume size (GiB). Must be a multiple of 8.\n  - example: 104\n  - minimum: 8",
+							Required:            true,
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Type",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Volume type. Defaults to SSD_Provisioned if not specified.",
+							MarkdownDescription: "Volume type. Defaults to SSD_Provisioned if not specified.\n  - example: SSD",
+							Optional:            true,
+							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
-							Description: "The number of distinct read or write operations a volume can process in a single second.",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Maximum IOPS. Number of read/write operations per second.",
+							MarkdownDescription: "Maximum IOPS. Number of read/write operations per second.\n  - example: 10000",
+							Optional:            true,
+							Computed:            true,
 						},
 						common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
-							Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Maximum throughput (MB/s). Amount of data transferred per second.",
+							MarkdownDescription: "Maximum throughput (MB/s). Amount of data transferred per second.\n  - example: 500",
+							Optional:            true,
+							Computed:            true,
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "Vpc ID",
-				Computed:    true,
+				Description:         "VPC ID.",
+				MarkdownDescription: "VPC ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("PartitionNumber"): schema.Int32Attribute{
-				Description: "Partition Number",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Partition number. Only used when server group type is partition.",
+				MarkdownDescription: "Partition number. Only used when server group type is partition.\n  - example: 1",
+				Optional:            true,
+				Computed:            true,
 			},
 			"tags": tag.ResourceSchema(),
 		},
@@ -426,7 +551,7 @@ func (r *virtualServerServerResource) AsyncPollingQosUpdate(ctx context.Context,
 }
 
 func (r *virtualServerServerResource) AsyncPollingVolumeIops(ctx context.Context, serverId string,
-	bootExtraVolume virtualserver.ServerResourceVolume, stateExtraVolumes types.Map) error {
+	bootExtraVolume types.Object, stateExtraVolumes types.Map) error {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 
@@ -637,8 +762,14 @@ func (r *virtualServerServerResource) processExtraVolumes(
 func (r *virtualServerServerResource) ResolveServerVolumes(
 	ctx context.Context,
 	serverId string,
-	stateBootVolume virtualserver.ServerResourceVolume,
+	stateBootVolume types.Object,
 	stateExtraVolumes types.Map) (virtualserver.ServerResourceVolume, types.Map, bool, error) {
+
+	bootVolumeFromState, err := objectToBootVolume(stateBootVolume)
+	if err != nil {
+		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
+	}
+
 	getServerVolumes, err := r.client.GetServerVolumeList(ctx, serverId)
 	if err != nil {
 		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
@@ -653,7 +784,7 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 
 	bootVolume, extraVolumes := r.categorizeVolumes(getVolumes, volumeIdsSet, volumeDeleteOnTerminationSet, volumeBootVolumeSet)
 
-	bootVolumeMatched := r.isBootVolumeMatched(bootVolume, stateBootVolume)
+	bootVolumeMatched := r.isBootVolumeMatched(bootVolume, bootVolumeFromState)
 
 	extraVolumesMap, unmappedExtraVolumes, mappedVolumeKeys := r.processExtraVolumes(ctx, extraVolumes, stateExtraVolumes)
 
@@ -890,7 +1021,7 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 		ServerGroupId:         virtualserverutil.ToNullableStringValue(resp.ServerGroupId.Get()),
 		ServerTypeId:          virtualserverutil.ToNullableStringValue(resp.ServerType.Id.Get()),
 		State:                 types.StringValue(resp.State),
-		BootVolume:            bootVolume,
+		BootVolume:            bootVolumeToObject(bootVolume),
 		ExtraVolumes:          extraVolumeObject,
 		VpcId:                 virtualserverutil.ToNullableStringValue(resp.VpcId.Get()),
 		PartitionNumber:       virtualserverutil.ToNullableInt32Value(resp.PartitionNumber.Get()),
@@ -914,15 +1045,18 @@ func (r *virtualServerServerResource) normalizePlan(plan virtualserver.ServerRes
 		plan.ProductOffering = state.ProductOffering
 	}
 	// BootVolume
-	if plan.BootVolume.Id.IsUnknown() {
-		plan.BootVolume.Id = state.BootVolume.Id
+	planBootVolume, _ := objectToBootVolume(plan.BootVolume)
+	stateBootVolume, _ := objectToBootVolume(state.BootVolume)
+	if planBootVolume.Id.IsUnknown() {
+		planBootVolume.Id = stateBootVolume.Id
 	}
-	if plan.BootVolume.Type.IsUnknown() {
-		plan.BootVolume.Type = state.BootVolume.Type
+	if planBootVolume.Type.IsUnknown() {
+		planBootVolume.Type = stateBootVolume.Type
 	}
-	if plan.BootVolume.DeleteOnTermination.IsUnknown() {
-		plan.BootVolume.DeleteOnTermination = state.BootVolume.DeleteOnTermination
+	if planBootVolume.DeleteOnTermination.IsUnknown() {
+		planBootVolume.DeleteOnTermination = stateBootVolume.DeleteOnTermination
 	}
+	plan.BootVolume = bootVolumeToObject(planBootVolume)
 
 	return plan
 }
@@ -1291,8 +1425,10 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 
 	serverId := plan.Id.ValueString()
 
-	if plan.BootVolume != state.BootVolume {
-		if err := r.updateSingleVolume(ctx, serverId, plan.BootVolume, state.BootVolume); err != nil {
+	if !plan.BootVolume.Equal(state.BootVolume) {
+		planBootVolume, _ := objectToBootVolume(plan.BootVolume)
+		stateBootVolume, _ := objectToBootVolume(state.BootVolume)
+		if err := r.updateSingleVolume(ctx, serverId, planBootVolume, stateBootVolume); err != nil {
 			return err
 		}
 	}
@@ -1357,7 +1493,8 @@ func (r *virtualServerServerResource) handlerUpdateTag(ctx context.Context, req 
 		}
 	}
 	// Volume
-	_, err = tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, state.BootVolume.Id.ValueString(), plan.Tags.Elements())
+	stateBootVolume, _ := objectToBootVolume(state.BootVolume)
+	_, err = tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, stateBootVolume.Id.ValueString(), plan.Tags.Elements())
 	if err != nil {
 		return err
 	}
@@ -1753,4 +1890,12 @@ func (r *virtualServerServerResource) Delete(ctx context.Context, req resource.D
 		)
 		return
 	}
+}
+
+func (r *virtualServerServerResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

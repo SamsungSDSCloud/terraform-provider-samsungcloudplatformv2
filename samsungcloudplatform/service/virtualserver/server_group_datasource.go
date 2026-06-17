@@ -3,12 +3,12 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -36,44 +36,56 @@ func (d *virtualServerServerGroupDataSource) Metadata(_ context.Context, req dat
 
 func (d *virtualServerServerGroupDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of server groups.",
+		Description:         "Retrieves server group information.",
+		MarkdownDescription: "Retrieves server group information for managing virtual server placement policies.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "ID",
-				Optional:    true,
+				Description: "Server group ID.\n" +
+					"  - example: 550e8400-e29b-41d4-a716-446655440000",
+				MarkdownDescription: "Server group ID.\n" +
+					"  - example: 550e8400-e29b-41d4-a716-446655440000",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServerGroup"): schema.SingleNestedAttribute{
-				Description: "Server Group.",
-				Computed:    true,
+				Description:         "Server group details.",
+				MarkdownDescription: "Server group details including name, policy, and member servers.",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID",
-						Computed:    true,
+						Description:         "Server group ID.",
+						MarkdownDescription: "Server group ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description:         "Server group name.",
+						MarkdownDescription: "Server group name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Policy"): schema.StringAttribute{
-						Description: "Policy",
-						Computed:    true,
+						Description:         "Server group policy.",
+						MarkdownDescription: "Server group policy for server placement.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID",
-						Computed:    true,
+						Description:         "Account ID.",
+						MarkdownDescription: "Account ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("UserId"): schema.StringAttribute{
-						Description: "User ID",
-						Computed:    true,
+						Description:         "User ID.",
+						MarkdownDescription: "User ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Members"): schema.ListAttribute{
-						Description: "Members",
-						Computed:    true,
-						ElementType: types.StringType,
+						Description:         "List of member server IDs.",
+						MarkdownDescription: "List of member server IDs in this group.",
+						Computed:            true,
+						ElementType:         types.StringType,
 					},
 					common.ToSnakeCase("PartitionSize"): schema.Int32Attribute{
-						Description: "Partition Size",
-						Computed:    true,
+						Description:         "Partition size.",
+						MarkdownDescription: "Partition size for anti-affinity groups.",
+						Computed:            true,
 					},
 				},
 			},

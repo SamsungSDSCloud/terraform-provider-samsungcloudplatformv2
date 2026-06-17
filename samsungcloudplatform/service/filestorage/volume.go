@@ -3,13 +3,18 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.1"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/filestorage/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -17,13 +22,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"regexp"
-	"time"
 )
 
 var (
-	_ resource.Resource              = &fileStorageVolumeResource{}
-	_ resource.ResourceWithConfigure = &fileStorageVolumeResource{}
+	_ resource.Resource                = &fileStorageVolumeResource{}
+	_ resource.ResourceWithConfigure   = &fileStorageVolumeResource{}
+	_ resource.ResourceWithImportState = &fileStorageVolumeResource{}
 )
 
 func NewFileStorageVolumeResource() resource.Resource {
@@ -45,6 +49,7 @@ func (r *fileStorageVolumeResource) Schema(_ context.Context, _ resource.SchemaR
 }
 func VolumeResourceSchema() schema.Schema {
 	return schema.Schema{
+		Description: "Manages a File Storage Volume on Samsung Cloud Platform.",
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
 				Computed: true,
@@ -54,8 +59,9 @@ func VolumeResourceSchema() schema.Schema {
 			"cifs_password": schema.StringAttribute{
 				Optional:  true,
 				WriteOnly: true,
+				Sensitive: true,
 				Description: "Cifs Password \n" +
-					"  - example : 'cifspwd0!!' \n" +
+					"  - example : '<YOUR_CIFS_PASSWORD>' \n" +
 					"  - maxLength: 20  \n" +
 					"  - minLength: 6  \n" +
 					"  - pattern: `^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$` \n",
@@ -68,22 +74,23 @@ func VolumeResourceSchema() schema.Schema {
 			"encryption_enabled": schema.BoolAttribute{
 				Computed: true,
 				Description: "Volume Encryption Enabled \n" +
-					"  - example : 'true'",
+					"  - example : true",
 			},
 			"endpoint_path": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Endpoint Path \n" +
-					"  - example : 'xxx.xx.xxx.xxx'",
+				Description: "The network endpoint path used to mount and access the file storage volume. \n" +
+					"  - example : 'xxx.xx.xxx.xxx' \n",
 			},
 			"file_unit_recovery_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
 				Description: "File Unit Recovery Enabled \n" +
-					"  - example : 'true' \n",
+					"  - example : true \n",
 			},
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "Identifier of the resource.",
+				Computed: true,
+				Description: "Identifier of the resource. \n" +
+					"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
 				// planmodifier 별도 추가
 				PlanModifiers: []planmodifier.String{ //  PlanModifiers 추가
 					stringplanmodifier.UseStateForUnknown(),
@@ -99,9 +106,12 @@ func VolumeResourceSchema() schema.Schema {
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]([a-z0-9_]){2,20}$"), "Enter 3~21 char.(lower case, numbers, _) starting with lower case."),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("NameUuid"): schema.StringAttribute{
-				Description: "Volume Name Uuid \n" +
+				Description: "The unique system-assigned name (UUID format) for the volume. \n" +
 					"  - example : 'my_volume_2m060u' \n",
 				Computed: true,
 			},
@@ -122,17 +132,17 @@ func VolumeResourceSchema() schema.Schema {
 			},
 			"purpose": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Purpose \n" +
+				Description: "The designated purpose or workload type of the volume (e.g., general, backup). \n" +
 					"  - example : 'none' \n",
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Volume State",
-				MarkdownDescription: "Volume State",
+				Description:         "The current lifecycle state of the volume. Valid values: creating, available, error, deleting.",
+				MarkdownDescription: "The current lifecycle state of the volume. Valid values: creating, available, error, deleting.",
 			},
 			"type_id": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Type ID \n" +
+				Description: "The unique identifier of the storage tier (volume type) assigned to this volume. \n" +
 					"  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
 			},
 			"type_name": schema.StringAttribute{
@@ -143,8 +153,9 @@ func VolumeResourceSchema() schema.Schema {
 			},
 			// 별도로 Optional: true 추가
 			"usage": schema.Int64Attribute{
-				Computed: true,
-				Optional: true,
+				Computed:    true,
+				Optional:    true,
+				Description: "The current usage of the volume in GiB.",
 			},
 			// custom으로 추가
 			"tags": tag.ResourceSchema(),
@@ -166,7 +177,7 @@ func VolumeResourceSchema() schema.Schema {
 							},
 						},
 						common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-							Description: "Object Type" +
+							Description: "Object Type \n" +
 								"  - example : 'VM' \n" +
 								"  - pattern: `^(VM|BM|GPU|GPU_NODE|ENDPOINT)$` \n",
 							Computed: true,
@@ -302,6 +313,10 @@ func (r *fileStorageVolumeResource) Read(ctx context.Context, request resource.R
 
 	data, err := r.client.GetVolume(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			response.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error Reading Volume",
@@ -491,22 +506,37 @@ func (r *fileStorageVolumeResource) MapGetResponseToState(ctx context.Context, r
 		}
 	}
 
+	endpointPath := types.StringNull()
+	if v := resp.EndpointPath.Get(); v != nil {
+		endpointPath = types.StringValue(*v)
+	}
+
+	pathValue := types.StringNull()
+	if v := resp.Path.Get(); v != nil {
+		pathValue = types.StringValue(*v)
+	}
+
+	usage := types.Int64Null()
+	if v := resp.Usage.Get(); v != nil {
+		usage = types.Int64Value(*v)
+	}
+
 	return filestorage.VolumeResource{
 		AccountId:               types.StringValue(resp.AccountId),
 		CreatedAt:               types.StringValue(resp.CreatedAt.Format(time.RFC3339)),
 		EncryptionEnabled:       types.BoolValue(resp.EncryptionEnabled),
-		EndpointPath:            types.StringValue(*resp.EndpointPath.Get()),
+		EndpointPath:            endpointPath,
 		FileUnitRecoveryEnabled: types.BoolValue(resp.GetFileUnitRecoveryEnabled()),
 		Id:                      types.StringValue(resp.Id),
 		Name:                    types.StringValue(state.Name.ValueString()),
 		NameUuid:                types.StringValue(resp.Name),
-		Path:                    types.StringValue(*resp.Path.Get()),
+		Path:                    pathValue,
 		Protocol:                types.StringValue(resp.Protocol),
 		Purpose:                 types.StringValue(resp.Purpose),
 		State:                   types.StringValue(resp.State),
 		TypeId:                  types.StringValue(resp.TypeId),
 		TypeName:                types.StringValue(resp.TypeName),
-		Usage:                   types.Int64Value(*resp.Usage.Get()),
+		Usage:                   usage,
 		Tags:                    tagsMap,
 		AccessRules:             accessRules,
 	}, nil
@@ -521,6 +551,11 @@ func waitForVolumeStatus(ctx context.Context, fileStorageClient *filestorage.Cli
 		}
 		showResponse = info
 		return info, info.State, nil
-	})
+	}, -1, -1, -1, -1)
 	return showResponse, err
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *fileStorageVolumeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

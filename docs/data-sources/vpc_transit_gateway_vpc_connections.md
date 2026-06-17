@@ -80,17 +80,25 @@ variable "state" {
 
 ### Required
 
-- `transit_gateway_id` (String) Transit Gateway ID
+- `transit_gateway_id` (String) The identifier of the transit gateway that the resource belongs to.
+  - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
 
 ### Optional
 
-- `id` (String) id
-- `page` (Number) Page
-- `size` (Number) Size (between 1 and 10000)
-- `sort` (String) Sort
-- `state` (String) State
-- `vpc_id` (String) vpc id
-- `vpc_name` (String) Vpc Name
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `page` (Number) The page number for pagination.
+  - example : 1
+- `size` (Number) The number of items per page.
+  - example : 3
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order.
+  - example : created_at:asc
+- `state` (String) The current lifecycle state of the resource.
+  - example : ACTIVE
+- `vpc_id` (String) The identifier of the VPC that the resource belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the resource belongs to.
+  - example : vpcName
 
 ### Read-Only
 
@@ -101,13 +109,24 @@ variable "state" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `state` (String) State - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING
-- `transit_gateway_id` (String) Transit Gateway Id
-- `vpc_id` (String) vpc id
-- `vpc_name` (String) Vpc Name
+- `account_id` (String) The identifier of the account that owns the connection.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) The unique identifier of the connection.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `state` (String) The current lifecycle state of the connection.
+  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING
+  - example : ACTIVE
+- `transit_gateway_id` (String) The identifier of the transit gateway that the connection belongs to.
+  - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
+- `vpc_id` (String) The identifier of the VPC that the connection belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the connection belongs to.
+  - example : vpcName

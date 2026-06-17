@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpn_vpn_tunnel Resource - samsungcloudplatformv2"
 subcategory: VPN Tunnel
 description: |-
-  Vpn tunnel
+  Manages VPN tunnels for encrypted site-to-site connections.
 ---
 
 # samsungcloudplatformv2_vpn_vpn_tunnel (Resource)
 
-Vpn tunnel
+Manages VPN tunnels for encrypted site-to-site connections.
 
 
 
@@ -16,46 +16,57 @@ Vpn tunnel
 
 ### Required
 
-- `name` (String) Name
-  - example : ExampleVpnTunnel1
+- `name` (String) The name of the resource.
+  - example: vpnGWProd
+  - valid: English letters and numbers only
+  - constraints: minLength: 1, maxLength: 20
 - `phase1` (Attributes) (see [below for nested schema](#nestedatt--phase1))
 - `phase2` (Attributes) (see [below for nested schema](#nestedatt--phase2))
-- `vpn_gateway_id` (String) VpnGatewayId
+- `vpn_gateway_id` (String) The identifier of the VPN gateway that the resource belongs to.
   - example: YOUR RESOURCE'S VPN_GATEWAY_ID
 
 ### Optional
 
-- `description` (String) Description
-  - example : Description for VPN Tunnel
+- `description` (String) A brief explanation or note about this resource.
+  - example: VPN test
+  - constraints: maxLength: 40
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
+- `id` (String) The unique identifier of the resource.
   - example: YOUR RESOURCE'S ID
-- `vpn_tunnel` (Attributes) Vpn tunnel (see [below for nested schema](#nestedatt--vpn_tunnel))
+- `vpn_tunnel` (Attributes) VPN Tunnel (see [below for nested schema](#nestedatt--vpn_tunnel))
 
 <a id="nestedatt--phase1"></a>
 ### Nested Schema for `phase1`
 
 Required:
 
-- `dpd_retry_interval` (Number) DpdRetryInterval
-  - example : 60
-- `ike_version` (Number) IkeVersion
-  - example : 2
-- `peer_gateway_ip` (String) PeerGatewayIp
-  - example : 123.0.0.2
-- `phase1_diffie_hellman_groups` (List of Number) Phase1DiffieHellmanGroups
-  - example : [30,31,32]
-- `phase1_encryptions` (List of String) Phase1Encryptions
-  - example : ['des-md5', 'chacha20poly1305-prfsha256']
-- `phase1_life_time` (Number) Phase1LifeTime
-  - example : 86400
-- `pre_shared_key` (String) PreSharedKey
-  - example : PreSharedKey1
+- `dpd_retry_interval` (Number) The Dead Peer Detection retry interval in seconds.
+  - example: 60
+  - constraints: 1-3600
+- `ike_version` (Number) The IKE (Internet Key Exchange) protocol version.
+  - example: 2
+  - valid: 1, 2
+- `peer_gateway_ip` (String) The IP address of the peer VPN gateway.
+  - example: 123.0.0.2
+- `phase1_diffie_hellman_groups` (List of Number) The list of Diffie-Hellman groups for IKE phase 1.
+  - example: [30, 31, 32]
+  - valid: 32, 31, 30, 29, 28, 27, 21, 20, 19, 18, 17, 16, 15, 14, 5, 2, 1
+  - constraints: min 1, max 3
+- `phase1_encryptions` (List of String) The list of encryption algorithms for IKE phase 1.
+  - example: ["des-md5", "chacha20poly1305"]
+  - valid: null-md5, null-sha1, null-sha256, null-sha384, null-sha512, des-null, des-md5, des-sha1, des-sha256, des-sha384, des-sha512, 3des-null, 3des-md5, 3des-sha1, 3des-sha256, 3des-sha384, 3des-sha512, aes128-null, aes128-md5, aes128-sha1, aes128-sha256, aes128-sha384, aes128-sha512, aes128gcm, aes192-null, aes192-md5, aes192-sha1, aes192-sha256, aes192-sha384, aes192-sha512, aes256-null, aes256-md5, aes256-sha1, aes256-sha256, aes256-sha384, aes256-sha512, aes256gcm, chacha20poly1305, aria128-null, aria128-md5, aria128-sha1, aria128-sha256, aria128-sha384, aria128-sha512, aria192-null, aria192-md5, aria192-sha1, aria192-sha256, aria192-sha384, aria192-sha512, aria256-null, aria256-md5, aria256-sha1, aria256-sha256, aria256-sha384, aria256-sha512, seed-null, seed-md5, seed-sha1, seed-sha256, seed-sha384, seed-sha512
+  - constraints: min 1, max 10
+- `phase1_life_time` (Number) The lifetime of the IKE phase 1 security association in seconds.
+  - example: 86400
+  - constraints: 120-172800
+- `pre_shared_key` (String) The pre-shared key (PSK) for IKE mutual authentication between VPN gateways.
+  - example: PreSharedKey1234567890
+  - constraints: 8-64 characters, 32-character alphanumeric recommended
 
 
 <a id="nestedatt--phase2"></a>
@@ -63,16 +74,23 @@ Required:
 
 Required:
 
-- `perfect_forward_secrecy` (String) PerfectForwardSecrecy
-  - example : ENABLE
-- `phase2_diffie_hellman_groups` (List of Number) Phase2DiffieHellmanGroups
-  - example : [30,31,32]
-- `phase2_encryptions` (List of String) Phase2Encryptions
-  - example : ['des-md5', 'chacha20poly1305-prfsha256']
-- `phase2_life_time` (Number) Phase2LifeTime
-  - example : 86400
-- `remote_subnets` (List of String) RemoteSubnets
-  - example : ['10.1.1.0/24', '10.1.2.0/24', '10.1.3.0/24']
+- `perfect_forward_secrecy` (String) The Perfect Forward Secrecy setting for IKE phase 2.
+  - example: ENABLE
+  - valid: ENABLE, DISABLE
+- `phase2_diffie_hellman_groups` (List of Number) The list of Diffie-Hellman groups for IKE phase 2.
+  - example: [30, 31, 32]
+  - valid: 32, 31, 30, 29, 28, 27, 21, 20, 19, 18, 17, 16, 15, 14, 5, 2, 1
+  - constraints: min 1, max 3
+- `phase2_encryptions` (List of String) The list of encryption algorithms for IKE phase 2.
+  - example: ["des-md5", "chacha20poly1305"]
+  - valid: null-md5, null-sha1, null-sha256, null-sha384, null-sha512, des-null, des-md5, des-sha1, des-sha256, des-sha384, des-sha512, 3des-null, 3des-md5, 3des-sha1, 3des-sha256, 3des-sha384, 3des-sha512, aes128-null, aes128-md5, aes128-sha1, aes128-sha256, aes128-sha384, aes128-sha512, aes128gcm, aes192-null, aes192-md5, aes192-sha1, aes192-sha256, aes192-sha384, aes192-sha512, aes256-null, aes256-md5, aes256-sha1, aes256-sha256, aes256-sha384, aes256-sha512, aes256gcm, chacha20poly1305, aria128-null, aria128-md5, aria128-sha1, aria128-sha256, aria128-sha384, aria128-sha512, aria192-null, aria192-md5, aria192-sha1, aria192-sha256, aria192-sha384, aria192-sha512, aria256-null, aria256-md5, aria256-sha1, aria256-sha256, aria256-sha384, aria256-sha512, seed-null, seed-md5, seed-sha1, seed-sha256, seed-sha384, seed-sha512
+  - constraints: min 1, max 10
+- `phase2_life_time` (Number) The lifetime of the IKE phase 2 security association in seconds.
+  - example: 86400
+  - constraints: 120-172800
+- `remote_subnets` (List of String) The list of remote subnets for IKE phase 2.
+  - example: ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
+  - constraints: min 1, max 20
 
 
 <a id="nestedatt--vpn_tunnel"></a>
@@ -80,49 +98,56 @@ Required:
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `phase1` (Attributes) Phase1 (see [below for nested schema](#nestedatt--vpn_tunnel--phase1))
-- `phase2` (Attributes) Phase2 (see [below for nested schema](#nestedatt--vpn_tunnel--phase2))
-- `state` (String) State
-- `status` (String) Status
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
-- `vpn_gateway_id` (String) VpnGatewayId
-- `vpn_gateway_ip_address` (String) VpnGatewayIpAddress
-- `vpn_gateway_name` (String) VpnGatewayName
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example: 2025-01-15T10:30:00Z
+- `created_by` (String) The user ID that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) A brief explanation or note about this resource.
+  - example: VPN test
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example: 2025-06-01T14:22:00Z
+- `modified_by` (String) The user ID that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the resource.
+  - example: vpnGWProd
+- `phase1` (Attributes) The IKE phase 1 negotiation settings of the VPN tunnel. (see [below for nested schema](#nestedatt--vpn_tunnel--phase1))
+- `phase2` (Attributes) The IKE phase 2 negotiation settings of the VPN tunnel. (see [below for nested schema](#nestedatt--vpn_tunnel--phase2))
+- `state` (String) The current state of the resource.
+  - example: ACTIVE
+- `status` (String) The current status of the vpn tunnel.
+  - example: UP
+- `vpc_id` (String) The identifier of the VPC that the resource belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the resource belongs to.
+  - example: vpcProd01
+- `vpn_gateway_id` (String) The identifier of the VPN gateway that the resource belongs to.
+  - example: YOUR RESOURCE'S VPN_GATEWAY_ID
+- `vpn_gateway_ip_address` (String) The IP address of the VPN gateway.
+  - example: 10.0.0.0/24
+- `vpn_gateway_name` (String) The name of the VPN gateway that the resource belongs to.
+  - example: vpnGWProd
 
 <a id="nestedatt--vpn_tunnel--phase1"></a>
 ### Nested Schema for `vpn_tunnel.phase1`
 
 Read-Only:
 
-- `diffie_hellman_groups` (List of Number) VPN Tunnel ISAKMP Diffie-Hellman Group 목록 
- - example : [
-   "30",
-    "31",
-   "32"
-  ]
-- `dpd_retry_interval` (Number) DpdRetryInterval 
- - example: 60
-- `encryptions` (List of String) VPN Tunnel ISAKMP Proposal 목록 
- - example : [
-   "null-md5",
-    "aes128gcm",
-   "chacha20poly1305"
-  ]
-- `ike_version` (Number) IkeVersion 
- - example: 2
-- `life_time` (Number) LifeTime 
- - example: 86400
-- `peer_gateway_ip` (String) PeerGatewayIp 
- - example: 123.0.0.2
+- `diffie_hellman_groups` (List of Number) The list of Diffie-Hellman groups for IKE phase 1.
+  - example: [30, 31, 32]
+- `dpd_retry_interval` (Number) The Dead Peer Detection retry interval in seconds.
+  - example: 60
+- `encryptions` (List of String) The list of encryption algorithms for IKE phase 1.
+  - example: ["null-md5", "aes128gcm", "chacha20poly1305"]
+- `ike_version` (Number) The IKE (Internet Key Exchange) protocol version.
+  - example: 2
+- `life_time` (Number) The lifetime of the IKE phase 1 security association in seconds.
+  - example: 86400
+- `peer_gateway_ip` (String) The IP address of the peer VPN gateway.
+  - example: 123.0.0.2
 
 
 <a id="nestedatt--vpn_tunnel--phase2"></a>
@@ -130,25 +155,13 @@ Read-Only:
 
 Read-Only:
 
-- `diffie_hellman_groups` (List of Number) VPN Tunnel ISAKMP Diffie-Hellman Group 목록 
- - example : [
-   "30",
-    "31",
-   "32"
-  ]
-- `encryptions` (List of String) VPN Tunnel ISAKMP Proposal 목록 
- - example : [
-   "null-md5",
-    "aes128gcm",
-   "chacha20poly1305"
-  ]
-- `life_time` (Number) LifeTime 
- - example: 86400
-- `perfect_forward_secrecy` (String) PerfectForwardSecrecy 
- - example: ENABLE
-- `remote_subnets` (List of String) VPN Tunnel IPSec Remote Subnets 
- - example : [
-   "10.1.1.0/24",
-    "10.1.2.0/24",
-   "10.1.3.0/24"
-  ]
+- `diffie_hellman_groups` (List of Number) The list of Diffie-Hellman groups for IKE phase 2.
+  - example: [30, 31, 32]
+- `encryptions` (List of String) The list of encryption algorithms for IKE phase 2.
+  - example: ["null-md5", "aes128gcm", "chacha20poly1305"]
+- `life_time` (Number) The lifetime of the IKE phase 2 security association in seconds.
+  - example: 86400
+- `perfect_forward_secrecy` (String) The Perfect Forward Secrecy setting for IKE phase 2.
+  - example: ENABLE
+- `remote_subnets` (List of String) The list of remote subnets for IKE phase 2.
+  - example: ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]

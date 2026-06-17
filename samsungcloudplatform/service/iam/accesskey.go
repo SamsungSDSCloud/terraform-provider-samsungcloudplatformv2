@@ -3,24 +3,28 @@ package iam
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &iamAccessKeyResource{}
-	_ resource.ResourceWithConfigure = &iamAccessKeyResource{}
+	_ resource.Resource                = &iamAccessKeyResource{}
+	_ resource.ResourceWithConfigure   = &iamAccessKeyResource{}
+	_ resource.ResourceWithImportState = &iamAccessKeyResource{}
 )
 
 // NewIamAccessKeyResource is a helper function to simplify the provider implementation.
@@ -43,106 +47,129 @@ func (r *iamAccessKeyResource) Metadata(_ context.Context, req resource.Metadata
 // Schema defines the schema for the data source.
 func (r *iamAccessKeyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "access key.",
+		Description: "Manages an IAM Access Key.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Unique identifier of the access key resource.\n" +
+					"  - example : '12345678-1234-1234-1234-1234567890ab'",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "Timestamp of the last Terraform update of the access key.",
-				Computed:    true,
+				Description: "Timestamp of the last Terraform update of the access key.\n" +
+					"  - example : '2024-01-01 00:00:00'",
+				Computed: true,
 			},
 			common.ToSnakeCase("AccessKeyType"): schema.StringAttribute{
-				Description: "AccessKeyType",
-				Optional:    true,
+				Description: "Type of access key determining its expiration policy.\n" +
+					"  - example : 'PERMANENT' | 'TEMPORARY' | 'SECRET_VAULT_TEMPORARY'",
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PERMANENT", "TEMPORARY"),
 				},
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "AccountId",
-				Computed:    true,
+				Description: "Account ID that owns the access key.\n" +
+					"  - example : '123456789012'",
+				Computed: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description",
-				Optional:    true,
+				Description: "Human-readable description of the access key.\n" +
+					"  - example : 'My Access Key'",
+				Optional: true,
 			},
 			common.ToSnakeCase("Duration"): schema.StringAttribute{
-				Description: "Duration",
-				Optional:    true,
+				Description: "Duration for temporary access key validity (in ISO 8601 duration format).\n" +
+					"  - example : 'PT1H' (1 hour)",
+				Optional: true,
 			},
 			common.ToSnakeCase("ParentAccessKeyId"): schema.StringAttribute{
-				Description: "ParentAccessKeyId",
-				Optional:    true,
+				Description: "Parent access key ID if this is a derived key.\n" +
+					"  - example : '12345678-1234-1234-1234-1234567890ab'",
+				Optional: true,
 			},
 			common.ToSnakeCase("IsEnabled"): schema.BoolAttribute{
-				Description: "IsEnabled",
-				Computed:    true,
-				Optional:    true,
+				Description: "Whether the access key is enabled/active.\n" +
+					"  - example : true",
+				Computed: true,
+				Optional: true,
 			},
 			common.ToSnakeCase("Passcode"): schema.StringAttribute{
-				Description: "Passcode",
-				Optional:    true,
+				Description: "Passcode required for access key creation.\n" +
+					"  - example : '123456'",
+				Optional: true,
 			},
 			common.ToSnakeCase("AccessKey"): schema.SingleNestedAttribute{
-				Description: "access key.",
-				Computed:    true,
+				Description: "Access key details.\n" +
+					"  - example : '{access_key: b754b12b39da4ce29a40c5e324650bd0, access_key_type: PERMANENT, account_id: f39c460fade34fecb05ede8f904b24b7, ...}'",
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccessKey"): schema.StringAttribute{
-						Description: "AccessKey",
-						Computed:    true,
+						Description: "The access key string value.\n" +
+							"  - example : 'ak-example-access-key-id'",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccessKeyType"): schema.StringAttribute{
-						Description: "AccessKeyType",
-						Computed:    true,
+						Description: "Type of access key determining its expiration policy.\n" +
+							"  - example : 'PERMANENT' | 'TEMPORARY' | 'SECRET_VAULT_TEMPORARY'",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "Account ID that owns the access key.\n" +
+							"  - example : '123456789012'",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "Timestamp when the access key was created.\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "User who created the access key.\n" +
+							"  - example : 'user@example.com'",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Human-readable description of the access key.\n" +
+							"  - example : 'My access key description'",
+						Computed: true,
 					},
 					common.ToSnakeCase("ExpirationTimestamp"): schema.StringAttribute{
-						Description: "ExpirationTimestamp",
-						Computed:    true,
+						Description: "Timestamp when the access key expires (for temporary keys).\n" +
+							"  - example : '2024-01-02T00:00:00Z'",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "Unique identifier of the access key.\n" +
+							"  - example : 'ak-1234567890abcdef'",
+						Computed: true,
 					},
 					common.ToSnakeCase("IsEnabled"): schema.BoolAttribute{
-						Description: "IsEnabled",
-						Computed:    true,
+						Description: "Whether the access key is enabled/active.\n" +
+							"  - example : true",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "Timestamp when the access key was last modified.\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "User who last modified the access key.\n" +
+							"  - example : 'user@example.com'",
+						Computed: true,
 					},
 					common.ToSnakeCase("ParentAccessKeyId"): schema.StringAttribute{
-						Description: "ParentAccessKeyId",
-						Computed:    true,
+						Description: "Parent access key ID if this is a derived key.\n" +
+							"  - example : '12345678-1234-1234-1234-1234567890ab'",
+						Computed: true,
 					},
 					common.ToSnakeCase("SecretKey"): schema.StringAttribute{
-						Description: "SecretKey",
-						Computed:    true,
+						Description: "The secret key string value (only available at creation time).\n" +
+							"  - example : 'sk-example-secret-key-value'",
+						Computed: true,
 					},
 				},
 			},
@@ -249,6 +276,10 @@ func (r *iamAccessKeyResource) Read(ctx context.Context, req resource.ReadReques
 	// Get refreshed order value from access key
 	data, err := r.client.GetAccessKey(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error Reading AccessKey",
 			"Could not read AccessKey ID "+state.Id.ValueString()+": "+err.Error(),
@@ -344,6 +375,11 @@ func (r *iamAccessKeyResource) Update(ctx context.Context, req resource.UpdateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// ImportState imports the resource by ID.
+func (r *iamAccessKeyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

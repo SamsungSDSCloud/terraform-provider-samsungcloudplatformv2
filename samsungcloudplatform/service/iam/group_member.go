@@ -3,12 +3,14 @@ package iam
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/iam/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/importstate"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -19,8 +21,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &iamGroupMemberResource{}
-	_ resource.ResourceWithConfigure = &iamGroupMemberResource{}
+	_ resource.Resource                = &iamGroupMemberResource{}
+	_ resource.ResourceWithConfigure   = &iamGroupMemberResource{}
+	_ resource.ResourceWithImportState = &iamGroupMemberResource{}
 )
 
 func NewIamGroupMemberResource() resource.Resource {
@@ -60,108 +63,141 @@ func (r *iamGroupMemberResource) Configure(_ context.Context, req resource.Confi
 
 func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Group Member",
+		Description: "List of members belonging to the group.",
 		Attributes: map[string]schema.Attribute{
 			"group_id": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Group ID",
-				MarkdownDescription: "Group ID",
+				Optional: true,
+				Description: "Unique identifier of the group to add the member to.\n" +
+					"  - example : 'grp-1234567890abcdef'",
 			},
 			"user_id": schema.StringAttribute{
-				Optional:            true,
-				Description:         "User ID",
-				MarkdownDescription: "User ID",
+				Optional: true,
+				Description: "Unique identifier of the user to add as a member.\n" +
+					"  - example : 'usr-1234567890abcdef'",
 			},
 			"group_member": schema.SingleNestedAttribute{
-				Computed:            true,
-				Description:         "Group member",
-				MarkdownDescription: "Group member",
+				Computed: true,
+				Description: "Detailed information about the group member.\n" +
+					"  - example : '{created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, creator_email: -, user_id: f39c460fade34fecb05ede8f904b24b7, user_name: -, ...}'",
 				PlanModifiers: []planmodifier.Object{
 					groupMemberModifier{},
 				},
 				Attributes: map[string]schema.Attribute{
 					"created_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "생성 일시",
-						MarkdownDescription: "생성 일시",
+						Computed: true,
+						Description: "생성 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
+						MarkdownDescription: "생성 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"created_by": schema.StringAttribute{
-						Computed:            true,
-						Description:         "생성자",
-						MarkdownDescription: "생성자",
+						Computed: true,
+						Description: "생성자\n" +
+							"  - example : 'user@example.com'",
+						MarkdownDescription: "생성자\n" +
+							"  - example : 'user@example.com'",
 					},
 					"creator_created_at": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						Description:         "생성 일시",
-						MarkdownDescription: "생성 일시",
+						Computed: true,
+						Optional: true,
+						Description: "생성 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
+						MarkdownDescription: "생성 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"creator_email": schema.StringAttribute{
-						Computed:            true,
-						Description:         "생성자 Email",
-						MarkdownDescription: "생성자 Email",
+						Computed: true,
+						Description: "생성자 Email\n" +
+							"  - example : 'admin@example.com'",
+						MarkdownDescription: "생성자 Email\n" +
+							"  - example : 'admin@example.com'",
 					},
 					"creator_last_login_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "생성자 마지막 로그인 일시",
-						MarkdownDescription: "생성자 마지막 로그인 일시",
+						Computed: true,
+						Description: "생성자 마지막 로그인 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
+						MarkdownDescription: "생성자 마지막 로그인 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"creator_name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "생성자 성, 이름",
-						MarkdownDescription: "생성자 성, 이름",
-						Default:             stringdefault.StaticString("-"),
+						Computed: true,
+						Description: "생성자 성, 이름\n" +
+							"  - example : 'Admin User'",
+						MarkdownDescription: "생성자 성, 이름\n" +
+							"  - example : 'Admin User'",
+						Default: stringdefault.StaticString("-"),
 					},
 					"groups": schema.ListNestedAttribute{
-						Computed:            true,
-						Description:         "Groups",
-						MarkdownDescription: "Groups",
+						Computed: true,
+						Description: "List of groups the user belongs to.\n" +
+							"  - example : '[{id: grp-1234567890abcdef, name: MyGroup}]'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Group ID",
-									MarkdownDescription: "Group ID",
+									Computed: true,
+									Description: "Group ID\n" +
+										"  - example : 'grp-1234567890abcdef'",
+									MarkdownDescription: "Group ID\n" +
+										"  - example : 'grp-1234567890abcdef'",
 								},
 								"name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Group Name",
-									MarkdownDescription: "Group Name",
+									Computed: true,
+									Description: "Group Name\n" +
+										"  - example : 'MyGroup'",
+									MarkdownDescription: "Group Name\n" +
+										"  - example : 'MyGroup'",
 								},
 							},
 						},
 					},
 					"user_created_at": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						Description:         "생성 일시",
-						MarkdownDescription: "생성 일시",
+						Computed: true,
+						Optional: true,
+						Description: "생성 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
+						MarkdownDescription: "생성 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"user_email": schema.StringAttribute{
-						Computed:            true,
-						Description:         "User Email",
-						MarkdownDescription: "User Email",
+						Computed: true,
+						Description: "Email address of the user who is a member of the group.\n" +
+							"  - example : 'user@example.com'",
+						MarkdownDescription: "Email address of the user who is a member of the group.\n" +
+							"  - example : 'user@example.com'",
 					},
 					"user_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "User ID",
-						MarkdownDescription: "User ID",
+						Computed: true,
+						Description: "Unique identifier of the user who is a member of the group.\n" +
+							"  - example : 'usr-1234567890abcdef'",
+						MarkdownDescription: "Unique identifier of the user who is a member of the group.\n" +
+							"  - example : 'usr-1234567890abcdef'",
 					},
 					"user_last_login_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "User 마지막 로그인 일시",
-						MarkdownDescription: "User 마지막 로그인 일시",
+						Computed: true,
+						Description: "User 마지막 로그인 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
+						MarkdownDescription: "User 마지막 로그인 일시\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"user_name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "User 성, 이름",
-						MarkdownDescription: "User 성, 이름",
-						Default:             stringdefault.StaticString("-"),
+						Computed: true,
+						Description: "User 성, 이름\n" +
+							"  - example : 'John Doe'",
+						MarkdownDescription: "User 성, 이름\n" +
+							"  - example : 'John Doe'",
+						Default: stringdefault.StaticString("-"),
 					},
 				},
 			},
 		},
 	}
+}
+
+func (r *iamGroupMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	importstate.ImportState(ctx, req, resp,
+		path.Root("group_id"),
+		path.Root("user_id"),
+	)
 }
 
 type groupMemberModifier struct{}
@@ -215,6 +251,9 @@ func (r *iamGroupMemberResource) Create(ctx context.Context, req resource.Create
 		)
 		return
 	}
+
+	// No polling needed - group membership is a synchronous operation (immediate association).
+	// The API returns immediately after creating the membership, so we fetch the state directly.
 
 	data, err := r.client.GetGroupMembers(ctx, plan.GroupId.ValueString(), iam.GroupMembersDataResource{Size: basetypes.NewInt32Value(20)})
 	if err != nil {
@@ -408,6 +447,10 @@ func (r *iamGroupMemberResource) Read(ctx context.Context, req resource.ReadRequ
 
 	data, err := r.client.GetGroupMembers(ctx, state.GroupId.ValueString(), iam.GroupMembersDataResource{Size: basetypes.NewInt32Value(20)})
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Unable to Read Group Members",
 			err.Error(),

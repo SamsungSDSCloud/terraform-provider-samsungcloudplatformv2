@@ -2,12 +2,17 @@
 page_title: "samsungcloudplatformv2_virtualserver_image Data Source - samsungcloudplatformv2"
 subcategory: Image
 description: |-
-  Image.
+  Retrieves image information.
+  GPU Image:
+  For GPU Server, use images with scp_image_type of gpu_standard or gpu_custom.
 ---
 
 # samsungcloudplatformv2_virtualserver_image (Data Source)
 
-Image.
+Retrieves image information.
+
+**GPU Image:**
+- For GPU Server, use images with `scp_image_type` of `gpu_standard` or `gpu_custom`.
 
 ## Example Usage
 
@@ -94,17 +99,27 @@ variable "image_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) ID
-- `name` (String) Name
-- `os_distro` (String) OS Distro
-- `scp_image_type` (String) SCP Image type
-- `scp_original_image_type` (String) SCP Original Image type
-- `status` (String) Status
-- `visibility` (String) Visibility
+- `id` (String) Image ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Image name.
+  - example: ubuntu-22.04
+- `os_distro` (String) OS distribution.
+  - example: ubuntu
+  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle
+- `scp_image_type` (String) SCP image type.
+  - example: standard
+  - Available values: standard, custom, gpu_standard, gpu_custom
+- `scp_original_image_type` (String) SCP original image type.
+  - example: standard
+- `status` (String) Image status.
+  - example: active
+- `visibility` (String) Image visibility.
+  - example: private
+  - Available values: shared, private
 
 ### Read-Only
 
-- `image` (Attributes) Image. (see [below for nested schema](#nestedatt--image))
+- `image` (Attributes) Image details. (see [below for nested schema](#nestedatt--image))
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -112,8 +127,11 @@ variable "image_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
 
 
 <a id="nestedatt--image"></a>
@@ -121,32 +139,32 @@ Required:
 
 Read-Only:
 
-- `checksum` (String) Checksum
-- `container_format` (String) Container format
-- `created_at` (String) Created at
-- `disk_format` (String) Disk format
-- `file` (String) File
-- `id` (String) ID
-- `min_disk` (Number) Min disk
-- `min_ram` (Number) Min ram
-- `name` (String) Name
-- `os_distro` (String) OS Distro
-- `os_hash_algo` (String) OS Hash algo
-- `os_hash_value` (String) OS Hash value
-- `os_hidden` (Boolean) OS hidden
-- `owner` (String) Owner
-- `owner_account_name` (String) Owner account name
-- `owner_user_name` (String) Owner user name
-- `protected` (Boolean) Protected
-- `root_device_name` (String) Root device name
-- `scp_image_type` (String) SCP Image type
-- `scp_k8s_version` (String) SCP K8s version
-- `scp_original_image_type` (String) SCP original Image type
-- `scp_os_version` (String) SCP OS version
-- `size` (Number) Size
-- `status` (String) Status
-- `updated_at` (String) Updated at
-- `url` (String) Url
-- `virtual_size` (Number) Virtual size
-- `visibility` (String) Visibility
-- `volumes` (String) Volumes
+- `checksum` (String) MD5 checksum of image data for integrity verification.
+- `container_format` (String) Container format.
+- `created_at` (String) Created at.
+- `disk_format` (String) Disk format.
+- `file` (String) Image file URL.
+- `id` (String) Image ID.
+- `min_disk` (Number) Minimum disk size (GB).
+- `min_ram` (Number) Minimum RAM size (MB).
+- `name` (String) Image name.
+- `os_distro` (String) OS distribution.
+- `os_hash_algo` (String) Hash algorithm for image integrity verification.
+- `os_hash_value` (String) Hash value of image binary.
+- `os_hidden` (Boolean) Hidden flag.
+- `owner` (String) Owner account ID.
+- `owner_account_name` (String) Owner account name.
+- `owner_user_name` (String) Owner user name.
+- `protected` (Boolean) Deletion protection flag. When set to true, image deletion is prevented.
+- `root_device_name` (String) Root device name.
+- `scp_image_type` (String) SCP image type.
+- `scp_k8s_version` (String) Kubernetes version. Only available for K8S images.
+- `scp_original_image_type` (String) Original image type.
+- `scp_os_version` (String) OS version.
+- `size` (Number) Image size (bytes).
+- `status` (String) Image status.
+- `updated_at` (String) Updated at.
+- `url` (String) Image URL.
+- `virtual_size` (Number) Virtual disk size (bytes).
+- `visibility` (String) Image visibility.
+- `volumes` (String) Volume information.

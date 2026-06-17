@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_server Data Source - samsungcloudplatformv2"
 subcategory: Virtual Server
 description: |-
-  list of servers.
+  Retrieves information about a single virtual server.
 ---
 
 # samsungcloudplatformv2_virtualserver_server (Data Source)
 
-list of servers.
+Retrieves information about a single virtual server.
 
 ## Example Usage
 
@@ -99,20 +99,32 @@ variable "server_filter_use_regex" {
 
 ### Optional
 
-- `auto_scaling_group_id` (String) Auto scaling group ID
+- `auto_scaling_group_id` (String) Auto Scaling Group ID.
+  - example: YOUR RESOURCE'S AUTO_SCALING_GROUP_ID
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) ID
-- `ip` (String) Ip
-- `name` (String) Name
-- `product_category` (String) Product category
-- `product_offering` (String) Product offering
-- `server_type_id` (String) Server type ID
-- `state` (String) State
-- `vpc_id` (String) VPC ID
+- `id` (String) Server ID to query.
+  - example: YOUR RESOURCE'S ID
+- `ip` (String) IP address to filter servers.
+  - example: 192.168.1.100
+- `name` (String) Server name to query.
+  - example: my-server
+  - minLength: 1
+  - maxLength: 255
+- `product_category` (String) Product category.
+  - Available values: compute, container
+- `product_offering` (String) Product offering.
+  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm
+  - note: Use gpu_server for GPU instances
+- `server_type_id` (String) Server type ID.
+  - example: YOUR RESOURCE'S SERVER_TYPE_ID
+- `state` (String) Server state to filter.
+  - Available values: ACTIVE, SHUTOFF, ERROR
+- `vpc_id` (String) VPC ID.
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
-- `server` (Attributes) Server. (see [below for nested schema](#nestedatt--server))
+- `server` (Attributes) Retrieved server information including configuration and status. (see [below for nested schema](#nestedatt--server))
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -120,8 +132,11 @@ variable "server_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
 
 
 <a id="nestedatt--server"></a>
@@ -129,46 +144,46 @@ Required:
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `addresses` (Attributes List) Addresses (see [below for nested schema](#nestedatt--server--addresses))
-- `auto_scaling_group_id` (String) Auto scaling group ID
-- `created_at` (String) Created at
-- `created_by` (String) Created by
-- `disk_config` (String) Disk config
-- `id` (String) ID
-- `image_id` (String) Image ID
-- `keypair_name` (String) Keypair name
-- `launch_configuration_id` (String) Launch Configuration ID
-- `locked` (Boolean) Locked
-- `metadata` (Map of String) Metadata
-- `modified_at` (String) Modified at
-- `name` (String) Name
-- `partition_number` (Number) Partition Number
-- `planned_compute_os_type` (String) Planned compute os type
-- `product_category` (String) Product category
-- `product_offering` (String) Product offering
-- `security_groups` (Attributes List) Security groups (see [below for nested schema](#nestedatt--server--security_groups))
-- `server_group_id` (String) Server group ID
-- `server_type` (Attributes) Server type (see [below for nested schema](#nestedatt--server--server_type))
-- `state` (String) State
-- `volumes` (Attributes List) Volumes (see [below for nested schema](#nestedatt--server--volumes))
-- `vpc_id` (String) Vpc ID
+- `account_id` (String) Account ID.
+- `addresses` (Attributes List) Network address list. (see [below for nested schema](#nestedatt--server--addresses))
+- `auto_scaling_group_id` (String) Auto Scaling Group ID.
+- `created_at` (String) Creation timestamp.
+- `created_by` (String) Creator ID.
+- `disk_config` (String) Disk configuration mode.
+- `id` (String) Server ID.
+- `image_id` (String) Image ID.
+- `keypair_name` (String) Keypair name.
+- `launch_configuration_id` (String) Launch Configuration ID.
+- `locked` (Boolean) Lock status.
+- `metadata` (Map of String) Metadata.
+- `modified_at` (String) Modification timestamp.
+- `name` (String) Server name.
+- `partition_number` (Number) Partition number.
+- `planned_compute_os_type` (String) Planned compute OS type.
+- `product_category` (String) Product category.
+- `product_offering` (String) Product offering.
+- `security_groups` (Attributes List) Security group list. (see [below for nested schema](#nestedatt--server--security_groups))
+- `server_group_id` (String) Server group ID.
+- `server_type` (Attributes) Server type information. (see [below for nested schema](#nestedatt--server--server_type))
+- `state` (String) Server state.
+- `volumes` (Attributes List) Attached volume list. (see [below for nested schema](#nestedatt--server--volumes))
+- `vpc_id` (String) VPC ID.
 
 <a id="nestedatt--server--addresses"></a>
 ### Nested Schema for `server.addresses`
 
 Read-Only:
 
-- `ip_addresses` (Attributes List) IP addresses (see [below for nested schema](#nestedatt--server--addresses--ip_addresses))
-- `subnet_name` (String) Subnet name
+- `ip_addresses` (Attributes List) IP address list. (see [below for nested schema](#nestedatt--server--addresses--ip_addresses))
+- `subnet_name` (String) Subnet name.
 
 <a id="nestedatt--server--addresses--ip_addresses"></a>
 ### Nested Schema for `server.addresses.ip_addresses`
 
 Read-Only:
 
-- `ip_address` (String) IP address
-- `version` (Number) Version
+- `ip_address` (String) IP address.
+- `version` (Number) IP version.
 
 
 
@@ -177,7 +192,7 @@ Read-Only:
 
 Read-Only:
 
-- `name` (String) Name
+- `name` (String) Security group name.
 
 
 <a id="nestedatt--server--server_type"></a>
@@ -185,14 +200,14 @@ Read-Only:
 
 Read-Only:
 
-- `disk` (Number) Disk
-- `ephemeral` (Number) Ephemeral
-- `extra_specs` (Map of String) Extra specs
-- `id` (String) ID
-- `name` (String) Name
-- `ram` (Number) Ram
-- `swap` (Number) Swap
-- `vcpus` (Number) Vcpus
+- `disk` (Number) Disk size (GB).
+- `ephemeral` (Number) Ephemeral disk size (GB).
+- `extra_specs` (Map of String) Extra specifications.
+- `id` (String) Server type ID.
+- `name` (String) Server type name.
+- `ram` (Number) RAM size (MB).
+- `swap` (Number) Swap size (MB).
+- `vcpus` (Number) Number of vCPUs.
 
 
 <a id="nestedatt--server--volumes"></a>
@@ -200,5 +215,5 @@ Read-Only:
 
 Read-Only:
 
-- `delete_on_termination` (Boolean) Delete on termination
-- `id` (String) ID
+- `delete_on_termination` (Boolean) Whether to delete volume when server is terminated.
+- `id` (String) Volume ID.

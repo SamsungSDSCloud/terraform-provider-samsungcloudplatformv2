@@ -3,16 +3,21 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.1"
+	"strconv"
+	"strings"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/filestorage"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/filestorage/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strconv"
 )
 
 const ReplicationId = "replicationId"
@@ -26,8 +31,9 @@ const Backup = "backup"
 const Use = "use"
 
 var (
-	_ resource.Resource              = &fileStorageReplicationResource{}
-	_ resource.ResourceWithConfigure = &fileStorageReplicationResource{}
+	_ resource.Resource                = &fileStorageReplicationResource{}
+	_ resource.ResourceWithConfigure   = &fileStorageReplicationResource{}
+	_ resource.ResourceWithImportState = &fileStorageReplicationResource{}
 )
 
 func NewFileStorageReplicationResource() resource.Resource {
@@ -65,7 +71,7 @@ func (f *fileStorageReplicationResource) Metadata(ctx context.Context, request r
 
 func (f *fileStorageReplicationResource) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
-		Description: "Replication Response Data",
+		Description: "Manages a File Storage Replication policy on Samsung Cloud Platform.",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description: "Name \n" +
@@ -74,6 +80,9 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 					"  - minLength: 3  \n" +
 					"  - pattern: `^[a-z]([a-z0-9_]){2,20}$` \n",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"replication_frequency": schema.StringAttribute{
 				Description: "Replication Frequency \n" +
@@ -82,23 +91,30 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 				Required: true,
 			},
 			"region": schema.StringAttribute{
-				Description: "Region \n" +
+				Description: "The destination region where the replication target volume will be created. \n" +
 					"  - example : 'kr-west1' \n",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"volume_id": schema.StringAttribute{
 				Description: "Source Volume ID \n" +
 					"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"cifs_password": schema.StringAttribute{
 				Description: "Cifs Password \n" +
-					"  - example : 'cifspwd0!!' \n" +
+					"  - example : '<YOUR_CIFS_PASSWORD>' \n" +
 					"  - maxLength: 20  \n" +
 					"  - minLength: 6  \n" +
 					"  - pattern: `^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$` \n",
 				Optional:  true,
 				WriteOnly: true,
+				Sensitive: true,
 			},
 			"replication_id": schema.StringAttribute{
 				Description: "Replication ID \n" +
@@ -113,47 +129,47 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 				Computed: true,
 			},
 			"replication_status": schema.StringAttribute{
-				Description: "Replication Status \n" +
+				Description: "The current operational status of the replication (e.g., creating, error). \n" +
 					"  - example : 'creating' \n",
 				Computed: true,
 			},
 			"replication_volume_access_level": schema.StringAttribute{
-				Description: "Target Access Level \n" +
+				Description: "The access level of the target volume (e.g., 'ro' for read-only). \n" +
 					"  - example : 'ro' \n",
 				Computed: true,
 			},
 			"replication_volume_id": schema.StringAttribute{
-				Description: "Target Volume ID \n" +
+				Description: "The ID of the target volume created in the destination region. \n" +
 					"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
 				Computed: true,
 			},
 			"replication_volume_name": schema.StringAttribute{
-				Description: "Target Volume Name \n" +
+				Description: "The name of the target volume in the destination region. \n" +
 					"  - example : 'my_volume' \n",
 				Computed: true,
 			},
 			"replication_volume_region": schema.StringAttribute{
-				Description: "Target Volume Region \n" +
+				Description: "The region where the target volume is located. \n" +
 					"  - example : 'kr-west1' \n",
 				Computed: true,
 			},
 			"source_volume_access_level": schema.StringAttribute{
-				Description: "Source Access Level \n" +
+				Description: "The access level of the source volume. \n" +
 					"  - example : 'ro' \n",
 				Computed: true,
 			},
 			"source_volume_id": schema.StringAttribute{
-				Description: "Source Volume ID \n" +
+				Description: "The ID of the source volume being replicated. \n" +
 					"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
 				Computed: true,
 			},
 			"source_volume_name": schema.StringAttribute{
-				Description: "Source Volume Name \n" +
+				Description: "The name of the source volume being replicated. \n" +
 					"  - example : 'my_volume' \n",
 				Computed: true,
 			},
 			"source_volume_region": schema.StringAttribute{
-				Description: "Source Volume Region \n" +
+				Description: "The region where the source volume is located. \n" +
 					"  - example : 'kr-west1' \n",
 				Computed: true,
 			},
@@ -165,7 +181,7 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 			},
 			"backup_retention_count": schema.Int32Attribute{
 				Description: "Backup Retention Count \n" +
-					"  - example : 'policy' \n" +
+					"  - example : 10 \n" +
 					"  - maximum : 128 \n" +
 					"  - minimum : 1  \n",
 				Optional: true,
@@ -178,6 +194,9 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 					"  - example : 'replication' \n" +
 					"  - pattern: `^(replication|backup)$` \n",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 		},
 	}
@@ -233,6 +252,10 @@ func (f *fileStorageReplicationResource) Read(ctx context.Context, request resou
 
 	replication, err := f.client.GetVolumeReplication(ctx, state.ReplicationId.ValueString(), state.VolumeId.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			response.State.RemoveResource(ctx)
+			return
+		}
 		response.Diagnostics.AddError("Unable to Read Replication Policy", err.Error())
 		return
 	}
@@ -365,19 +388,37 @@ func waitForReplicationStatus(ctx context.Context, fileStorageClient *filestorag
 	return response, client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
 		replication, err := fileStorageClient.GetVolumeReplication(ctx, params[ReplicationId], params[VolumeId])
 		if err != nil {
-			return nil, "", nil
+			if client.IsTransientError(err) {
+				return nil, "", nil
+			}
+			return nil, "", err
 		}
 		response = replication
 		return replication, getCurrentStatus(params, replication), nil
-	})
+	}, -1, -1, -1, -1)
 }
 
 func getCurrentStatus(params map[string]string, replication *scpfilestorage.ReplicationShowResponse) string {
 	if params[FieldName] == BackupRetentionCount {
-		return strconv.Itoa(int(*replication.BackupRetentionCount.Get()))
+		if v := replication.BackupRetentionCount.Get(); v != nil {
+			return strconv.Itoa(int(*v))
+		}
+		return ""
 	} else if params[FieldName] == ReplicationFrequency {
 		return replication.ReplicationFrequency
 	} else {
 		return replication.ReplicationPolicy
 	}
+}
+
+func (r *fileStorageReplicationResource) ImportState(ctx context.Context,
+	req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError("Invalid ID format",
+			"Expected format: replication_id/volume_id")
+		return
+	}
+	resp.State.SetAttribute(ctx, path.Root("replication_id"), parts[0])
+	resp.State.SetAttribute(ctx, path.Root("volume_id"), parts[1])
 }

@@ -3,14 +3,17 @@ package dns
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/dns"
+	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/dns/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/dns"
 
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/dns/1.3"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -20,8 +23,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &dnsPrivateDnsResource{}
-	_ resource.ResourceWithConfigure = &dnsPrivateDnsResource{}
+	_ resource.Resource                = &dnsPrivateDnsResource{}
+	_ resource.ResourceWithConfigure   = &dnsPrivateDnsResource{}
+	_ resource.ResourceWithImportState = &dnsPrivateDnsResource{}
 )
 
 // NewResourceManagerResourceGroupResource is a helper function to simplify the provider implementation.
@@ -44,10 +48,11 @@ func (r *dnsPrivateDnsResource) Metadata(_ context.Context, req resource.Metadat
 // Schema defines the schema for the data source.
 func (r *dnsPrivateDnsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "PrivateDns.",
+		Description: "A private DNS instance for managing internal DNS resolution.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
+				Description: "The unique identifier of the private DNS.\n" +
+                      "  - example : 10fjkewefprivatedns3193rud543 ",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -55,89 +60,107 @@ func (r *dnsPrivateDnsResource) Schema(_ context.Context, _ resource.SchemaReque
 			},
 			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("PrivateDns"): schema.SingleNestedAttribute{
-				Description: "A detail of PrivateDns.",
+				Description: "Detailed information about the private DNS.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AuthDnsName"): schema.StringAttribute{
-						Description: "AuthDnsName",
-						Optional:    true,
+						Description: "The authoritative DNS name of the private DNS.\n" +
+							"  - example : auth.dns.example.com ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ConnectedVpcIds"): schema.ListAttribute{
 						ElementType: types.StringType,
-						Description: "ConnectedVpcIds",
-						Optional:    true,
+						Description: "The list of VPC identifiers connected to this private DNS.Only VPCs that are connected to the DNS can query the domain information registered in it.\n" +
+							"  - example : [\"10fjkewefvpc3193rud543\"] ",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Optional:    true,
+						Description: "The unique identifier of the private DNS.\n" +
+							"  - example : 10fjkewefprivatedns3193rud543 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z ",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the private DNS.\n" +
+							"  - example : private-dns01 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PoolId"): schema.StringAttribute{
-						Description: "PoolId",
-						Optional:    true,
+						Description: "The resource pool identifier associated with the private DNS.\n" +
+							"  - example : 10fjksdpooliddfsi12389esfdslkdsr32 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("PoolName"): schema.StringAttribute{
-						Description: "PoolName",
-						Optional:    true,
+						Description: "The name of the resource pool.\n" +
+							"  - example : pool-01 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("RegisteredRegion"): schema.StringAttribute{
-						Description: "RegisteredRegion",
-						Optional:    true,
+						Description: "The region where the private DNS is registered.\n" +
+							"  - example : KR-WEST1 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ResolverIp"): schema.StringAttribute{
-						Description: "ResolverIp",
-						Optional:    true,
+						Description: "The IP address of the DNS resolver.\n" +
+							"  - example : 198.19.0.101 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("ResolverName"): schema.StringAttribute{
-						Description: "ResolverName",
-						Optional:    true,
+						Description: "The name of the DNS resolver.\n" +
+							"  - example : resolver-01 ",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Optional:    true,
+						Description: "The current state of the private DNS.\n" +
+							"  - example : ACTIVE ",
+						Optional: true,
 					},
 				},
 			},
 			common.ToSnakeCase("PrivateDnsCreate"): schema.SingleNestedAttribute{
-				Description: "Create PrivateDns.",
+				Description: "Configuration for creating a new private DNS.",
 				Optional:    true,
 
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("ConnectedVpcIds"): schema.ListAttribute{
 						ElementType: types.StringType,
-						Description: "ConnectedVpcIds",
-						Optional:    true,
+						Description: "The list of VPC identifiers connected to this private DNS.Only VPCs that are connected to the DNS can query the domain information registered in it.\n" +
+							"  - example : [\"10fjkewefvpc3193rud543\"] ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : This is description ",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name for the private DNS to be created.\n" +
+							"  - example : private-dns01 ",
+						Optional: true,
 					},
 				},
 			},
@@ -214,8 +237,12 @@ func (r *dnsPrivateDnsResource) Create(ctx context.Context, req resource.CreateR
 		)
 		return
 	}
-
-	createErr := waitForPrivateDnsStatus(ctx, r.client, data.PrivateDns.Id, []string{}, []string{"ACTIVE"})
+	id := data.PrivateDns.Id
+	if id == "" {
+		resp.Diagnostics.AddError("Error creating Private Dns", "API returned record without id")
+		return
+	}
+	createErr := waitForPrivateDnsStatus(ctx, r.client, id, []string{}, []string{"ACTIVE"})
 	if createErr != nil {
 		resp.Diagnostics.AddError(
 			"Error creating(activating) private dns",
@@ -224,7 +251,7 @@ func (r *dnsPrivateDnsResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	dataForShow, err := r.client.GetPrivateDns(ctx, data.PrivateDns.Id)
+	dataForShow, err := r.client.GetPrivateDns(ctx, id)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -239,6 +266,10 @@ func (r *dnsPrivateDnsResource) Create(ctx context.Context, req resource.CreateR
 	privateDnsModel := convertPrivateDns(dataForShow.PrivateDns)
 
 	privateDnsOjbectValue, diags := types.ObjectValueFrom(ctx, privateDnsModel.AttributeTypes(), privateDnsModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.PrivateDns = privateDnsOjbectValue
 
 	// Set state to fully populated data
@@ -247,6 +278,11 @@ func (r *dnsPrivateDnsResource) Create(ctx context.Context, req resource.CreateR
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// ImportState implements [resource.ResourceWithImportState].
+func (r *dnsPrivateDnsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -262,6 +298,10 @@ func (r *dnsPrivateDnsResource) Read(ctx context.Context, req resource.ReadReque
 	// Get refreshed order value from Gslb
 	data, err := r.client.GetPrivateDns(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Private Dns",
@@ -273,7 +313,18 @@ func (r *dnsPrivateDnsResource) Read(ctx context.Context, req resource.ReadReque
 	privateDnsModel := convertPrivateDns(data.PrivateDns)
 
 	privateDnsObjectValue, diags := types.ObjectValueFrom(ctx, privateDnsModel.AttributeTypes(), privateDnsModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.PrivateDns = privateDnsObjectValue
+
+	if state.PrivateDnsCreate == nil {
+		state.PrivateDnsCreate = &dns.PrivateDnsCreate{}
+	}
+	state.PrivateDnsCreate.Description = privateDnsModel.Description
+	state.PrivateDnsCreate.Name = privateDnsModel.Name
+	state.PrivateDnsCreate.ConnectedVpcIds = privateDnsModel.ConnectedVpcIds
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -326,6 +377,10 @@ func (r *dnsPrivateDnsResource) Update(ctx context.Context, req resource.UpdateR
 	privateDnsModel := convertPrivateDns(dataForShow.PrivateDns)
 
 	privateDnsObjectValue, diags := types.ObjectValueFrom(ctx, privateDnsModel.AttributeTypes(), privateDnsModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.PrivateDns = privateDnsObjectValue
 
 	// Set refreshed state
@@ -365,5 +420,5 @@ func waitForPrivateDnsStatus(ctx context.Context, privateDnsClient *dns.Client, 
 			return nil, "", err
 		}
 		return info, string(info.PrivateDns.State), nil
-	})
+	}, -1, -1, -1, -1)
 }

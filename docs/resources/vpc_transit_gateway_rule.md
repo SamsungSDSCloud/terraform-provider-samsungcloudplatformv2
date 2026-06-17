@@ -60,24 +60,25 @@ variable "routing_rule_tgw_connection_vpc_id" {
 
 ### Required
 
-- `destination_cidr` (String) Destination CIDR 
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
   - example : 10.10.10.0/24
-- `destination_type` (String) Destination Type 
+- `destination_type` (String) The type of the destination.
   - example : VPC | TGW
-- `tgw_connection_vpc_id` (String) Tgw Connection Vpc ID 
+- `tgw_connection_vpc_id` (String) The identifier of the VPC that the transit gateway connection belongs to.
   - example: YOUR RESOURCE'S TGW_CONNECTION_VPC_ID
-- `transit_gateway_id` (String) Transit Gateway Id ID 
+- `transit_gateway_id` (String) The identifier of the transit gateway that the rule belongs to.
   - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
 
 ### Optional
 
-- `description` (String) Description
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
   - example : Routing Rule description
   - maxLength : 50
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
+- `id` (String) The unique identifier of the transit gateway rule.
+  - example: YOUR RESOURCE'S ID
 - `routing_rule` (Attributes) Routing rule (see [below for nested schema](#nestedatt--routing_rule))
 
 <a id="nestedatt--routing_rule"></a>
@@ -85,20 +86,38 @@ variable "routing_rule_tgw_connection_vpc_id" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `destination_cidr` (String) DestinationCidr
-- `destination_resource_id` (String) DestinationResourceId
-- `destination_resource_name` (String) DestinationResourceName
-- `destination_type` (String) DestinationType
-- `id` (String) id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `source_resource_id` (String) SourceResourceId
-- `source_resource_name` (String) SourceResourceName
-- `source_type` (String) SourceType
-- `state` (String) State
-- `tgw_connection_vpc_id` (String) TgwConnectionVpcId
-- `tgw_connection_vpc_name` (String) TgwConnectionVpcName
+- `account_id` (String) The identifier of the account that owns the routing rule.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : resourceDescription
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
+  - example : 10.10.10.0/24
+- `destination_resource_id` (String) The identifier of the destination resource.
+  - example: YOUR RESOURCE'S DESTINATION_RESOURCE_ID
+- `destination_resource_name` (String) The name of the destination resource.
+  - example : resourcaName
+- `destination_type` (String) The type of the destination.
+  - example : ON-PREM | VPC
+- `id` (String) The unique identifier of the routing rule.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `source_resource_id` (String) The identifier of the source resource.
+  - example: YOUR RESOURCE'S SOURCE_RESOURCE_ID
+- `source_resource_name` (String) The name of the source resource.
+  - example : resourcaName
+- `source_type` (String) The type of the source.
+  - enum :VPC, TGW
+  - example:VPC
+- `state` (String) The current lifecycle state of the routing rule.
+  - example : ACTIVE
+- `tgw_connection_vpc_id` (String) The identifier of the VPC that the transit gateway connection belongs to.
+  - example: YOUR RESOURCE'S TGW_CONNECTION_VPC_ID
+- `tgw_connection_vpc_name` (String) The name of the VPC that the transit gateway connection belongs to.
+  - example : resourceName

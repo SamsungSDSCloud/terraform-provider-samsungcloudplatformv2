@@ -68,38 +68,38 @@ variable "member_port" {
 
 ### Optional
 
-- `lb_server_group_id` (String) LbServerGroupId
-- `member_ip` (String) MemberIp
-- `member_port` (Number) MemberPort
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
+- `lb_server_group_id` (String) The LB Server Group ID.
+- `member_ip` (String) The IP address of the member (valid IPv4 or IPv6 format).
+- `member_port` (Number) The port number of the member (1-65534).
+- `name` (String) The name of the LB Member (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `page` (Number) The page number.
+- `size` (Number) The number of items per page.
+- `sort` (String) The sort order.
 
 ### Read-Only
 
-- `lb_members` (Attributes List) A list of Lb Members. (see [below for nested schema](#nestedatt--lb_members))
+- `lb_members` (Attributes List) List of LB Members. (see [below for nested schema](#nestedatt--lb_members))
 
 <a id="nestedatt--lb_members"></a>
 ### Nested Schema for `lb_members`
 
 Optional:
 
-- `health_state` (String) HealthState
-- `id` (String) Id
-- `lb_server_group_id` (String) LbServerGroupId
-- `member_ip` (String) MemberIp
-- `member_port` (Number) MemberPort
-- `member_state` (String) MemberState
-- `member_weight` (Number) MemberWeight
-- `name` (String) Name
-- `object_id` (String) ObjectId
-- `object_type` (String) ObjectType
-- `state` (String) State
+- `health_state` (String) The health state of the member (HEALTHY, UNHEALTHY, UNKNOWN).
+- `id` (String) The unique identifier of the LB Member.
+- `lb_server_group_id` (String) The LB Server Group ID.
+- `member_ip` (String) The IP address of the member (valid IPv4 or IPv6 format).
+- `member_port` (Number) The port number of the member (1-65534).
+- `member_state` (String) The state of the member (ENABLE, DISABLE).
+- `member_weight` (Number) The weight of the member (1-1000).
+- `name` (String) The name of the LB Member (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `object_id` (String) The object ID.
+- `object_type` (String) The object type (VM, BM, MANUAL, MNGC).
+- `state` (String) The current state of the LB Member (CREATING, ACTIVE, DELETING, EDITING, ERROR).
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

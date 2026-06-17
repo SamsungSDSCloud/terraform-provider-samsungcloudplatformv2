@@ -61,35 +61,35 @@ variable "subnet_id" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `protocol` (List of String) Protocol
-- `size` (Number) Size
-- `sort` (String) Sort
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `name` (String) The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `page` (Number) The page number.
+- `protocol` (List of String) The protocol used for the listener (e.g., TCP, HTTP, HTTPS).
+- `size` (Number) The number of items per page.
+- `sort` (String) The sort order.
+- `subnet_id` (String) The subnet ID where the resource is located.
+- `vpc_id` (String) The VPC ID where the resource is located.
 
 ### Read-Only
 
-- `lb_server_groups` (Attributes List) A list of Lb Server Groups. (see [below for nested schema](#nestedatt--lb_server_groups))
+- `lb_server_groups` (Attributes List) List of LB Server Groups. (see [below for nested schema](#nestedatt--lb_server_groups))
 
 <a id="nestedatt--lb_server_groups"></a>
 ### Nested Schema for `lb_server_groups`
 
 Optional:
 
-- `id` (String) Id
-- `lb_name` (String) LbName
-- `lb_server_group_member_count` (Number) LbServerGroupMemberCount
-- `loadbalancer_id` (String) LoadbalancerId
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `state` (String) State
-- `vpc_id` (String) VpcId
+- `id` (String) The unique identifier of the LB Server Group.
+- `lb_name` (String) The name of the LoadBalancer.
+- `lb_server_group_member_count` (Number) The number of members in the LB Server Group.
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the server group.
+- `name` (String) The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `protocol` (String) The protocol for the server group (TCP, UDP).
+- `state` (String) The current state of the LB Server Group (CREATING, ACTIVE, DELETING, ERROR, EDITING).
+- `vpc_id` (String) The VPC ID where the resource is located.
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

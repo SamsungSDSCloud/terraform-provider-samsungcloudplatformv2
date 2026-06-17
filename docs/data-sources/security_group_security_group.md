@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_security_group_security_group Data Source - samsungcloudplatformv2"
 subcategory: Security Group
 description: |-
-  Security group
+  The security group resource details.
 ---
 
 # samsungcloudplatformv2_security_group_security_group (Data Source)
 
-Security group
+The security group resource details.
 
 ## Example Usage
 
@@ -35,26 +35,37 @@ variable "id" {
 
 ### Required
 
-- `id` (String) Id 
+- `id` (String) The unique identifier of the resource.
   - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `security_group` (Attributes) Security group (see [below for nested schema](#nestedatt--security_group))
+- `security_group` (Attributes) Retrieves details of a security group. (see [below for nested schema](#nestedatt--security_group))
 
 <a id="nestedatt--security_group"></a>
 ### Nested Schema for `security_group`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `description` (String) Description
-- `id` (String) Id
-- `loggable` (Boolean) loggable
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `name` (String) Name
-- `rule_count` (Number) rule count
-- `state` (String) State
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example: 2025-01-15T10:30:00Z
+- `created_by` (String) The user ID that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) A brief explanation or note about this resource.
+  - example: Security group for web tier
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `loggable` (Boolean) Enable flow log for the security group.
+  - example: true
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example: 2025-06-01T14:22:00Z
+- `modified_by` (String) The user ID that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the Security Group.
+  - example: sg-web-prod
+- `rule_count` (Number) Number of rules in the Security Group.
+  - example: 5
+- `state` (String) The current state of the resource.
+  - example: ACTIVE

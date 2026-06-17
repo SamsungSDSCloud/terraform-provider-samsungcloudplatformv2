@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -26,6 +26,7 @@ type ProviderConfig struct {
 	AuthToken                types.String `tfsdk:"auth_token"`
 	MaxRemainDays            types.Int64  `tfsdk:"max_remain_days"`
 	MicroversionCheckTimeout types.Int64  `tfsdk:"microversion_check_timeout"`
+	SkipVersionCheck         types.Bool   `tfsdk:"skip_version_check"`
 }
 
 const (
@@ -48,6 +49,7 @@ func ConfigureServiceAndCredentials(resp *provider.ConfigureResponse, providerCo
 	authToken := getStringValue(providerConfig.AuthToken, "SCP_TF_AUTH_TOKEN", credConfig.AuthToken)
 	maxRemainDays := getIntValue(providerConfig.MaxRemainDays, "SCP_TF_MAX_REMAIN_DAYS", serviceConfig.MaxRemainDays, DefaultMaxRemainDays)
 	microversionCheckTimeout := getIntValue(providerConfig.MicroversionCheckTimeout, "SCP_TF_MICROVERSION_CHECK_TIMEOUT", serviceConfig.MicroversionCheckTimeout, DefaultMicroversionCheckTimeout)
+	skipVersionCheck := getBoolValue(providerConfig.SkipVersionCheck, "SCP_TF_SKIP_VERSION_CHECK", true)
 
 	if authUrl == "" {
 		resp.Diagnostics.AddAttributeError(
@@ -84,6 +86,7 @@ func ConfigureServiceAndCredentials(resp *provider.ConfigureResponse, providerCo
 	providerConfig.AuthToken = types.StringValue(authToken)
 	providerConfig.MaxRemainDays = types.Int64Value(maxRemainDays)
 	providerConfig.MicroversionCheckTimeout = types.Int64Value(microversionCheckTimeout)
+	providerConfig.SkipVersionCheck = types.BoolValue(skipVersionCheck)
 }
 
 type serviceConfig struct {
@@ -139,6 +142,18 @@ func getIntValue(tfValue types.Int64, envKey string, fileValue int64, defaultVal
 	}
 	if fileValue != 0 {
 		return fileValue
+	}
+	return defaultValue
+}
+
+func getBoolValue(tfValue types.Bool, envKey string, defaultValue bool) bool {
+	if !tfValue.IsNull() {
+		return tfValue.ValueBool()
+	}
+	if v := os.Getenv(envKey); v != "" {
+		if parsed, err := strconv.ParseBool(v); err == nil {
+			return parsed
+		}
 	}
 	return defaultValue
 }

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_dns_public_domain_name Resource - samsungcloudplatformv2"
 subcategory: DNS
 description: |-
-  PublicDomainName.
+  A public domain name registration resource.
 ---
 
 # samsungcloudplatformv2_dns_public_domain_name (Resource)
 
-PublicDomainName.
+A public domain name registration resource.
 
 ## Example Usage
 
@@ -52,9 +52,9 @@ variable "public_domain_name" {
     domestic_second_address_en = "asd"
     domestic_second_address_ko = "ㅁㄴㅇ"
     name                       = "terraform22.com"
-    overseas_first_address     = ""
-    overseas_second_address    = ""
-    overseas_third_address     = ""
+    overseas_first_address     = "123 Main St"
+    overseas_second_address    = "New York"
+    overseas_third_address     = "NY 10001"
     postal_code                = "05503"
     register_email             = "asd@asd.com"
     register_name_en           = "asd"
@@ -78,37 +78,54 @@ variable "tag" {
 
 ### Optional
 
-- `public_domain_name_create` (Attributes) Create PublicDomainName. (see [below for nested schema](#nestedatt--public_domain_name_create))
+- `public_domain_name_create` (Attributes) Configuration for creating a new public domain name registration. (see [below for nested schema](#nestedatt--public_domain_name_create))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
-- `public_domain_name` (Attributes) A detail of PublicDomainName. (see [below for nested schema](#nestedatt--public_domain_name))
+- `id` (String) The unique identifier of the public domain name.
+  - example: YOUR RESOURCE'S ID
+- `public_domain_name` (Attributes) Detailed information about the public domain name. (see [below for nested schema](#nestedatt--public_domain_name))
 
 <a id="nestedatt--public_domain_name_create"></a>
 ### Nested Schema for `public_domain_name_create`
 
 Optional:
 
-- `address_type` (String) AddressType
-- `auto_extension` (Boolean) AutoExtension
-- `description` (String) Description
-- `domestic_first_address_en` (String) DomesticFirstAddressEn
-- `domestic_first_address_ko` (String) DomesticFirstAddressKo
-- `domestic_second_address_en` (String) DomesticSecondAddressEn
-- `domestic_second_address_ko` (String) DomesticSecondAddressKo
-- `name` (String) Name
-- `overseas_first_address` (String) OverseasFirstAddress
-- `overseas_second_address` (String) OverseasSecondAddress
-- `overseas_third_address` (String) OverseasThirdAddress
-- `postal_code` (String) PostalCode
-- `register_email` (String) RegisterEmail
-- `register_name_en` (String) RegisterNameEn
-- `register_name_ko` (String) RegisterNameKo
-- `register_telno` (String) RegisterTelno
+- `address_type` (String) The type of address for the domain registration.
+  - example : DOMESTIC
+- `auto_extension` (Boolean) Indicates whether automatic extension is enabled for the domain.
+  - example : true
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `domestic_first_address_en` (String) Domestic first address in English
+  - example : Samsung-ro 123
+- `domestic_first_address_ko` (String) Domestic first address in Korean
+  - example : 삼성로 123
+- `domestic_second_address_en` (String) Domestic second address in English
+  - example : Suwon-si, Gyeonggi-do
+- `domestic_second_address_ko` (String) Domestic second address in Korean
+  - example : 경기도 수원시
+- `name` (String) The name for the public domain name to be created.
+  - example : example.com
+- `overseas_first_address` (String) Overseas first address for the domain registration.
+  - example : 123 Main Street
+- `overseas_second_address` (String) Overseas second address for the domain registration.
+  - example : Suite 100
+- `overseas_third_address` (String) Overseas third address for the domain registration.
+  - example : City, State 12345
+- `postal_code` (String) The postal code for the domain registration.
+  - example : 12345
+- `register_email` (String) The email address of the domain registrant.
+  - example : user@example.com
+- `register_name_en` (String) The name of the domain registrant in English
+  - example : John Doe
+- `register_name_ko` (String) The name of the domain registrant in Korean
+  - example : 홍길동
+- `register_telno` (String) The telephone number of the domain registrant.
+  - example : 82-10-1234-5678
 
 
 <a id="nestedatt--public_domain_name"></a>
@@ -116,33 +133,60 @@ Optional:
 
 Optional:
 
-- `address_type` (String) AddressType
-- `auto_extension` (Boolean) AutoExtension
-- `description` (String) Description
-- `domestic_address_en` (String) DomesticAddressEn
-- `domestic_address_ko` (String) DomesticAddressKo
-- `domestic_first_address_en` (String) DomesticFirstAddressEn
-- `domestic_first_address_ko` (String) DomesticFirstAddressKo
-- `domestic_second_address_en` (String) DomesticSecondAddressEn
-- `domestic_second_address_ko` (String) DomesticSecondAddressKo
-- `expired_date` (String) ExpiredDate
-- `id` (String) Id
-- `name` (String) Name
-- `overseas_address` (String) OverseasAddress
-- `overseas_first_address` (String) OverseasFirstAddress
-- `overseas_second_address` (String) OverseasSecondAddress
-- `overseas_third_address` (String) OverseasThirdAddress
-- `postal_code` (String) PostalCode
-- `register_email` (String) RegisterEmail
-- `register_name_en` (String) RegisterNameEn
-- `register_name_ko` (String) RegisterNameKo
-- `register_telno` (String) RegisterTelno
-- `start_date` (String) StartDate
-- `status` (String) Status
+- `address_type` (String) The type of address for the domain registration.
+  - example : DOMESTIC
+- `auto_extension` (Boolean) Indicates whether automatic extension is enabled for the domain.
+  - example : true
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `domestic_address_en` (String) Domestic address in English
+  - example : Samsung-ro 123, Suwon-si, Gyeonggi-do, Korea
+- `domestic_address_ko` (String) Domestic address in Korean
+  - example : 경기도 수원시 삼성로 123
+- `domestic_first_address_en` (String) Domestic first address in English
+  - example : Samsung-ro 123
+- `domestic_first_address_ko` (String) Domestic first address in Korean
+  - example : 삼성로 123
+- `domestic_second_address_en` (String) Domestic second address in English
+  - example : Suwon-si, Gyeonggi-do
+- `domestic_second_address_ko` (String) Domestic second address in Korean
+  - example : 경기도 수원시
+- `expired_date` (String) The expiration date of the domain registration.
+  - example : 2025-12-31
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the public domain name.
+  - example : example.com
+- `overseas_address` (String) The overseas address for the domain registration.
+  - example : 123 Main Street, City, Country
+- `overseas_first_address` (String) Overseas first address for the domain registration.
+  - example : 123 Main Street
+- `overseas_second_address` (String) Overseas second address for the domain registration.
+  - example : Suite 100
+- `overseas_third_address` (String) Overseas third address for the domain registration.
+  - example : City, State 12345
+- `postal_code` (String) The postal code for the domain registration.
+  - example : 12345
+- `register_email` (String) The email address of the domain registrant.
+  - example : user@example.com
+- `register_name_en` (String) The name of the domain registrant in English
+  - example : John Doe
+- `register_name_ko` (String) The name of the domain registrant in Korean
+  - example : 홍길동
+- `register_telno` (String) The telephone number of the domain registrant.
+  - example : 82-10-1234-5678
+- `start_date` (String) The start date of the domain registration.
+  - example : 2024-01-01
+- `status` (String) The current status of the public domain name.
+  - example : REGISTERED
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `id` (String) The unique identifier of the public domain name.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpn"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -42,133 +42,160 @@ func (d *vpnVpnTunnelDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 		Description: "VPN Tunnel",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Required:    true,
+				Description: "The unique identifier of the resource.\n" +
+					"  - example: 6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d",
+				Required: true,
 			},
 			common.ToSnakeCase("VpnTunnel"): schema.SingleNestedAttribute{
 				Description: "VPN Tunnel",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId \n  - example: 0e3dffc50eb247a1adf4f2e5c82c4f99 ",
-						Computed:    true,
+						Description: "The account ID associated with the resource.\n" +
+							"  - example: 297615908b8e4ec69520a99a6777add3",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt \n - example : 2024-05-17T00:23:17Z",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example: 2025-01-15T10:30:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy \n - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-						Computed:    true,
+						Description: "The user ID that created the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description \n - example : Example Description for VPN Tunnel",
-						Computed:    true,
+						Description: "A brief explanation or note about this resource.\n" +
+							"  - example: VPN test",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id \n - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
-						Computed:    true,
+						Description: "The unique identifier of the resource.\n" +
+							"  - example: 6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt \n - example : 2024-05-17T00:23:17Z",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example: 2025-06-01T14:22:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy \n - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-						Computed:    true,
+						Description: "The user ID that modified the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name \n - example: ExampleVpnTunnel1 ",
-						Computed:    true,
+						Description: "The name of the resource.\n" +
+							"  - example: vpnGWProd",
+						Computed: true,
 					},
 					common.ToSnakeCase("Phase1"): schema.SingleNestedAttribute{
-						Description: "Phase1",
+						Description: "The IKE phase 1 negotiation settings of the VPN tunnel.",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							"dpd_retry_interval": schema.Int32Attribute{
-								Description: "DpdRetryInterval \n - example: 60",
-								Computed:    true,
+								Description: "The Dead Peer Detection retry interval in seconds.\n" +
+									"  - example: 60",
+								Computed: true,
 							},
 							"ike_version": schema.Int32Attribute{
-								Description: "IkeVersion \n - example: 2",
-								Computed:    true,
+								Description: "The IKE (Internet Key Exchange) protocol version.\n" +
+									"  - example: 2",
+								Computed: true,
 							},
 							"life_time": schema.Int32Attribute{
-								Description: "LifeTime \n - example: 86400 ",
-								Computed:    true,
+								Description: "The lifetime of the IKE phase 1 security association in seconds.\n" +
+									"  - example: 86400",
+								Computed: true,
 							},
 							"peer_gateway_ip": schema.StringAttribute{
-								Description: "PeerGatewayIp \n - example: 123.0.0.2",
-								Computed:    true,
+								Description: "The IP address of the peer VPN gateway.\n" +
+									"  - example: 123.0.0.2",
+								Computed: true,
 							},
 							"diffie_hellman_groups": schema.ListAttribute{
-								Description: "VPN Tunnel ISAKMP Diffie-Hellman Group 목록 \n - example : [\n   \"30\",\n    \"31\",\n   \"32\"\n  ]",
+								Description: "The list of Diffie-Hellman groups for IKE phase 1.\n" +
+									"  - example: [30, 31, 32]",
 								Computed:    true,
 								ElementType: types.Int32Type,
 							},
 							"encryptions": schema.ListAttribute{
-								Description: "VPN Tunnel ISAKMP Proposal 목록 \n - example : [\n   \"null-md5\",\n    \"aes128gcm\",\n   \"chacha20poly1305\"\n  ]",
+								Description: "The list of encryption algorithms for IKE phase 1.\n" +
+									"  - example: [\"null-md5\", \"aes128gcm\", \"chacha20poly1305\"]",
 								Computed:    true,
 								ElementType: types.StringType,
 							},
 						},
 					},
 					common.ToSnakeCase("Phase2"): schema.SingleNestedAttribute{
-						Description: "Phase2",
+						Description: "The IKE phase 2 negotiation settings of the VPN tunnel.",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							"life_time": schema.Int32Attribute{
-								Description: "LifeTime \n - example: 86400 ",
-								Computed:    true,
+								Description: "The lifetime of the IKE phase 2 security association in seconds.\n" +
+									"  - example: 86400",
+								Computed: true,
 							},
 							"perfect_forward_secrecy": schema.StringAttribute{
-								Description: "PerfectForwardSecrecy \n - example: ENABLE",
-								Computed:    true,
+								Description: "The Perfect Forward Secrecy setting for IKE phase 2.\n" +
+									"  - example: ENABLE",
+								Computed: true,
 							},
 							"remote_subnets": schema.ListAttribute{
-								Description: "VPN Tunnel IPSec Remote Subnets \n - example : [\n   \"10.1.1.0/24\",\n    \"10.1.2.0/24\",\n   \"10.1.3.0/24\"\n  ]",
+								Description: "The list of remote subnets for IKE phase 2.\n" +
+									"  - example: [\"10.1.1.0/24\", \"10.1.2.0/24\", \"10.1.3.0/24\"]",
 								Computed:    true,
 								ElementType: types.StringType,
 							},
 							"diffie_hellman_groups": schema.ListAttribute{
-								Description: "VPN Tunnel ISAKMP Diffie-Hellman Group 목록 \n - example : [\n   \"30\",\n    \"31\",\n   \"32\"\n  ]",
+								Description: "The list of Diffie-Hellman groups for IKE phase 2.\n" +
+									"  - example: [30, 31, 32]",
 								Computed:    true,
 								ElementType: types.Int32Type,
 							},
 							"encryptions": schema.ListAttribute{
-								Description: "VPN Tunnel ISAKMP Proposal 목록 \n - example : [\n   \"null-md5\",\n    \"aes128gcm\",\n   \"chacha20poly1305\"\n  ]",
+								Description: "The list of encryption algorithms for IKE phase 2.\n" +
+									"  - example: [\"null-md5\", \"aes128gcm\", \"chacha20poly1305\"]",
 								Computed:    true,
 								ElementType: types.StringType,
 							},
 						},
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State \n - example: ACTIVE",
-						Computed:    true,
+						Description: "The current state of the resource.\n" +
+							"  - example: ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status \n - example : DOWN",
-						Computed:    true,
+						Description: "The current status of the vpn tunnel.\n" +
+							"  - example: UP",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId\n - example: ceb44ea5ecb34a49b16495f9a63b0718",
-						Computed:    true,
+						Description: "The identifier of the VPC that the resource belongs to.\n" +
+							"  - example: f32265726b694b32920aa3b111f4c715",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "VpcName \n - example: ExampleVPC1",
-						Computed:    true,
+						Description: "The name of the VPC that the resource belongs to.\n" +
+							"  - example: vpcProd01",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpnGatewayId"): schema.StringAttribute{
-						Description: "VpnGatewayId \n- example: b156740b6335468d8354eb9ef8eddf5a",
-						Computed:    true,
+						Description: "The identifier of the VPN gateway that the resource belongs to.\n" +
+							"  - example: 01c543eb4b8d42a9a3502345d4025147",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpnGatewayIpAddress"): schema.StringAttribute{
-						Description: "VpnGatewayIpAddress \n - example: 123.0.0.1",
-						Computed:    true,
+						Description: "The IP address of the VPN gateway.\n" +
+							"  - example: 10.0.0.0/24",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpnGatewayName"): schema.StringAttribute{
-						Description: "VpnGatewayName \n - example: ExampleVpnGW1",
-						Computed:    true,
+						Description: "The name of the VPN gateway that the resource belongs to.\n" +
+							"  - example: vpnGWProd",
+						Computed: true,
 					},
 				},
 			},

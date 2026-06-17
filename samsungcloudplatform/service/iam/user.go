@@ -3,21 +3,27 @@ package iam
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/importstate"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
+const CreatedAt = "Created At"
+
 var (
-	_ resource.Resource              = &iamUserResource{}
-	_ resource.ResourceWithConfigure = &iamUserResource{}
+	_ resource.Resource                = &iamUserResource{}
+	_ resource.ResourceWithConfigure   = &iamUserResource{}
+	_ resource.ResourceWithImportState = &iamUserResource{}
 )
 
 // NewIamUserResource is a helper function to simplify the provider implementation.
@@ -39,321 +45,324 @@ func (r *iamUserResource) Metadata(_ context.Context, req resource.MetadataReque
 
 func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "User.",
+		Description: "Manages an IAM User.",
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Account ID",
-				MarkdownDescription: "Account ID",
+				Optional: true,
+				Description: "Account ID to create the user in.\n" +
+					"  - example : '123456789012'",
 			},
 			"description": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Description",
-				MarkdownDescription: "Description",
+				Optional: true,
+				Description: "Human-readable description of the user.\n" +
+					"  - example : 'My user description'",
 			},
 			"group_ids": schema.ListAttribute{
-				Optional:            true,
-				ElementType:         types.StringType,
-				Description:         "Group IDs",
-				MarkdownDescription: "Group IDs",
+				Optional:    true,
+				ElementType: types.StringType,
+				Description: "List of group IDs to add the user to.\n" +
+					"  - example : ['grp-1234567890abcdef']",
 			},
 			"policy_ids": schema.ListAttribute{
-				Optional:            true,
-				ElementType:         types.StringType,
-				Description:         "Policy IDs",
-				MarkdownDescription: "Policy IDs",
+				Optional:    true,
+				ElementType: types.StringType,
+				Description: "List of policy IDs to attach to the user.\n" +
+					"  - example : ['pol-1234567890abcdef']",
 			},
 			"password": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Password",
-				MarkdownDescription: "Password",
+				Optional: true,
+				Description: "Password for the user.\n" +
+					"  - example : 'ExamplePassword123!'",
 			},
 			"tags": tag.ResourceSchema(),
 			"temporary_password": schema.BoolAttribute{
-				Optional:            true,
-				Description:         "Temporary Password",
-				MarkdownDescription: "Temporary Password",
+				Optional: true,
+				Description: "Whether the password is temporary and needs to be changed.\n" +
+					"  - example : true",
 			},
 			"user_name": schema.StringAttribute{
-				Optional:            true,
-				Description:         "User Name",
-				MarkdownDescription: "User Name",
+				Optional: true,
+				Description: "Unique username for the user.\n" +
+					"  - example : 'john.doe'\n" +
+					"  - maxLength: 64",
 			},
 			"password_reuse_count": schema.Int32Attribute{
-				Optional:            true,
-				Description:         "Password Reuse Count",
-				MarkdownDescription: "Password Reuse Count",
+				Optional: true,
+				Description: "Number of previous passwords that cannot be reused.\n" +
+					"  - example : 3\n" +
+					"  - min: 0, max: 10",
 			},
 			"user_id": schema.StringAttribute{
-				Computed:            true,
-				Description:         "User ID",
-				MarkdownDescription: "User ID",
+				Computed: true,
+				Description: "Unique identifier of the user.\n" +
+					"  - example : 'usr-1234567890abcdef'",
 			},
 			"user": schema.SingleNestedAttribute{
-				Description: "A detail of User.",
-				Computed:    true,
+				Description: "A detail of User.\n" +
+					"  - example : '{account_id: 123456789012, company_name: Samsung SDS, created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, ...}'",
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"account_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Account ID",
-						MarkdownDescription: "Account ID",
+						Computed: true,
+						Description: "Account ID associated with the user.\n" +
+							"  - example : '123456789012'",
 					},
 					"company_name": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						Description:         "Company Name",
-						MarkdownDescription: "Company Name",
+						Computed: true,
+						Optional: true,
+						Description: "Company name of the user.\n" +
+							"  - example : 'Samsung SDS'",
 					},
 					"console_url": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						Description:         "Console URL",
-						MarkdownDescription: "Console URL",
+						Computed: true,
+						Optional: true,
+						Description: "URL to access the console.\n" +
+							"  - example : 'https://console.example.com'",
 					},
 					"created_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Created At",
-						MarkdownDescription: "Created At",
+						Computed: true,
+						Description: "Timestamp when the user was created.\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"created_by": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Created By",
-						MarkdownDescription: "Created By",
+						Computed: true,
+						Description: "User who created the user.\n" +
+							"  - example : 'user@example.com'",
 					},
 					"description": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Description",
-						MarkdownDescription: "Description",
+						Computed: true,
+						Description: "Human-readable description of the user.\n" +
+							"  - example : 'My user description'",
 					},
 					"dst_offset": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Dst Offset",
-						MarkdownDescription: "Dst Offset",
+						Computed: true,
+						Description: "Daylight saving time offset.\n" +
+							"  - example : '+09:00'",
 					},
 					"email": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Email",
-						MarkdownDescription: "Email",
+						Computed: true,
+						Description: "Email address.\n" +
+							"  - example : 'user@example.com'",
 					},
 					"email_authenticated": schema.BoolAttribute{
-						Computed:            true,
-						Description:         "Email Authenticated",
-						MarkdownDescription: "Email Authenticated",
+						Computed: true,
+						Description: "Whether email is authenticated.\n" +
+							"  - example : true",
 					},
 					"first_name": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						Description:         "First Name",
-						MarkdownDescription: "First Name",
+						Computed: true,
+						Optional: true,
+						Description: "First name of the user.\n" +
+							"  - example : 'John'",
 					},
 					"id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "ID",
-						MarkdownDescription: "ID",
+						Computed: true,
+						Description: "Unique identifier of the user.\n" +
+							"  - example : 'usr-1234567890abcdef'",
 					},
 					"last_login_at": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						Description:         "Last Login At",
-						MarkdownDescription: "Last Login At",
+						Computed: true,
+						Optional: true,
+						Description: "Timestamp when the user last logged in.\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"last_name": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						Description:         "Last Name",
-						MarkdownDescription: "Last Name",
+						Computed: true,
+						Optional: true,
+						Description: "Last name of the user.\n" +
+							"  - example : 'Doe'",
 					},
 					"last_password_update_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Last Password Update At",
-						MarkdownDescription: "Last Password Update At",
+						Computed: true,
+						Description: "Timestamp when the password was last updated.\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"modified_at": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modified At",
-						MarkdownDescription: "Modified At",
+						Computed: true,
+						Description: "Timestamp when the user was last modified.\n" +
+							"  - example : '2024-01-01T00:00:00Z'",
 					},
 					"modified_by": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modified By",
-						MarkdownDescription: "Modified By",
+						Computed: true,
+						Description: "User who last modified the user.\n" +
+							"  - example : 'user@example.com'",
 					},
 					"name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Name",
-						MarkdownDescription: "Name",
+						Computed: true,
+						Description: "Display name of the user.\n" +
+							"  - example : 'John Doe'",
 					},
 					"password": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						Description:         "Password",
-						MarkdownDescription: "Password",
+						Computed: true,
+						Optional: true,
+						Description: "Password for the user account.\n" +
+							"  - example : '********'",
 					},
 					"password_reuse_count": schema.Int64Attribute{
-						Computed:            true,
-						Description:         "Password Reuse Count",
-						MarkdownDescription: "Password Reuse Count",
+						Computed: true,
+						Description: "Number of previous passwords that cannot be reused.\n" +
+							"  - example : 3",
 					},
 					"phone_authenticated": schema.BoolAttribute{
-						Computed:            true,
-						Description:         "Phone Authenticated",
-						MarkdownDescription: "Phone Authenticated",
+						Computed: true,
+						Description: "Whether the phone number has been authenticated.\n" +
+							"  - example : true",
 					},
 					"policies": schema.ListNestedAttribute{
-						Optional:            true,
-						Description:         "Policies",
-						MarkdownDescription: "Policies",
+						Optional: true,
+						Description: "List of policies attached to the role.\n" +
+							"  - example : '[{account_id: 123456789012, created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, default_version_id: pol-1234567890abcdef, ...}]'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"account_id": schema.StringAttribute{
-									Optional:            true,
-									Description:         "Account ID",
-									MarkdownDescription: "Account ID",
+									Optional: true,
+									Description: "Account ID associated with the policy.\n" +
+										"  - example : '123456789012'",
 								},
 								"created_at": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Created At",
-									MarkdownDescription: "Created At",
+									Computed: true,
+									Description: "Timestamp when the policy was created.\n" +
+										"  - example : '2024-01-01T00:00:00Z'",
 								},
 								"created_by": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Created By",
-									MarkdownDescription: "Created By",
+									Computed: true,
+									Description: "User who created the policy.\n" +
+										"  - example : 'user@example.com'",
 								},
 								"creator_email": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Creator Email",
-									MarkdownDescription: "Creator Email",
+									Computed: true,
+									Description: "Email address of the policy creator.\n" +
+										"  - example : 'creator@example.com'",
 								},
 								"creator_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Creator Name",
-									MarkdownDescription: "Creator Name",
+									Computed: true,
+									Description: "Name of the policy creator.\n" +
+										"  - example : 'Creator Name'",
 								},
 								"default_version_id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Default Version ID",
-									MarkdownDescription: "Default Version ID",
+									Computed: true,
+									Description: "Default version ID of the policy.\n" +
+										"  - example : 'pol-1234567890abcdef'",
 								},
 								"description": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Description",
-									MarkdownDescription: "Description",
+									Computed: true,
+									Description: "Description of the policy.\n" +
+										"  - example : 'My policy description'",
 								},
 								"domain_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Domain Name",
-									MarkdownDescription: "Domain Name",
+									Computed: true,
+									Description: "Domain name associated with the policy.\n" +
+										"  - example : 'scp'",
 								},
 								"id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "ID",
-									MarkdownDescription: "ID",
+									Computed: true,
+									Description: "Unique identifier of the policy.\n" +
+										"  - example : 'pol-1234567890abcdef'",
 								},
 								"modified_at": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Modified At",
-									MarkdownDescription: "Modified At",
+									Computed: true,
+									Description: "Timestamp when the policy was last modified.\n" +
+										"  - example : '2024-01-01T00:00:00Z'",
 								},
 								"modified_by": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Modified By",
-									MarkdownDescription: "Modified By",
+									Computed: true,
+									Description: "User who last modified the policy.\n" +
+										"  - example : 'user@example.com'",
 								},
 								"modifier_email": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Modifier Email",
-									MarkdownDescription: "Modifier Email",
+									Computed: true,
+									Description: "Email address of the user who last modified the policy.\n" +
+										"  - example : 'modifier@example.com'",
 								},
 								"modifier_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Modifier Name",
-									MarkdownDescription: "Modifier Name",
+									Computed: true,
+									Description: "Name of the user who last modified the policy.\n" +
+										"  - example : 'Modifier Name'",
 								},
 								"policy_category": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Policy Category",
-									MarkdownDescription: "Policy Category",
+									Computed: true,
+									Description: "Category of the policy.\n" +
+										"  - example : 'IDENTITY_BASED'",
 								},
 								"policy_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Policy Name",
-									MarkdownDescription: "Policy Name",
+									Computed: true,
+									Description: "Name of the policy.\n" +
+										"  - example : 'MyPolicy'",
 								},
 								"policy_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Policy Type",
-									MarkdownDescription: "Policy Type",
+									Computed: true,
+									Description: "Type of the policy.\n" +
+										"  - example : 'USER_DEFINED'",
 								},
 								"policy_versions": schema.ListNestedAttribute{
-									Optional:            true,
-									Description:         "Policy Versions",
-									MarkdownDescription: "Policy Versions",
+									Optional: true,
+									Description: "List of versions associated with the policy.\n" +
+										"  - example : '[{created_at: 2024-05-17T00:23:17Z, created_by: ef50cdc207f05f6fb8f20219f229ed1f, id: ver-1234567890abcdef, modified_at: 2024-05-17T00:23:17Z, modified_by: ef50cdc207f05f6fb8f20219f229ed1f, ...}]'",
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"created_at": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Created At",
-												MarkdownDescription: "Created At",
+												Computed: true,
+												Description: "Timestamp when the policy version was created.\n" +
+													"  - example : '2024-01-01T00:00:00Z'",
 											},
 											"created_by": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Created By",
-												MarkdownDescription: "Created By",
+												Computed: true,
+												Description: "User who created the policy version.\n" +
+													"  - example : 'user@example.com'",
 											},
 											"id": schema.StringAttribute{
-												Computed:            true,
-												Description:         "ID",
-												MarkdownDescription: "ID",
+												Computed: true,
+												Description: "Unique identifier of the policy version.\n" +
+													"  - example : 'ver-1234567890abcdef'",
 											},
 											"modified_at": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Modified At",
-												MarkdownDescription: "Modified At",
+												Computed: true,
+												Description: "Timestamp when the policy version was last modified.\n" +
+													"  - example : '2024-01-01T00:00:00Z'",
 											},
 											"modified_by": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Modified By",
-												MarkdownDescription: "Modified By",
+												Computed: true,
+												Description: "User who last modified the policy version.\n" +
+													"  - example : 'user@example.com'",
 											},
 											"policy_document": schema.SingleNestedAttribute{
-												Computed:            true,
-												Description:         "Policy Document",
-												MarkdownDescription: "Policy Document",
+												Computed: true,
+												Description: "The policy document containing permission definitions for this policy version.\n" +
+													"  - example : '{statement: [{action: [iam:CreateRole], effect: Allow, resource: [*], ...}], version: 2024-07-01}'",
 												Attributes: map[string]schema.Attribute{
 													"statement": schema.ListNestedAttribute{
-														Computed:            true,
-														Description:         "Statement",
-														MarkdownDescription: "Statement",
+														Computed: true,
+														Description: "List of policy statements that define the permissions granted or denied.\n" +
+															"  - example : '[{action: [iam:CreateRole], effect: Allow, resource: [*], sid: Stmt1, ...}]'",
 														NestedObject: schema.NestedAttributeObject{
 															Attributes: map[string]schema.Attribute{
 																"action": schema.ListAttribute{
-																	Optional:            true,
-																	Description:         "Action",
-																	MarkdownDescription: "Action",
-																	ElementType:         types.StringType,
+																	Optional: true,
+																	Description: "List of actions allowed by this statement (e.g., iam:CreateRole, iam:ListUsers).\n" +
+																		"  - example : ['iam:CreateRole']",
+																	ElementType: types.StringType,
 																},
 																"not_action": schema.ListAttribute{
-																	Optional:            true,
-																	Description:         "Not Action",
-																	MarkdownDescription: "Not Action",
-																	ElementType:         types.StringType,
+																	Optional: true,
+																	Description: "List of actions that are explicitly excluded from this statement.\n" +
+																		"  - example : ['iam:DeleteRole']",
+																	ElementType: types.StringType,
 																},
 																"effect": schema.StringAttribute{
-																	Computed:            true,
-																	Description:         "Effect",
-																	MarkdownDescription: "Effect",
+																	Computed: true,
+																	Description: "Effect of the statement - either Allow or Deny.\n" +
+																		"  - example : 'Allow'",
 																},
 																"resource": schema.ListAttribute{
-																	Optional:            true,
-																	Description:         "Resource",
-																	MarkdownDescription: "Resource",
-																	ElementType:         types.StringType,
+																	Optional: true,
+																	Description: "List of resources (ARNs or wildcards) that the statement applies to.\n" +
+																		"  - example : ['*']",
+																	ElementType: types.StringType,
 																},
 																"sid": schema.StringAttribute{
-																	Computed:            true,
-																	Description:         "SID",
-																	MarkdownDescription: "SID",
+																	Computed: true,
+																	Description: "Statement ID (SID) - unique identifier for this policy statement.\n" +
+																		"  - example : 'Stmt1'",
 																},
 																"condition": schema.MapAttribute{
 																	ElementType: types.MapType{
@@ -362,20 +371,24 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 																		},
 																	},
 																	Optional: true,
+																	Description: "Conditions that must be met for the policy statement to take effect.\n" +
+																		"  - example : {'StringEquals': {'aws:PrincipalTag/department': ['IT']}}",
 																},
 																"principal": schema.SingleNestedAttribute{
-																	Optional:            true,
-																	Description:         "Principal",
-																	MarkdownDescription: "Principal",
+																	Optional: true,
+																	Description: "Principal - The entity (user, service, or account) that the policy statement applies to.\n" +
+																		"  - example : '{principal_string: 123456789012, principal_map: {AWS: [arn:aws:iam::123456789012:root]}}'",
 																	Attributes: map[string]schema.Attribute{
 																		"principal_string": schema.StringAttribute{
-																			Optional: true,
+																			Optional:    true,
+																			Description: "Principal as a string value (e.g., AWS account ID or IAM user ARN).\n  - example : '123456789012'",
 																		},
 																		"principal_map": schema.MapAttribute{
 																			Optional: true,
 																			ElementType: types.ListType{
 																				ElemType: types.StringType,
 																			},
+																			Description: "Principal as a map - supports multiple principal types (e.g., AWS, Federated, etc.).\n  - example : {'AWS': ['arn:aws:iam::123456789012:root']}",
 																		},
 																	},
 																},
@@ -383,127 +396,127 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 														},
 													},
 													"version": schema.StringAttribute{
-														Computed:            true,
-														Description:         "Policy Version",
-														MarkdownDescription: "Policy Version",
+														Computed: true,
+														Description: "Policy Version\n" +
+															"  - example : '2024-07-01'",
 													},
 												},
 											},
 											"policy_id": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Policy ID",
-												MarkdownDescription: "Policy ID",
+												Computed: true,
+												Description: "Unique identifier of the policy.\n" +
+													"  - example : 'pol-1234567890abcdef'",
 											},
 											"policy_version_name": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Policy Version Name",
-												MarkdownDescription: "Policy Version Name",
+												Computed: true,
+												Description: "Name of the policy version.\n" +
+													"  - example : 'POLICY_VERSION_1'",
 											},
 										},
 									},
 								},
 								"resource_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Resource Type",
-									MarkdownDescription: "Resource Type",
+									Computed: true,
+									Description: "Type of resource the policy applies to.\n" +
+										"  - example : 'policy'",
 								},
 								"service_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Service Name",
-									MarkdownDescription: "Service Name",
+									Computed: true,
+									Description: "Name of the service the policy is associated with.\n" +
+										"  - example : 'Identity Access Management'",
 								},
 								"service_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Service Type",
-									MarkdownDescription: "Service Type",
+									Computed: true,
+									Description: "Type of service the policy is associated with.\n" +
+										"  - example : 'iam'",
 								},
 								"srn": schema.StringAttribute{
-									Computed:            true,
-									Description:         "SRN",
-									MarkdownDescription: "SRN",
+									Computed: true,
+									Description: "Service Resource Name (SRN) - Unique identifier for the user in the SCP system.\n" +
+										"  - example : 'srn:e:::::iam:policy/policy-12345678'",
 								},
 								"state": schema.StringAttribute{
-									Computed:            true,
-									Description:         "State",
-									MarkdownDescription: "State",
+									Computed: true,
+									Description: "Current state of the user (e.g., ACTIVE, INACTIVE).\n" +
+										"  - example : 'ACTIVE'",
 								},
 							},
 						},
 					},
 					"timezone": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Timezone",
-						MarkdownDescription: "Timezone",
+						Computed: true,
+						Description: "User's timezone setting.\n" +
+							"  - example : 'Asia/Seoul'",
 					},
 					"type": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Type",
-						MarkdownDescription: "Type",
+						Computed: true,
+						Description: "Type of user.\n" +
+							"  - example : 'IAM'",
 					},
 					"tz_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "TZ ID",
-						MarkdownDescription: "TZ ID",
+						Computed: true,
+						Description: "Timezone ID.\n" +
+							"  - example : 'Asia/Seoul'",
 					},
 					"user_name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "User Name",
-						MarkdownDescription: "User Name",
+						Computed: true,
+						Description: "Unique username of the user.\n" +
+							"  - example : 'john.doe'",
 					},
 					"utc_offset": schema.StringAttribute{
-						Computed:            true,
-						Description:         "UTC Offset",
-						MarkdownDescription: "UTC Offset",
+						Computed: true,
+						Description: "User's UTC offset from UTC time.\n" +
+							"  - example : '+09:00'",
 					},
 					"access_keys": schema.ListNestedAttribute{
-						Computed:            true,
-						Description:         "Access Keys",
-						MarkdownDescription: "Access Keys",
+						Computed: true,
+						Description: "List of access keys associated with the user.\n" +
+							"  - example : '[{access_key: ak-example-access-key-id, created_at: 2024-05-17T00:23:17Z, expiration_timestamp: 9999-12-31T23:59:59Z, id: 12345678-1234-1234-1234-1234567890ab, is_enabled: true}]'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"access_key": schema.StringAttribute{
-									Description:         "Access Key",
-									MarkdownDescription: "Access Key",
-									Computed:            true,
+									Computed: true,
+									Description: "The access key string value.\n" +
+										"  - example : 'ak-example-access-key-id'",
 								},
 								"created_at": schema.StringAttribute{
-									Description:         "Created At",
-									MarkdownDescription: "Created At",
-									Computed:            true,
+									Computed: true,
+									Description: "Timestamp when the access key was created.\n" +
+										"  - example : '2024-01-01T00:00:00Z'",
 								},
 								"expiration_timestamp": schema.StringAttribute{
-									Description:         "Expiration Timestmap",
-									MarkdownDescription: "Expiration Timestmap",
-									Computed:            true,
+									Computed: true,
+									Description: "Timestamp when the access key expires.\n" +
+										"  - example : '2024-01-02T00:00:00Z'",
 								},
 								"id": schema.StringAttribute{
-									Description:         "ID",
-									MarkdownDescription: "ID",
-									Computed:            true,
+									Computed: true,
+									Description: "Unique identifier of the access key.\n" +
+										"  - example : '12345678-1234-1234-1234-1234567890ab'",
 								},
 								"is_enabled": schema.BoolAttribute{
-									Description:         "Is Enabled",
-									MarkdownDescription: "Is Enabled",
-									Computed:            true,
+									Computed: true,
+									Description: "Whether the access key is enabled/active.\n" +
+										"  - example : true",
 								},
 							},
 						},
 					},
 					"groups": schema.ListNestedAttribute{
-						Computed:            true,
-						Description:         "Groups",
-						MarkdownDescription: "Groups",
+						Computed: true,
+						Description: "List of groups the user belongs to.\n" +
+							"  - example : '[{id: grp-1234567890abcdef, name: MyGroup}]'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Group ID",
-									MarkdownDescription: "Group ID",
+									Computed: true,
+									Description: "Unique identifier of the group.\n" +
+										"  - example : 'grp-1234567890abcdef'",
 								},
 								"name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Group Name",
-									MarkdownDescription: "Group Name",
+									Computed: true,
+									Description: "Display name of the group.\n" +
+										"  - example : 'MyGroup'",
 								},
 							},
 						},
@@ -512,6 +525,13 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 		},
 	}
+}
+
+func (r *iamUserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	importstate.ImportState(ctx, req, resp,
+		path.Root("account_id"),
+		path.Root("user_id"),
+	)
 }
 
 func (r *iamUserResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -648,6 +668,10 @@ func (r *iamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	data, err := r.client.GetUser(ctx, state.AccountId.ValueString(), state.UserId.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Unable to Show User",
 			err.Error(),

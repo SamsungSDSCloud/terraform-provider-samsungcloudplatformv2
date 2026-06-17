@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_filestorage_replication Data Source - samsungcloudplatformv2"
 subcategory: File Storage Replication
 description: |-
-  Show Replication
+  Retrieves details of a File Storage Replication on Samsung Cloud Platform.
 ---
 
 # samsungcloudplatformv2_filestorage_replication (Data Source)
 
-Show Replication
+Retrieves details of a File Storage Replication on Samsung Cloud Platform.
 
 ## Example Usage
 

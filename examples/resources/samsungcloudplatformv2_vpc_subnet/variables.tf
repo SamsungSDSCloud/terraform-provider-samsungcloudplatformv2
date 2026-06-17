@@ -38,7 +38,7 @@ variable "subnet_allocation_pools" {
 }
 
 variable "subnet_dns_nameservers" {
-  type    = list(string)
+  type    = set(string)
   default = ["8.8.8.8"]
 }
 

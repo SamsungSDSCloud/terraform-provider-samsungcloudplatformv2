@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -46,50 +46,64 @@ func (d *vpcSubnetDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 		Description: "list of subnet.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("cidr"): schema.StringAttribute{
-				Optional:            true,
-				Description:         "Subnet Cidr",
-				MarkdownDescription: "Subnet Cidr",
+				Optional: true,
+				Description: "The IP address range of the network in CIDR notation.\n" +
+					"  - example : 192.168.0.0/24 \n" +
+					"  - maxMask : /28\n" +
+					"  - minMask : /16",
+				MarkdownDescription: "The IP address range of the network in CIDR notation.\n" +
+					"  - example : 192.168.0.0/24 \n" +
+					"  - maxMask : /28\n" +
+					"  - minMask : /16",
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Subnet ID \n" +
+				Description: "The unique identifier of the subnet.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
-				MarkdownDescription: "Subnet ID \n" +
+				MarkdownDescription: "The unique identifier of the subnet.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Subnet Name \n" +
+				Description: "The name of the subnet.\n" +
 					"  - example : subnetName",
-				MarkdownDescription: "Subnet Name \n" +
+				MarkdownDescription: "The name of the subnet.\n" +
 					"  - example : subnetName",
 				Optional: true,
 			},
 			common.ToSnakeCase("page"): schema.Int32Attribute{
-				Optional:            true,
-				Description:         "page",
-				MarkdownDescription: "page",
+				Optional: true,
+				Description: "The page number for pagination.\n" +
+					"  - example : 0 ",
+				MarkdownDescription: "The page number for pagination.\n" +
+					"  - example : 0 ",
 				Validators: []validator.Int32{
 					int32validator.Between(0, 99999),
 				},
 			},
 			common.ToSnakeCase("size"): schema.Int32Attribute{
-				Optional:            true,
-				Description:         "size",
-				MarkdownDescription: "size",
+				Optional: true,
+				Description: "The number of items per page.\n" +
+					"  - example : 20 ",
+				MarkdownDescription: "The number of items per page.\n" +
+					"  - example : 20 ",
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.\n" +
 					"  - example : created_at:desc",
-				MarkdownDescription: "Sort \n" +
+				MarkdownDescription: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.\n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
-				MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
+				Description: "The current lifecycle state of the subnet." +
+					"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
+                    "  - example : ACTIVE",
+				MarkdownDescription: "The current lifecycle state of the subnet." +
+					"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
+                    "  - example : ACTIVE",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"CREATING",
@@ -108,75 +122,111 @@ func (d *vpcSubnetDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("account_id"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
-							MarkdownDescription: "Account ID\n  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+							Computed: true,
+							Description: "The identifier of the account that owns the subnet.\n" +
+								"  - example: f1e6c81a2b054582878cb9724dc2ce9f",
+							MarkdownDescription: "The identifier of the account that owns the subnet.\n" +
+								"  - example: f1e6c81a2b054582878cb9724dc2ce9f",
 						},
 						common.ToSnakeCase("cidr"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Subnet Cidr\n  - example: 192.167.1.0/24",
-							MarkdownDescription: "Subnet Cidr\n  - example: 192.167.1.0/24",
+							Computed: true,
+							Description: "The IP address range of the network in CIDR notation.\n" +
+								"  - example: 192.168.0.0/24",
+							MarkdownDescription: "The IP address range of the network in CIDR notation.\n" +
+								"  - example: 192.168.0.0/24",
 						},
 						common.ToSnakeCase("created_at"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
-							MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+							Computed: true,
+							Description: "The timestamp when the subnet was created in ISO 8601 format.\n" +
+								"  - example: 2024-05-17T00:23:17Z",
+							MarkdownDescription: "The timestamp when the subnet was created in ISO 8601 format.\n" +
+								"  - example: 2024-05-17T00:23:17Z",
 						},
 						common.ToSnakeCase("created_by"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
-							MarkdownDescription: "Created By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
+							Description: "The user id that created the subnet.\n" +
+								"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							MarkdownDescription: "The user id that created the subnet.\n" +
+								"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						},
 						common.ToSnakeCase("gateway_ip_address"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Gateway IP Address\n  - example: 192.167.1.1",
-							MarkdownDescription: "Gateway IP Address\n  - example: 192.167.1.1",
+							Computed: true,
+							Description: "The gateway IP address of the subnet.\n" +
+								"  - example: 192.168.0.1",
+							MarkdownDescription: "The gateway IP address of the subnet.\n" +
+								"  - example: 192.168.0.1",
 						},
 						common.ToSnakeCase("id"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Subnet Id\n  - example: 023c57b14f11483689338d085e061492",
-							MarkdownDescription: "Subnet Id\n  - example: 023c57b14f11483689338d085e061492",
+							Computed: true,
+							Description: "The unique identifier of the subnet.\n" +
+								"  - example: 023c57b14f11483689338d085e061492",
+							MarkdownDescription: "The unique identifier of the subnet.\n" +
+								"  - example: 023c57b14f11483689338d085e061492",
 						},
 						common.ToSnakeCase("modified_at"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
-							MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
+							Computed: true,
+							Description: "The timestamp when the subnet was last modified in ISO 8601 format.\n" +
+								"  - example: 2024-05-17T00:23:17Z",
+							MarkdownDescription: "The timestamp when the subnet was last modified in ISO 8601 format.\n" +
+								"  - example: 2024-05-17T00:23:17Z",
 						},
 						common.ToSnakeCase("modified_by"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
-							MarkdownDescription: "Modified By\n  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
+							Description: "The user id that modified the subnet.\n" +
+								"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+							MarkdownDescription: "The user id that modified the subnet.\n" +
+								"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						},
 						common.ToSnakeCase("name"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "Subnet Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: subnetName",
-							MarkdownDescription: "Subnet Name\n  - maxLength: 20\n  - minLength: 3\n  - pattern: `^[a-zA-Z0-9-]*$`\n  - example: subnetName",
+							Computed: true,
+							Description: "The name of the subnet.\n" +
+								"  - maxLength: 20\n" +
+								"  - minLength: 3\n" +
+								"  - pattern: `^[a-zA-Z0-9-]*$`\n" +
+								"  - example: subnetName",
+							MarkdownDescription: "The name of the subnet.\n" +
+								"  - maxLength: 20\n" +
+								"  - minLength: 3\n" +
+								"  - pattern: `^[a-zA-Z0-9-]*$`\n" +
+								"  - example: subnetName",
 						},
 						common.ToSnakeCase("state"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
-							MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]",
+							Computed: true,
+							Description: "The current lifecycle state of the subnet." +
+								"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
+                                "  - example : ACTIVE",
+							MarkdownDescription: "The current lifecycle state of the subnet." +
+								"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
+                                "  - example : ACTIVE",
 						},
 						common.ToSnakeCase("type"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "- enum: [\"GENERAL\",\"LOCAL\",\"VPC_ENDPOINT\"]",
-							MarkdownDescription: "- enum: [\"GENERAL\",\"LOCAL\",\"VPC_ENDPOINT\"]",
+							Computed: true,
+							Description: "The type of the subnet.\n" +
+								"  - enum: [\"GENERAL\",\"LOCAL\",\"VPC_ENDPOINT\"]\n" +
+                                "  - example : GENERAL",
+							MarkdownDescription: "The type of the subnet.\n" +
+								"  - enum: [\"GENERAL\",\"LOCAL\",\"VPC_ENDPOINT\"]\n" +
+                                "  - example : GENERAL",
 						},
 						common.ToSnakeCase("vpc_id"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
-							MarkdownDescription: "VPC Id\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
+							Description: "The identifier of the VPC that the subnet belongs to.\n" +
+								"  - example: 7df8abb4912e4709b1cb237daccca7a8",
+							MarkdownDescription: "The identifier of the VPC that the subnet belongs to.\n" +
+								"  - example: 7df8abb4912e4709b1cb237daccca7a8",
 						},
 						common.ToSnakeCase("vpc_name"): schema.StringAttribute{
-							Computed:            true,
-							Description:         "VPC Name\n  - example: vpcName",
-							MarkdownDescription: "VPC Name\n  - example: vpcName",
+							Computed: true,
+							Description: "The name of the VPC that the subnet belongs to.\n" +
+								"  - example: vpcName",
+							MarkdownDescription: "The name of the VPC that the subnet belongs to.\n" +
+								"  - example: vpcName",
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
-				Description: "Total count\n" +
+				Description: "Total count of the Subnet.\n" +
 					"  - Example : 20",
 				MarkdownDescription: "Total count\n" +
 					"  - Example : 20",
@@ -184,23 +234,23 @@ func (d *vpcSubnetDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 			},
 			common.ToSnakeCase("Type"): schema.ListAttribute{
 				ElementType: types.StringType,
-				Description: "Type \n" +
+				Description: "The type of the subnet.\n" +
 					"  - example : [\"LOCAL\", \"GENERAL\", \"VPC_ENDPOINT\"]",
 				MarkdownDescription: "Type \n" +
 					"  - example : [\"LOCAL\", \"GENERAL\", \"VPC_ENDPOINT\"]",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
+				Description: "The identifier of the VPC that the subnet belongs to. \n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
-				MarkdownDescription: "VPC ID \n" +
+				MarkdownDescription: "The identifier of the VPC that the subnet belongs to. \n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description: "VPC Name \n" +
+				Description: "The name of the VPC that the subnet belongs to.\n" +
 					"  - example : vpcName",
-				MarkdownDescription: "VPC Name \n" +
+				MarkdownDescription: "The name of the VPC that the subnet belongs to.\n" +
 					"  - example : vpcName",
 				Optional: true,
 			},

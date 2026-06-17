@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_volume Data Source - samsungcloudplatformv2"
 subcategory: Virtual Server Volume
 description: |-
-  list of volumes.
+  Retrieves block storage volume information for virtual servers.
 ---
 
 # samsungcloudplatformv2_virtualserver_volume (Data Source)
 
-list of volumes.
+Retrieves block storage volume information for virtual servers.
 
 ## Example Usage
 
@@ -58,15 +58,21 @@ variable "volumes_filter_use_regex" {
 
 ### Optional
 
-- `bootable` (Boolean) bootable
+- `bootable` (Boolean) Whether the volume is bootable.
+  - example: false
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) id
-- `name` (String) name
-- `state` (String) state
+- `id` (String) Volume ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Volume name.
+  - example: my-volume
+  - minLength: 1
+  - maxLength: 255
+- `state` (String) Volume state.
+  - Available values: available, reserved, attaching, detaching, in-use, awaiting-transfer, error, etc.
 
 ### Read-Only
 
-- `volume` (Attributes) Volume. (see [below for nested schema](#nestedatt--volume))
+- `volume` (Attributes) Volume details including size, type, state, and attached servers. (see [below for nested schema](#nestedatt--volume))
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -74,8 +80,11 @@ variable "volumes_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
 
 
 <a id="nestedatt--volume"></a>
@@ -83,22 +92,22 @@ Required:
 
 Read-Only:
 
-- `bootable` (Boolean) bootable
-- `encrypted` (Boolean) encrypted
-- `id` (String) id
-- `max_iops` (Number) The number of distinct read or write operations a volume can process in a single second.
-- `max_throughput` (Number) The actual amount of data (volume) transferred to or from the storage device per second.
-- `multiattach` (Boolean) multiattach
-- `name` (String) name
-- `servers` (Attributes List) Servers (see [below for nested schema](#nestedatt--volume--servers))
-- `size` (Number) size
-- `state` (String) state
-- `user_id` (String) user_id
-- `volume_type` (String) volume_type
+- `bootable` (Boolean) Whether the volume is bootable.
+- `encrypted` (Boolean) Whether the volume is encrypted.
+- `id` (String) Volume ID.
+- `max_iops` (Number) Maximum IOPS per second.
+- `max_throughput` (Number) Maximum throughput per second (MB/s).
+- `multiattach` (Boolean) Whether the volume can be attached to multiple servers.
+- `name` (String) Volume name.
+- `servers` (Attributes List) List of attached servers. (see [below for nested schema](#nestedatt--volume--servers))
+- `size` (Number) Volume size in GB.
+- `state` (String) Volume state.
+- `user_id` (String) User ID.
+- `volume_type` (String) Volume type.
 
 <a id="nestedatt--volume--servers"></a>
 ### Nested Schema for `volume.servers`
 
 Read-Only:
 
-- `id` (String) ID
+- `id` (String) Server ID.

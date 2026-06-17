@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_certificates Data Source - samsungcloudplatformv2"
 subcategory: LB Certificate
 description: |-
-  list of lb certificate.
+  List all LB Certificates.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_certificates (Data Source)
 
-list of lb certificate.
+List all LB Certificates.
 
 ## Example Usage
 
@@ -30,24 +30,24 @@ output "lbListeners" {
 
 ### Read-Only
 
-- `lb_certificates` (Attributes List) A list of Lb Certificates. (see [below for nested schema](#nestedatt--lb_certificates))
+- `lb_certificates` (Attributes List) List of LB Certificates. (see [below for nested schema](#nestedatt--lb_certificates))
 
 <a id="nestedatt--lb_certificates"></a>
 ### Nested Schema for `lb_certificates`
 
 Optional:
 
-- `cert_kind` (String) CertKind
-- `cn` (String) Cn
-- `id` (String) Id
-- `name` (String) Name
-- `not_after_dt` (String) NotAfterDt
-- `not_before_dt` (String) NotBeforeDt
-- `state` (String) State
+- `cert_kind` (String) The type of certificate (e.g., SERVER, CLIENT).
+- `cn` (String) The common name (CN) of the certificate.
+- `id` (String) The unique identifier of the LB Certificate.
+- `name` (String) The name of the LB Certificate (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `not_after_dt` (String) The expiration date of the certificate (e.g., '2026-02-12T23:59:59Z').
+- `not_before_dt` (String) The start date of the certificate validity (e.g., '2025-02-12T00:00:00Z').
+- `state` (String) The current state of the LB Certificate (ACTIVE, ERROR).
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.

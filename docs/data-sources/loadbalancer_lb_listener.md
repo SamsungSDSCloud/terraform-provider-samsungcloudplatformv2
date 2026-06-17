@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_listener Data Source - samsungcloudplatformv2"
 subcategory: LB Listener
 description: |-
-  Show Lb Listener.
+  Retrieve details of a specific LB Listener.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_listener (Data Source)
 
-Show Lb Listener.
+Retrieve details of a specific LB Listener.
 
 ## Example Usage
 
@@ -35,57 +35,57 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Id
+- `id` (String) The unique identifier of the LB Listener.
 
 ### Read-Only
 
-- `lb_listener` (Attributes) A detail of Lb Listener. (see [below for nested schema](#nestedatt--lb_listener))
+- `lb_listener` (Attributes) Details of the LB Listener. (see [below for nested schema](#nestedatt--lb_listener))
 
 <a id="nestedatt--lb_listener"></a>
 ### Nested Schema for `lb_listener`
 
 Optional:
 
-- `condition_type` (String) ConditionType
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `description` (String) Description
-- `hsts_max_age` (Number) HstsMaxAge
-- `https_redirection` (Attributes) HttpsRedirection (see [below for nested schema](#nestedatt--lb_listener--https_redirection))
-- `idle_timeout` (Number) IdleTimeout
-- `insert_client_ip` (Boolean) InsertClientIp
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `name` (String) Name
-- `persistence` (String) Persistence
-- `protocol` (String) Protocol
-- `response_timeout` (Number) ResponseTimeout
-- `routing_action` (String) RoutingAction
-- `server_group_id` (String) ServerGroupId
-- `server_group_name` (String) ServerGroupName
-- `service_port` (Number) ServicePort
-- `session_duration_time` (Number) SessionDurationTime
-- `sni_certificate` (Attributes List) SniCertificate (see [below for nested schema](#nestedatt--lb_listener--sni_certificate))
-- `ssl_certificate` (Attributes) SslCertificate (see [below for nested schema](#nestedatt--lb_listener--ssl_certificate))
-- `url_handler` (Attributes List) UrlHandler (see [below for nested schema](#nestedatt--lb_listener--url_handler))
-- `url_redirection` (String) UrlRedirection
-- `x_forwarded_for` (Boolean) XForwardedFor
-- `x_forwarded_port` (Boolean) XForwardedPort
-- `x_forwarded_proto` (Boolean) XForwardedProto
+- `condition_type` (String) The condition type for routing. 'URL_PATH' or 'HOST_HEADER' for URL handler, 'PROTOCOL_PORT' for HTTPS redirection. Only for L7 protocols. Cannot be modified when changing url_handler.
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+- `created_by` (String) The user id that created the resource.
+- `description` (String) Enter a brief explanation or note about this resource (max 255 characters). This helps identify the purpose or usage of the resource.
+- `hsts_max_age` (Number) HSTS max age in seconds.
+- `https_redirection` (Attributes) HTTPS redirection configuration. Only for HTTP protocol listeners. (see [below for nested schema](#nestedatt--lb_listener--https_redirection))
+- `idle_timeout` (Number) The idle timeout in seconds (60-3600, in 60-second increments). Only applicable for L7 protocols (HTTP, HTTPS).
+- `insert_client_ip` (Boolean) Whether to insert client IP in the header using Proxy Protocol v1.
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+- `modified_by` (String) The user id that last modified the resource.
+- `name` (String) The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `persistence` (String) Session persistence configuration (e.g., 'source-ip', 'cookie').
+- `protocol` (String) The protocol used for the listener (TCP, UDP, HTTP, HTTPS, TLS, TCP_PROXY).
+- `response_timeout` (Number) The response timeout in seconds (1-120). Only for L7 protocols (HTTP/HTTPS). Cannot be used with idle_timeout.
+- `routing_action` (String) The routing action type. 'LB_SERVER_GROUP' for URL handler routing, 'URL_REDIRECT' for HTTPS/URL redirection. Required for L4 protocols. Set only during creation.
+- `server_group_id` (String) The ID of the server group associated with the listener. Required for TCP, UDP, and TLS protocols. This field is optional.
+- `server_group_name` (String) The server group name for the listener.
+- `service_port` (Number) The service port number for the listener.
+- `session_duration_time` (Number) The session duration time in seconds. Required for L4 protocols (TCP/UDP). L7: 1-120, TCP/TLS: 60-3600 (60-second increments), UDP: 60-180 (60-second increments). Cannot be used with idle_timeout for L7.
+- `sni_certificate` (Attributes List) SNI certificate configuration for multiple domains. (see [below for nested schema](#nestedatt--lb_listener--sni_certificate))
+- `ssl_certificate` (Attributes) SSL certificate configuration for the listener. (see [below for nested schema](#nestedatt--lb_listener--ssl_certificate))
+- `url_handler` (Attributes List) URL handler configuration for routing (max 20 entries). Only for L7 protocols (HTTP/HTTPS). Requires at least one default rule (seq=0, url_pattern='default'). (see [below for nested schema](#nestedatt--lb_listener--url_handler))
+- `url_redirection` (String) URL redirection configuration (max 8 entries).
+- `x_forwarded_for` (Boolean) X-Forwarded-For header configuration.
+- `x_forwarded_port` (Boolean) X-Forwarded-Port header configuration.
+- `x_forwarded_proto` (Boolean) X-Forwarded-Proto header configuration.
 
 Read-Only:
 
-- `id` (String) id
-- `state` (String) State
+- `id` (String) The unique identifier.
+- `state` (String) The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).
 
 <a id="nestedatt--lb_listener--https_redirection"></a>
 ### Nested Schema for `lb_listener.https_redirection`
 
 Optional:
 
-- `port` (String) Port
-- `protocol` (String) Protocol
-- `response_code` (String) ResponseCode
+- `port` (String) The port number to redirect to (1-65534).
+- `protocol` (String) The protocol to redirect to. Must be 'HTTPS'.
+- `response_code` (String) The HTTP response code for redirection. Must be '301'.
 
 
 <a id="nestedatt--lb_listener--sni_certificate"></a>
@@ -93,9 +93,9 @@ Optional:
 
 Optional:
 
-- `domain_name` (String) DomainName
-- `not_after_dt` (String) NotAfterDt
-- `sni_cert_id` (String) SniCertId
+- `domain_name` (String) The domain name for SNI certificate (1-63 characters, alphanumeric with dots and hyphens, must start and end with alphanumeric). Must be unique within the listener.
+- `not_after_dt` (String) The expiration date and time of the certificate (e.g., '2024-12-31T23:59:59Z'). Read-only.
+- `sni_cert_id` (String) The SNI certificate ID.
 
 
 <a id="nestedatt--lb_listener--ssl_certificate"></a>
@@ -103,9 +103,9 @@ Optional:
 
 Optional:
 
-- `client_cert_id` (String) ClientCertId
-- `client_cert_level` (String) ClientCertLevel
-- `server_cert_level` (String) ServerCertLevel
+- `client_cert_id` (String) The client certificate ID.
+- `client_cert_level` (String) The client certificate validation level (LOW, NORMAL, HIGH).
+- `server_cert_level` (String) The server certificate validation level (LOW, NORMAL, HIGH).
 
 
 <a id="nestedatt--lb_listener--url_handler"></a>
@@ -113,6 +113,6 @@ Optional:
 
 Optional:
 
-- `seq` (Number) Seq
-- `server_group_id` (String) ServerGroupId
-- `url_pattern` (String) UrlPattern
+- `seq` (Number) The sequence number for routing priority. 0 is reserved for default rule. Example: 1, 2, 3...
+- `server_group_id` (String) The ID of the server group to route traffic to when the URL pattern matches. Required in url_handler.
+- `url_pattern` (String) The URL pattern for routing (1-63 characters). For URL_PATH condition: alphanumeric with /_-., for HOST_HEADER condition: alphanumeric with .-. Example: '/api/v1' or 'example.com'.

@@ -3,10 +3,11 @@ package multinodegpucluster
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/multinodegpucluster"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/multinodegpucluster"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -83,8 +84,8 @@ func GpuNodesDataSourcesSchema() schema.Schema {
 			},
 			"ids": schema.ListAttribute{
 				Computed:            true,
-				Description:         "GPU Node ID List",
-				MarkdownDescription: "GPU Node ID List",
+				Description:         "GPU Node ID List\n  - example: ['aaaa8b745fa04852aad2aaa1f9907f2b','bbba8b745fa04852aad2aaa1f9907f2b']",
+				MarkdownDescription: "GPU Node ID List\n  - example: ['aaaa8b745fa04852aad2aaa1f9907f2b','bbba8b745fa04852aad2aaa1f9907f2b']",
 				ElementType:         types.StringType,
 			},
 			"ip": schema.StringAttribute{

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	firewall "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/firewall"
-	vpcv1d2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	firewall "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/firewall"
+	vpcv1d2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -48,13 +48,14 @@ func (r *tgwFirewallResource) Schema(_ context.Context, _ resource.SchemaRequest
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("TransitGatewayId"): schema.StringAttribute{
-				Description: "Transit Gateway ID",
-				Required:    true,
+				Description: "The identifier of the transit gateway that the firewall belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Required: true,
 			},
 			common.ToSnakeCase("ProductType"): schema.StringAttribute{
-				Description: "Product Type\n" +
+				Description: "The type of the firewall service.\n" +
 					"  - enum: TGW_IGW | TGW_GGW | TGW_DGW | TGW_BM\n" +
-					"  - example: INACTIVE",
+					"  - example: TGW_IGW",
 				Required: true,
 			},
 
@@ -64,31 +65,32 @@ func (r *tgwFirewallResource) Schema(_ context.Context, _ resource.SchemaRequest
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID",
-						Computed:    true,
+						Description: "The identifier of the account that owns the transit gateway.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("Bandwidth"): schema.Int32Attribute{
-						Description: "Transit Gateway Port Bandwidth\n" +
+						Description: "The bandwidth capacity of the connection.\n" +
 							"  - example: 1",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At \n" +
-							"  - example : 2024-05-17T00:23:17Z \n",
+						Description: "The timestamp when the transit gateway was created in ISO 8601 format. \n" +
+							"  - example : 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By \n" +
+						Description: "The user id that created the transit gateway. \n" +
 							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Transit Gateway Description\n" +
+						Description: "Enter a brief explanation or note about this transit gateway. This help identify the purpose or usage of the resource.\n" +
 							"  - example : TransitGateway Description",
 						Computed: true,
 					},
 					common.ToSnakeCase("FirewallConnectionState"): schema.StringAttribute{
-						Description: "Firewall Connection State\n" +
+						Description: "The current lifecycle state of the firewall connection. \n" +
 							"  - enum: ATTACHING | ACTIVE | DETACHING | DELETED | INACTIVE | ERROR\n" +
 							"  - example: INACTIVE",
 						Computed: true,
@@ -99,27 +101,27 @@ func (r *tgwFirewallResource) Schema(_ context.Context, _ resource.SchemaRequest
 						Computed: true,
 					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-						Description: "Firewall ID\n" +
+						Description: "The identifier of the firewall associated with the transit gateway.\n" +
 							"  - example: bbb93aca123f4bb2b2c0f206f4a86b2b",
 						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Transit Gateway ID\n" +
+						Description: "The unique identifier of the transit gateway.\n" +
 							"  - example: fe860e0af0c04dcd8182b84f907f31f4",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At \n" +
+						Description: "The timestamp when the transit gateway was last modified in ISO 8601 format.\n" +
 							"  - example : 2024-05-17T00:23:17Z ",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By \n" +
+						Description: "The user id that modified the transit gateway. \n" +
 							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Transit Gateway Name\n" +
+						Description: "The name of the transit gateway.\n" +
 							"  - minLength: 3\n" +
 							"  - maxLength: 20\n" +
 							"  - pattern: ^[a-zA-Z0-9-]*$\n" +
@@ -127,13 +129,13 @@ func (r *tgwFirewallResource) Schema(_ context.Context, _ resource.SchemaRequest
 						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State\n" +
+						Description: "The current lifecycle state of the transit gateway.\n" +
 							"  - enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING\n" +
 							"  - example: ACTIVE",
 						Computed: true,
 					},
 					common.ToSnakeCase("UplinkEnabled"): schema.BoolAttribute{
-						Description: "Uplink Enabled?\n" +
+						Description: "Whether the uplink is enabled.\n" +
 							"  - default: false\n" +
 							"  - example: false",
 						Computed: true,

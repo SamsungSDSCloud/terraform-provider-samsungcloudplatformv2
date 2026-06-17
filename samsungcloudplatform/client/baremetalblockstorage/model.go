@@ -14,7 +14,6 @@ type VolumeResource struct {
 	SizeGb      types.Int32    `tfsdk:"size_gb"`
 	Attachments []Attachment   `tfsdk:"attachments"`
 	QoS         types.Object   `tfsdk:"qos"`
-	Region      types.String   `tfsdk:"region"`
 	Timeouts    timeouts.Value `tfsdk:"timeouts"`
 	Tags        types.Map      `tfsdk:"tags"`
 }

@@ -35,7 +35,8 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Certificate ID
+- `id` (String) Certificate ID.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -46,17 +47,17 @@ variable "id" {
 
 Read-Only:
 
-- `cert_kind` (String) Certificate type
-  - Example: DEV
-- `cn` (String) Certificate Common Name
-  - Example: test.go.kr
-- `id` (String) ID
-  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
-- `name` (String) Certificate Name
-  - Example: test-certificate
-- `not_after_dt` (String) Certificate Expire Date
-  - Example: 2026-02-07T18:07:59
-- `not_before_dt` (String) Certificate Start Date
-  - Example: 2025-02-08T18:07:00
-- `state` (String) Certificate State
-  - Example: VALID
+- `cert_kind` (String) Certificate type.
+  - example : 'DEV'
+- `cn` (String) Certificate Common Name.
+  - example : 'test.go.kr'
+- `id` (String) Certificate ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Certificate Name.
+  - example : 'test-certificate'
+- `not_after_dt` (String) Certificate Expire Date.
+  - example : '2026-02-07T18:07:59'
+- `not_before_dt` (String) Certificate Start Date.
+  - example : '2025-02-08T18:07:00'
+- `state` (String) Certificate State.
+  - example : 'VALID'

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_iam_roles Data Source - samsungcloudplatformv2"
 subcategory: Role
 description: |-
-  Show Roles.
+  Show IAM Roles
 ---
 
 # samsungcloudplatformv2_iam_roles (Data Source)
 
-Show Roles.
+Show IAM Roles
 
 ## Example Usage
 
@@ -66,115 +66,172 @@ variable "account_id" {
 
 ### Optional
 
-- `account_id` (String) Account ID
-- `name` (String) Name
+- `account_id` (String) Filter by account ID.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `name` (String) Filter by role name.
+  - example : 'AdminRole'
 - `page` (Number) Page (between 0 and 10000)
-- `role_type` (String) Role Type
-- `roles` (Attributes List) A list of role. (see [below for nested schema](#nestedatt--roles))
+  - example : 0
+- `role_type` (String) Filter by role type (USER_DEFINED or SYSTEM_DEFINED).
+  - example : 'USER_DEFINED'
+- `roles` (Attributes List) List of roles matching the filter criteria. (see [below for nested schema](#nestedatt--roles))
 - `size` (Number) Size (between 1 and 10000)
-- `sort` (String) Sort
+  - example : 100
+- `sort` (String) Sort order for results.
+  - example : 'created_at,desc'
 
 <a id="nestedatt--roles"></a>
 ### Nested Schema for `roles`
 
 Optional:
 
-- `policies` (Attributes List) Policies (see [below for nested schema](#nestedatt--roles--policies))
+- `policies` (Attributes List) List of policies attached to the role. (see [below for nested schema](#nestedatt--roles--policies))
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `assume_role_policy_document` (Attributes) Assume Role Policy Document (see [below for nested schema](#nestedatt--roles--assume_role_policy_document))
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `creator_email` (String) Creator Email
-- `creator_name` (String) Creator Name
-- `description` (String) Description
-- `id` (String) ID
-- `max_session_duration` (Number) Max Session Duration
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `modifier_email` (String) Modifier Email
-- `modifier_name` (String) Modifier Name
-- `name` (String) Name
-- `type` (String) Type
+- `account_id` (String) Account ID that owns the role.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `assume_role_policy_document` (Attributes) Policy document that grants assumed role permissions. (see [below for nested schema](#nestedatt--roles--assume_role_policy_document))
+- `created_at` (String) Timestamp when the role was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the role.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `creator_email` (String) Email of the user who created the role.
+  - example : 'user@example.com'
+- `creator_name` (String) Name of the user who created the role.
+  - example : 'John Doe'
+- `description` (String) Human-readable description of the role.
+  - example : 'My role description'
+- `id` (String) Unique identifier of the role.
+  - example: YOUR RESOURCE'S ID
+- `max_session_duration` (Number) Maximum duration in seconds that the assumed role can be active.
+  - example : 3600
+- `modified_at` (String) Timestamp when the role was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the role.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `modifier_email` (String) Email of the user who last modified the role.
+  - example : 'user@example.com'
+- `modifier_name` (String) Name of the user who last modified the role.
+  - example : 'John Doe'
+- `name` (String) Name of the role.
+  - example : 'MyRole'
+- `type` (String) Type of role.
+  - example : 'SERVICE'
 
 <a id="nestedatt--roles--policies"></a>
 ### Nested Schema for `roles.policies`
 
 Optional:
 
-- `account_id` (String) Account ID
-- `policy_versions` (Attributes List) Policy Versions (see [below for nested schema](#nestedatt--roles--policies--policy_versions))
+- `account_id` (String) Account ID that owns the policy.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `policy_versions` (Attributes List) List of policy versions. (see [below for nested schema](#nestedatt--roles--policies--policy_versions))
 
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `creator_email` (String) Creator Email
-- `creator_name` (String) Creator Name
-- `default_version_id` (String) Default Version ID
-- `description` (String) Description
-- `domain_name` (String) Domain Name
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `modifier_email` (String) Modifier Email
-- `modifier_name` (String) Modifier Name
-- `policy_category` (String) Policy Category
-- `policy_name` (String) Policy Name
-- `policy_type` (String) Policy Type
-- `resource_type` (String) Resource Type
-- `service_name` (String) Service Name
-- `service_type` (String) Service Type
-- `srn` (String) SRN
-- `state` (String) State
+- `created_at` (String) Timestamp when the policy was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the policy.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `creator_email` (String) Email of the user who created the policy.
+  - example : 'user@example.com'
+- `creator_name` (String) Name of the user who created the policy.
+  - example : 'John Doe'
+- `default_version_id` (String) Default version ID of the policy.
+  - example: YOUR RESOURCE'S DEFAULT_VERSION_ID
+- `description` (String) Human-readable description of the policy.
+  - example : 'My policy description'
+- `domain_name` (String) Domain name associated with the policy.
+  - example : 'scp'
+- `id` (String) Unique identifier of the policy.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Timestamp when the policy was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the policy.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `modifier_email` (String) Email of the user who last modified the policy.
+  - example : 'user@example.com'
+- `modifier_name` (String) Name of the user who last modified the policy.
+  - example : 'John Doe'
+- `policy_category` (String) Category of the policy.
+  - example : 'IDENTITY_BASED'
+- `policy_name` (String) Name of the policy.
+  - example : 'MyPolicy'
+- `policy_type` (String) Type of the policy (USER_DEFINED or SYSTEM_MANAGED).
+  - example : 'USER_DEFINED'
+- `resource_type` (String) Type of resource the policy applies to.
+  - example : 'policy'
+- `service_name` (String) Name of the service the policy applies to.
+  - example : 'Identity Access Management'
+- `service_type` (String) Type of service the policy applies to.
+  - example : 'iam'
+- `srn` (String) Samsung Resource Name (SRN) of the policy.
+  - example : 'srn:e:::::iam:policy/policy-12345678'
+- `state` (String) State of the policy.
+  - example : 'ACTIVE'
 
 <a id="nestedatt--roles--policies--policy_versions"></a>
 ### Nested Schema for `roles.policies.policy_versions`
 
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `policy_document` (Attributes) Policy Document (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document))
-- `policy_id` (String) Policy ID
-- `policy_version_name` (String) Policy Version Name
+- `created_at` (String) Timestamp when the policy version was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the policy version.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Unique identifier of the policy version.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Timestamp when the policy version was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the policy version.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `policy_document` (Attributes) The policy document containing the permission definitions. (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document))
+- `policy_id` (String) ID of the policy this version belongs to.
+  - example: YOUR RESOURCE'S POLICY_ID
+- `policy_version_name` (String) Name of the policy version.
+  - example : 'POLICY_VERSION_1'
 
 <a id="nestedatt--roles--policies--policy_versions--policy_document"></a>
 ### Nested Schema for `roles.policies.policy_versions.policy_document`
 
 Read-Only:
 
-- `statement` (Attributes List) Statement (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document--statement))
-- `version` (String) Policy Version
+- `statement` (Attributes List) List of policy statements defining the permissions. (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document--statement))
+- `version` (String) Policy document version.
+  - example : '2024-07-01'
 
 <a id="nestedatt--roles--policies--policy_versions--policy_document--statement"></a>
 ### Nested Schema for `roles.policies.policy_versions.policy_document.statement`
 
 Optional:
 
-- `action` (List of String) Action
-- `condition` (Map of Map of List of String)
-- `not_action` (List of String) Not Action
-- `principal` (Attributes) Principal (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document--statement--principal))
-- `resource` (List of String) Resource
+- `condition` (Map of Map of List of String) Condition for the policy statement. Specifies constraints on when the policy applies.
+  - example : {"aws:PrincipalTag/department": ["engineering"]}
+- `not_action` (List of String) List of actions that are not allowed by this statement.
+  - example : ['iam:CreateRole']
+- `principal` (Attributes) Principal that is allowed or denied access. (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document--statement--principal))
 
 Read-Only:
 
-- `effect` (String) Effect
-- `sid` (String) SID
+- `action` (List of String) List of actions allowed by this statement.
+  - example : ['iam:CreateRole']
+- `effect` (String) Effect of the statement (Allow or Deny).
+  - example : 'Allow'
+- `resource` (List of String) List of resources the statement applies to.
+  - example : ['*']
+- `sid` (String) Statement ID for the statement.
+  - example : 'Stmt1'
 
 <a id="nestedatt--roles--policies--policy_versions--policy_document--statement--principal"></a>
 ### Nested Schema for `roles.policies.policy_versions.policy_document.statement.principal`
 
 Optional:
 
-- `principal_map` (Map of List of String)
-- `principal_string` (String)
+- `principal_map` (Map of List of String) Principal as a map. Specifies multiple principals using key-value pairs.
+  - example : {"AWS": ["arn:aws:iam::123456789012:root"]}
+- `principal_string` (String) Principal as a string. Specifies the IAM user, role, or account that the policy applies to.
+  - example : 'arn:aws:iam::123456789012:user/admin'
 
 
 
@@ -186,29 +243,38 @@ Optional:
 
 Read-Only:
 
-- `statement` (Attributes List) Statement (see [below for nested schema](#nestedatt--roles--assume_role_policy_document--statement))
-- `version` (String) Policy Version
+- `statement` (Attributes List) List of policy statements defining the permissions. (see [below for nested schema](#nestedatt--roles--assume_role_policy_document--statement))
+- `version` (String) Policy document version.
+  - example : '2024-07-01'
 
 <a id="nestedatt--roles--assume_role_policy_document--statement"></a>
 ### Nested Schema for `roles.assume_role_policy_document.statement`
 
 Optional:
 
-- `action` (List of String) Action
-- `condition` (Map of Map of List of String)
-- `not_action` (List of String) Not Action
-- `principal` (Attributes) Principal (see [below for nested schema](#nestedatt--roles--assume_role_policy_document--statement--principal))
-- `resource` (List of String) Resource
+- `condition` (Map of Map of List of String) Condition for the policy statement. Specifies constraints on when the policy applies.
+  - example : {"aws:PrincipalTag/department": ["engineering"]}
+- `not_action` (List of String) List of actions that are not allowed by this statement.
+  - example : ['iam:AssumeRole']
+- `principal` (Attributes) Principal that is allowed or denied access. (see [below for nested schema](#nestedatt--roles--assume_role_policy_document--statement--principal))
 
 Read-Only:
 
-- `effect` (String) Effect
-- `sid` (String) SID
+- `action` (List of String) List of actions allowed by this statement.
+  - example : ['iam:AssumeRole']
+- `effect` (String) Effect of the statement (Allow or Deny).
+  - example : 'Allow'
+- `resource` (List of String) List of resources the statement applies to.
+  - example : ['*']
+- `sid` (String) Statement ID for the statement.
+  - example : 'Stmt1'
 
 <a id="nestedatt--roles--assume_role_policy_document--statement--principal"></a>
 ### Nested Schema for `roles.assume_role_policy_document.statement.principal`
 
 Optional:
 
-- `principal_map` (Map of List of String)
-- `principal_string` (String)
+- `principal_map` (Map of List of String) Principal as a map. Specifies multiple principals using key-value pairs.
+  - example : {"AWS": ["arn:aws:iam::123456789012:root"]}
+- `principal_string` (String) Principal as a string. Specifies the IAM user, role, or account that the policy applies to.
+  - example : 'arn:aws:iam::123456789012:user/admin'

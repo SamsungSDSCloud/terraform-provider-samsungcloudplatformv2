@@ -71,10 +71,11 @@ variable "type_name" {
   - minimum: 0
 - `sort` (String) Sort 
   - example : 'created_at:asc'
-- `type_name` (String) Volume Type Name 
-  - example : 'HDD' 
+- `type_name` (String) The storage tier type for filtering volumes. Valid values: HDD (standard HDD), SSD (solid-state drive), HighPerformanceSSD (high-performance SSD), SSD_SAP_S (SAP standard), SSD_SAP_E (SAP enterprise). 
+  - example: 'HDD' 
   - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$`
 
 ### Read-Only
 
-- `ids` (List of String) Volume ID List
+- `ids` (List of String) Volume ID List 
+  - example: ['YOUR RESOURCE'S IDS']

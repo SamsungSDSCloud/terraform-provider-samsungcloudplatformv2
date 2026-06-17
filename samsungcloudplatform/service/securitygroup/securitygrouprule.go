@@ -3,10 +3,10 @@ package securitygroup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -37,9 +37,9 @@ type securityGroupRuleResource struct {
 
 func (r *securityGroupRuleResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
 	response.Diagnostics.AddError(
-        "Update not supported",
-        "This resource does not support in-place updates.",
-    )
+		"Update not supported",
+		"This resource does not support in-place updates.",
+	)
 }
 
 // Metadata returns the data source type name.
@@ -50,129 +50,154 @@ func (r *securityGroupRuleResource) Metadata(_ context.Context, req resource.Met
 // Schema defines the schema for the data source.
 func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Security group rule",
+		Description: "Manages security group rules to filter network traffic.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the resource.\n" +
+					"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("SecurityGroupId"): schema.StringAttribute{
-				Description: "SecurityGroupId \n" +
-					"  - example : cff990e6d5ed43d3ab239e4aba0b4c3e",
+				Description: "The identifier of the security group that the resource belongs to.\n" +
+					"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
 				Required: true,
 			},
 			common.ToSnakeCase("ethertype"): schema.StringAttribute{
-				Description: "ethertype \n" +
-					"  - example : IPV4",
+				Description: "The Ethernet protocol type the rule applies to.\n" +
+					"  - example: IPv4\n" +
+					"  - valid: IPv4",
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("IPv4"),
 				},
 			},
 			common.ToSnakeCase("protocol"): schema.StringAttribute{
-				Description: "protocol \n" +
-					"  - example : TCP",
+				Description: "The network protocol the rule applies to.\n" +
+					"  - example: TCP\n" +
+					"  - valid: None/TCP/UDP/ICMP/1-254(IP Protocol Number)",
 				Optional: true,
 			},
 			common.ToSnakeCase("portRangeMin"): schema.Int32Attribute{
-				Description: "portRangeMin \n" +
-					"  - example : 22",
+				Description: "The minimum port number of the rule's port range.\n" +
+					"  - example: 22\n" +
+					"  - valid: 1-65535. For ICMP, 0-255. For IP Protocol, None.\n" +
+					"  - constraints: None",
 				Optional: true,
 			},
 			common.ToSnakeCase("portRangeMax"): schema.Int32Attribute{
-				Description: "portRangeMax \n" +
-					"  - example : 22",
+				Description: "The maximum port number of the rule's port range.\n" +
+					"  - example: 443\n" +
+					"  - valid: 1-65535. For ICMP and IP Protocol, None.\n" +
+					"  - constraints: None",
 				Optional: true,
 			},
 			common.ToSnakeCase("RemoteIpPrefix"): schema.StringAttribute{
-				Description: "RemoteIpPrefix \n" +
-					"  - example : 1.1.1.1/32",
+				Description: "The remote IP address range the rule applies to in CIDR notation.\n" +
+					"  - example: 10.0.0.0/24\n" +
+					"  - valid: IPv4 CIDR",
 				Optional: true,
 			},
 			common.ToSnakeCase("RemoteGroupId"): schema.StringAttribute{
-				Description: "RemoteGroupId \n" +
-					"  - example : 8a8048af06b048329867e57284347066",
+				Description: "The identifier of the remote security group the rule applies to.\n" +
+					"  - example: ce5a565f-20fa-48f7-b06d-be0f03d2b50c",
 				Optional: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description \n" +
-					"  - example : securityGroupRuleDescription",
+				Description: "A brief explanation or note about this resource.\n" +
+					"  - example: Security group for web tier\n" +
+					"  - constraints: maxLength: 255",
 				Optional: true,
 			},
 			common.ToSnakeCase("Direction"): schema.StringAttribute{
-				Description: "Direction \n" +
-					"  - example : ingress",
+				Description: "The direction of the traffic the rule applies to.\n" +
+					"  - example: ingress\n" +
+					"  - valid: ingress, egress",
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("ingress", "egress"),
 				},
 			},
 			common.ToSnakeCase("SecurityGroupRule"): schema.SingleNestedAttribute{
-				Description: "Security group rule",
+				Description: "Security Group Rule Object",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("SecurityGroupId"): schema.StringAttribute{
-						Description: "SecurityGroupId",
-						Computed:    true,
+						Description: "The identifier of the security group that the resource belongs to.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("ethertype"): schema.StringAttribute{
-						Description: "ethertype",
-						Computed:    true,
+						Description: "The Ethernet protocol type the rule applies to.\n" +
+							"  - example: IPv4",
+						Computed: true,
 					},
 					common.ToSnakeCase("protocol"): schema.StringAttribute{
-						Description: "protocol",
-						Computed:    true,
+						Description: "The network protocol the rule applies to.\n" +
+							"  - example: TCP",
+						Computed: true,
 					},
 					common.ToSnakeCase("portRangeMin"): schema.Int32Attribute{
-						Description: "portRangeMin",
-						Computed:    true,
+						Description: "The minimum port number of the rule's port range.\n" +
+							"  - example: 5",
+						Computed: true,
 					},
 					common.ToSnakeCase("portRangeMax"): schema.Int32Attribute{
-						Description: "portRangeMax",
-						Computed:    true,
+						Description: "The maximum port number of the rule's port range.\n" +
+							"  - example: 10",
+						Computed: true,
 					},
 					common.ToSnakeCase("RemoteIpPrefix"): schema.StringAttribute{
-						Description: "RemoteIpPrefix",
-						Computed:    true,
+						Description: "The remote IP address range the rule applies to in CIDR notation.\n" +
+							"  - example: 10.0.0.0/24",
+						Computed: true,
 					},
 					common.ToSnakeCase("RemoteGroupId"): schema.StringAttribute{
-						Description: "RemoteGroupId",
-						Computed:    true,
+						Description: "The identifier of the remote security group the rule applies to.\n" +
+							"  - example: ce5a565f-20fa-48f7-b06d-be0f03d2b50c",
+						Computed: true,
 					},
 					common.ToSnakeCase("RemoteGroupName"): schema.StringAttribute{
-						Description: "RemoteGroupName",
-						Computed:    true,
+						Description: "The name of the remote security group the rule applies to.\n" +
+							"  - example: sg-db-prod",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "A brief explanation or note about this resource.\n" +
+							"  - example: Security group for web tier",
+						Computed: true,
 					},
 					common.ToSnakeCase("Direction"): schema.StringAttribute{
-						Description: "Direction",
-						Computed:    true,
+						Description: "The direction of the traffic the rule applies to.\n" +
+							"  - example: ingress",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example: 2025-01-15T10:30:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user ID that created the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example: 2025-06-01T14:22:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user ID that modified the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 				},
 			},

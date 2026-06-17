@@ -40,41 +40,55 @@ variable "type" {
 
 ### Required
 
-- `type` (String) Approval Type
+- `type` (String) The type of the approval.
   - Enum:  CREATE_APPROVE | CREATE_CANCEL | CREATE_REJECT | CREATE_RE_REQUEST | DELETE_APPROVE | DELETE_CANCEL | DELETE_REJECT
-- `vpc_peering_id` (String) VPC Peering ID
+  - example : CREATE_APPROVE
+- `vpc_peering_id` (String) The identifier of the VPC Peering ID
+  - example: YOUR RESOURCE'S VPC_PEERING_ID
 
 ### Read-Only
 
-- `vpc_peering` (Attributes) VpcPeering (see [below for nested schema](#nestedatt--vpc_peering))
+- `vpc_peering` (Attributes) VPC‑to‑VPC peering (see [below for nested schema](#nestedatt--vpc_peering))
 
 <a id="nestedatt--vpc_peering"></a>
 ### Nested Schema for `vpc_peering`
 
 Read-Only:
 
-- `account_type` (String) Account Type
+- `account_type` (String) The type of the account.
   - Enum: SAME | DIFFERENT
-- `approver_vpc_account_id` (String) Approver VPC Account ID
-- `approver_vpc_id` (String) Approver VPC ID
-- `approver_vpc_name` (String) Approver VPC Name
-- `created_at` (String) Created At
+  - example:SAME
+- `approver_vpc_account_id` (String) The identifier of the account that the approver VPC belongs to.
+  - example: YOUR RESOURCE'S APPROVER_VPC_ACCOUNT_ID
+- `approver_vpc_id` (String) The identifier of the approver VPC.
+  - example: YOUR RESOURCE'S APPROVER_VPC_ID
+- `approver_vpc_name` (String) The name of the approver VPC.
+  - example : vpcName
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
   - Example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created By
+- `created_by` (String) The user id that created the resource.
   - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `delete_requester_account_id` (String) Requester VPC Account ID
-- `description` (String) VPC Peering Description
-- `id` (String) VPC Peering ID
-- `modified_at` (String) Modified At
+- `delete_requester_account_id` (String) The identifier of account that the deletion requester belongs to.
+  - example: YOUR RESOURCE'S DELETE_REQUESTER_ACCOUNT_ID
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : resourceDescription
+- `id` (String) The unique identifier of the approval.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
   - Example: 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified By
+- `modified_by` (String) The user id that modified the resource.
   - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `name` (String) VPC Peering Name
+- `name` (String) The name of the approval.
+  - example : peering name
   - Minimum length: 3
   - Maximum length: 20
   - Pattern: ^[a-zA-Z0-9-]*$
-- `requester_vpc_account_id` (String) Requester VPC Account ID
-- `requester_vpc_id` (String) Requester VPC ID
-- `requester_vpc_name` (String) Requester VPC Name
-- `state` (String) State
+- `requester_vpc_account_id` (String) The identifier of account that the requester VPC belongs to.
+  - example: YOUR RESOURCE'S REQUESTER_VPC_ACCOUNT_ID
+- `requester_vpc_id` (String) The identifier of the requester VPC.
+  - example: YOUR RESOURCE'S REQUESTER_VPC_ID
+- `requester_vpc_name` (String) The name of the requester VPC.
+  - example : vpcName
+- `state` (String) The current lifecycle state of the approval.
   - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING
+  - Example : ACTIVE

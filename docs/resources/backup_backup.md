@@ -16,8 +16,6 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_backup_backup" "backup" {
-  region = var.region
-
   name               = var.name
   policy_category    = var.policy_category
   policy_type        = var.policy_type
@@ -32,11 +30,6 @@ resource "samsungcloudplatformv2_backup_backup" "backup" {
 
 output "backup_output" {
   value = samsungcloudplatformv2_backup_backup.backup
-}
-
-variable "region" {
-  type    = string
-  default = "kr-west1"
 }
 
 variable "name" {
@@ -121,22 +114,24 @@ variable "tags" {
   - example: true
 - `name` (String) Backup name 
   - example: 'terraformtestbackup01'
-- `policy_category` (String) Backup policy category 
-  - example: 'AGENTLESS'
-- `policy_type` (String) Backup policy type 
-  - example: 'VM_IMAGE'
+- `policy_category` (String) PolicyCategory is the category field of a Backup policy. 
+  - example: 'AGENTLESS' 
+  - pattern: `^(AGENTLESS)$`
+- `policy_type` (String) PolicyType is the type field of a Backup policy 
+  - example: 'VM_IMAGE' 
+  - pattern: `^(VM_IMAGE)$`
 - `retention_period` (String) Backup retention period 
   - example: 'MONTH_1' 
-  - pattern: WEEK_2 / MONTH_1 / MONTH_3 / MONTH_6 / YEAR_1
-- `schedules` (Attributes List) Backup Schedules (see [below for nested schema](#nestedatt--schedules))
-- `server_category` (String) Backup server category 
-  - example: 'VIRTUAL_SERVER'
+  - pattern: `^(WEEK_2|MONTH_1|MONTH_3|MONTH_6|YEAR_1)$`
+- `schedules` (Attributes Set) Backup Schedules (see [below for nested schema](#nestedatt--schedules))
+- `server_category` (String) Category of the server to be backup 
+  - example: 'VIRTUAL_SERVER' 
+  - pattern: `^(VIRTUAL_SERVER|GPU_SERVER)$`
 - `server_uuid` (String) Backup server UUID 
-  - example: 'a16687f2-3abc-4f40-bb5d-ee79ea21249d'
+  - example: 'YOUR RESOURCE'S SERVER_UUID'
 
 ### Optional
 
-- `region` (String) Region
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
@@ -152,18 +147,18 @@ Required:
 
 - `frequency` (String) Schedule frequency type 
   - example: 'DAILY' 
-  - pattern: MONTHLY / WEEKLY / DAILY
+  - pattern: `^(MONTHLY|WEEKLY|DAILY)$`
 - `start_time` (String) Backup schedule start time 
   - example: '11:00:00'
 - `type` (String) Schedule type 
   - example: 'FULL' 
-  - pattern: FULL, INCREMENTAL
+  - pattern: `^(FULL|INCREMENTAL)$`
 
 Optional:
 
 - `start_day` (String) Backup schedule start day 
   - example: 'MON' 
-  - pattern: MON / TUE / WED / THU / FRI / SAT / SUN
+  - pattern: `^(MON|TUE|WED|THU|FRI|SAT|SUN)$`
 - `start_week` (String) Backup schedule start week 
   - example: 'WEEK_2' 
-  - pattern: WEEK_1 / WEEK_2 / WEEK_3 / WEEK_4 / WEEK_LAST
+  - pattern: `^(WEEK_1|WEEK_2|WEEK_3|WEEK_4|WEEK_LAST)$`

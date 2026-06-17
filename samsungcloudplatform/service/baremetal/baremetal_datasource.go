@@ -3,9 +3,10 @@ package baremetal
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/baremetal"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/baremetal"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -87,8 +88,8 @@ func BaremetalDataSourceSchema() schema.Schema {
 			},
 			"id": schema.StringAttribute{
 				Required:            true,
-				Description:         "Bare Metal Server ID",
-				MarkdownDescription: "Bare Metal Server ID",
+				Description:         "Bare Metal Server ID\n  - example: 83c3c73d457345e3829ee6d5557c0011",
+				MarkdownDescription: "Bare Metal Server ID\n  - example: 83c3c73d457345e3829ee6d5557c0011",
 			},
 			"image_id": schema.StringAttribute{
 				Computed:            true,
@@ -102,8 +103,8 @@ func BaremetalDataSourceSchema() schema.Schema {
 			},
 			"init_script": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Init script\n  - example: init script",
-				MarkdownDescription: "Init script\n  - example: init script",
+				Description:         "Init script\n  - example: #!/bin/bash\\necho 'Hello World!'",
+				MarkdownDescription: "Init script\n  - example: #!/bin/bash\\necho 'Hello World!'",
 			},
 			"local_subnet_info": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -120,8 +121,8 @@ func BaremetalDataSourceSchema() schema.Schema {
 						},
 						"policy_local_subnet_ip": schema.StringAttribute{
 							Computed:            true,
-							Description:         "Policy Local Subnet IP\n  - example: 192.168.0.1",
-							MarkdownDescription: "Policy Local Subnet IP\n  - example: 192.168.0.1",
+							Description:         "Policy Local Subnet IP\n  - example: 192.168.0.2",
+							MarkdownDescription: "Policy Local Subnet IP\n  - example: 192.168.0.2",
 						},
 						"state": schema.StringAttribute{
 							Computed:            true,
@@ -141,6 +142,10 @@ func BaremetalDataSourceSchema() schema.Schema {
 					},
 				},
 				Computed: true,
+				Description: "local subnet info connected to the server\n" +
+					"  - example: [{interface_name='ens8f1,bond_serv.2',local_subnet_id='YOUR RESOURCE'S LOCAL_SUBNET_ID', policy_subnet_ip='192.168.0.2', state='', vlan_id='YOUR RESOURCE'S VLAN_ID', vni_role_name='mgmtJ4dzQBo'}]",
+				MarkdownDescription: "local subnet info connected to the server\n" +
+					"  - example: [{interface_name='ens8f1,bond_serv.2',local_subnet_id='YOUR RESOURCE'S LOCAL_SUBNET_ID', policy_subnet_ip='192.168.0.2', state='', vlan_id='YOUR RESOURCE'S VLAN_ID', vni_role_name='mgmtJ4dzQBo'}]",
 			},
 			"lock_enabled": schema.BoolAttribute{
 				Computed:            true,
@@ -205,9 +210,11 @@ func BaremetalDataSourceSchema() schema.Schema {
 						MarkdownDescription: "NAT ID\n  - example: 997e99959c7b415b84bbd250c9fe716c\n",
 					},
 				},
-				Description:         "Private Nat Info\n",
-				MarkdownDescription: "Private Nat Info\n",
-				Computed:            true,
+				Description: "Private Nat Info\n" +
+					"  - example: {nat_id: 'YOUR RESOURCE'S NAT_ID', nat_ip: '192.170.2.10', nat_ip_id: 'YOUR RESOURCE'S NAT_IP_ID', state:'ACTIVE', static_nat_id: 'YOUR RESOURCE'S STATIC_NAT_ID'}",
+				MarkdownDescription: "Private Nat Info\n" +
+					"  - example: {nat_id: 'YOUR RESOURCE'S NAT_ID', nat_ip: '192.170.2.10', nat_ip_id: 'YOUR RESOURCE'S NAT_IP_ID', state:'ACTIVE', static_nat_id: 'YOUR RESOURCE'S STATIC_NAT_ID}",
+				Computed: true,
 			},
 			"product_type_id": schema.StringAttribute{
 				Computed:            true,
@@ -216,9 +223,6 @@ func BaremetalDataSourceSchema() schema.Schema {
 			},
 			"public_nat_info": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
-					"nat_id": schema.StringAttribute{
-						Computed: true,
-					},
 					"nat_ip": schema.StringAttribute{
 						Computed:            true,
 						Description:         "NAT IP\n  - example: 192.170.2.10\n",
@@ -240,9 +244,11 @@ func BaremetalDataSourceSchema() schema.Schema {
 						MarkdownDescription: "NAT ID\n  - example: 997e99959c7b415b84bbd250c9fe716c\n",
 					},
 				},
-				Description:         "Public Nat Info\n",
-				MarkdownDescription: "Public Nat Info\n",
-				Computed:            true,
+				Description: "Public Nat Info\n" +
+					"  - example: {nat_ip: '192.170.2.10', nat_ip_id: 'YOUR RESOURCE'S NAT_IP_ID', state: 'ACTIVE', static_nat_id:'YOUR RESOURCE'S STATIC_NAT_ID'}",
+				MarkdownDescription: "Public Nat Info\n" +
+					"  - example: {nat_ip: '192.170.2.10', nat_ip_id: 'YOUR RESOURCE'S NAT_IP_ID', state: 'ACTIVE', static_nat_id:'YOUR RESOURCE'S STATIC_NAT_ID'}",
+				Computed: true,
 			},
 			"region_id": schema.StringAttribute{
 				Computed:            true,
@@ -327,7 +333,6 @@ func (d *baremetalBaremetalDataSource) Read(ctx context.Context, req datasource.
 
 	if data.PublicNatInfo.Get() != nil {
 		publicNatInfo := baremetal.PublicNatInfoValue{
-			NatId:       types.StringPointerValue(data.PublicNatInfo.Get().NatId.Get()),
 			NatIp:       types.StringValue(data.PublicNatInfo.Get().NatIp),
 			NatIpId:     types.StringValue(data.PublicNatInfo.Get().NatIpId),
 			State:       types.StringValue(data.PublicNatInfo.Get().State),

@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,83 +41,112 @@ func (d *virtualServerVolumeDataSource) Metadata(_ context.Context, req datasour
 // Schema defines the schema for the data source.
 func (d *virtualServerVolumeDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of volumes.",
+		Description:         "Retrieves volume information.",
+		MarkdownDescription: "Retrieves block storage volume information for virtual servers.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "id",
-				Optional:    true,
+				Description: "Volume ID.\n" +
+					"  - example: 550e8400-e29b-41d4-a716-446655440000",
+				MarkdownDescription: "Volume ID.\n" +
+					"  - example: 550e8400-e29b-41d4-a716-446655440000",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "name",
-				Optional:    true,
+				Description: "Volume name.\n" +
+					"  - example: my-volume\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				MarkdownDescription: "Volume name.\n" +
+					"  - example: my-volume\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "state",
-				Optional:    true,
+				Description: "Volume state.\n" +
+					"  - Available values: available, reserved, attaching, detaching, in-use, awaiting-transfer, error, etc.",
+				MarkdownDescription: "Volume state.\n" +
+					"  - Available values: available, reserved, attaching, detaching, in-use, awaiting-transfer, error, etc.",
+				Optional: true,
 			},
 			common.ToSnakeCase("Bootable"): schema.BoolAttribute{
-				Description: "bootable",
-				Optional:    true,
+				Description:         "Bootable flag.",
+				MarkdownDescription: "Whether the volume is bootable.\n  - example: false",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Volume"): schema.SingleNestedAttribute{
-				Description: "Volume.",
-				Computed:    true,
+				Description:         "Volume details.",
+				MarkdownDescription: "Volume details including size, type, state, and attached servers.",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "id",
-						Computed:    true,
+						Description:         "Volume ID.",
+						MarkdownDescription: "Volume ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "name",
-						Computed:    true,
+						Description:         "Volume name.",
+						MarkdownDescription: "Volume name.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Size"): schema.Int32Attribute{
-						Description: "size",
-						Computed:    true,
+						Description:         "Volume size (GB).",
+						MarkdownDescription: "Volume size in GB.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "state",
-						Computed:    true,
+						Description:         "Volume state.",
+						MarkdownDescription: "Volume state.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("UserId"): schema.StringAttribute{
-						Description: "user_id",
-						Computed:    true,
+						Description:         "User ID.",
+						MarkdownDescription: "User ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("VolumeType"): schema.StringAttribute{
-						Description: "volume_type",
-						Computed:    true,
+						Description:         "Volume type.",
+						MarkdownDescription: "Volume type.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Encrypted"): schema.BoolAttribute{
-						Description: "encrypted",
-						Computed:    true,
+						Description:         "Encryption flag.",
+						MarkdownDescription: "Whether the volume is encrypted.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Bootable"): schema.BoolAttribute{
-						Description: "bootable",
-						Computed:    true,
+						Description:         "Bootable flag.",
+						MarkdownDescription: "Whether the volume is bootable.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Multiattach"): schema.BoolAttribute{
-						Description: "multiattach",
-						Computed:    true,
+						Description:         "Multi-attach flag.",
+						MarkdownDescription: "Whether the volume can be attached to multiple servers.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Servers"): schema.ListNestedAttribute{
-						Description: "Servers",
-						Computed:    true,
+						Description:         "List of attached servers.",
+						MarkdownDescription: "List of attached servers.",
+						Computed:            true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "ID",
-									Computed:    true,
+									Description:         "Server ID.",
+									MarkdownDescription: "Server ID.",
+									Computed:            true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
-						Description: "The number of distinct read or write operations a volume can process in a single second.",
-						Computed:    true,
+						Description:         "Maximum IOPS per second.",
+						MarkdownDescription: "Maximum IOPS per second.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
-						Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
-						Computed:    true,
+						Description:         "Maximum throughput per second (MB/s).",
+						MarkdownDescription: "Maximum throughput per second (MB/s).",
+						Computed:            true,
 					},
 				},
 			},

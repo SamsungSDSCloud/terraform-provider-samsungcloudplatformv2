@@ -35,135 +35,190 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Group ID
+- `id` (String) Unique identifier of the group to retrieve.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `group` (Attributes) A detail of Group (see [below for nested schema](#nestedatt--group))
+- `group` (Attributes) Detailed information about the group. (see [below for nested schema](#nestedatt--group))
 
 <a id="nestedatt--group"></a>
 ### Nested Schema for `group`
 
-Optional:
-
-- `members` (Attributes List) Members (see [below for nested schema](#nestedatt--group--members))
-- `policies` (Attributes List) (see [below for nested schema](#nestedatt--group--policies))
-
 Read-Only:
 
-- `created_at` (String) 생성 일시
-- `created_by` (String) 생성자
-- `creator_email` (String) 생성자 Email
-- `creator_name` (String) 생성자 성, 이름
-- `description` (String)
-- `domain_name` (String) 도메인 이름
-- `id` (String) ID
-- `modified_at` (String) 수정 일시
-- `modified_by` (String) 수정자
-- `modifier_email` (String) 수정자 Email
-- `modifier_name` (String) 수정자 성, 이름
-- `name` (String) Group 이름
-- `resource_type` (String)
-- `service_name` (String)
-- `service_type` (String)
-- `srn` (String)
-- `type` (String) Group Type
+- `created_at` (String) Timestamp when the group was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the group.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `creator_email` (String) Email of the user who created the group.
+  - example : 'user@example.com'
+- `creator_name` (String) Name of the user who created the group.
+  - example : 'John Doe'
+- `description` (String) Human-readable description of the group.
+  - example : 'My group description'
+- `domain_name` (String) Domain name associated with the group.
+  - example : 'scp'
+- `id` (String) Unique identifier of the group.
+  - example: YOUR RESOURCE'S ID
+- `members` (Attributes List) List of members in the group. (see [below for nested schema](#nestedatt--group--members))
+- `modified_at` (String) Timestamp when the group was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the group.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `modifier_email` (String) Email of the user who last modified the group.
+  - example : 'user@example.com'
+- `modifier_name` (String) Name of the user who last modified the group.
+  - example : 'John Doe'
+- `name` (String) Display name of the group.
+  - example : 'MyGroup'
+- `policies` (Attributes List) (see [below for nested schema](#nestedatt--group--policies))
+- `resource_type` (String) Type of resource the group applies to.
+  - example : 'group'
+- `service_name` (String) Name of the service the group applies to.
+  - example : 'iam'
+- `service_type` (String) Type of service the group applies to.
+  - example : 'IAM'
+- `srn` (String) Samsung Resource Name (SRN) of the group.
+  - example : 'srn:cloud:iam::123456789012:group/my-group'
+- `type` (String) Type of group.
+  - example : 'USER_DEFINED' | 'DEFAULT'
 
 <a id="nestedatt--group--members"></a>
 ### Nested Schema for `group.members`
 
-Optional:
-
-- `creator_last_login_at` (String) 생성자 마지막 로그인 일시
-- `group_names` (List of String) Group Names
-- `user_last_login_at` (String) User 마지막 로그인 일시
-
 Read-Only:
 
-- `created_at` (String) 생성 일시
-- `created_by` (String) 생성자
-- `creator_created_at` (String) 생성 일시
-- `creator_email` (String) 생성자 Email
-- `creator_name` (String) 생성자 성, 이름
-- `user_created_at` (String) 생성 일시
-- `user_email` (String) User Email
-- `user_id` (String) User ID
-- `user_name` (String) User 성, 이름
+- `created_at` (String) Timestamp when the member was added.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who added the member.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `creator_created_at` (String) Timestamp when the creator was created.
+  - example : '2024-01-01T00:00:00Z'
+- `creator_email` (String) Email of the creator.
+  - example : 'user@example.com'
+- `creator_last_login_at` (String) Timestamp of the creator's last login.
+  - example : '2024-01-01T00:00:00Z'
+- `creator_name` (String) Name of the creator.
+  - example : 'John Doe'
+- `group_names` (List of String) Names of the groups the user belongs to.
+  - example : ['MyGroup']
+- `user_created_at` (String) Timestamp when the user was created.
+  - example : '2024-01-01T00:00:00Z'
+- `user_email` (String) Email of the user.
+  - example : 'member@example.com'
+- `user_id` (String) Unique identifier of the user.
+  - example: YOUR RESOURCE'S USER_ID
+- `user_last_login_at` (String) Timestamp of the user's last login.
+  - example : '2024-01-01T00:00:00Z'
+- `user_name` (String) Name of the user.
+  - example : 'Jane Doe'
 
 
 <a id="nestedatt--group--policies"></a>
 ### Nested Schema for `group.policies`
 
-Optional:
-
-- `account_id` (String) Account ID
-- `policy_versions` (Attributes List) Policy Versions (see [below for nested schema](#nestedatt--group--policies--policy_versions))
-
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `creator_email` (String) Creator Email
-- `creator_name` (String) Creator Name
-- `default_version_id` (String) Default Version ID
-- `description` (String) Description
-- `domain_name` (String) Domain Name
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `modifier_email` (String) Modifier Email
-- `modifier_name` (String) Modifier Name
-- `policy_category` (String) Policy Category
-- `policy_name` (String) Policy Name
-- `policy_type` (String) Policy Type
-- `resource_type` (String) Resource Type
-- `service_name` (String) Service Name
-- `service_type` (String) Service Type
-- `srn` (String) SRN
-- `state` (String) State
+- `account_id` (String) Account ID that owns the policy.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) Timestamp when the policy was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the policy.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `creator_email` (String) Email of the policy creator.
+  - example : 'user@example.com'
+- `creator_name` (String) Name of the policy creator.
+  - example : 'John Doe'
+- `default_version_id` (String) Default version ID of the policy.
+  - example: YOUR RESOURCE'S DEFAULT_VERSION_ID
+- `description` (String) Human-readable description of the policy.
+  - example : 'My policy description'
+- `domain_name` (String) Domain name associated with the policy.
+  - example : 'scp'
+- `id` (String) Unique identifier of the policy.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Timestamp when the policy was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the policy.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `modifier_email` (String) Email of the user who last modified the policy.
+  - example : 'user@example.com'
+- `modifier_name` (String) Name of the user who last modified the policy.
+  - example : 'John Doe'
+- `policy_category` (String) Category of the policy.
+  - example : 'IDENTITY_BASED' | 'RESOURCE_BASED' | 'SESSION'
+- `policy_name` (String) Name of the policy.
+  - example : 'MyPolicy'
+- `policy_type` (String) Type of the policy.
+  - example : 'SYSTEM_MANAGED' | 'USER_DEFINED' | 'INLINE'
+- `policy_versions` (Attributes List) List of versions of the policy. (see [below for nested schema](#nestedatt--group--policies--policy_versions))
+- `resource_type` (String) Type of resource the policy applies to.
+  - example : 'policy'
+- `service_name` (String) Name of the service the policy applies to.
+  - example : 'compute'
+- `service_type` (String) Type of service the policy applies to.
+  - example : 'EC2'
+- `srn` (String) Samsung Resource Name (SRN) of the policy.
+  - example : 'srn:cloud:iam::123456789012:policy/my-policy'
+- `state` (String) State of the policy.
+  - example : 'ACTIVE' | 'INACTIVE' | 'DELETED'
 
 <a id="nestedatt--group--policies--policy_versions"></a>
 ### Nested Schema for `group.policies.policy_versions`
 
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `policy_document` (Attributes) Policy Document (see [below for nested schema](#nestedatt--group--policies--policy_versions--policy_document))
-- `policy_id` (String) Policy ID
-- `policy_version_name` (String) Policy Version Name
+- `created_at` (String) Timestamp when the policy version was created.
+  - example : '2024-01-01T00:00:00Z'
+- `created_by` (String) User who created the policy version.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Unique identifier of the policy version.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Timestamp when the policy version was last modified.
+  - example : '2024-01-01T00:00:00Z'
+- `modified_by` (String) User who last modified the policy version.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `policy_document` (Attributes) The policy document containing the permission definitions. (see [below for nested schema](#nestedatt--group--policies--policy_versions--policy_document))
+- `policy_id` (String) ID of the policy this version belongs to.
+  - example: YOUR RESOURCE'S POLICY_ID
+- `policy_version_name` (String) Name of the policy version.
+  - example : 'v1'
 
 <a id="nestedatt--group--policies--policy_versions--policy_document"></a>
 ### Nested Schema for `group.policies.policy_versions.policy_document`
 
 Read-Only:
 
-- `statement` (Attributes List) Statement (see [below for nested schema](#nestedatt--group--policies--policy_versions--policy_document--statement))
-- `version` (String) Policy Version
+- `statement` (Attributes List) List of policy statements defining the permissions. (see [below for nested schema](#nestedatt--group--policies--policy_versions--policy_document--statement))
+- `version` (String) Policy document version.
+  - example : '2012-10-17'
 
 <a id="nestedatt--group--policies--policy_versions--policy_document--statement"></a>
 ### Nested Schema for `group.policies.policy_versions.policy_document.statement`
 
-Optional:
-
-- `action` (List of String) Action
-- `condition` (Map of Map of List of String)
-- `not_action` (List of String) Not Action
-- `principal` (Attributes) Principal (see [below for nested schema](#nestedatt--group--policies--policy_versions--policy_document--statement--principal))
-- `resource` (List of String) Resource
-
 Read-Only:
 
-- `effect` (String) Effect
-- `sid` (String) SID
+- `action` (List of String) List of actions allowed by this statement.
+  - example : ['iam:CreateRole']
+- `condition` (Map of Map of List of String) Condition for the policy statement. Specifies constraints on when the policy applies.
+  - example : {"aws:PrincipalTag/department": ["engineering"]}
+- `effect` (String) Effect of the statement (allow or deny).
+  - example : 'Allow'
+- `not_action` (List of String) List of actions that are not allowed by this statement.
+  - example : ['iam:DeleteRole']
+- `principal` (Attributes) Principal that is allowed or denied access. (see [below for nested schema](#nestedatt--group--policies--policy_versions--policy_document--statement--principal))
+- `resource` (List of String) List of resources the statement applies to.
+  - example : ['srn:e::123456789012:::iam:role/12345678']
+- `sid` (String) Statement ID for the statement.
+  - example : 'Stmt1'
 
 <a id="nestedatt--group--policies--policy_versions--policy_document--statement--principal"></a>
 ### Nested Schema for `group.policies.policy_versions.policy_document.statement.principal`
 
-Optional:
+Read-Only:
 
-- `principal_map` (Map of List of String)
-- `principal_string` (String)
+- `principal_map` (Map of List of String) Principal as a map. Specifies multiple principals using key-value pairs.
+  - example : {"AWS": ["arn:aws:iam::123456789012:root"]}
+- `principal_string` (String) Principal as a string. Specifies the IAM user, role, or account that the policy applies to.
+  - example : 'arn:aws:iam::123456789012:user/admin'

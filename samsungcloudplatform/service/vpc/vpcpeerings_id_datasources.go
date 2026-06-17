@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,84 +44,96 @@ func (d *vpcPeeringIdDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Required:    true,
+				Description: "The unique identifier of the peering.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Required: true,
 			},
 			common.ToSnakeCase("VpcPeering"): schema.SingleNestedAttribute{
 				Description: "A detail of VpcPeering.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountType"): schema.StringAttribute{
-						Description: "Account Type\n" +
-							"  - Enum: SAME | DIFFERENT",
+						Description: "The type of account.\n" +
+							"  - Enum: SAME | DIFFERENT\n" +
+							"  - example:SAME",
 						Computed: true,
 					},
 					common.ToSnakeCase("ApproverVpcAccountId"): schema.StringAttribute{
-						Description: "Approver VPC Account ID",
-						Computed:    true,
+						Description: "The identifier of the account that the approver VPC belongs to.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("ApproverVpcId"): schema.StringAttribute{
-						Description: "Approver VPC ID",
-						Computed:    true,
+						Description: "The identifier of the approver VPC.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("ApproverVpcName"): schema.StringAttribute{
-						Description: "Approver VPC Name",
-						Computed:    true,
+						Description: "The name of the approver VPC.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At\n" +
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
 							"  - Example: 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By\n" +
+						Description: "The user id that created the resource.\n" +
 							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "VPC Peering Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
+							"  - example : resourceDescription",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "VPC Peering ID",
-						Computed:    true,
+						Description: "The unique identifier of the peering.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At\n" +
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n " +
 							"  - Example: 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By\n" +
+						Description: "The user id that modified the resource.\n " +
 							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "VPC Peering Name\n" +
+						Description: "The name of the resource.\n" +
 							"  - Minimum length: 3\n" +
 							"  - Maximum length: 20\n" +
 							"  - Pattern: ^[a-zA-Z0-9-]*$",
 						Computed: true,
 					},
 					common.ToSnakeCase("RequesterVpcAccountId"): schema.StringAttribute{
-						Description: "Requester VPC Account ID",
-						Computed:    true,
+						Description: "The identifier of the account that the requester VPC belongs to.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9fn",
+						Computed: true,
 					},
 					common.ToSnakeCase("RequesterVpcId"): schema.StringAttribute{
-						Description: "Requester VPC ID",
-						Computed:    true,
+						Description: "The identifier of the requester VPC.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("RequesterVpcName"): schema.StringAttribute{
-						Description: "Requester VPC Name",
-						Computed:    true,
+						Description: "The name of the requester VPC.\n" +
+							"  - example : resourceName",
+						Computed: true,
 					},
 					common.ToSnakeCase("DeleteRequesterAccountId"): schema.StringAttribute{
-						Description: "Requester VPC Account ID",
-						Computed:    true,
+						Description: "The identifier of account that the deletion requester belongs to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State\n" +
-							"  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING",
+						Description: "The current lifecycle state of the peering.\n" +
+							"  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING\n" +
+							"  - example:ACTIVE",
 						Computed: true,
 					},
 				},
