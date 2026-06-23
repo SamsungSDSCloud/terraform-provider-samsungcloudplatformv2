@@ -61,13 +61,24 @@ variable "subnet_id" {
 
 ### Optional
 
-- `name` (String) The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `name` (String) The name of the LB Server Group.
+  - example : ServerGroup01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
 - `page` (Number) The page number.
-- `protocol` (List of String) The protocol used for the listener (e.g., TCP, HTTP, HTTPS).
+  - example : 0
+- `protocol` (List of String) The protocol used for the server group.
+  - example : TCP
+  - pattern : TCP | UDP
 - `size` (Number) The number of items per page.
+  - example : 20
 - `sort` (String) The sort order.
+  - example : name:asc
 - `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
@@ -79,17 +90,34 @@ variable "subnet_id" {
 Optional:
 
 - `id` (String) The unique identifier of the LB Server Group.
+  - example: YOUR RESOURCE'S ID
 - `lb_name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
 - `lb_server_group_member_count` (Number) The number of members in the LB Server Group.
+  - example : 3
 - `loadbalancer_id` (String) The LoadBalancer ID associated with the server group.
-- `name` (String) The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
-- `protocol` (String) The protocol for the server group (TCP, UDP).
-- `state` (String) The current state of the LB Server Group (CREATING, ACTIVE, DELETING, ERROR, EDITING).
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
+- `name` (String) The name of the LB Server Group.
+  - example : ServerGroup01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol for the server group.
+  - example : TCP
+  - pattern : TCP | UDP
+- `state` (String) The current state of the LB Server Group.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING
 - `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

@@ -2,8 +2,10 @@ package postgresql
 
 import (
 	"context"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/postgresql/1.1"
+	postgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/postgresql/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -96,9 +98,13 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 
 	// InstanceGroups
 	var convertedInstanceGroups []postgresql.InstanceGroupRequest
-	for _, instanceGroup := range request.InstanceGroups {
+	var igVals []database.InstanceGroup
+	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
+	for _, instanceGroup := range igVals {
 		var convertedBlockStorage []postgresql.BlockStorageGroupRequest
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
+		var bsVals []database.BlockStorageGroup
+		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
+		for _, blockStorage := range bsVals {
 			convertedBlockStorage = append(convertedBlockStorage, postgresql.BlockStorageGroupRequest{
 				RoleType:   postgresql.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
@@ -107,7 +113,9 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		}
 
 		var convertedInstance []postgresql.InstanceRequest
-		for _, instance := range instanceGroup.Instances {
+		var instVals []database.Instance
+		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
+		for _, instance := range instVals {
 			convertedInstance = append(convertedInstance, postgresql.InstanceRequest{
 				RoleType:         postgresql.InstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *postgresql.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
@@ -260,4 +268,52 @@ func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId stri
 	req = req.AddBlockStoragesRequest(*reqState)
 	_, _, err := req.Execute()
 	return err
+}
+
+func MapInstanceGroupResponses(sdkResp []postgresql.InstanceGroupResponse) []database.InstanceGroupResponse {
+	if sdkResp == nil {
+		return nil
+	}
+
+	result := make([]database.InstanceGroupResponse, len(sdkResp))
+	for i, ig := range sdkResp {
+		bsGroups := make([]database.BlockStorageGroupResponse, len(ig.BlockStorageGroups))
+		for j, bs := range ig.BlockStorageGroups {
+			bsGroups[j] = database.BlockStorageGroupResponse{
+				Id:         bs.Id,
+				Name:       bs.Name,
+				RoleType:   string(bs.RoleType),
+				SizeGb:     bs.SizeGb,
+				VolumeType: string(bs.VolumeType),
+			}
+		}
+
+		instances := make([]database.InstanceResponse, len(ig.Instances))
+		for j, it := range ig.Instances {
+			var pubIP, serviceIP string
+			if it.ServiceIpAddress.Get() != nil {
+				serviceIP = *it.ServiceIpAddress.Get()
+			}
+			if it.PublicIpId.Get() != nil {
+				pubIP = *it.PublicIpId.Get()
+			}
+
+			instances[j] = database.InstanceResponse{
+				Name:             it.Name,
+				RoleType:         string(it.RoleType),
+				ServiceIpAddress: serviceIP,
+				PublicIpId:       pubIP,
+			}
+		}
+
+		result[i] = database.InstanceGroupResponse{
+			BlockStorageGroups: bsGroups,
+			Id:                 ig.Id,
+			Instances:          instances,
+			RoleType:           string(ig.RoleType),
+			ServerTypeName:     ig.ServerTypeName,
+		}
+	}
+
+	return result
 }

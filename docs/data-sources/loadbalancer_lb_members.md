@@ -69,12 +69,24 @@ variable "member_port" {
 ### Optional
 
 - `lb_server_group_id` (String) The LB Server Group ID.
-- `member_ip` (String) The IP address of the member (valid IPv4 or IPv6 format).
-- `member_port` (Number) The port number of the member (1-65534).
-- `name` (String) The name of the LB Member (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+  - example: YOUR RESOURCE'S LB_SERVER_GROUP_ID
+- `member_ip` (String) The IP address of the member.
+  - example : 192.168.1.100
+- `member_port` (Number) The port number of the member.
+  - example : 8080
+  - minimum : 1
+  - maximum : 65534
+- `name` (String) The name of the LB Member.
+  - example : Member01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
 - `page` (Number) The page number.
+  - example : 0
 - `size` (Number) The number of items per page.
+  - example : 20
 - `sort` (String) The sort order.
+  - example : name:asc
 
 ### Read-Only
 
@@ -85,21 +97,47 @@ variable "member_port" {
 
 Optional:
 
-- `health_state` (String) The health state of the member (HEALTHY, UNHEALTHY, UNKNOWN).
+- `health_state` (String) The health state of the member.
+  - example : HEALTHY
+  - pattern : HEALTHY | UNHEALTHY | UNKNOWN
 - `id` (String) The unique identifier of the LB Member.
+  - example: YOUR RESOURCE'S ID
 - `lb_server_group_id` (String) The LB Server Group ID.
-- `member_ip` (String) The IP address of the member (valid IPv4 or IPv6 format).
-- `member_port` (Number) The port number of the member (1-65534).
-- `member_state` (String) The state of the member (ENABLE, DISABLE).
-- `member_weight` (Number) The weight of the member (1-1000).
-- `name` (String) The name of the LB Member (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+  - example: YOUR RESOURCE'S LB_SERVER_GROUP_ID
+- `member_ip` (String) The IP address of the member.
+  - example : 192.168.1.100
+- `member_port` (Number) The port number of the member.
+  - example : 8080
+  - minimum : 1
+  - maximum : 65534
+- `member_state` (String) The state of the member.
+  - example : ENABLE
+  - pattern : ENABLE | DISABLE
+- `member_weight` (Number) The weight of the member.
+  - example : 100
+  - minimum : 1
+  - maximum : 1000
+- `name` (String) The name of the LB Member.
+  - example : Member01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
 - `object_id` (String) The object ID.
-- `object_type` (String) The object type (VM, BM, MANUAL, MNGC).
-- `state` (String) The current state of the LB Member (CREATING, ACTIVE, DELETING, EDITING, ERROR).
+  - example: YOUR RESOURCE'S OBJECT_ID
+- `object_type` (String) The object type.
+  - example : VM
+  - pattern : VM | BM | MANUAL | MNGC
+- `state` (String) The current state of the LB Member.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | EDITING | ERROR
 
 Read-Only:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

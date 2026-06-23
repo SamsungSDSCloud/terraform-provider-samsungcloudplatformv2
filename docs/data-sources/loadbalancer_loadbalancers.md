@@ -66,13 +66,23 @@ variable "vpc_id" {
 
 ### Optional
 
-- `name` (String) The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
-- `page` (Number) The page number.
-- `service_ip` (String) The service IP address.
+- `name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `page` (Number) The page number for pagination.
+  - example : 0
+- `service_ip` (String) The service IP address of the LoadBalancer.
+  - example : 192.168.1.100
 - `size` (Number) The number of items per page.
-- `sort` (String) The sort order.
+  - example : 20
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : created_at:desc
 - `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
@@ -83,21 +93,41 @@ variable "vpc_id" {
 
 Optional:
 
-- `firewall_id` (String) The firewall ID.
+- `firewall_id` (String) The firewall ID associated with the LoadBalancer.
+  - example: YOUR RESOURCE'S FIREWALL_ID
 - `id` (String) The unique identifier of the LoadBalancer.
-- `layer_type` (String) The layer type of the Load Balancer (L4, L7).
-- `listener_count` (Number) The number of listeners.
-- `name` (String) The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+  - example: YOUR RESOURCE'S ID
+- `layer_type` (String) The layer type of the Load Balancer.
+  - example : L7
+  - pattern : L4 | L7
+- `listener_count` (Number) The number of listeners attached to the LoadBalancer.
+  - example : 2
+- `name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
 - `public_nat_enabled` (Boolean) Whether public NAT is enabled.
+  - example : true
 - `service_ip` (String) The service IP address.
+  - example : 192.168.1.100
 - `source_nat_ip` (String) The source NAT IP address.
-- `state` (String) The current state of the Load Balancer (CREATING, ACTIVE, DELETING, ERROR).
+  - example : 192.168.1.101
+- `state` (String) The current state of the Load Balancer.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
 - `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

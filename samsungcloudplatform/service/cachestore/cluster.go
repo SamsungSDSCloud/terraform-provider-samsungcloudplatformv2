@@ -198,6 +198,10 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 									common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
 										Description: "Public IP ID (Required when NatEnabled=True)",
 										Optional:    true,
+										Computed:    true,
+										PlanModifiers: []planmodifier.String{
+											stringplanmodifier.UseStateForUnknown(),
+										},
 									},
 								},
 							},
@@ -449,38 +453,7 @@ func (r *cachestoreClusterResource) MapGetResponseToState(ctx context.Context,
 		SentinelPort:         types.Int32PointerValue(resp.InitConfigOption.SentinelPort.Get()),
 	}
 
-	var InstanceGroups []cachestore.InstanceGroup
-	for _, instanceGroup := range resp.InstanceGroups {
-		var BlockStorage []cachestore.BlockStorageGroup
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			BlockStorage = append(BlockStorage, cachestore.BlockStorageGroup{
-				Id:         types.StringValue(blockStorage.Id),
-				Name:       types.StringValue(blockStorage.Name),
-				RoleType:   types.StringValue(string(blockStorage.RoleType)),
-				SizeGb:     types.Int32Value(blockStorage.SizeGb),
-				VolumeType: types.StringValue(string(blockStorage.VolumeType)),
-			})
-		}
-
-		var Instance []cachestore.Instance
-		for _, instance := range instanceGroup.Instances {
-			Instance = append(Instance, cachestore.Instance{
-				Name:             types.StringValue(instance.Name),
-				RoleType:         types.StringValue(string(instance.RoleType)),
-				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				PublicIpId: types.StringPointerValue(instance.PublicIpId.Get()),
-			})
-		}
-
-		InstanceGroups = append(InstanceGroups, cachestore.InstanceGroup{
-			Id:                 types.StringValue(instanceGroup.Id),
-			BlockStorageGroups: BlockStorage,
-			Instances:          Instance,
-			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
-			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
-		})
-	}
+	instanceGroupsList := databaseUtils.MapInstanceGroupsList(ctx, plan.InstanceGroups, cachestore.MapInstanceGroupResponses(resp.InstanceGroups))
 
 	var maintenanceOption = cachestore.MaintenanceOption{}
 	if resp.MaintenanceOption.Get() != nil {
@@ -498,7 +471,7 @@ func (r *cachestoreClusterResource) MapGetResponseToState(ctx context.Context,
 		DbaasEngineVersionId: plan.DbaasEngineVersionId,
 		HaEnabled:            types.BoolPointerValue(resp.HaEnabled),
 		InitConfigOption:     initConfigOption,
-		InstanceGroups:       InstanceGroups,
+		InstanceGroups:       instanceGroupsList,
 		InstanceNamePrefix:   plan.InstanceNamePrefix,
 		MaintenanceOption:    maintenanceOption,
 		Name:                 types.StringValue(resp.Name),
@@ -796,9 +769,23 @@ func (r *cachestoreClusterResource) handlerUpdateInstanceGroups(ctx context.Cont
 	req.Plan.Get(ctx, &plan)
 	req.State.Get(ctx, &state)
 
-	for i := 0; i < len(plan.InstanceGroups); i++ {
-		currentInstanceGroup := state.InstanceGroups[i]
-		desiredInstanceGroup := plan.InstanceGroups[i]
+	var planInstanceGroups []databaseUtils.InstanceGroup
+	plan.InstanceGroups.ElementsAs(ctx, &planInstanceGroups, false)
+
+	var stateInstanceGroups []databaseUtils.InstanceGroup
+	state.InstanceGroups.ElementsAs(ctx, &stateInstanceGroups, false)
+
+	// Build lookup maps by Id
+	stateByGroup := make(map[string]databaseUtils.InstanceGroup)
+	for _, ig := range stateInstanceGroups {
+		stateByGroup[ig.Id.ValueString()] = ig
+	}
+
+	for _, desiredInstanceGroup := range planInstanceGroups {
+		currentInstanceGroup, exists := stateByGroup[desiredInstanceGroup.Id.ValueString()]
+		if !exists {
+			continue
+		}
 
 		instanceGroupFields := []string{"BlockStorageGroups", "Id", "Instances", "RoleType", "ServerTypeName"}
 
@@ -828,11 +815,43 @@ func (r *cachestoreClusterResource) handlerUpdateInstanceGroups(ctx context.Cont
 
 			// BlockStorageGroups Update
 			if databaseUtils.IsOverlapFields(changedFields, []string{"BlockStorageGroups"}) {
-				if len(currentInstanceGroup.BlockStorageGroups) == len(desiredInstanceGroup.BlockStorageGroups) {
-					// Resize Block Storage
-					for i := 0; i < len(currentInstanceGroup.BlockStorageGroups); i++ {
-						currentBlockStorage := currentInstanceGroup.BlockStorageGroups[i]
-						desiredBlockStorage := desiredInstanceGroup.BlockStorageGroups[i]
+				// Extract BlockStorageGroups from sets
+				var currentBlockStorages []databaseUtils.BlockStorageGroup
+				for _, elem := range currentInstanceGroup.BlockStorageGroups.Elements() {
+					bs := elem.(types.Object)
+					currentBlockStorages = append(currentBlockStorages, databaseUtils.BlockStorageGroup{
+						Id:         bs.Attributes()["id"].(types.String),
+						Name:       bs.Attributes()["name"].(types.String),
+						RoleType:   bs.Attributes()["role_type"].(types.String),
+						SizeGb:     bs.Attributes()["size_gb"].(types.Int32),
+						VolumeType: bs.Attributes()["volume_type"].(types.String),
+					})
+				}
+
+				var desiredBlockStorages []databaseUtils.BlockStorageGroup
+				for _, elem := range desiredInstanceGroup.BlockStorageGroups.Elements() {
+					bs := elem.(types.Object)
+					desiredBlockStorages = append(desiredBlockStorages, databaseUtils.BlockStorageGroup{
+						Id:         bs.Attributes()["id"].(types.String),
+						Name:       bs.Attributes()["name"].(types.String),
+						RoleType:   bs.Attributes()["role_type"].(types.String),
+						SizeGb:     bs.Attributes()["size_gb"].(types.Int32),
+						VolumeType: bs.Attributes()["volume_type"].(types.String),
+					})
+				}
+
+				if len(currentBlockStorages) == len(desiredBlockStorages) {
+					// Build lookup maps by Id
+					currentBsByGroup := make(map[string]databaseUtils.BlockStorageGroup)
+					for _, bs := range currentBlockStorages {
+						currentBsByGroup[bs.Id.ValueString()] = bs
+					}
+
+					for _, desiredBlockStorage := range desiredBlockStorages {
+						currentBlockStorage, exists := currentBsByGroup[desiredBlockStorage.Id.ValueString()]
+						if !exists {
+							continue
+						}
 
 						bsFields := []string{"Id", "Name", "RoleType", "SizeGb", "VolumeType"}
 						changedBsFields, err := databaseUtils.GetChangedFields(currentBlockStorage, desiredBlockStorage, bsFields)

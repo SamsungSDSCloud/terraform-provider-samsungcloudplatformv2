@@ -3,12 +3,14 @@ package servicewatch
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -18,8 +20,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &serviceWatchDashboardResource{}
-	_ resource.ResourceWithConfigure = &serviceWatchDashboardResource{}
+	_ resource.Resource                = &serviceWatchDashboardResource{}
+	_ resource.ResourceWithConfigure   = &serviceWatchDashboardResource{}
+	_ resource.ResourceWithImportState = &serviceWatchDashboardResource{}
 )
 
 // NewServiceWatchDashboardResource is a helper function to simplify the provider implementation.
@@ -315,6 +318,10 @@ func (r *serviceWatchDashboardResource) Read(ctx context.Context, req resource.R
 	// Get refreshed value from Dashboard
 	dashboard, err := r.client.GetDashboard(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			ErrReadDashboard,
@@ -363,6 +370,22 @@ func (r *serviceWatchDashboardResource) Update(ctx context.Context, req resource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Retrieve values from state
+	var priorState servicewatch.DashboardResource
+	diags = req.State.Get(ctx, &priorState)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Skip update if nothing changed
+	if state.Widgets.Equal(priorState.Widgets) &&
+		state.Name.Equal(priorState.Name) {
+		diags = resp.State.Set(ctx, state)
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -441,4 +464,9 @@ func (r *serviceWatchDashboardResource) Delete(ctx context.Context, req resource
 		)
 		return
 	}
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *serviceWatchDashboardResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

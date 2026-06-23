@@ -3,6 +3,7 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
@@ -11,6 +12,7 @@ import (
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -20,8 +22,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &loadbalancerLoadbalancerPublicNatIpResource{}
-	_ resource.ResourceWithConfigure = &loadbalancerLoadbalancerPublicNatIpResource{}
+	_ resource.Resource                = &loadbalancerLoadbalancerPublicNatIpResource{}
+	_ resource.ResourceWithConfigure   = &loadbalancerLoadbalancerPublicNatIpResource{}
+	_ resource.ResourceWithImportState = &loadbalancerLoadbalancerPublicNatIpResource{}
 )
 
 // NewLoadbalancerLoadbalancerPublicNatIpResource is a helper function to simplify the provider implementation.
@@ -204,6 +207,10 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Configure(_ context.Contex
 	r.client = inst.Client.LoadBalancer
 }
 
+func (r *loadbalancerLoadbalancerPublicNatIpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLoadbalancerPublicNatIpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
@@ -242,10 +249,32 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Create(ctx context.Context
 
 // Read refreshes the Terraform state with the latest data.
 func (r *loadbalancerLoadbalancerPublicNatIpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state loadbalancer.LoadbalancerPublicNatIpResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// SDK does not have a ShowLoadbalancerPublicNatIp endpoint.
+	// We check if the loadbalancer still exists; if not, remove from state.
+	_, err := r.client.GetLoadbalancer(ctx, state.LoadbalancerId.ValueString())
+	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("Error reading Public NAT", err.Error())
+		return
+	}
+
+	// Cannot refresh NAT IP details without a Show endpoint, keep existing state.
 }
 
-// Update updates the resource and sets the updated Terraform state on success.
 func (r *loadbalancerLoadbalancerPublicNatIpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	resp.Diagnostics.AddWarning(
+		"Update not supported",
+		"Loadbalancer Public NAT IP does not support in-place updates. To change configuration, recreate the resource.",
+	)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -290,7 +319,7 @@ func createLoadbalancerNatModel(data *scploadbalancer.StaticNatCreateResponse) l
 		PublicipId:        virtualserverutil.ToNullableStringValue(lbStaticNat.PublicipId.Get()),
 		ServiceIpPortId:   virtualserverutil.ToNullableStringValue(lbStaticNat.ServiceIpPortId.Get()),
 		State:             virtualserverutil.ToNullableStringValue(lbStaticNat.State.Get()),
-		SubnetId:          virtualserverutil.ToNullableStringValue(lbStaticNat.AccountId.Get()),
+		SubnetId:          virtualserverutil.ToNullableStringValue(lbStaticNat.SubnetId.Get()),
 		Type:              virtualserverutil.ToNullableStringValue(lbStaticNat.Type.Get()),
 		VpcId:             virtualserverutil.ToNullableStringValue(lbStaticNat.VpcId.Get()),
 	}

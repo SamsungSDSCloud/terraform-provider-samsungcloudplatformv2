@@ -38,13 +38,13 @@ variable "loadbalancer" {
     health_check_ip_2        = string
   })
   default = {
-    description              = "remove public ip id param"
+    description              = "loadbalancer desc"
     firewall_enabled         = false
     firewall_logging_enabled = false
     health_check_ip_1        = null
     health_check_ip_2        = null
     layer_type               = "L4"
-    name                     = "0908terraform-test-lb"
+    name                     = "nam-dep-trai-test-lb"
     service_ip               = null
     source_nat_ip            = null
     subnet_id                = "ENTER YOUR RESOURCE'S SUBNET_ID"

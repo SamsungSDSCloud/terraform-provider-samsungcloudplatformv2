@@ -61,6 +61,9 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 				Description: "The identifier of the firewall associated with the resource.\n" +
 					"  - example: 68db67f78abd405da98a6056a8ee42af",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("FirewallRule"): schema.SingleNestedAttribute{
 				Description: "Firewall Rule.",
@@ -391,6 +394,8 @@ func (r *firewallFirewallRuleResource) Read(ctx context.Context, req resource.Re
 		Direction:          types.StringValue(string(data.FirewallRule.Direction)),
 		Status:             types.StringValue(string(data.FirewallRule.Status)),
 		Description:        types.StringPointerValue(data.FirewallRule.Description.Get()),
+		OrderRuleId:        state.FirewallRuleCreate.OrderRuleId,
+		OrderDirection:     state.FirewallRuleCreate.OrderDirection,
 	}
 
 	// Set refreshed state

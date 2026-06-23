@@ -32,7 +32,7 @@ func AsyncRequestPollingWithState[T any](ctx context.Context, clusterId string, 
 		}
 
 		if errorState != "" && currentState == errorState {
-			return zero, fmt.Errorf("resource state:" + errorState)
+			return zero, fmt.Errorf("resource state: %s", errorState)
 		}
 
 		if currentState == DesiredState {

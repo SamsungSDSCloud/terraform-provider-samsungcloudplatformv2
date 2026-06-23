@@ -43,32 +43,45 @@ func (d *loadbalancerLbListenerDataSources) Schema(_ context.Context, _ datasour
 		Description: "List all LB Listeners.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "The number of items per page.",
-				Optional:    true,
+				Description: "The number of items per page.\n" +
+					"  - example : 20\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "The page number.",
-				Optional:    true,
+				Description: "The page number.\n" +
+					"  - example : 0\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "The sort order.",
-				Optional:    true,
+				Description: "The sort order.\n" +
+					"  - example : name:asc\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-				Description: "The LoadBalancer ID associated with the listener.",
-				Optional:    true,
+				Description: "The LoadBalancer ID associated with the listener.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).",
-				Optional:    true,
+				Description: "The current state of the LB Listener.\n" +
+					"  - example : ACTIVE\n" +
+					"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
-				Optional:    true,
+				Description: "The name of the LB Listener.\n" +
+					"  - example : Listener01\n" +
+					"  - minLength : 1\n" +
+					"  - maxLength : 63\n" +
+					"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
-				Description: "The service port number for the listener.",
-				Optional:    true,
+				Description: "The service port number for the listener.\n" +
+					"  - example : 80\n" +
+					"  - minimum : 1\n" +
+					"  - maximum : 65535\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LbListeners"): schema.ListNestedAttribute{
 				Description: "List of LB Listeners.",
@@ -76,40 +89,56 @@ func (d *loadbalancerLbListenerDataSources) Schema(_ context.Context, _ datasour
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "The unique identifier of the LB Listener.",
-							Optional:    true,
+							Description: "The unique identifier of the LB Listener.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
-							Optional:    true,
+							Description: "The name of the LB Listener.\n" +
+								"  - example : Listener01\n" +
+								"  - minLength : 1\n" +
+								"  - maxLength : 63\n" +
+								"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Protocol"): schema.StringAttribute{
-							Description: "The protocol used for the listener (TCP, UDP, HTTP, HTTPS, TLS, TCP_PROXY).",
-							Optional:    true,
+							Description: "The protocol used for the listener.\n" +
+								"  - example : HTTP\n" +
+								"  - pattern : TCP | UDP | HTTP | HTTPS | TLS | TCP_PROXY\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).",
-							Optional:    true,
+							Description: "The current state of the LB Listener.\n" +
+								"  - example : ACTIVE\n" +
+								"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
-							Description: "The service port number for the listener.",
-							Optional:    true,
+							Description: "The service port number for the listener.\n" +
+								"  - example : 80\n" +
+								"  - minimum : 1\n" +
+								"  - maximum : 65535\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "The timestamp when the resource was created, in ISO 8601 format.",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "The user id that created the resource.",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "The user id that last modified the resource.",
-							Computed:    true,
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 					},
 				},

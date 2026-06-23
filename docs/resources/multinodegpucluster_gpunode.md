@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_multinodegpucluster_gpunode Resource - samsungcloudplatformv2"
 subcategory: Multi-node GPU Cluster
 description: |-
-  GPU Node
+  GPU Node Resource
 ---
 
 # samsungcloudplatformv2_multinodegpucluster_gpunode (Resource)
 
-GPU Node
+GPU Node Resource
 
 ## Example Usage
 

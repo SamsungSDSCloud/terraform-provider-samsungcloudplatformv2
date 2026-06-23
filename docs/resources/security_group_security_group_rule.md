@@ -107,8 +107,7 @@ variable "direction" {
   - valid: 1-65535. For ICMP, 0-255. For IP Protocol, None.
   - constraints: None
 - `protocol` (String) The network protocol the rule applies to.
-  - example: TCP
-  - valid: None/TCP/UDP/ICMP/1-254(IP Protocol Number)
+  - example : TCP
 - `remote_group_id` (String) The identifier of the remote security group the rule applies to.
   - example: YOUR RESOURCE'S REMOTE_GROUP_ID
 - `remote_ip_prefix` (String) The remote IP address range the rule applies to in CIDR notation.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -25,8 +27,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &serviceWatchAlertResource{}
-	_ resource.ResourceWithConfigure = &serviceWatchAlertResource{}
+	_ resource.Resource                = &serviceWatchAlertResource{}
+	_ resource.ResourceWithConfigure   = &serviceWatchAlertResource{}
+	_ resource.ResourceWithImportState = &serviceWatchAlertResource{}
 )
 
 // NewServiceWatchAlertResource is a helper function to simplify the provider implementation.
@@ -303,7 +306,11 @@ func (r *serviceWatchAlertResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	convertFromAlertDetailResponse(ctx, &plan, alertResp)
+	_, d := convertFromAlertDetailResponse(ctx, &plan, alertResp)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.Id = types.StringValue(data.GetId())
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
@@ -328,6 +335,10 @@ func (r *serviceWatchAlertResource) Read(ctx context.Context, req resource.ReadR
 	// Get refreshed value from Resource Group
 	alertResp, err := r.client.GetAlert(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			ErrReadAlert,
@@ -336,7 +347,11 @@ func (r *serviceWatchAlertResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 	// Map response body to schema and populate Computed attribute values
-	convertFromAlertDetailResponse(ctx, &state, alertResp)
+	_, diags = convertFromAlertDetailResponse(ctx, &state, alertResp)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	// Set refreshed state
@@ -454,7 +469,11 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	convertFromAlertDetailResponse(ctx, &state, alertResp)
+	_, d := convertFromAlertDetailResponse(ctx, &state, alertResp)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -539,7 +558,7 @@ func getDimensionKeys(ctx context.Context, dimensions types.List) ([][]string, d
 	return [][]string{keys}, nil
 }
 
-func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.AlertResource, alertResp *servicewatch2.AlertDetailResponse) servicewatch.AlertResource {
+func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.AlertResource, alertResp *servicewatch2.AlertDetailResponse) (servicewatch.AlertResource, diag.Diagnostics) {
 	var dimensions []servicewatch.Dimension
 	for _, dimension := range alertResp.Dimensions {
 		dimensions = append(dimensions, servicewatch.Dimension{
@@ -547,7 +566,8 @@ func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.Ale
 			Value: types.StringValue(dimension.GetValue()),
 		})
 	}
-	state.Dimensions, _ = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: servicewatch.Dimension{}.AttributeTypes()}, dimensions)
+	var d diag.Diagnostics
+	state.Dimensions, d = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: servicewatch.Dimension{}.AttributeTypes()}, dimensions)
 
 	state.Name = types.StringValue(alertResp.GetName())
 	state.Description = nullableStringTypes(alertResp.GetDescriptionOk())
@@ -572,7 +592,7 @@ func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.Ale
 	state.ModifiedAt = types.StringValue(alertResp.GetModifiedAt().Format(TimeFormatDisplay))
 	state.ModifiedBy = types.StringValue(alertResp.GetModifiedBy())
 
-	return *state
+	return *state, d
 }
 
 func useStateIfUnset[T attr.Value](plan, state T) T {
@@ -606,4 +626,9 @@ func convertUpdateModel(model servicewatch.AlertResource) servicewatch.AlertUpda
 		ViolationCount:    model.ViolationCount,
 		MissingDataOption: model.MissingDataOption,
 	}
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *serviceWatchAlertResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

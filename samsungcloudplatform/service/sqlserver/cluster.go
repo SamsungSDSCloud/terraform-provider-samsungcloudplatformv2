@@ -254,6 +254,10 @@ func (r *sqlserverClusterResource) Schema(_ context.Context, _ resource.SchemaRe
 									common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
 										Description: "Public IP ID (Required when NatEnabled=True & HaEnabled=False)",
 										Optional:    true,
+										Computed:    true,
+										PlanModifiers: []planmodifier.String{
+											stringplanmodifier.UseStateForUnknown(),
+										},
 									},
 									//common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
 									//	Description: "Public IP address",
@@ -542,39 +546,7 @@ func (r *sqlserverClusterResource) MapGetResponseToState(ctx context.Context,
 		License:              plan.InitConfigOption.License,
 	}
 
-	var InstanceGroups []sqlserver.InstanceGroup
-	for _, instanceGroup := range resp.InstanceGroups {
-		var BlockStorage []sqlserver.BlockStorageGroup
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			BlockStorage = append(BlockStorage, sqlserver.BlockStorageGroup{
-				Id:         types.StringValue(blockStorage.Id),
-				Name:       types.StringValue(blockStorage.Name),
-				RoleType:   types.StringValue(string(blockStorage.RoleType)),
-				SizeGb:     types.Int32Value(blockStorage.SizeGb),
-				VolumeType: types.StringValue(string(blockStorage.VolumeType)),
-			})
-		}
-
-		var Instance []sqlserver.Instance
-		for _, instance := range instanceGroup.Instances {
-			Instance = append(Instance, sqlserver.Instance{
-				Name:             types.StringValue(instance.Name),
-				RoleType:         types.StringValue(string(instance.RoleType)),
-				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
-				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
-			})
-		}
-
-		InstanceGroups = append(InstanceGroups, sqlserver.InstanceGroup{
-			Id:                 types.StringValue(instanceGroup.Id),
-			BlockStorageGroups: BlockStorage,
-			Instances:          Instance,
-			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
-			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
-		})
-	}
+	instanceGroupsList := databaseUtils.MapInstanceGroupsList(ctx, plan.InstanceGroups, sqlserver.MapInstanceGroupResponses(resp.InstanceGroups))
 
 	var maintenanceOption = sqlserver.MaintenanceOption{}
 	if resp.MaintenanceOption.Get() != nil {
@@ -593,7 +565,7 @@ func (r *sqlserverClusterResource) MapGetResponseToState(ctx context.Context,
 		NatEnabled:           types.BoolPointerValue(resp.NatEnabled),
 		HaEnabled:            types.BoolPointerValue(resp.HaEnabled),
 		InitConfigOption:     initConfigOption,
-		InstanceGroups:       InstanceGroups,
+		InstanceGroups:       instanceGroupsList,
 		InstanceNamePrefix:   plan.InstanceNamePrefix,
 		MaintenanceOption:    maintenanceOption,
 		Name:                 types.StringValue(resp.Name),
@@ -897,9 +869,14 @@ func (r *sqlserverClusterResource) handlerUpdateInstanceGroups(ctx context.Conte
 	req.Plan.Get(ctx, &plan)
 	req.State.Get(ctx, &state)
 
-	for i := 0; i < len(plan.InstanceGroups); i++ {
-		currentInstanceGroup := state.InstanceGroups[i]
-		desiredInstanceGroup := plan.InstanceGroups[i]
+	var planIGs []databaseUtils.InstanceGroup
+	plan.InstanceGroups.ElementsAs(ctx, &planIGs, false)
+	var stateIGs []databaseUtils.InstanceGroup
+	state.InstanceGroups.ElementsAs(ctx, &stateIGs, false)
+
+	for i := 0; i < len(planIGs); i++ {
+		currentInstanceGroup := stateIGs[i]
+		desiredInstanceGroup := planIGs[i]
 
 		instanceGroupFields := []string{"BlockStorageGroups", "Id", "Instances", "RoleType", "ServerTypeName"}
 
@@ -929,11 +906,16 @@ func (r *sqlserverClusterResource) handlerUpdateInstanceGroups(ctx context.Conte
 
 			// BlockStorageGroups Update
 			if databaseUtils.IsOverlapFields(changedFields, []string{"BlockStorageGroups"}) {
-				if len(currentInstanceGroup.BlockStorageGroups) == len(desiredInstanceGroup.BlockStorageGroups) {
+				var currentBS []databaseUtils.BlockStorageGroup
+				currentInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &currentBS, false)
+				var desiredBS []databaseUtils.BlockStorageGroup
+				desiredInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &desiredBS, false)
+
+				if len(currentBS) == len(desiredBS) {
 					// Resize Block Storage
-					for i := 0; i < len(currentInstanceGroup.BlockStorageGroups); i++ {
-						currentBlockStorage := currentInstanceGroup.BlockStorageGroups[i]
-						desiredBlockStorage := desiredInstanceGroup.BlockStorageGroups[i]
+					for i := 0; i < len(currentBS); i++ {
+						currentBlockStorage := currentBS[i]
+						desiredBlockStorage := desiredBS[i]
 
 						bsFields := []string{"Id", "Name", "RoleType", "SizeGb", "VolumeType"}
 						changedBsFields, err := databaseUtils.GetChangedFields(currentBlockStorage, desiredBlockStorage, bsFields)
@@ -961,7 +943,7 @@ func (r *sqlserverClusterResource) handlerUpdateInstanceGroups(ctx context.Conte
 					}
 				} else {
 					// Add Block Storage
-					addBlockStorage := desiredInstanceGroup.BlockStorageGroups[len(desiredInstanceGroup.BlockStorageGroups)-1]
+					addBlockStorage := desiredBS[len(desiredBS)-1]
 					err := r.client.AddBlockStorages(ctx, currentInstanceGroup.Id.ValueString(), addBlockStorage.RoleType.ValueString(), addBlockStorage.SizeGb.ValueInt32(), addBlockStorage.VolumeType.ValueString())
 					if err != nil {
 						return err

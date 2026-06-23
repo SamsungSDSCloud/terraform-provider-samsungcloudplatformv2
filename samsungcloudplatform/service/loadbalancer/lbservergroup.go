@@ -13,6 +13,7 @@ import (
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,8 +23,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &loadbalancerLbServerGroupResource{}
-	_ resource.ResourceWithConfigure = &loadbalancerLbServerGroupResource{}
+	_ resource.Resource                = &loadbalancerLbServerGroupResource{}
+	_ resource.ResourceWithConfigure   = &loadbalancerLbServerGroupResource{}
+	_ resource.ResourceWithImportState = &loadbalancerLbServerGroupResource{}
 )
 
 // NewLoadBalancerLbServerGroupResource is a helper function to simplify the provider implementation.
@@ -216,6 +218,10 @@ func (r *loadbalancerLbServerGroupResource) Configure(_ context.Context, req res
 	r.clients = inst.Client
 }
 
+func (r *loadbalancerLbServerGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLbServerGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
@@ -238,6 +244,15 @@ func (r *loadbalancerLbServerGroupResource) Create(ctx context.Context, req reso
 	}
 
 	plan.Id = types.StringValue(data.LbServerGroup.Id)
+
+	// Wait for ACTIVE state
+	if err := waitForLbServerGroupStatus(ctx, r.client, data.LbServerGroup.Id, []string{}, []string{"ACTIVE"}); err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating Lb Server Group",
+			"Error waiting for Lb Server Group to become active: "+err.Error(),
+		)
+		return
+	}
 
 	// Map response body to schema and populate Computed attribute values
 	lbServerGroupModel := createLbServerGroupModel(data)
@@ -265,6 +280,10 @@ func (r *loadbalancerLbServerGroupResource) Read(ctx context.Context, req resour
 	// Get refreshed order value from LB Server Group
 	data, err := r.client.GetLbServerGroup(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating Lb Server Group",
@@ -277,6 +296,21 @@ func (r *loadbalancerLbServerGroupResource) Read(ctx context.Context, req resour
 
 	lbServerGroupObjectValue, diags := types.ObjectValueFrom(ctx, lbServerGroupModel.AttributeTypes(), lbServerGroupModel)
 	state.LbServerGroup = lbServerGroupObjectValue
+
+	// Reconcile lb_server_group_create input block with API response to detect drift
+	// Only populate if nil (e.g., after import) — preserve user config values otherwise
+	if state.LbServerGroupCreate == nil {
+		state.LbServerGroupCreate = &loadbalancer.LbServerGroupCreate{
+			Name:            types.StringValue(data.LbServerGroup.Name),
+			Protocol:        types.StringValue(string(data.LbServerGroup.Protocol)),
+			VpcId:           types.StringValue(data.LbServerGroup.VpcId),
+			SubnetId:        types.StringValue(data.LbServerGroup.SubnetId),
+			Description:     virtualserverutil.ToNullableStringValue(data.LbServerGroup.Description.Get()),
+			LbMethod:        types.StringValue(string(data.LbServerGroup.LbMethod)),
+			LbHealthCheckId: virtualserverutil.ToNullableStringValue(data.LbServerGroup.LbHealthCheckId.Get()),
+			Tags:            types.MapNull(types.StringType),
+		}
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

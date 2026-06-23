@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
@@ -11,6 +12,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,8 +24,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcVpcResource{}
-	_ resource.ResourceWithConfigure = &vpcVpcResource{}
+	_ resource.Resource                = &vpcVpcResource{}
+	_ resource.ResourceWithConfigure   = &vpcVpcResource{}
+	_ resource.ResourceWithImportState = &vpcVpcResource{}
 )
 
 // NewVpcVpcResource is a helper function to simplify the provider implementation.
@@ -36,6 +39,10 @@ type vpcVpcResource struct {
 	config  *scpsdk.Configuration
 	client  *vpc.Client
 	clients *client.SCPClient
+}
+
+func (r *vpcVpcResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
 }
 
 // Metadata returns the data source type name.
@@ -58,6 +65,9 @@ func (r *vpcVpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 					"  - maxMask : /24\n" +
 					"  - minMask : /16",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.\n" +
@@ -161,10 +171,10 @@ func (r *vpcVpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "The user id that created the vpc.\n" +
-							"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
-						MarkdownDescription: "The user id that created the vpc.\n" +
-							"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
@@ -191,10 +201,10 @@ func (r *vpcVpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "The user id that last modified the vpc.\n" +
-							"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
-						MarkdownDescription: "The user id that last modified the vpc.\n" +
-							"  - example: 90dddfc2b1e04edba54ba2b41539a9ac",
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						MarkdownDescription: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
@@ -269,12 +279,22 @@ func (r *vpcVpcResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
+	if err = waitForVpcStatus(ctx, r.client, data.Vpc.Id, []string{}, []string{"ACTIVE"}); err != nil {
+		resp.Diagnostics.AddError("Error creating vpc", "wait for ACTIVE failed: "+err.Error())
+		return
+	}
+
 	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(data.Vpc.Id)
 
 	vpcModel := vpc.ResponseToVpcDSValue(data.Vpc)
-	vpcObjectValueue, _ := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
-	plan.Vpc = vpcObjectValueue
+	vpcObjectValue, d := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	plan.Vpc = vpcObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -297,6 +317,11 @@ func (r *vpcVpcResource) Read(ctx context.Context, req resource.ReadRequest, res
 	// Get refreshed order value from vpc
 	data, err := r.client.GetVpc(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading vpc",
@@ -305,9 +330,17 @@ func (r *vpcVpcResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
+	state.Name = types.StringValue(data.Vpc.Name)
+	state.Description = types.StringPointerValue(data.Vpc.Description.Get())
+
 	vpcModel := vpc.ResponseToVpcDSValue(data.Vpc)
-	vpcObjectValueue, _ := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
-	state.Vpc = vpcObjectValueue
+	vpcObjectValue, d := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Vpc = vpcObjectValue
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -350,8 +383,13 @@ func (r *vpcVpcResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	vpcModel := vpc.ResponseToVpcDSValue(data.Vpc)
-	vpcObjectValueue, _ := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
-	state.Vpc = vpcObjectValueue
+	vpcObjectValue, d := types.ObjectValueFrom(ctx, vpcModel.AttributeTypes(ctx), vpcModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Vpc = vpcObjectValue
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -380,4 +418,14 @@ func (r *vpcVpcResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		)
 		return
 	}
+}
+
+func waitForVpcStatus(ctx context.Context, vpcClient *vpc.Client, id string, pendingStates []string, targetStates []string) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, err := vpcClient.GetVpc(ctx, id)
+		if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.Vpc.State), nil
+	}, -1, -1, -1, -1)
 }

@@ -315,21 +315,38 @@ func (r *baremetalBlockStorageVolume) Read(ctx context.Context, request resource
 	blockStorage := volumeResponse.Result
 
 	state.Name = types.StringPointerValue(blockStorage.Name)
-	state.DiskType = types.StringValue(string(*blockStorage.DiskType))
+	if blockStorage.DiskType != nil {
+		state.DiskType = types.StringValue(string(*blockStorage.DiskType))
+	} else {
+		state.DiskType = types.StringNull()
+	}
 	state.SizeGb = types.Int32PointerValue(blockStorage.SizeGb)
 
 	currentAttachmentMap := make(map[string]baremetalblockstorage.Attachment)
 	for _, att := range blockStorage.Attachments {
+		objType := types.StringNull()
+		if att.Type != nil {
+			objType = types.StringValue(string(*att.Type))
+		}
 		currentAttachmentMap[*att.Id] = baremetalblockstorage.Attachment{
 			ObjectId:   types.StringPointerValue(att.Id),
-			ObjectType: types.StringValue(string(*att.Type)),
+			ObjectType: objType,
 		}
 	}
 
 	newAttachments := make([]baremetalblockstorage.Attachment, 0)
-	for _, userInput := range state.Attachments {
-		if serverAtt, ok := currentAttachmentMap[userInput.ObjectId.ValueString()]; ok {
-			newAttachments = append(newAttachments, serverAtt)
+	if len(state.Attachments) == 0 {
+		for _, att := range blockStorage.Attachments {
+			newAttachments = append(newAttachments, baremetalblockstorage.Attachment{
+				ObjectId:   types.StringPointerValue(att.Id),
+				ObjectType: types.StringValue(string(*att.Type)),
+			})
+		}
+	} else {
+		for _, userInput := range state.Attachments {
+			if serverAtt, ok := currentAttachmentMap[userInput.ObjectId.ValueString()]; ok {
+				newAttachments = append(newAttachments, serverAtt)
+			}
 		}
 	}
 	state.Attachments = newAttachments
@@ -350,6 +367,11 @@ func (r *baremetalBlockStorageVolume) Read(ctx context.Context, request resource
 			return
 		}
 		state.QoS = qosObj
+	} else {
+		state.QoS = types.ObjectNull(map[string]attr.Type{
+			"iops":       types.Int32Type,
+			"throughput": types.Int32Type,
+		})
 	}
 
 	tagsMap, err := tag.GetTags(r.clients, "baremetal-blockstorage", "volume", *blockStorage.Id)
@@ -482,10 +504,11 @@ func (r *baremetalBlockStorageVolume) Delete(ctx context.Context, request resour
 		},
 	})
 
-	context.WithTimeoutCause(ctx, deleteTimeout, scpsdk.GenericOpenAPIError{
+	ctx, cancel := context.WithTimeoutCause(ctx, deleteTimeout, scpsdk.GenericOpenAPIError{
 		ResponseBody: timeoutErrCause,
 		ErrorMessage: "Delete Timeout",
 	})
+	defer cancel()
 
 	err = r.waitForBlockStorageState(ctx, blockStorageId, []string{common.DeletingState, common.AvailableState}, []string{common.DeletedState}, deleteTimeout)
 	if err != nil {

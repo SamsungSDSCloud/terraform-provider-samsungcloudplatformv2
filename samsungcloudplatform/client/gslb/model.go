@@ -130,7 +130,7 @@ type GslbResourceDetail struct {
 type GslbResource struct {
 	Id         types.String `tfsdk:"id"`
 	Gslb       types.Object `tfsdk:"gslb"`
-	GslbCreate GslbCreate   `tfsdk:"gslb_create"`
+	GslbCreate *GslbCreate   `tfsdk:"gslb_create"`
 	Tags       types.Map    `tfsdk:"tags"`
 }
 

@@ -71,7 +71,7 @@ func (client *Client) GetLoadbalancer(ctx context.Context, loadbalancerId string
 func (client *Client) CreateLoadbalancer(ctx context.Context, request LoadbalancerResource) (*loadbalancer.LoadbalancerCreateResponse, error) {
 	req := client.sdkClient.LoadbalancerV1LoadbalancersApiAPI.CreateLoadbalancer(ctx)
 
-	loadbalancerCreateRequest := request.LoadbalancerCreate
+	loadbalancerCreateRequest := *request.LoadbalancerCreate
 
 	loadbalancerElement := loadbalancer.LoadbalancerCreateRequest{
 		Loadbalancer: loadbalancer.LoadbalancerCreateRequestDetail{
@@ -105,11 +105,14 @@ func (client *Client) DeleteLoadbalancer(ctx context.Context, loadbalancerId str
 func (client *Client) UpdateLoadbalancer(ctx context.Context, loadbalancerId string, request LoadbalancerResource) (*loadbalancer.LoadbalancerShowResponse, error) {
 	req := client.sdkClient.LoadbalancerV1LoadbalancersApiAPI.SetLoadbalancer(ctx, loadbalancerId)
 
-	req = req.LoadbalancerUpdateRequest(loadbalancer.LoadbalancerUpdateRequest{
+	loadbalancerCreateRequest := *request.LoadbalancerCreate
+
+	updateReq := loadbalancer.LoadbalancerUpdateRequest{
 		Loadbalancer: loadbalancer.LoadbalancerUpdateRequestDetail{
-			Description: request.LoadbalancerCreate.Description.ValueString(),
+			Description: loadbalancerCreateRequest.Description.ValueString(),
 		},
-	})
+	}
+	req = req.LoadbalancerUpdateRequest(updateReq)
 
 	resp, _, err := req.Execute()
 	return resp, err

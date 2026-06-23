@@ -3,23 +3,27 @@ package securitygroup
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &securityGroupResource{}
-	_ resource.ResourceWithConfigure = &securityGroupResource{}
+	_ resource.Resource                = &securityGroupResource{}
+	_ resource.ResourceWithConfigure   = &securityGroupResource{}
+	_ resource.ResourceWithImportState = &securityGroupResource{}
 )
 
 // NewSecurityGroupResource is a helper function to simplify the provider implementation.
@@ -179,6 +183,13 @@ func (r *securityGroupResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
+	if data == nil || data.SecurityGroup.Id == "" {
+		resp.Diagnostics.AddError(
+			"Error creating security group",
+			"empty response from API",
+		)
+		return
+	}
 	securityGroup := data.SecurityGroup
 
 	plan.Id = types.StringValue(securityGroup.Id)
@@ -197,7 +208,11 @@ func (r *securityGroupResource) Create(ctx context.Context, req resource.CreateR
 		ModifiedBy:  types.StringValue(securityGroup.ModifiedBy),
 	}
 
-	sgObjectValue, diags := types.ObjectValueFrom(ctx, sgModel.AttributeTypes(), sgModel)
+	sgObjectValue, d := types.ObjectValueFrom(ctx, sgModel.AttributeTypes(), sgModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.SecurityGroup = sgObjectValue
 
 	// Set state to fully populated data
@@ -221,6 +236,10 @@ func (r *securityGroupResource) Read(ctx context.Context, req resource.ReadReque
 	// Get refreshed value from vpc
 	data, err := r.client.GetSecurityGroup(ctx, state.Id.ValueString()) // client 를 호출한다.
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading security group",
@@ -229,7 +248,15 @@ func (r *securityGroupResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
+	if data == nil || data.SecurityGroup.Id == "" {
+		resp.Diagnostics.AddError(
+			"Error Reading security group",
+			"empty response from API",
+		)
+		return
+	}
 	securityGroup := data.SecurityGroup
+
 	sgrModel := securitygroup.SecurityGroup{
 		Id:          types.StringValue(securityGroup.Id),
 		AccountId:   types.StringValue(securityGroup.AccountId),
@@ -243,7 +270,14 @@ func (r *securityGroupResource) Read(ctx context.Context, req resource.ReadReque
 		ModifiedBy:  types.StringValue(securityGroup.ModifiedBy),
 	}
 
-	sgObjectValue, diags := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
+	sgObjectValue, d := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	state.Name = types.StringValue(securityGroup.Name)
+	state.Description = types.StringPointerValue(securityGroup.Description.Get())
+	state.Loggable = types.BoolValue(securityGroup.Loggable)
 	state.SecurityGroup = sgObjectValue
 
 	// Set refreshed state
@@ -287,6 +321,14 @@ func (r *securityGroupResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	securityGroup := data.SecurityGroup
+	if data == nil || securityGroup.Id == "" {
+		resp.Diagnostics.AddError(
+			"Error Reading security group",
+			"empty response from API",
+		)
+		return
+	}
+
 	sgrModel := securitygroup.SecurityGroup{
 		Id:          types.StringValue(securityGroup.Id),
 		AccountId:   types.StringValue(securityGroup.AccountId),
@@ -300,7 +342,11 @@ func (r *securityGroupResource) Update(ctx context.Context, req resource.UpdateR
 		ModifiedBy:  types.StringValue(securityGroup.ModifiedBy),
 	}
 
-	sgObjectValue, diags := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
+	sgObjectValue, d := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.SecurityGroup = sgObjectValue
 
 	diags = resp.State.Set(ctx, state)
@@ -329,4 +375,8 @@ func (r *securityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 		)
 		return
 	}
+}
+
+func (r *securityGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

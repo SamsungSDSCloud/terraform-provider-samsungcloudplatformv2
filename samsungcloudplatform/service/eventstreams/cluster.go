@@ -204,6 +204,10 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 									common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
 										Description: "Public IP ID (Required when NatEnabled=True)",
 										Optional:    true,
+										Computed:    true,
+										PlanModifiers: []planmodifier.String{
+											stringplanmodifier.UseStateForUnknown(),
+										},
 									},
 									//common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
 									//	Description: "Public IP address",
@@ -463,16 +467,7 @@ func (r *eventstreamsClusterResource) MapGetResponseToState(ctx context.Context,
 		ZookeeperSaslPassword: plan.InitConfigOption.ZookeeperSaslPassword,
 	}
 
-	var InstanceGroups []eventstreams.InstanceGroup
-	for _, instanceGroup := range plan.InstanceGroups {
-
-		cutIGs, updatedIG := mapInstanceGroup(resp.InstanceGroups, instanceGroup)
-
-		InstanceGroups = append(InstanceGroups, updatedIG)
-
-		resp.InstanceGroups = cutIGs
-
-	}
+	instanceGroupsList := databaseUtils.MapInstanceGroupsList(ctx, plan.InstanceGroups, eventstreams.MapInstanceGroupResponses(resp.InstanceGroups))
 
 	var maintenanceOption = eventstreams.MaintenanceOption{}
 	if resp.MaintenanceOption.Get() != nil {
@@ -490,7 +485,7 @@ func (r *eventstreamsClusterResource) MapGetResponseToState(ctx context.Context,
 		AllowableIpAddresses:      allowableIpAddresses,
 		DbaasEngineVersionId:      plan.DbaasEngineVersionId,
 		InitConfigOption:          initConfigOption,
-		InstanceGroups:            InstanceGroups,
+		InstanceGroups:            instanceGroupsList,
 		InstanceNamePrefix:        plan.InstanceNamePrefix,
 		IsCombined:                plan.IsCombined,
 		MaintenanceOption:         maintenanceOption,
@@ -728,9 +723,14 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 	req.Plan.Get(ctx, &plan)
 	req.State.Get(ctx, &state)
 
-	for i := 0; i < len(plan.InstanceGroups); i++ {
-		currentInstanceGroup := state.InstanceGroups[i]
-		desiredInstanceGroup := plan.InstanceGroups[i]
+	var planIGs []databaseUtils.InstanceGroup
+	plan.InstanceGroups.ElementsAs(ctx, &planIGs, false)
+	var stateIGs []databaseUtils.InstanceGroup
+	state.InstanceGroups.ElementsAs(ctx, &stateIGs, false)
+
+	for i := 0; i < len(planIGs); i++ {
+		currentInstanceGroup := stateIGs[i]
+		desiredInstanceGroup := planIGs[i]
 
 		instanceGroupFields := []string{"BlockStorageGroups", "Id", "Instances", "RoleType", "ServerTypeName"}
 
@@ -760,11 +760,16 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 
 			// BlockStorageGroups Update
 			if databaseUtils.IsOverlapFields(changedFields, []string{"BlockStorageGroups"}) {
-				if len(currentInstanceGroup.BlockStorageGroups) == len(desiredInstanceGroup.BlockStorageGroups) {
+				var currentBS []databaseUtils.BlockStorageGroup
+				currentInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &currentBS, false)
+				var desiredBS []databaseUtils.BlockStorageGroup
+				desiredInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &desiredBS, false)
+
+				if len(currentBS) == len(desiredBS) {
 					// Resize Block Storage
-					for i := 0; i < len(currentInstanceGroup.BlockStorageGroups); i++ {
-						currentBlockStorage := currentInstanceGroup.BlockStorageGroups[i]
-						desiredBlockStorage := desiredInstanceGroup.BlockStorageGroups[i]
+					for i := 0; i < len(currentBS); i++ {
+						currentBlockStorage := currentBS[i]
+						desiredBlockStorage := desiredBS[i]
 
 						bsFields := []string{"Id", "Name", "RoleType", "SizeGb", "VolumeType"}
 						changedBsFields, err := databaseUtils.GetChangedFields(currentBlockStorage, desiredBlockStorage, bsFields)
@@ -811,15 +816,20 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 					return nil
 				}
 
-				currentInstanceLen := len(currentInstanceGroup.Instances)
-				desiredInstanceLen := len(desiredInstanceGroup.Instances)
+				var currentInst []databaseUtils.Instance
+				currentInstanceGroup.Instances.ElementsAs(ctx, &currentInst, false)
+				var desiredInst []databaseUtils.Instance
+				desiredInstanceGroup.Instances.ElementsAs(ctx, &desiredInst, false)
+
+				currentInstanceLen := len(currentInst)
+				desiredInstanceLen := len(desiredInst)
 
 				if desiredInstanceLen > currentInstanceLen {
 					instanceCount := int32(desiredInstanceLen - currentInstanceLen)
 
 					var serviceIPAddresses []string
 
-					for _, instance := range desiredInstanceGroup.Instances[currentInstanceLen:] {
+					for _, instance := range desiredInst[currentInstanceLen:] {
 						if instance.ServiceIpAddress.IsNull() || instance.ServiceIpAddress.IsUnknown() {
 							serviceIPAddresses = []string{}
 							break
@@ -907,78 +917,4 @@ func (r *eventstreamsClusterResource) Delete(ctx context.Context, req resource.D
 			return
 		}
 	}
-}
-
-func mapInstanceGroup(instanceGroups []scpEventstreams.InstanceGroupResponse, def eventstreams.InstanceGroup) ([]scpEventstreams.InstanceGroupResponse, eventstreams.InstanceGroup) {
-
-	for rm, instanceGroup := range instanceGroups {
-
-		if !isEqualInstanceGroup(instanceGroup, def) {
-			continue
-		}
-
-		var BlockStorage []eventstreams.BlockStorageGroup
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			BlockStorage = append(BlockStorage, eventstreams.BlockStorageGroup{
-				Id:         types.StringValue(blockStorage.Id),
-				Name:       types.StringValue(blockStorage.Name),
-				RoleType:   types.StringValue(string(blockStorage.RoleType)),
-				SizeGb:     types.Int32Value(blockStorage.SizeGb),
-				VolumeType: types.StringValue(string(blockStorage.VolumeType)),
-			})
-		}
-
-		var Instance []eventstreams.Instance
-		for _, instance := range instanceGroup.Instances {
-			Instance = append(Instance, eventstreams.Instance{
-				Name:             types.StringValue(instance.Name),
-				RoleType:         types.StringValue(string(instance.RoleType)),
-				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
-				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-				//PublicIpAddress:  types.StringPointerValue(instance.PublicIpAddress.Get()),
-				//ServiceState:     types.StringValue(string(instance.ServiceState)),
-			})
-		}
-
-		return append(instanceGroups[:rm], instanceGroups[rm+1:]...), eventstreams.InstanceGroup{
-			Id:                 types.StringValue(instanceGroup.Id),
-			BlockStorageGroups: BlockStorage,
-			Instances:          Instance,
-			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
-			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
-		}
-
-	}
-
-	return instanceGroups, def
-
-}
-
-func isEqualInstanceGroup(actual scpEventstreams.InstanceGroupResponse, expect eventstreams.InstanceGroup) bool {
-
-	equal := string(actual.RoleType) == expect.RoleType.ValueString()
-	equal = equal && actual.ServerTypeName == expect.ServerTypeName.ValueString()
-
-	actualIt := actual.GetInstances()
-	expectIt := expect.Instances
-	equal = equal && len(actualIt) == len(expectIt)
-	if equal {
-		for pos := range len(expectIt) {
-			equal = equal && expectIt[pos].RoleType.ValueString() == string(actualIt[pos].RoleType)
-		}
-	}
-
-	actualBS := actual.GetBlockStorageGroups()
-	expectBS := expect.BlockStorageGroups
-	equal = equal && len(actualBS) == len(expectBS)
-	if equal {
-		for pos := range len(expectBS) {
-			equal = equal && expectBS[pos].RoleType.ValueString() == string(actualBS[pos].RoleType)
-			equal = equal && expectBS[pos].VolumeType.ValueString() == string(actualBS[pos].VolumeType)
-			equal = equal && expectBS[pos].SizeGb.ValueInt32() == actualBS[pos].SizeGb
-		}
-	}
-
-	return equal
-
 }

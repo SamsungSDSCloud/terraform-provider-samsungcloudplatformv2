@@ -11,6 +11,7 @@ import (
 	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/loadbalancer"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -21,8 +22,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &loadbalancerLbListenerResource{}
-	_ resource.ResourceWithConfigure = &loadbalancerLbListenerResource{}
+	_ resource.Resource                = &loadbalancerLbListenerResource{}
+	_ resource.ResourceWithConfigure   = &loadbalancerLbListenerResource{}
+	_ resource.ResourceWithImportState = &loadbalancerLbListenerResource{}
 )
 
 // NewResourceManagerResourceGroupResource is a helper function to simplify the provider implementation.
@@ -533,6 +535,10 @@ func (r *loadbalancerLbListenerResource) Configure(_ context.Context, req resour
 	r.clients = inst.Client
 }
 
+func (r *loadbalancerLbListenerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { // 아직 정의하지 않은 Create 메서드를 추가한다.
 	var plan loadbalancer.LbListenerResource
@@ -542,7 +548,7 @@ func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	if err := validateLbListenerCreate(ctx, r.client, plan.LbListenerCreate); err != nil {
+	if err := validateLbListenerCreate(ctx, r.client, *plan.LbListenerCreate); err != nil {
 		resp.Diagnostics.AddError("Error creating LB Listener", err.Error())
 		return
 	}
@@ -561,7 +567,7 @@ func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resourc
 	plan.Id = types.StringValue(data.Listener.Id)
 
 	// Map response body to schema and populate Computed attribute values
-	lbListenerModel := loadbalancerutil.ConvertResponse(data)
+	lbListenerModel, skipped := loadbalancerutil.ConvertResponse(data)
 	lbListenerOjbectValue, diags := types.ObjectValueFrom(ctx, lbListenerModel.AttributeTypes(), lbListenerModel)
 	plan.LbListener = lbListenerOjbectValue
 
@@ -588,6 +594,12 @@ func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resourc
 	r.Read(ctx, readReq, readResp)
 
 	resp.State = readResp.State
+	if skipped > 0 {
+		resp.Diagnostics.AddWarning(
+			"UrlHandler mapping skipped",
+			fmt.Sprintf("%d url_handler entries were skipped due to unexpected response format. Check provider logs for details.", skipped),
+		)
+	}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -603,6 +615,10 @@ func (r *loadbalancerLbListenerResource) Read(ctx context.Context, req resource.
 	// Get refreshed order value from LB Listener
 	data, err := r.client.GetLbListener(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Lb Listener",
@@ -611,16 +627,34 @@ func (r *loadbalancerLbListenerResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	lbListenerModel := loadbalancerutil.ConvertResponse(data)
+	lbListenerModel, skipped := loadbalancerutil.ConvertResponse(data)
 
 	lbListenerObjectValue, diags := types.ObjectValueFrom(ctx, lbListenerModel.AttributeTypes(), lbListenerModel)
 	state.LbListener = lbListenerObjectValue
+
+	// Reconcile lb_listener_create input block with API response to detect drift
+	// Only populate if nil (e.g., after import) — preserve user config values otherwise
+	if state.LbListenerCreate == nil {
+		state.LbListenerCreate = &loadbalancer.LbListenerCreate{
+			Name:           types.StringValue(data.Listener.Name),
+			Description:    loadbalancerutil.ToNullableStringValue(data.Listener.Description.Get()),
+			Protocol:       types.StringValue(string(data.Listener.Protocol)),
+			ServicePort:    types.Int32Value(data.Listener.ServicePort),
+			LoadbalancerId: types.StringNull(),
+		}
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+	if skipped > 0 {
+		resp.Diagnostics.AddWarning(
+			"UrlHandler mapping skipped",
+			fmt.Sprintf("%d url_handler entries were skipped due to unexpected response format. Check provider logs for details.", skipped),
+		)
 	}
 }
 
@@ -634,7 +668,7 @@ func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	if err := validateLbListenerCreate(ctx, r.client, state.LbListenerCreate); err != nil {
+	if err := validateLbListenerCreate(ctx, r.client, *state.LbListenerCreate); err != nil {
 		resp.Diagnostics.AddError("Error updating LB Listener", err.Error())
 		return
 	}
@@ -644,8 +678,8 @@ func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resourc
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Lb Listener",
-			"Could not create Lb Listener, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error update Lb Listener",
+			"Could not update Lb Listener, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
@@ -660,7 +694,7 @@ func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resourc
 		)
 		return
 	}
-	lbListenerModel := loadbalancerutil.ConvertResponse(data)
+	lbListenerModel, skipped := loadbalancerutil.ConvertResponse(data)
 
 	lbListenerObjectValue, diags := types.ObjectValueFrom(ctx, lbListenerModel.AttributeTypes(), lbListenerModel)
 	state.LbListener = lbListenerObjectValue
@@ -669,6 +703,12 @@ func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resourc
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+	if skipped > 0 {
+		resp.Diagnostics.AddWarning(
+			"UrlHandler mapping skipped",
+			fmt.Sprintf("%d url_handler entries were skipped due to unexpected response format. Check provider logs for details.", skipped),
+		)
 	}
 }
 

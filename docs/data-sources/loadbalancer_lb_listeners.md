@@ -68,12 +68,25 @@ variable "service_port" {
 ### Optional
 
 - `loadbalancer_id` (String) The LoadBalancer ID associated with the listener.
-- `name` (String) The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
+- `name` (String) The name of the LB Listener.
+  - example : Listener01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
 - `page` (Number) The page number.
+  - example : 0
 - `service_port` (Number) The service port number for the listener.
+  - example : 80
+  - minimum : 1
+  - maximum : 65535
 - `size` (Number) The number of items per page.
+  - example : 20
 - `sort` (String) The sort order.
-- `state` (String) The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).
+  - example : name:asc
+- `state` (String) The current state of the LB Listener.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
 
 ### Read-Only
 
@@ -85,14 +98,30 @@ variable "service_port" {
 Optional:
 
 - `id` (String) The unique identifier of the LB Listener.
-- `name` (String) The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
-- `protocol` (String) The protocol used for the listener (TCP, UDP, HTTP, HTTPS, TLS, TCP_PROXY).
+  - example: YOUR RESOURCE'S ID
+- `name` (String) The name of the LB Listener.
+  - example : Listener01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol used for the listener.
+  - example : HTTP
+  - pattern : TCP | UDP | HTTP | HTTPS | TLS | TCP_PROXY
 - `service_port` (Number) The service port number for the listener.
-- `state` (String) The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).
+  - example : 80
+  - minimum : 1
+  - maximum : 65535
+- `state` (String) The current state of the LB Listener.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
 
 Read-Only:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

@@ -85,7 +85,7 @@ Read-Only:
 - `cidrs` (Attributes List) (see [below for nested schema](#nestedatt--vpc--cidrs))
 - `created_at` (String) The timestamp when the vpc was created in ISO 8601 format.
   - example: 2024-05-17T00:23:17Z
-- `created_by` (String) The user id that created the vpc.
+- `created_by` (String) The user id that created the resource.
   - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the vpc.
   - example: vpcDescription
@@ -94,7 +94,7 @@ Read-Only:
   - example: YOUR RESOURCE'S ID
 - `modified_at` (String) The timestamp when the vpc was last modified in ISO 8601 format.
   - example: 2024-05-17T00:23:17Z
-- `modified_by` (String) The user id that last modified the vpc.
+- `modified_by` (String) The user id that last modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) The name of the vpc.
   - maxLength: 20

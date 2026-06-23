@@ -3,6 +3,7 @@ package servicewatch
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
@@ -11,6 +12,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -20,8 +22,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &serviceWatchLogGroupResource{}
-	_ resource.ResourceWithConfigure = &serviceWatchLogGroupResource{}
+	_ resource.Resource                = &serviceWatchLogGroupResource{}
+	_ resource.ResourceWithConfigure   = &serviceWatchLogGroupResource{}
+	_ resource.ResourceWithImportState = &serviceWatchLogGroupResource{}
 )
 
 // NewServiceWatchLogGroupResource is a helper function to simplify the provider implementation.
@@ -181,7 +184,11 @@ func (r *serviceWatchLogGroupResource) Create(ctx context.Context, req resource.
 
 	// Map response body to schema and populate Computed attribute values
 	logGroup := convertLogGroup(&data.LogGroup)
-	logGroupObjectValue, diags := types.ObjectValueFrom(ctx, logGroup.AttributeTypes(), logGroup)
+	logGroupObjectValue, d := types.ObjectValueFrom(ctx, logGroup.AttributeTypes(), logGroup)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	plan.Id = types.StringValue(logGroup.Id.ValueString())
 	plan.LogGroup = logGroupObjectValue
@@ -208,6 +215,10 @@ func (r *serviceWatchLogGroupResource) Read(ctx context.Context, req resource.Re
 	// Get refreshed value from Resource Group
 	data, err := r.client.GetLogGroup(ctx, state.Id.ValueString())
 	if err != nil && data == nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Log Group",
@@ -224,7 +235,11 @@ func (r *serviceWatchLogGroupResource) Read(ctx context.Context, req resource.Re
 
 	// Map response body to schema and populate Computed attribute values
 	logGroup := convertLogGroup(&data.LogGroup)
-	logGroupObjectValue, diags := types.ObjectValueFrom(ctx, logGroup.AttributeTypes(), logGroup)
+	logGroupObjectValue, d := types.ObjectValueFrom(ctx, logGroup.AttributeTypes(), logGroup)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LogGroup = logGroupObjectValue
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
@@ -270,7 +285,11 @@ func (r *serviceWatchLogGroupResource) Update(ctx context.Context, req resource.
 
 	// Map response body to schema and populate Computed attribute values
 	logGroup := convertLogGroup(&data.LogGroup)
-	logGroupObjectValue, diags := types.ObjectValueFrom(ctx, logGroup.AttributeTypes(), logGroup)
+	logGroupObjectValue, d := types.ObjectValueFrom(ctx, logGroup.AttributeTypes(), logGroup)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LogGroup = logGroupObjectValue
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
@@ -318,4 +337,9 @@ func convertLogGroup(logGroupResp *servicewatch2.LogGroupDTO) servicewatch.LogGr
 		ModifiedAt:          types.StringValue(logGroupResp.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:          types.StringValue(logGroupResp.ModifiedBy),
 	}
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *serviceWatchLogGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

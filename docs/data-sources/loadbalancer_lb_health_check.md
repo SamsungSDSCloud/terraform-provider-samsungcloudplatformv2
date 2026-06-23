@@ -35,6 +35,7 @@ variable "id" {
 ### Optional
 
 - `id` (String) The unique identifier of the LB Health Check.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -46,25 +47,64 @@ variable "id" {
 Optional:
 
 - `account_id` (String) The account ID associated with the resource.
-- `description` (String) Enter a brief explanation or note about this resource (max 255 characters). This helps identify the purpose or usage of the resource.
-- `health_check_count` (Number) The number of consecutive health check failures before marking as unhealthy (1-10).
-- `health_check_interval` (Number) The interval between health checks in seconds (1-180).
-- `health_check_port` (Number) The port number used for health checks (1-65534).
-- `health_check_timeout` (Number) The timeout for health check responses in seconds (1-180). Must be less than or equal to the interval.
-- `health_check_type` (String) The type of health check (DEFAULT, CUSTOM).
-- `health_check_url` (String) The URL path for HTTP health checks (1-50 characters, must start with '/').
-- `http_method` (String) The HTTP method used for health checks (GET, POST).
-- `name` (String) The name of the LB Health Check (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
-- `protocol` (String) The protocol used for the listener (e.g., TCP, HTTP, HTTPS).
-- `request_data` (String) The request data sent during health checks (max 255 characters).
-- `response_code` (String) The expected HTTP response code for health checks (200-599).
-- `state` (String) The current state of the Health Check (CREATING, ACTIVE, DELETING, ERROR).
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Health check for web servers
+  - maxLength : 255
+- `health_check_count` (Number) The number of consecutive health check failures before marking as unhealthy.
+  - example : 3
+  - minimum : 1
+  - maximum : 10
+- `health_check_interval` (Number) The interval between health checks in seconds.
+  - example : 30
+  - minimum : 1
+  - maximum : 180
+- `health_check_port` (Number) The port number used for health checks.
+  - example : 80
+  - minimum : 1
+  - maximum : 65534
+- `health_check_timeout` (Number) The timeout for health check responses in seconds.
+  - example : 10
+  - minimum : 1
+  - maximum : 180
+- `health_check_type` (String) The type of health check.
+  - example : DEFAULT
+  - pattern : DEFAULT | CUSTOM
+- `health_check_url` (String) The URL path for HTTP health checks.
+  - example : /health
+  - minLength : 1
+  - maxLength : 50
+- `http_method` (String) The HTTP method used for health checks.
+  - example : GET
+  - pattern : GET | POST
+- `name` (String) The name of the LB Health Check.
+  - example : HealthCheck01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol used for the health check.
+  - example : HTTP
+  - pattern : TCP | HTTP | HTTPS
+- `request_data` (String) The request data sent during health checks.
+  - example : {"key":"value"}
+  - maxLength : 255
+- `response_code` (String) The expected HTTP response code for health checks.
+  - example : 200
+- `state` (String) The current state of the Health Check.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
 - `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

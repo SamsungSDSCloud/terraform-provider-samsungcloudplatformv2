@@ -4,7 +4,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"golang.org/x/net/context"
+	"context"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
 )
 
 const ServiceType = "scp-mariadb"
@@ -31,7 +33,7 @@ type ClusterResource struct {
 	NatEnabled           types.Bool        `tfsdk:"nat_enabled"`
 	HaEnabled            types.Bool        `tfsdk:"ha_enabled"`
 	InitConfigOption     InitConfigOption  `tfsdk:"init_config_option"`
-	InstanceGroups       []InstanceGroup   `tfsdk:"instance_groups"`
+	InstanceGroups       types.List        `tfsdk:"instance_groups"`
 	InstanceNamePrefix   types.String      `tfsdk:"instance_name_prefix"`
 	MaintenanceOption    MaintenanceOption `tfsdk:"maintenance_option"`
 	Name                 types.String      `tfsdk:"name"`
@@ -75,29 +77,6 @@ type BackupOption struct {
 	StartingTimeHour       types.String `tfsdk:"starting_time_hour"`
 }
 
-type InstanceGroup struct {
-	BlockStorageGroups []BlockStorageGroup `tfsdk:"block_storage_groups"`
-	Id                 types.String        `tfsdk:"id"`
-	Instances          []Instance          `tfsdk:"instances"`
-	RoleType           types.String        `tfsdk:"role_type"`
-	ServerTypeName     types.String        `tfsdk:"server_type_name"`
-}
-
-type BlockStorageGroup struct {
-	Id         types.String `tfsdk:"id"`
-	Name       types.String `tfsdk:"name"`
-	RoleType   types.String `tfsdk:"role_type"`
-	SizeGb     types.Int32  `tfsdk:"size_gb"`
-	VolumeType types.String `tfsdk:"volume_type"`
-}
-
-type Instance struct {
-	Name             types.String `tfsdk:"name"`
-	RoleType         types.String `tfsdk:"role_type"`
-	ServiceIpAddress types.String `tfsdk:"service_ip_address"`
-	PublicIpId       types.String `tfsdk:"public_ip_id"`
-}
-
 type MaintenanceOption struct {
 	PeriodHour           types.String `tfsdk:"period_hour"`
 	StartingDayOfWeek    types.String `tfsdk:"starting_day_of_week"`
@@ -114,7 +93,7 @@ type ClusterDetail struct {
 	Id                   types.String      `tfsdk:"id"`
 	InitConfigOption     InitConfigOption  `tfsdk:"init_config_option"`
 	InstanceCount        types.Int32       `tfsdk:"instance_count"`
-	InstanceGroups       []InstanceGroup   `tfsdk:"instance_groups"`
+	InstanceGroups       []database.InstanceGroup `tfsdk:"instance_groups"`
 	IsKernelPatchable    types.Bool        `tfsdk:"is_kernel_patchable"`
 	MaintenanceOption    MaintenanceOption `tfsdk:"maintenance_option"`
 	Name                 types.String      `tfsdk:"name"`

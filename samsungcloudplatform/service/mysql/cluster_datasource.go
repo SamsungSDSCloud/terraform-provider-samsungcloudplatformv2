@@ -8,6 +8,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/mysql"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -354,11 +355,11 @@ func (d *mysqlClusterDataSource) Read(ctx context.Context, req datasource.ReadRe
 		DatabaseCaseSensitive: types.BoolValue(true), //true값 고정. 추후 상세조회 api에 값 추가 예정
 	}
 
-	var InstanceGroups []mysql.InstanceGroup
+	var InstanceGroups []database.InstanceGroup
 	for _, instanceGroup := range data.InstanceGroups {
-		var BlockStorage []mysql.BlockStorageGroup
+		var BlockStorage []database.BlockStorageGroup
 		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			BlockStorage = append(BlockStorage, mysql.BlockStorageGroup{
+			BlockStorage = append(BlockStorage, database.BlockStorageGroup{
 				Id:         types.StringValue(blockStorage.Id),
 				Name:       types.StringValue(blockStorage.Name),
 				RoleType:   types.StringValue(string(blockStorage.RoleType)),
@@ -367,9 +368,9 @@ func (d *mysqlClusterDataSource) Read(ctx context.Context, req datasource.ReadRe
 			})
 		}
 
-		var Instance []mysql.Instance
+		var Instance []database.Instance
 		for _, instance := range instanceGroup.Instances {
-			Instance = append(Instance, mysql.Instance{
+			Instance = append(Instance, database.Instance{
 				Name:             types.StringValue(instance.Name),
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
@@ -377,10 +378,13 @@ func (d *mysqlClusterDataSource) Read(ctx context.Context, req datasource.ReadRe
 			})
 		}
 
-		InstanceGroups = append(InstanceGroups, mysql.InstanceGroup{
+		blockStorageGroupList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: database.BlockStorageGroup{}.AttributeTypes()}, BlockStorage)
+		instanceList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: database.Instance{}.AttributeTypes()}, Instance)
+
+		InstanceGroups = append(InstanceGroups, database.InstanceGroup{
 			Id:                 types.StringValue(instanceGroup.Id),
-			BlockStorageGroups: BlockStorage,
-			Instances:          Instance,
+			BlockStorageGroups: blockStorageGroupList,
+			Instances:          instanceList,
 			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
 			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
 		})

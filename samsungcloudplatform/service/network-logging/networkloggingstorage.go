@@ -3,6 +3,9 @@ package network_logging
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/networklogging"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
@@ -14,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -65,11 +67,13 @@ func (r *networkLoggingNetworkLoggingStorageResource) Schema(_ context.Context, 
 				Validators: []validator.String{
 					stringvalidator.OneOf("FIREWALL", "SECURITY_GROUP", "NAT"),
 				},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("BucketName"): schema.StringAttribute{
 				Description: "Name of the Bucket. \n" +
 				    "  - example : bucket_name",
 				Required:    true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 				Description: "The timestamp when the resource was created, in ISO 8601 format. \n" +
@@ -136,6 +140,13 @@ func (r *networkLoggingNetworkLoggingStorageResource) Create(ctx context.Context
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error creating network logging storage",
+			"Empty response from API",
+		)
+		return
+	}
 
 	networkLoggingStorage := data.NetworkLoggingStorage
 
@@ -177,6 +188,9 @@ func (r *networkLoggingNetworkLoggingStorageResource) Delete(ctx context.Context
 	// Delete existing network logging storage
 	err := r.client.DeleteNetworkLoggingStorage(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return // already deleted externally
+		}
 		resp.Diagnostics.AddError(
 			"Error Deleting network logging storage",
 			"Could not delete network logging storage, unexpected error: "+err.Error(),

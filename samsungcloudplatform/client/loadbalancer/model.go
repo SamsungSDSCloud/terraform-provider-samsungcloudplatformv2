@@ -88,9 +88,9 @@ func (m LoadbalancerDetail) AttributeTypes() map[string]attr.Type {
 }
 
 type LoadbalancerResource struct {
-	Id                 types.String       `tfsdk:"id"`
-	Loadbalancer       types.Object       `tfsdk:"loadbalancer"`
-	LoadbalancerCreate LoadbalancerCreate `tfsdk:"loadbalancer_create"`
+	Id                 types.String        `tfsdk:"id"`
+	Loadbalancer       types.Object        `tfsdk:"loadbalancer"`
+	LoadbalancerCreate *LoadbalancerCreate `tfsdk:"loadbalancer_create"`
 }
 
 type LoadbalancerCreate struct {
@@ -143,7 +143,7 @@ type LoadbalancerPublicNatIpResource struct {
 	LoadbalancerId          types.String    `tfsdk:"loadbalancer_id"`
 	Id                      types.String    `tfsdk:"id"`
 	LoadbalancerPublicNatIp types.Object    `tfsdk:"loadbalancer_public_nat_ip"`
-	LoadbalancerNatCreate   StaticNatCreate `tfsdk:"static_nat_create"`
+	LoadbalancerNatCreate   *StaticNatCreate `tfsdk:"static_nat_create"`
 }
 
 type StaticNatCreate struct {
@@ -202,7 +202,7 @@ type LoadbalancerPrivateNatIpResource struct {
 	LoadbalancerId               types.String           `tfsdk:"loadbalancer_id"`
 	Id                           types.String           `tfsdk:"id"`
 	LoadbalancerPrivateNatIp     types.Object           `tfsdk:"loadbalancer_private_nat_ip"`
-	LoadbalancerPrivateNatCreate PrivateStaticNatCreate `tfsdk:"private_static_nat_create"`
+	LoadbalancerPrivateNatCreate *PrivateStaticNatCreate `tfsdk:"private_static_nat_create"`
 }
 
 type PrivateStaticNatCreate struct {
@@ -333,9 +333,9 @@ func (m LbServerGroup) AttributeTypes() map[string]attr.Type {
 }
 
 type LbServerGroupResource struct {
-	Id                  types.String        `tfsdk:"id"`
-	LbServerGroup       types.Object        `tfsdk:"lb_server_group"`
-	LbServerGroupCreate LbServerGroupCreate `tfsdk:"lb_server_group_create"`
+	Id                  types.String         `tfsdk:"id"`
+	LbServerGroup       types.Object         `tfsdk:"lb_server_group"`
+	LbServerGroupCreate *LbServerGroupCreate `tfsdk:"lb_server_group_create"`
 }
 
 // Create LB ServerGroup Request
@@ -446,10 +446,10 @@ func (m LbMemberDetail) AttributeTypes() map[string]attr.Type {
 }
 
 type LbMembersResource struct {
-	LbServerGroupId types.String   `tfsdk:"lb_server_group_id"`
-	Id              types.String   `tfsdk:"id"`
-	LbMember        types.Object   `tfsdk:"lb_member"`
-	LbMemberCreate  LbMemberCreate `tfsdk:"lb_member_create"`
+	LbServerGroupId types.String    `tfsdk:"lb_server_group_id"`
+	Id              types.String    `tfsdk:"id"`
+	LbMember        types.Object    `tfsdk:"lb_member"`
+	LbMemberCreate  *LbMemberCreate `tfsdk:"lb_member_create"`
 }
 
 type LbMemberCreate struct {
@@ -466,7 +466,7 @@ type LbMemberResource struct {
 	LbServerGroupId types.String   `tfsdk:"lb_server_group_id"`
 	Id              types.String   `tfsdk:"id"`
 	LbMember        types.Object   `tfsdk:"lb_member"`
-	LbMemberSet     LbMemberCreate `tfsdk:"lb_member_create"`
+	LbMemberSet     *LbMemberCreate `tfsdk:"lb_member_create"`
 }
 
 // ------------ LB Listener -------------------//
@@ -637,9 +637,9 @@ type LbHealthCheckDataSourceDetail struct {
 }
 
 type LbHealthCheckResource struct {
-	Id                  types.String        `tfsdk:"id"`
-	LbHealthCheck       types.Object        `tfsdk:"lb_health_check"`
-	LbHealthCheckCreate LbHealthCheckCreate `tfsdk:"lb_health_check_create"`
+	Id                  types.String         `tfsdk:"id"`
+	LbHealthCheck       types.Object         `tfsdk:"lb_health_check"`
+	LbHealthCheckCreate *LbHealthCheckCreate `tfsdk:"lb_health_check_create"`
 }
 
 type LbHealthCheckCreate struct {
@@ -657,6 +657,25 @@ type LbHealthCheckCreate struct {
 	RequestData         types.String `tfsdk:"request_data"`
 	Description         types.String `tfsdk:"description"`
 	Tags                types.Map    `tfsdk:"tags"`
+}
+
+func (m LbHealthCheckCreate) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"name":                  types.StringType,
+		"vpc_id":                types.StringType,
+		"subnet_id":             types.StringType,
+		"protocol":              types.StringType,
+		"health_check_port":     types.Int32Type,
+		"health_check_interval": types.Int32Type,
+		"health_check_timeout":  types.Int32Type,
+		"health_check_count":    types.Int32Type,
+		"http_method":           types.StringType,
+		"health_check_url":      types.StringType,
+		"response_code":         types.StringType,
+		"request_data":          types.StringType,
+		"description":           types.StringType,
+		"tags":                  types.MapType{ElemType: types.StringType},
+	}
 }
 
 type LbHealthCheck struct {
@@ -722,9 +741,9 @@ func (m LbHealthCheckDetail) AttributeTypes() map[string]attr.Type {
 }
 
 type LbListenerResource struct {
-	Id               types.String     `tfsdk:"id"`
-	LbListener       types.Object     `tfsdk:"lb_listener"`
-	LbListenerCreate LbListenerCreate `tfsdk:"lb_listener_create"`
+	Id               types.String      `tfsdk:"id"`
+	LbListener       types.Object      `tfsdk:"lb_listener"`
+	LbListenerCreate *LbListenerCreate `tfsdk:"lb_listener_create"`
 }
 
 type LbListenerCreate struct {

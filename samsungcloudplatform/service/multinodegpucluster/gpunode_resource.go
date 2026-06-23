@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -51,6 +52,7 @@ type GpunodeResource struct {
 }
 
 var ERROR_EXPLAIN = "\nReason: "
+var errNotFound = fmt.Errorf("resource not found")
 
 // Metadata returns the resource type name.
 func (multinodegpuclusterRS *GpunodeResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -86,7 +88,7 @@ func (multinodegpuclusterRS *GpunodeResource) Schema(c context.Context, _ resour
 
 func GpuNodeResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Description: "GPU Node",
+		Description: "GPU Node Resource",
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
 				Computed:            true,
@@ -501,6 +503,10 @@ func (multinodegpuclusterRS *GpunodeResource) Read(ctx context.Context, req reso
 
 	err := setGpuNodeCommonInfo(ctx, multinodegpuclusterRS, gpunodeId, &state)
 	if err != nil {
+		if err == errNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading GPU Node",
@@ -527,6 +533,10 @@ func (multinodegpuclusterRS *GpunodeResource) Read(ctx context.Context, req reso
 	serverDetails, diags, err := findNodesInFabric(ctx, multinodegpuclusterRS, gpunodeIds)
 	resp.Diagnostics.Append(diags...)
 	if err != nil {
+		if err == errNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Searching GPU Nodes in Fabric "+state.ClusterFabricDetails.ClusterFabricId.ValueString(), err.Error())
 		return
 	}
@@ -566,12 +576,21 @@ func (multinodegpuclusterRS *GpunodeResource) Update(ctx context.Context, req re
 		return
 	}
 
+	planServerDetailsMap := make(map[string]multinodegpuclusterClient.ServerDetailsValue)
+	for _, sd := range planServerDetails {
+		planServerDetailsMap[sd.Id.ValueString()] = sd
+	}
+
 	var stopIds, startIds []string
 
 	// MAIN LOGIC
 
-	for idx, planServer := range planServerDetails {
-		if !planServer.State.Equal(stateServerDetails[idx].State) {
+	for _, stateServer := range stateServerDetails {
+		planServer, ok := planServerDetailsMap[stateServer.Id.ValueString()]
+		if !ok {
+			continue
+		}
+		if !planServer.State.Equal(stateServer.State) {
 			// RUNNING -> STOPPED
 			if planServer.State.ValueString() == common.StoppedState {
 				stopIds = append(stopIds, planServer.Id.ValueString())
@@ -762,6 +781,11 @@ func (multinodegpuclusterRS *GpunodeResource) ModifyPlan(ctx context.Context, re
 	// MAIN LOGIC
 	var planServerDetails []multinodegpuclusterClient.ServerDetailsValue
 	plan.ServerDetails.ElementsAs(ctx, &planServerDetails, false)
+
+	if len(planServerDetails) == 0 {
+		resp.Diagnostics.AddError("Error", "server_details cannot be empty")
+		return
+	}
 
 	if planServerDetails[0].Id.IsUnknown() {
 		// create validate start
@@ -964,9 +988,11 @@ func waitForGpuNodeStatus(ctx context.Context, mngcClient *multinodegpuclusterCl
 }
 
 func setGpuNodeCommonInfo(ctx context.Context, multinodegpuclusterRS *GpunodeResource, gpunodeId string, resource *multinodegpuclusterClient.GpuNodeResource) error {
-
-	gpunodeShow, _, err := multinodegpuclusterRS.client.GetGpuNode(ctx, gpunodeId)
+	gpunodeShow, httpResponse, err := multinodegpuclusterRS.client.GetGpuNode(ctx, gpunodeId)
 	if err != nil {
+		if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+			return errNotFound
+		}
 		return err
 	}
 
@@ -978,7 +1004,7 @@ func setGpuNodeCommonInfo(ctx context.Context, multinodegpuclusterRS *GpunodeRes
 
 func findNodesInFabric(ctx context.Context, multinodegpuclusterRS *GpunodeResource, gpunodeIds []string) (types.List, diag.Diagnostics, error) {
 	serverDetails := make([]multinodegpuclusterClient.ServerDetailsValue, len(gpunodeIds))
-	var diags diag.Diagnostics
+	var allDiags diag.Diagnostics
 	for pos, gpunodeId := range gpunodeIds {
 		gpunodeShow, _, err := multinodegpuclusterRS.client.GetGpuNode(ctx, gpunodeId)
 		if err != nil {
@@ -986,14 +1012,22 @@ func findNodesInFabric(ctx context.Context, multinodegpuclusterRS *GpunodeResour
 				AttrTypes: multinodegpuclusterClient.ServerDetailsValue{}.AttributeTypes(),
 			}), nil, err
 		}
-		serverDetails[pos], diags = setServerDetailInfo(ctx, *gpunodeShow)
+		serverDetail, d := setServerDetailInfo(ctx, *gpunodeShow)
+		allDiags.Append(d...)
+		serverDetails[pos] = serverDetail
 	}
 
-	serverDetailsListType, diags := types.ListValueFrom(ctx, types.ObjectType{
+	if len(serverDetails) == 0 {
+		return types.ListNull(types.ObjectType{
+			AttrTypes: multinodegpuclusterClient.ServerDetailsValue{}.AttributeTypes(),
+		}), allDiags, nil
+	}
+
+	serverDetailsListType, d := types.ListValueFrom(ctx, types.ObjectType{
 		AttrTypes: serverDetails[0].AttributeTypes(),
 	}, serverDetails)
-
-	return serverDetailsListType, diags, nil
+	allDiags.Append(d...)
+	return serverDetailsListType, allDiags, nil
 }
 
 func setServerDetailInfo(ctx context.Context, nodeDetail multinodegpuclustersdk1d2.GpuNodeShowResponse) (multinodegpuclusterClient.ServerDetailsValue, diag.Diagnostics) {

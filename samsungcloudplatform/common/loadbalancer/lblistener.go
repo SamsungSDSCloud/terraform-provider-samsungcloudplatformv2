@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponseV1Dot3) loadbalancer.LbListenerDetail {
+func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponseV1Dot3) (loadbalancer.LbListenerDetail, int) {
 
 	var sslCertificate *loadbalancer.SslCertificate
 
@@ -35,16 +35,19 @@ func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponseV1Dot3) loadbal
 	}
 
 	var urlHandlers []loadbalancer.UrlHandler
+	skippedUrlHandlers := 0
 
 	for _, urlHandlerInterface := range resp.Listener.UrlHandler {
 		urlHandlerMap, ok := urlHandlerInterface.(map[string]interface{})
 		if !ok {
+			skippedUrlHandlers++
 			continue
 		}
 		urlPattern, okUrl := urlHandlerMap["url_pattern"].(string)
 		serverGroupId, okSg := urlHandlerMap["server_group_id"].(string)
 		seq, okSeq := urlHandlerMap["seq"].(float64)
 		if !okUrl || !okSg || !okSeq {
+			skippedUrlHandlers++
 			continue
 		}
 		urlHandlers = append(urlHandlers, loadbalancer.UrlHandler{
@@ -95,5 +98,5 @@ func ConvertResponse(resp *loadbalancersdk.LbListenerShowResponseV1Dot3) loadbal
 		IdleTimeout:         ToNullableInt32Value(resp.Listener.IdleTimeout.Get()),
 		HstsMaxAge:          ToNullableInt32Value(resp.Listener.HstsMaxAge.Get()),
 	}
-	return rtn
+	return rtn, skippedUrlHandlers
 }

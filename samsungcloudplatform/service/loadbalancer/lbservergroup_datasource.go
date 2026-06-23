@@ -43,72 +43,97 @@ func (d *loadBalancerLbServerGroupDataSource) Schema(_ context.Context, _ dataso
 		Description: "Retrieve details of a specific LB Server Group.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "The unique identifier of the LB Server Group.",
-				Optional:    true,
+				Description: "The unique identifier of the LB Server Group.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LbServerGroup"): schema.SingleNestedAttribute{
 				Description: "Details of the LB Server Group.",
 				Computed:    true,
-				Attributes: map[string]schema.Attribute{common.ToSnakeCase("AccountId"): schema.StringAttribute{
-					Description: "The account ID associated with the resource.",
-					Optional:    true,
-				},
+				Attributes: map[string]schema.Attribute{
+					common.ToSnakeCase("AccountId"): schema.StringAttribute{
+						Description: "The account ID associated with the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
+					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was created, in ISO 8601 format.",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "The user id that created the resource.",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "The user id that last modified the resource.",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Enter a brief explanation or note about this resource (max 255 characters). This helps identify the purpose or usage of the resource.",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : Server group for web servers\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LbMethod"): schema.StringAttribute{
-						Description: "The load balancing method (ROUND_ROBIN, LEAST_CONNECTION, IP_HASH, WEIGHTED_ROUND_ROBIN, WEIGHTED_LEAST_CONNECTION).",
-						Optional:    true,
+						Description: "The load balancing method.\n" +
+							"  - example : ROUND_ROBIN\n" +
+							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LbName"): schema.StringAttribute{
-						Description: "The name of the LoadBalancer.",
-						Optional:    true,
+						Description: "The name of the LoadBalancer.\n" +
+							"  - example : LoadBalancer01\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-						Description: "The LoadBalancer ID associated with the server group.",
-						Optional:    true,
+						Description: "The LoadBalancer ID associated with the server group.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "The current state of the LB Server Group (CREATING, ACTIVE, DELETING, ERROR, EDITING).",
-						Optional:    true,
+						Description: "The current state of the LB Server Group.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
-						Optional:    true,
+						Description: "The name of the LB Server Group.\n" +
+							"  - example : ServerGroup01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n" +
+							"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "The protocol for the server group (TCP, UDP).",
-						Optional:    true,
+						Description: "The protocol for the server group.\n" +
+							"  - example : TCP\n" +
+							"  - pattern : TCP | UDP\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "The VPC ID where the resource is located.",
-						Optional:    true,
+						Description: "The VPC ID where the resource is located.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "The subnet ID where the resource is located.",
-						Optional:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LbHealthCheckId"): schema.StringAttribute{
-						Description: "The LB Health Check ID.",
-						Optional:    true,
-					}},
+						Description: "The LB Health Check ID.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
+					},
+				},
 			},
 		},
 	}

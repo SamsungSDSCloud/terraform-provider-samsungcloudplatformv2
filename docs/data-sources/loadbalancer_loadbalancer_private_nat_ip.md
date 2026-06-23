@@ -34,7 +34,8 @@ variable "loadbalancer_id" {
 
 ### Optional
 
-- `loadbalancer_id` (String) loadbalancer id
+- `loadbalancer_id` (String) loadbalancer id.
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
 - `loadbalancer_private_nat_ip` (Attributes) A detail of private NAT. (see [below for nested schema](#nestedatt--loadbalancer_private_nat_ip))
 
 <a id="nestedatt--loadbalancer_private_nat_ip"></a>
@@ -43,11 +44,21 @@ variable "loadbalancer_id" {
 Optional:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `external_ip_address` (String) The external IP address.
+  - example : 10.0.0.1
 - `id` (String) The unique identifier of the Private NAT IP.
+  - example: YOUR RESOURCE'S ID
 - `internal_ip_address` (String) The internal IP address.
+  - example : 192.168.1.100
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `private_nat_ip_id` (String) The private NAT IP ID.
-- `state` (String) The current state of the Private NAT IP (CREATING, ACTIVE, DELETING, ERROR).
+  - example: YOUR RESOURCE'S PRIVATE_NAT_IP_ID
+- `state` (String) The current state of the Private NAT IP.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR

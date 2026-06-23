@@ -3,6 +3,7 @@ package gslb
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 const reasonPrefix = "\nReason: "
@@ -27,6 +29,7 @@ const reasonPrefix = "\nReason: "
 var (
 	_ resource.Resource              = &gslbGslbResource{}
 	_ resource.ResourceWithConfigure = &gslbGslbResource{}
+	_ resource.ResourceWithImportState = &gslbGslbResource{}
 )
 
 // NewResourceManagerResourceGroupResource is a helper function to simplify the provider implementation.
@@ -381,11 +384,31 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	plan.Id = types.StringValue(data.Gslb.Id)
-	data, _ = r.client.GetGslb(ctx, data.Gslb.Id)
+	data, err = r.client.GetGslb(ctx, data.Gslb.Id)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error reading Gslb",
+			"Could not read Gslb, unexpected error: "+err.Error()+reasonPrefix+detail,
+		)
+		return
+	}
+
+	if data == nil || data.Gslb.Id == "" {
+		resp.Diagnostics.AddError(
+			"Error reading Gslb",
+			"Gslb response is nil or empty",
+		)
+		return
+	}
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	gslbObjectValue, d := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.Gslb = gslbObjectValue
 
 	// Set state to fully populated data
@@ -409,6 +432,10 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 	// Get refreshed order value from Gslb
 	data, err := r.client.GetGslb(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Gslb",
@@ -419,8 +446,55 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	gslbObjectValue, d := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Gslb = gslbObjectValue
+
+	// Reconstruct gslb_create from API response so that:
+	// 1) Import populates gslb_create (not null)
+	// 2) External changes (console/API) are detected as drift
+	if state.GslbCreate == nil {
+		state.GslbCreate = &gslb.GslbCreate{}
+	}
+
+	state.GslbCreate.Name = types.StringValue(data.Gslb.Name)
+	state.GslbCreate.Algorithm = types.StringValue(data.Gslb.Algorithm)
+	state.GslbCreate.Description = virtualserverutil.ToNullableStringValue(data.Gslb.Description.Get())
+	state.GslbCreate.EnvUsage = types.StringValue(data.Gslb.EnvUsage)
+
+	// Rebuild health_check from API response
+	healthCheckFromData := data.Gslb.HealthCheck.Get()
+	if healthCheckFromData != nil {
+		state.GslbCreate.HealthCheck = &gslb.HealthCheckCreate{
+			HealthCheckInterval:     types.Int32Value(healthCheckFromData.GetHealthCheckInterval()),
+			HealthCheckProbeTimeout: types.Int32Value(healthCheckFromData.GetHealthCheckProbeTimeout()),
+			HealthCheckUserId:       types.StringValue(healthCheckFromData.GetHealthCheckUserId()),
+			HealthCheckUserPassword: types.StringValue(healthCheckFromData.GetHealthCheckUserPassword()),
+			Protocol:                types.StringValue(healthCheckFromData.Protocol),
+			ReceiveString:           types.StringValue(healthCheckFromData.GetReceiveString()),
+			SendString:              types.StringValue(healthCheckFromData.GetSendString()),
+			ServicePort:             types.Int32Value(healthCheckFromData.GetServicePort()),
+			Timeout:                 types.Int32Value(healthCheckFromData.GetTimeout()),
+		}
+	}
+
+	// Rebuild resources from API response
+	resourceList, err := r.client.GetGslbResourceList(ctx, gslb.GslbResourceDataSource{GslbId: state.Id})
+	if err == nil && resourceList != nil {
+		resources := make([]gslb.GslbResourceCreate, 0, len(resourceList.GslbResources))
+		for _, res := range resourceList.GslbResources {
+			resources = append(resources, gslb.GslbResourceCreate{
+				Description: virtualserverutil.ToNullableStringValue(res.Description.Get()),
+				Destination: types.StringValue(res.Destination),
+				Region:      types.StringValue(res.Region),
+				Weight:      common.ToNullableInt32Value(res.Weight.Get()),
+			})
+		}
+		state.GslbCreate.Resources = resources
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -508,7 +582,11 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	gslbObjectValue, d := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Gslb = gslbObjectValue
 
 	// Set refreshed state
@@ -542,7 +620,11 @@ func (r *gslbGslbResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	gslbObjectValue, d := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Gslb = gslbObjectValue
 
 	// Set refreshed state
@@ -555,17 +637,17 @@ func (r *gslbGslbResource) Delete(ctx context.Context, req resource.DeleteReques
 
 func convertResponseToGslb(data *scpgslb.GslbShowResponse) gslb.GslbDetail {
 	var healthCheck *gslb.HealthCheck
-	if data.Gslb.HealthCheck.IsSet() {
-		var healthCheckFromData = data.Gslb.HealthCheck.Get()
+	healthCheckFromData := data.Gslb.HealthCheck.Get()
+	if healthCheckFromData != nil {
 		healthCheck = &gslb.HealthCheck{
-			CreatedAt:               types.StringValue(healthCheckFromData.CreatedAt.Format(time.RFC3339)),
+			CreatedAt:               types.StringValue(healthCheckFromData.GetCreatedAt().Format(time.RFC3339)),
 			CreatedBy:               types.StringValue(healthCheckFromData.CreatedBy),
 			HealthCheckInterval:     types.Int32Value(healthCheckFromData.GetHealthCheckInterval()),
 			HealthCheckProbeTimeout: types.Int32Value(healthCheckFromData.GetHealthCheckProbeTimeout()),
 			HealthCheckUserId:       types.StringValue(healthCheckFromData.GetHealthCheckUserId()),
 			HealthCheckUserPassword: types.StringValue(healthCheckFromData.GetHealthCheckUserPassword()),
 			Id:                      types.StringValue(healthCheckFromData.Id),
-			ModifiedAt:              types.StringValue(healthCheckFromData.ModifiedAt.Format(time.RFC3339)),
+			ModifiedAt:              types.StringValue(healthCheckFromData.GetModifiedAt().Format(time.RFC3339)),
 			ModifiedBy:              types.StringValue(healthCheckFromData.ModifiedBy),
 			Protocol:                types.StringValue(healthCheckFromData.Protocol),
 			ReceiveString:           types.StringValue(healthCheckFromData.GetReceiveString()),
@@ -604,27 +686,35 @@ func gslbResourceChanged(oldState gslb.GslbResource, newState gslb.GslbResource)
 	oldResources := oldState.GslbCreate.Resources
 	newResources := newState.GslbCreate.Resources
 
-	if len(oldResources) != len(newResources) {
+	// Build key-based maps for order-independent comparison.
+	// Key = "Destination/Region" uniquely identifies a GSLB resource endpoint.
+	key := func(r gslb.GslbResourceCreate) string {
+		return r.Destination.ValueString() + "/" + r.Region.ValueString()
+	}
+
+	oldByKey := make(map[string]gslb.GslbResourceCreate, len(oldResources))
+	for _, r := range oldResources {
+		oldByKey[key(r)] = r
+	}
+
+	newByKey := make(map[string]gslb.GslbResourceCreate, len(newResources))
+	for _, r := range newResources {
+		newByKey[key(r)] = r
+	}
+
+	if len(oldByKey) != len(newByKey) {
 		return true
 	}
 
-	for i := range oldResources {
-		oldResource := oldResources[i]
-		newResource := newResources[i]
-
-		if oldResource.Description != newResource.Description {
+	for k, oldRes := range oldByKey {
+		newRes, ok := newByKey[k]
+		if !ok {
 			return true
 		}
-
-		if oldResource.Destination != newResource.Destination {
+		if !oldRes.Description.Equal(newRes.Description) {
 			return true
 		}
-
-		if oldResource.Region != newResource.Region {
-			return true
-		}
-
-		if oldResource.Weight != newResource.Weight {
+		if !oldRes.Weight.Equal(newRes.Weight) {
 			return true
 		}
 	}
@@ -682,4 +772,9 @@ func waitForGslbStatus(ctx context.Context, gslbClient *gslb.Client, id string, 
 		}
 		return info, info.Gslb.State, nil
 	}, -1, -1, -1, -1)
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *gslbGslbResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+   resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

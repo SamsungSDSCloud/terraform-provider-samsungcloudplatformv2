@@ -13,6 +13,7 @@ import (
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scpvpn "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpn/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -25,6 +26,7 @@ import (
 var (
 	_ resource.Resource              = &vpnVpnTunnelResource{}
 	_ resource.ResourceWithConfigure = &vpnVpnTunnelResource{}
+	_ resource.ResourceWithImportState = &vpnVpnTunnelResource{}
 )
 
 // NewVpnVpnTunnelResource is a helper function to simplify the provider implementation.
@@ -76,7 +78,8 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 			Required: true,
 		},
 			"phase1": schema.SingleNestedAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"dpd_retry_interval": schema.Int32Attribute{
 						Description: "The Dead Peer Detection retry interval in seconds.\n" +
@@ -126,7 +129,8 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 				},
 			},
 			"phase2": schema.SingleNestedAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"perfect_forward_secrecy": schema.StringAttribute{
 						Description: "The Perfect Forward Secrecy setting for IKE phase 2.\n" +
@@ -368,6 +372,14 @@ func (r *vpnVpnTunnelResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error creating vpn tunnel",
+			"Create vpn tunnel returned empty response",
+		)
+		return
+	}
+
 	vpnTunnel := data.VpnTunnel
 	plan.Id = types.StringValue(vpnTunnel.Id)
 	diags = resp.State.Set(ctx, plan)
@@ -407,10 +419,23 @@ func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadReques
 	data, err := r.client.GetVpnTunnel(ctx, state.Id.ValueString())
 
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading vpn tunnel",
 			"Could not read vpn tunnel ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error Reading vpn tunnel",
+			"Get vpn tunnel returned empty response",
 		)
 		return
 	}
@@ -437,7 +462,33 @@ func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	vtObjectValue, diags := types.ObjectValueFrom(ctx, vtModel.AttributeTypes(), vtModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Description = types.StringPointerValue(vt.Description.Get())
+	state.Name = types.StringValue(vt.Name)
+	state.VpnGatewayId = types.StringValue(vt.VpnGatewayId)
 	state.VpnTunnel = vtObjectValue
+
+	state.Phase1 = &vpn.VpnPhase1v1d1Detail{
+		DpdRetryInterval:          vtModel.Phase1.DpdRetryInterval,
+		IkeVersion:                vtModel.Phase1.IkeVersion,
+		PeerGatewayIp:             vtModel.Phase1.PeerGatewayIp,
+		Phase1DiffieHellmanGroups: vtModel.Phase1.DiffieHellmanGroups,
+		Phase1Encryptions:         vtModel.Phase1.Encryptions,
+		Phase1LifeTime:            vtModel.Phase1.LifeTime,
+		PreSharedKey:              types.StringValue(""),
+	}
+
+	state.Phase2 = &vpn.VpnPhase2v1d1Detail{
+		PerfectForwardSecrecy:     vtModel.Phase2.PerfectForwardSecrecy,
+		Phase2DiffieHellmanGroups: vtModel.Phase2.DiffieHellmanGroups,
+		Phase2Encryptions:         vtModel.Phase2.Encryptions,
+		Phase2LifeTime:            vtModel.Phase2.LifeTime,
+		RemoteSubnets:             vtModel.Phase2.RemoteSubnets,
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -462,7 +513,7 @@ func (r *vpnVpnTunnelResource) Update(ctx context.Context, req resource.UpdateRe
 	var nullString types.String
 	changedPlan = plan
 
-	if state.Phase1.PeerGatewayIp.Equal(plan.Phase1.PeerGatewayIp) {
+	if state.Phase1 != nil && plan.Phase1 != nil && state.Phase1.PeerGatewayIp.Equal(plan.Phase1.PeerGatewayIp) {
 		changedPlan.Phase1.PeerGatewayIp = nullString
 	}
 
@@ -540,6 +591,10 @@ func (r *vpnVpnTunnelResource) Delete(ctx context.Context, req resource.DeleteRe
 }
 
 func mapPhase1Detail(phase1 scpvpn.VpnPhase1DetailV1Dot1) vpn.VpnPhase1v1Dot1Detail {
+	// Handle empty/zero-value Phase1
+	if phase1.PeerGatewayIp == "" {
+		return vpn.VpnPhase1v1Dot1Detail{}
+	}
 	return vpn.VpnPhase1v1Dot1Detail{
 		DpdRetryInterval:    types.Int32Value(phase1.DpdRetryInterval),
 		IkeVersion:          types.Int32Value(phase1.IkeVersion),
@@ -551,6 +606,10 @@ func mapPhase1Detail(phase1 scpvpn.VpnPhase1DetailV1Dot1) vpn.VpnPhase1v1Dot1Det
 }
 
 func mapPhase2Detail(phase2 scpvpn.VpnPhase2DetailV1Dot1) vpn.VpnPhase2v1Dot1Detail {
+	// Handle empty/zero-value Phase2
+	if phase2.PerfectForwardSecrecy == "" {
+		return vpn.VpnPhase2v1Dot1Detail{}
+	}
 	return vpn.VpnPhase2v1Dot1Detail{
 		DiffieHellmanGroups:   convertToTypesInt32Slice(phase2.DiffieHellmanGroups),
 		Encryptions:           convertToTypesStringSlice(phase2.Encryptions),
@@ -584,4 +643,9 @@ func waitForVpnTunnelStatus(ctx context.Context, vpnClient *vpn.Client, id strin
 		}
 		return info, string(info.VpnTunnel.State), nil
 	}, -1, -1, -1, -1)
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *vpnVpnTunnelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+  resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

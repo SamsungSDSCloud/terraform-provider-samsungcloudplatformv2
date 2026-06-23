@@ -43,32 +43,44 @@ func (d *loadbalancerLbMemberDataSources) Schema(_ context.Context, _ datasource
 		Description: "Get List of Lb Members.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "The number of items per page.",
-				Optional:    true,
+				Description: "The number of items per page.\n" +
+					"  - example : 20\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "The page number.",
-				Optional:    true,
+				Description: "The page number.\n" +
+					"  - example : 0\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "The sort order.",
-				Optional:    true,
+				Description: "The sort order.\n" +
+					"  - example : name:asc\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "The name of the LB Member (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
-				Optional:    true,
+				Description: "The name of the LB Member.\n" +
+					"  - example : Member01\n" +
+					"  - minLength : 1\n" +
+					"  - maxLength : 63\n" +
+					"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("MemberIp"): schema.StringAttribute{
-				Description: "The IP address of the member (valid IPv4 or IPv6 format).",
-				Optional:    true,
+				Description: "The IP address of the member.\n" +
+					"  - example : 192.168.1.100\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("MemberPort"): schema.Int32Attribute{
-				Description: "The port number of the member (1-65534).",
-				Optional:    true,
+				Description: "The port number of the member.\n" +
+					"  - example : 8080\n" +
+					"  - minimum : 1\n" +
+					"  - maximum : 65534\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LbServerGroupId"): schema.StringAttribute{
-				Description: "The LB Server Group ID.",
-				Optional:    true,
+				Description: "The LB Server Group ID.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LbMembers"): schema.ListNestedAttribute{
 				Description: "List of LB Members.",
@@ -76,64 +88,90 @@ func (d *loadbalancerLbMemberDataSources) Schema(_ context.Context, _ datasource
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "The unique identifier of the LB Member.",
-							Optional:    true,
+							Description: "The unique identifier of the LB Member.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("LbServerGroupId"): schema.StringAttribute{
-							Description: "The LB Server Group ID.",
-							Optional:    true,
+							Description: "The LB Server Group ID.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "The name of the LB Member (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
-							Optional:    true,
+							Description: "The name of the LB Member.\n" +
+								"  - example : Member01\n" +
+								"  - minLength : 1\n" +
+								"  - maxLength : 63\n" +
+								"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("MemberIp"): schema.StringAttribute{
-							Description: "The IP address of the member (valid IPv4 or IPv6 format).",
-							Optional:    true,
+							Description: "The IP address of the member.\n" +
+								"  - example : 192.168.1.100\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("MemberPort"): schema.Int32Attribute{
-							Description: "The port number of the member (1-65534).",
-							Optional:    true,
+							Description: "The port number of the member.\n" +
+								"  - example : 8080\n" +
+								"  - minimum : 1\n" +
+								"  - maximum : 65534\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("MemberState"): schema.StringAttribute{
-							Description: "The state of the member (ENABLE, DISABLE).",
-							Optional:    true,
+							Description: "The state of the member.\n" +
+								"  - example : ENABLE\n" +
+								"  - pattern : ENABLE | DISABLE\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("MemberWeight"): schema.Int32Attribute{
-							Description: "The weight of the member (1-1000).",
-							Optional:    true,
+							Description: "The weight of the member.\n" +
+								"  - example : 100\n" +
+								"  - minimum : 1\n" +
+								"  - maximum : 1000\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "The current state of the LB Member (CREATING, ACTIVE, DELETING, EDITING, ERROR).",
-							Optional:    true,
+							Description: "The current state of the LB Member.\n" +
+								"  - example : ACTIVE\n" +
+								"  - pattern : CREATING | ACTIVE | DELETING | EDITING | ERROR\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("HealthState"): schema.StringAttribute{
-							Description: "The health state of the member (HEALTHY, UNHEALTHY, UNKNOWN).",
-							Optional:    true,
+							Description: "The health state of the member.\n" +
+								"  - example : HEALTHY\n" +
+								"  - pattern : HEALTHY | UNHEALTHY | UNKNOWN\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("ObjectId"): schema.StringAttribute{
-							Description: "The object ID.",
-							Optional:    true,
+							Description: "The object ID.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-							Description: "The object type (VM, BM, MANUAL, MNGC).",
-							Optional:    true,
+							Description: "The object type.\n" +
+								"  - example : VM\n" +
+								"  - pattern : VM | BM | MANUAL | MNGC\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "The timestamp when the resource was created, in ISO 8601 format.",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "The user id that created the resource.",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "The user id that last modified the resource.",
-							Computed:    true,
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 					},
 				},

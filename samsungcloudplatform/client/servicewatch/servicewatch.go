@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
+	servicewatch "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -344,9 +344,9 @@ func convertWidgets(widgets types.List) []servicewatch.WidgetDTO {
 		properties := convertProperties(v.Properties)
 		widgetList[i] = servicewatch.WidgetDTO{
 			Type:       v.Type.ValueString(),
-			Width:      v.Width.ValueInt32(),
-			Height:     v.Height.ValueInt32(),
-			Order:      v.Order.ValueInt32(),
+			Width:      nullableInt32Value(v.Width),
+			Height:     nullableInt32Value(v.Height),
+			Order:      nullableInt32Value(v.Order),
 			Properties: properties,
 		}
 	}
@@ -363,7 +363,7 @@ func convertProperties(property types.Object) servicewatch.PropertiesDTO {
 
 	return servicewatch.PropertiesDTO{
 		Title:         p.Title.ValueString(),
-		Stacked:       p.Stacked.ValueBool(),
+		Stacked:       nullableBoolValue(p.Stacked),
 		View:          p.View.ValueString(),
 		Metrics:       convertMetrics(p.Metrics),
 		Period:        nullableInt32(p.Period),
@@ -470,6 +470,20 @@ func nullableInt32(v types.Int32) servicewatch.NullableInt32 {
 	}
 	val := v.ValueInt32()
 	return *servicewatch.NewNullableInt32(&val)
+}
+
+func nullableInt32Value(v types.Int32) int32 {
+	if v.IsNull() || v.IsUnknown() {
+		return 0
+	}
+	return v.ValueInt32()
+}
+
+func nullableBoolValue(v types.Bool) bool {
+	if v.IsNull() || v.IsUnknown() {
+		return false
+	}
+	return v.ValueBool()
 }
 
 func nullableString(v types.String) servicewatch.NullableString {

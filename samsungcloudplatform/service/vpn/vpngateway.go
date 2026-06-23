@@ -3,25 +3,28 @@ package vpn
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpn"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scpvpn "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpn/1.1"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
 	_ resource.Resource              = &vpnVpnGatewayResource{}
 	_ resource.ResourceWithConfigure = &vpnVpnGatewayResource{}
+	_ resource.ResourceWithImportState = &vpnVpnGatewayResource{}
 )
 
 // NewVpnVpnGatewayResource is a helper function to simplify the provider implementation.
@@ -64,17 +67,20 @@ func (r *vpnVpnGatewayResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "The IP address assigned to the resource.\n" +
 					"  - example: 10.0.0.0/24",
 				Required: true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("IpId"): schema.StringAttribute{
 				Description: "The identifier of the IP address assigned to the resource.\n" +
 					"  - example: bd07e102fe574edf8a1748957c45bdbf",
 				Required: true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("IpType"): schema.StringAttribute{
 				Description: "The type of the IP address assigned to the resource.\n" +
 					"  - example: PUBLIC\n" +
 					"  - valid: PUBLIC",
 				Required: true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "The name of the resource.\n" +
@@ -87,6 +93,7 @@ func (r *vpnVpnGatewayResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "The identifier of the VPC that the resource belongs to.\n" +
 					"  - example: f32265726b694b32920aa3b111f4c715",
 				Required: true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("VpnGateway"): schema.SingleNestedAttribute{
 				Description: "The identifier of the VPN gateway that the resource belongs to.\n" +
@@ -211,6 +218,14 @@ func (r *vpnVpnGatewayResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error creating vpn gateway",
+			"Create vpn gateway returned empty response",
+		)
+		return
+	}
+
 	vpnGateway := data.VpnGateway
 	plan.Id = types.StringValue(vpnGateway.Id)
 	diags = resp.State.Set(ctx, plan)
@@ -248,6 +263,11 @@ func (r *vpnVpnGatewayResource) Read(ctx context.Context, req resource.ReadReque
 	// Get refreshed order value from port
 	data, err := r.client.GetVpnGateway(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading vpn gateway",
@@ -256,9 +276,29 @@ func (r *vpnVpnGatewayResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error Reading vpn gateway",
+			"Get vpn gateway returned empty response",
+		)
+		return
+	}
+
 	vgModel := createVpnGatewayModel(data)
+	vg := data.VpnGateway
 
 	vgObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Description = types.StringPointerValue(vg.Description.Get())
+	state.IpAddress = types.StringValue(vg.IpAddress)
+	state.IpId = types.StringValue(vg.IpId)
+	state.IpType = types.StringValue(vg.IpType)
+	state.Name = types.StringValue(vg.Name)
+	state.VpcId = types.StringValue(vg.VpcId)
 	state.VpnGateway = vgObjectValue
 
 	// Set refreshed state
@@ -300,9 +340,29 @@ func (r *vpnVpnGatewayResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error Reading vpn gateway",
+			"Get vpn gateway returned empty response",
+		)
+		return
+	}
+
 	vgModel := createVpnGatewayModel(data)
+	vg := data.VpnGateway
 
 	vgObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Description = types.StringPointerValue(vg.Description.Get())
+	state.IpAddress = types.StringValue(vg.IpAddress)
+	state.IpId = types.StringValue(vg.IpId)
+	state.IpType = types.StringValue(vg.IpType)
+	state.Name = types.StringValue(vg.Name)
+	state.VpcId = types.StringValue(vg.VpcId)
 	state.VpnGateway = vgObjectValue
 
 	diags = resp.State.Set(ctx, state)
@@ -371,4 +431,9 @@ func waitForVpnGatewayStatus(ctx context.Context, vpnClient *vpn.Client, id stri
 		}
 		return info, string(info.VpnGateway.State), nil
 	}, -1, -1, -1, -1)
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *vpnVpnGatewayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+  resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

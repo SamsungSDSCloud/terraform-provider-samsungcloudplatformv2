@@ -45,81 +45,105 @@ func (d *loadbalancerLoadbalancerDataSource) Schema(_ context.Context, _ datasou
 		Description: "Show Loadbalancer.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "The unique identifier of the LoadBalancer.",
-				Optional:    true,
+				Description: "The unique identifier of the LoadBalancer.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("loadbalancer"): schema.SingleNestedAttribute{
 				Description: "Details of the LoadBalancer.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "The account ID associated with the resource.",
-						Optional:    true,
+						Description: "The account ID associated with the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was created, in ISO 8601 format.",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "The user id that created the resource.",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : LoadBalancer for web traffic\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-						Description: "Firewall ID",
-						Optional:    true,
+						Description: "The firewall ID associated with the LoadBalancer.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("HealthCheckIp"): schema.ListAttribute{
-						Description: "Health check IP",
+						Description: "The list of health check IP addresses.\n" +
+							"  - example : [\"192.168.1.1\", \"192.168.1.2\"]\n",
 						ElementType: types.StringType,
 						Optional:    true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "The unique identifier.",
-						Computed:    true,
+						Description: "The unique identifier.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LayerType"): schema.StringAttribute{
-						Description: "The layer type of the Load Balancer (L4, L7).",
-						Optional:    true,
+						Description: "The layer type of the Load Balancer.\n" +
+							"  - example : L7\n" +
+							"  - pattern : L4 | L7\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "The user id that last modified the resource.",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
-						Optional:    true,
+						Description: "The name of the LoadBalancer.\n" +
+							"  - example : LoadBalancer01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n" +
+							"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("PublicNatEnabled"): schema.BoolAttribute{
-						Description: "Public NAT Enabled",
-						Optional:    true,
+						Description: "Whether public NAT is enabled.\n" +
+							"  - example : true\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ServiceIp"): schema.StringAttribute{
-						Description: "Service IP",
-						Optional:    true,
+						Description: "The service IP address of the LoadBalancer.\n" +
+							"  - example : 192.168.1.100\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SourceNatIp"): schema.StringAttribute{
-						Description: "Source NAT IP",
-						Optional:    true,
+						Description: "The source NAT IP address.\n" +
+							"  - example : 192.168.1.101\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "The current state of the Load Balancer (CREATING, ACTIVE, DELETING, ERROR).",
-						Optional:    true,
+						Description: "The current state of the Load Balancer.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "Subnet ID",
-						Optional:    true,
+						Description: "The subnet ID where the LoadBalancer is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "The VPC ID where the LoadBalancer is located.",
-						Optional:    true,
+						Description: "The VPC ID where the LoadBalancer is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 				},
 			},

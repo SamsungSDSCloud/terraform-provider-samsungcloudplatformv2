@@ -4,8 +4,10 @@ import (
 	"context"
 
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/eventstreams/1.1"
+	eventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/eventstreams/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
 )
 
 type Client struct {
@@ -83,9 +85,13 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 
 	// InstanceGroups
 	var convertedInstanceGroups []eventstreams.InstanceGroupRequest
-	for _, instanceGroup := range request.InstanceGroups {
+	var igVals []database.InstanceGroup
+	request.InstanceGroups.ElementsAs(context.Background(), &igVals, false)
+	for _, instanceGroup := range igVals {
 		var convertedBlockStorage []eventstreams.BlockStorageGroupRequest
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
+		var bsVals []database.BlockStorageGroup
+		instanceGroup.BlockStorageGroups.ElementsAs(context.Background(), &bsVals, false)
+		for _, blockStorage := range bsVals {
 			convertedBlockStorage = append(convertedBlockStorage, eventstreams.BlockStorageGroupRequest{
 				RoleType:   eventstreams.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
@@ -94,7 +100,9 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		}
 
 		var convertedInstance []eventstreams.InstanceRequest
-		for _, instance := range instanceGroup.Instances {
+		var instVals []database.Instance
+		instanceGroup.Instances.ElementsAs(context.Background(), &instVals, false)
+		for _, instance := range instVals {
 			convertedInstance = append(convertedInstance, eventstreams.InstanceRequest{
 				RoleType:         eventstreams.InstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *eventstreams.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
@@ -221,4 +229,57 @@ func (client *Client) AddInstances(ctx context.Context, clusterId string, instan
 	req = req.EventStreamsClusterAddInstancesRequest(*reqState)
 	_, _, err := req.Execute()
 	return err
+}
+
+func MapInstanceGroupResponses(sdkResp []eventstreams.InstanceGroupResponse) []database.InstanceGroupResponse {
+	if sdkResp == nil {
+		return nil
+	}
+
+	result := make([]database.InstanceGroupResponse, len(sdkResp))
+	for i, ig := range sdkResp {
+		bsGroups := make([]database.BlockStorageGroupResponse, len(ig.BlockStorageGroups))
+		for j, bs := range ig.BlockStorageGroups {
+			bsGroups[j] = database.BlockStorageGroupResponse{
+				Id:         bs.Id,
+				Name:       bs.Name,
+				RoleType:   string(bs.RoleType),
+				SizeGb:     bs.SizeGb,
+				VolumeType: string(bs.VolumeType),
+			}
+		}
+
+		instances := make([]database.InstanceResponse, len(ig.Instances))
+		for j, it := range ig.Instances {
+			var pubIP, serviceIP, pubIPAddr string
+			if it.ServiceIpAddress.Get() != nil {
+				serviceIP = *it.ServiceIpAddress.Get()
+			}
+			if it.PublicIpId.Get() != nil {
+				pubIP = *it.PublicIpId.Get()
+			}
+			if it.PublicIpAddress.Get() != nil {
+				pubIPAddr = *it.PublicIpAddress.Get()
+			}
+
+			instances[j] = database.InstanceResponse{
+				Name:             it.Name,
+				PublicIpAddress:  pubIPAddr,
+				PublicIpId:       pubIP,
+				RoleType:         string(it.RoleType),
+				ServiceIpAddress: serviceIP,
+				ServiceState:     string(it.ServiceState),
+			}
+		}
+
+		result[i] = database.InstanceGroupResponse{
+			BlockStorageGroups: bsGroups,
+			Id:                 ig.Id,
+			Instances:          instances,
+			RoleType:           string(ig.RoleType),
+			ServerTypeName:     ig.ServerTypeName,
+		}
+	}
+
+	return result
 }

@@ -313,6 +313,7 @@ func convertWidget(ctx context.Context, widgetResponses []servicewatch2.WidgetDe
 			return types.ListNull(types.ObjectType{AttrTypes: servicewatch.Widget{}.AttributeTypes()}), diags
 		}
 		items = append(items, servicewatch.Widget{
+			Id:         types.StringValue(v.Id),
 			Type:       types.StringValue(v.Type),
 			Width:      types.Int32Value(v.Width),
 			Height:     types.Int32Value(v.Height),

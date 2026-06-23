@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,6 +36,11 @@ type certificateManagerSelfSignResource struct {
 }
 
 func (r *certificateManagerSelfSignResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+	// This is a no-op implementation
+	response.Diagnostics.AddError(
+		"Update not supported",
+		"This resource does not support in-place updates.",
+	)
 }
 
 // Metadata returns the data source type name.
@@ -59,26 +65,41 @@ func (r *certificateManagerSelfSignResource) Schema(_ context.Context, _ resourc
 				Description: "Certificate Common Name.\n" +
 					"  - example : 'test.go.kr'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "Certificate Name.\n" +
 					"  - example : 'test-certificate'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
 				Description: "Certificate Expire Date.\n" +
 					"  - example : '20251212'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
 				Description: "Certificate Start Date.\n" +
 					"  - example : '20250101'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Organization"): schema.StringAttribute{
 				Description: "Certificate Organization Name.\n" +
 					"  - example : 'samsungSDS'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Recipients"): schema.ListAttribute{
 				Description: "Expired certificates Recipients",
@@ -86,16 +107,25 @@ func (r *certificateManagerSelfSignResource) Schema(_ context.Context, _ resourc
 					ElemType: types.StringType,
 				},
 				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Region"): schema.StringAttribute{
 				Description: "Name of region.\n" +
 					"  - example : 'west1'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Timezone"): schema.StringAttribute{
 				Description: "Timezone indentifier.\n" +
 					"  - example : 'Asia/Seoul'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Certificate"): schema.SingleNestedAttribute{
 				Description: "Certificate detail",
@@ -183,7 +213,7 @@ func (r *certificateManagerSelfSignResource) Create(ctx context.Context, req res
 	if data == nil {
 		resp.Diagnostics.AddError(
 			"Error creating certificate manager self sign",
-			"An error occurred while creating certificate manager self sign. No response",
+			"An error occurred while creating certificate manager self sign. Empty response",
 		)
 		return
 	}
@@ -199,7 +229,12 @@ func (r *certificateManagerSelfSignResource) Create(ctx context.Context, req res
 		State:       types.StringValue(data.Certificate.State),
 	}
 
-	certificateObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	certificateObjectValue, dia := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	resp.Diagnostics.Append(dia...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	plan.Certificate = certificateObjectValue
 
 	diags = resp.State.Set(ctx, plan)
@@ -239,6 +274,13 @@ func (r *certificateManagerSelfSignResource) Read(ctx context.Context, req resou
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error Reading certificate manager",
+			"An error occurred while reading certificate manager. Empty response",
+		)
+		return
+	}
 
 	vgModel := certificatemanager.Certificate{
 		Id:          types.StringValue(data.Certificate.Id),
@@ -250,14 +292,23 @@ func (r *certificateManagerSelfSignResource) Read(ctx context.Context, req resou
 		State:       types.StringValue(data.Certificate.State),
 	}
 
-	vgObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	vgObjectValue, dia := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	resp.Diagnostics.Append(dia...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	state.Certificate = vgObjectValue
 
-	// Update top-level input fields from API response for drift detection
+	// Update top-level input fields from API response for drift detection.
+	// region/timezone are not returned by the API
 	state.Cn = types.StringValue(data.Certificate.Cn)
 	state.Name = types.StringValue(data.Certificate.Name)
 	state.NotBeforeDt = types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339))
 	state.NotAfterDt = types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339))
+	state.Organization = types.StringValue(data.Certificate.Organization)
+
+	// Region and Timezone are not included in the API response — retain the input values.
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -282,15 +333,6 @@ func (r *certificateManagerSelfSignResource) Delete(ctx context.Context, req res
 		resp.Diagnostics.AddError(
 			"Error Deleting certificate manager",
 			"Could not delete certificate manager, unexpected error: "+err.Error()+"\nReason: "+detail,
-		)
-		return
-	}
-
-	err = waitForCertificateManagerStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"DELETED"})
-	if err != nil && !strings.Contains(err.Error(), "404") {
-		resp.Diagnostics.AddError(
-			"Error deleting certificate manager",
-			"Error waiting for certificate manager to become deleted: "+err.Error(),
 		)
 		return
 	}

@@ -36,6 +36,7 @@ variable "id" {
 ### Optional
 
 - `id` (String) The unique identifier of the LB Listener.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -46,46 +47,78 @@ variable "id" {
 
 Optional:
 
-- `condition_type` (String) The condition type for routing. 'URL_PATH' or 'HOST_HEADER' for URL handler, 'PROTOCOL_PORT' for HTTPS redirection. Only for L7 protocols. Cannot be modified when changing url_handler.
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
-- `description` (String) Enter a brief explanation or note about this resource (max 255 characters). This helps identify the purpose or usage of the resource.
-- `hsts_max_age` (Number) HSTS max age in seconds.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : LB Listener for web traffic
+  - maxLength : 255
 - `https_redirection` (Attributes) HTTPS redirection configuration. Only for HTTP protocol listeners. (see [below for nested schema](#nestedatt--lb_listener--https_redirection))
-- `idle_timeout` (Number) The idle timeout in seconds (60-3600, in 60-second increments). Only applicable for L7 protocols (HTTP, HTTPS).
+- `idle_timeout` (Number) The idle timeout in seconds. Only for L7 protocols (HTTP/HTTPS).
+  - example : 60
+  - minimum : 1
+  - maximum : 120
 - `insert_client_ip` (Boolean) Whether to insert client IP in the header using Proxy Protocol v1.
+  - example : true
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the listener.
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
-- `name` (String) The name of the LB Listener (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
-- `persistence` (String) Session persistence configuration (e.g., 'source-ip', 'cookie').
-- `protocol` (String) The protocol used for the listener (TCP, UDP, HTTP, HTTPS, TLS, TCP_PROXY).
-- `response_timeout` (Number) The response timeout in seconds (1-120). Only for L7 protocols (HTTP/HTTPS). Cannot be used with idle_timeout.
-- `routing_action` (String) The routing action type. 'LB_SERVER_GROUP' for URL handler routing, 'URL_REDIRECT' for HTTPS/URL redirection. Required for L4 protocols. Set only during creation.
-- `server_group_id` (String) The ID of the server group associated with the listener. Required for TCP, UDP, and TLS protocols. This field is optional.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the LB Listener.
+  - example : Listener01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `persistence` (String) Session persistence configuration.
+  - example : source-ip
+  - pattern : source-ip | cookie
+- `protocol` (String) The protocol used for the listener.
+  - example : HTTP
+  - pattern : TCP | UDP | HTTP | HTTPS | TLS | TCP_PROXY
+- `response_timeout` (Number) The response timeout in seconds. Only for L7 protocols (HTTP/HTTPS).
+  - example : 30
+  - minimum : 1
+  - maximum : 120
+- `server_group_id` (String) The ID of the server group associated with the listener.
+  - example: YOUR RESOURCE'S SERVER_GROUP_ID
 - `server_group_name` (String) The server group name for the listener.
+  - example : ServerGroup01
 - `service_port` (Number) The service port number for the listener.
-- `session_duration_time` (Number) The session duration time in seconds. Required for L4 protocols (TCP/UDP). L7: 1-120, TCP/TLS: 60-3600 (60-second increments), UDP: 60-180 (60-second increments). Cannot be used with idle_timeout for L7.
+  - example : 80
+  - minimum : 1
+  - maximum : 65535
+- `session_duration_time` (Number) The session duration time in seconds.
+  - example : 3600
+  - minimum : 1
+  - maximum : 3600
 - `sni_certificate` (Attributes List) SNI certificate configuration for multiple domains. (see [below for nested schema](#nestedatt--lb_listener--sni_certificate))
 - `ssl_certificate` (Attributes) SSL certificate configuration for the listener. (see [below for nested schema](#nestedatt--lb_listener--ssl_certificate))
-- `url_handler` (Attributes List) URL handler configuration for routing (max 20 entries). Only for L7 protocols (HTTP/HTTPS). Requires at least one default rule (seq=0, url_pattern='default'). (see [below for nested schema](#nestedatt--lb_listener--url_handler))
-- `url_redirection` (String) URL redirection configuration (max 8 entries).
-- `x_forwarded_for` (Boolean) X-Forwarded-For header configuration.
-- `x_forwarded_port` (Boolean) X-Forwarded-Port header configuration.
-- `x_forwarded_proto` (Boolean) X-Forwarded-Proto header configuration.
+- `url_handler` (Attributes List) URL handler configuration for routing. Only for L7 protocols (HTTP/HTTPS). (see [below for nested schema](#nestedatt--lb_listener--url_handler))
 
 Read-Only:
 
 - `id` (String) The unique identifier.
-- `state` (String) The current state of the LB Listener (CREATING, ACTIVE, DELETING, ERROR).
+  - example: YOUR RESOURCE'S ID
+- `state` (String) The current state of the LB Listener.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
 
 <a id="nestedatt--lb_listener--https_redirection"></a>
 ### Nested Schema for `lb_listener.https_redirection`
 
 Optional:
 
-- `port` (String) The port number to redirect to (1-65534).
-- `protocol` (String) The protocol to redirect to. Must be 'HTTPS'.
-- `response_code` (String) The HTTP response code for redirection. Must be '301'.
+- `port` (String) The port number to redirect to.
+  - example : 443
+  - minimum : 1
+  - maximum : 65534
+- `protocol` (String) The protocol to redirect to.
+  - example : HTTPS
+- `response_code` (String) The HTTP response code for redirection.
+  - example : 301
 
 
 <a id="nestedatt--lb_listener--sni_certificate"></a>
@@ -93,9 +126,14 @@ Optional:
 
 Optional:
 
-- `domain_name` (String) The domain name for SNI certificate (1-63 characters, alphanumeric with dots and hyphens, must start and end with alphanumeric). Must be unique within the listener.
-- `not_after_dt` (String) The expiration date and time of the certificate (e.g., '2024-12-31T23:59:59Z'). Read-only.
+- `domain_name` (String) The domain name for SNI certificate.
+  - example : example.com
+  - minLength : 1
+  - maxLength : 63
+- `not_after_dt` (String) The expiration date and time of the certificate.
+  - example : 2024-12-31T23:59:59Z
 - `sni_cert_id` (String) The SNI certificate ID.
+  - example: YOUR RESOURCE'S SNI_CERT_ID
 
 
 <a id="nestedatt--lb_listener--ssl_certificate"></a>
@@ -104,8 +142,13 @@ Optional:
 Optional:
 
 - `client_cert_id` (String) The client certificate ID.
-- `client_cert_level` (String) The client certificate validation level (LOW, NORMAL, HIGH).
-- `server_cert_level` (String) The server certificate validation level (LOW, NORMAL, HIGH).
+  - example: YOUR RESOURCE'S CLIENT_CERT_ID
+- `client_cert_level` (String) The client certificate validation level.
+  - example : NORMAL
+  - pattern : LOW | NORMAL | HIGH
+- `server_cert_level` (String) The server certificate validation level.
+  - example : NORMAL
+  - pattern : LOW | NORMAL | HIGH
 
 
 <a id="nestedatt--lb_listener--url_handler"></a>
@@ -113,6 +156,11 @@ Optional:
 
 Optional:
 
-- `seq` (Number) The sequence number for routing priority. 0 is reserved for default rule. Example: 1, 2, 3...
-- `server_group_id` (String) The ID of the server group to route traffic to when the URL pattern matches. Required in url_handler.
-- `url_pattern` (String) The URL pattern for routing (1-63 characters). For URL_PATH condition: alphanumeric with /_-., for HOST_HEADER condition: alphanumeric with .-. Example: '/api/v1' or 'example.com'.
+- `seq` (Number) The sequence number for routing priority. 0 is reserved for default rule.
+  - example : 1
+- `server_group_id` (String) The ID of the server group to route traffic to.
+  - example: YOUR RESOURCE'S SERVER_GROUP_ID
+- `url_pattern` (String) The URL pattern for routing.
+  - example : /api/v1
+  - minLength : 1
+  - maxLength : 63

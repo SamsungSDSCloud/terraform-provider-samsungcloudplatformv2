@@ -195,6 +195,10 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 									common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
 										Description: "Public IP ID (Required when NatEnabled=True)",
 										Optional:    true,
+										Computed:    true,
+										PlanModifiers: []planmodifier.String{
+											stringplanmodifier.UseStateForUnknown(),
+										},
 									},
 								},
 							},
@@ -450,37 +454,7 @@ func (r *searchengineClusterResource) MapGetResponseToState(ctx context.Context,
 		DatabaseUserPassword: plan.InitConfigOption.DatabaseUserPassword,
 	}
 
-	var InstanceGroups []searchengine.InstanceGroup
-	for _, instanceGroup := range resp.InstanceGroups {
-		var BlockStorage []searchengine.BlockStorageGroup
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			BlockStorage = append(BlockStorage, searchengine.BlockStorageGroup{
-				Id:         types.StringValue(blockStorage.Id),
-				Name:       types.StringValue(blockStorage.Name),
-				RoleType:   types.StringValue(string(blockStorage.RoleType)),
-				SizeGb:     types.Int32Value(blockStorage.SizeGb),
-				VolumeType: types.StringValue(string(blockStorage.VolumeType)),
-			})
-		}
-
-		var Instance []searchengine.Instance
-		for _, instance := range instanceGroup.Instances {
-			Instance = append(Instance, searchengine.Instance{
-				Name:             types.StringValue(instance.Name),
-				RoleType:         types.StringValue(string(instance.RoleType)),
-				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
-				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-			})
-		}
-
-		InstanceGroups = append(InstanceGroups, searchengine.InstanceGroup{
-			Id:                 types.StringValue(instanceGroup.Id),
-			BlockStorageGroups: BlockStorage,
-			Instances:          Instance,
-			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
-			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
-		})
-	}
+	instanceGroupsList := databaseUtils.MapInstanceGroupsList(ctx, plan.InstanceGroups, searchengine.MapInstanceGroupResponses(resp.InstanceGroups))
 
 	var maintenanceOption = searchengine.MaintenanceOption{}
 	if resp.MaintenanceOption.Get() != nil {
@@ -497,7 +471,7 @@ func (r *searchengineClusterResource) MapGetResponseToState(ctx context.Context,
 		AllowableIpAddresses: allowableIpAddresses,
 		DbaasEngineVersionId: plan.DbaasEngineVersionId,
 		InitConfigOption:     initConfigOption,
-		InstanceGroups:       InstanceGroups,
+		InstanceGroups:       instanceGroupsList,
 		InstanceNamePrefix:   plan.InstanceNamePrefix,
 		IsCombined:           plan.IsCombined,
 		MaintenanceOption:    maintenanceOption,
@@ -835,9 +809,14 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 	req.Plan.Get(ctx, &plan)
 	req.State.Get(ctx, &state)
 
-	for i := 0; i < len(plan.InstanceGroups); i++ {
-		currentInstanceGroup := state.InstanceGroups[i]
-		desiredInstanceGroup := plan.InstanceGroups[i]
+	var planIGs []databaseUtils.InstanceGroup
+	plan.InstanceGroups.ElementsAs(ctx, &planIGs, false)
+	var stateIGs []databaseUtils.InstanceGroup
+	state.InstanceGroups.ElementsAs(ctx, &stateIGs, false)
+
+	for i := 0; i < len(planIGs); i++ {
+		currentInstanceGroup := stateIGs[i]
+		desiredInstanceGroup := planIGs[i]
 
 		instanceGroupFields := []string{"BlockStorageGroups", "Id", "Instances", "RoleType", "ServerTypeName"}
 
@@ -867,11 +846,16 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 
 			// BlockStorageGroups Update
 			if databaseUtils.IsOverlapFields(changedFields, []string{"BlockStorageGroups"}) {
-				if len(currentInstanceGroup.BlockStorageGroups) == len(desiredInstanceGroup.BlockStorageGroups) {
+				var currentBS []databaseUtils.BlockStorageGroup
+				currentInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &currentBS, false)
+				var desiredBS []databaseUtils.BlockStorageGroup
+				desiredInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &desiredBS, false)
+
+				if len(currentBS) == len(desiredBS) {
 					// Resize Block Storage
-					for i := 0; i < len(currentInstanceGroup.BlockStorageGroups); i++ {
-						currentBlockStorage := currentInstanceGroup.BlockStorageGroups[i]
-						desiredBlockStorage := desiredInstanceGroup.BlockStorageGroups[i]
+					for i := 0; i < len(currentBS); i++ {
+						currentBlockStorage := currentBS[i]
+						desiredBlockStorage := desiredBS[i]
 
 						bsFields := []string{"Id", "Name", "RoleType", "SizeGb", "VolumeType"}
 						changedBsFields, err := databaseUtils.GetChangedFields(currentBlockStorage, desiredBlockStorage, bsFields)
@@ -899,7 +883,7 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 					}
 				} else {
 					// Add Block Storage
-					addBlockStorage := desiredInstanceGroup.BlockStorageGroups[len(desiredInstanceGroup.BlockStorageGroups)-1]
+					addBlockStorage := desiredBS[len(desiredBS)-1]
 					err := r.client.AddBlockStorages(ctx, currentInstanceGroup.Id.ValueString(), addBlockStorage.RoleType.ValueString(), addBlockStorage.SizeGb.ValueInt32(), addBlockStorage.VolumeType.ValueString())
 					if err != nil {
 						return err
@@ -919,15 +903,20 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 					return nil
 				}
 
-				currentInstanceLen := len(currentInstanceGroup.Instances)
-				desiredInstanceLen := len(desiredInstanceGroup.Instances)
+				var currentIt []databaseUtils.Instance
+				currentInstanceGroup.Instances.ElementsAs(ctx, &currentIt, false)
+				var desiredIt []databaseUtils.Instance
+				desiredInstanceGroup.Instances.ElementsAs(ctx, &desiredIt, false)
+
+				currentInstanceLen := len(currentIt)
+				desiredInstanceLen := len(desiredIt)
 
 				if desiredInstanceLen > currentInstanceLen {
 					instanceCount := int32(desiredInstanceLen - currentInstanceLen)
 
 					var serviceIPAddresses []string
 
-					for _, instance := range desiredInstanceGroup.Instances[currentInstanceLen:] {
+					for _, instance := range desiredIt[currentInstanceLen:] {
 						if instance.ServiceIpAddress.IsNull() || instance.ServiceIpAddress.IsUnknown() {
 							serviceIPAddresses = []string{}
 							break

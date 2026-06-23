@@ -144,7 +144,12 @@ func (d *certificateManagerDetailDataSource) Read(ctx context.Context, req datas
 		State:       types.StringValue(data.Certificate.State),
 	}
 
-	certificateObjectValue, _ := types.ObjectValueFrom(ctx, certificate.AttributeTypes(), certificate)
+	certificateObjectValue, dia := types.ObjectValueFrom(ctx, certificate.AttributeTypes(), certificate)
+	resp.Diagnostics.Append(dia...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	state.Certificate = certificateObjectValue
 	// Set state
 	diags = resp.State.Set(ctx, &state)

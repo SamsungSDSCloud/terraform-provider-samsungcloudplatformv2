@@ -36,6 +36,7 @@ variable "id" {
 ### Optional
 
 - `id` (String) The unique identifier of the LoadBalancer.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -47,22 +48,45 @@ variable "id" {
 Optional:
 
 - `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
-- `firewall_id` (String) Firewall ID
-- `health_check_ip` (List of String) Health check IP
-- `layer_type` (String) The layer type of the Load Balancer (L4, L7).
-- `name` (String) The name of the LoadBalancer (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
-- `public_nat_enabled` (Boolean) Public NAT Enabled
-- `service_ip` (String) Service IP
-- `source_nat_ip` (String) Source NAT IP
-- `state` (String) The current state of the Load Balancer (CREATING, ACTIVE, DELETING, ERROR).
-- `subnet_id` (String) Subnet ID
+  - example : LoadBalancer for web traffic
+  - maxLength : 255
+- `firewall_id` (String) The firewall ID associated with the LoadBalancer.
+  - example: YOUR RESOURCE'S FIREWALL_ID
+- `health_check_ip` (List of String) The list of health check IP addresses.
+  - example : ["192.168.1.1", "192.168.1.2"]
+- `layer_type` (String) The layer type of the Load Balancer.
+  - example : L7
+  - pattern : L4 | L7
+- `name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `public_nat_enabled` (Boolean) Whether public NAT is enabled.
+  - example : true
+- `service_ip` (String) The service IP address of the LoadBalancer.
+  - example : 192.168.1.100
+- `source_nat_ip` (String) The source NAT IP address.
+  - example : 192.168.1.101
+- `state` (String) The current state of the Load Balancer.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
+- `subnet_id` (String) The subnet ID where the LoadBalancer is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) The VPC ID where the LoadBalancer is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `id` (String) The unique identifier.
+  - example: YOUR RESOURCE'S ID
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

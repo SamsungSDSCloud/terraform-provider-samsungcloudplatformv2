@@ -56,12 +56,22 @@ variable "subnet_id" {
 
 ### Optional
 
-- `name` (String) The name of the LB Health Check (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
+- `name` (String) The name of the LB Health Check.
+  - example : HealthCheck01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
 - `page` (Number) The page number.
-- `protocol` (List of String) The protocol used for the listener (e.g., TCP, HTTP, HTTPS).
+  - example : 0
+- `protocol` (List of String) The protocol used for the health check.
+  - example : HTTP
+  - pattern : TCP | HTTP | HTTPS
 - `size` (Number) The number of items per page.
+  - example : 20
 - `sort` (String) The sort order.
+  - example : name:asc
 - `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 
 ### Read-Only
 
@@ -72,17 +82,34 @@ variable "subnet_id" {
 
 Optional:
 
-- `health_check_type` (String) The type of health check (DEFAULT, CUSTOM).
+- `health_check_type` (String) The type of health check.
+  - example : DEFAULT
+  - pattern : DEFAULT | CUSTOM
 - `id` (String) The unique identifier of the LB Health Check.
+  - example: YOUR RESOURCE'S ID
 - `lb_server_group_count` (Number) The number of LB Server Groups.
-- `name` (String) The name of the LB Health Check (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
-- `protocol` (String) The protocol for health checks (TCP, HTTP, HTTPS).
-- `state` (String) The current state of the Health Check (CREATING, ACTIVE, DELETING, ERROR).
+  - example : 2
+- `name` (String) The name of the LB Health Check.
+  - example : HealthCheck01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol for health checks.
+  - example : HTTP
+  - pattern : TCP | HTTP | HTTPS
+- `state` (String) The current state of the Health Check.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
 - `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 
 Read-Only:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

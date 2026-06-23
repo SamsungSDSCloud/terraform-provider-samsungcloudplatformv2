@@ -419,7 +419,18 @@ func (r *baremetalBaremetalResource) ModifyPlan(ctx context.Context, req resourc
 
 	// create validate start
 	var planServerDetails []baremetal.ServerDetails
-	plan.ServerDetails.ElementsAs(ctx, &planServerDetails, false)
+	diags = plan.ServerDetails.ElementsAs(ctx, &planServerDetails, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(planServerDetails) == 0 {
+		resp.Diagnostics.AddError(
+			"Error reading server details",
+			"Server details should not be empty",
+		)
+	}
 
 	if planServerDetails[0].Id.IsUnknown() {
 		// validate placement group
@@ -467,7 +478,18 @@ func (r *baremetalBaremetalResource) ModifyPlan(ctx context.Context, req resourc
 	}
 
 	var stateServerDetails []baremetal.ServerDetails
-	state.ServerDetails.ElementsAs(ctx, &stateServerDetails, false)
+	diags = state.ServerDetails.ElementsAs(ctx, &stateServerDetails, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(planServerDetails) == 0 {
+		resp.Diagnostics.AddError(
+			"Error reading server details",
+			"Server details should not be empty",
+		)
+	}
 
 	//validateUpdateValue()
 	changeField := getChangeField(ctx, plan, state)
@@ -533,7 +555,12 @@ func (r *baremetalBaremetalResource) Create(ctx context.Context, req resource.Cr
 
 	// get serverDetail data
 	var serverDetails []baremetal.ServerDetails
-	plan.ServerDetails.ElementsAs(ctx, &serverDetails, false)
+	diags = plan.ServerDetails.ElementsAs(ctx, &serverDetails, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	for idx, baremetalId := range baremetalIdList {
 		// Get refreshed value from Baremetal
 		baremetalShowResponse, _, err := r.client.GetBaremetal(ctx, baremetalId)
@@ -578,7 +605,18 @@ func (r *baremetalBaremetalResource) Read(ctx context.Context, req resource.Read
 	}
 
 	var requestServerDetails []baremetal.ServerDetails
-	state.ServerDetails.ElementsAs(ctx, &requestServerDetails, false)
+	diags = state.ServerDetails.ElementsAs(ctx, &requestServerDetails, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(requestServerDetails) == 0 {
+		resp.Diagnostics.AddError(
+			"Error reading server details",
+			"Server details should not be empty",
+		)
+	}
 
 	baremetalId := requestServerDetails[0].Id.ValueString()
 	// Get refreshed value from Baremetal
@@ -619,8 +657,14 @@ func (r *baremetalBaremetalResource) Read(ctx context.Context, req resource.Read
 	serverDetails := make([]baremetal.ServerDetails, len(baremetalIds))
 	for idx, baremetalId := range baremetalIds {
 		// Get refreshed value from Baremetal
-		baremetalShowResponse, _, err := r.client.GetBaremetal(ctx, baremetalId)
+		baremetalShowResponse, httpResponse, err := r.client.GetBaremetal(ctx, baremetalId)
 		if err != nil {
+			if httpResponse != nil {
+				if httpResponse.StatusCode == http.StatusNotFound {
+					resp.State.RemoveResource(ctx)
+					return
+				}
+			}
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
 				"Error Reading Baremetal",
@@ -663,8 +707,17 @@ func (r *baremetalBaremetalResource) Update(ctx context.Context, req resource.Up
 	}
 
 	var planServerDetails, stateServerDetails []baremetal.ServerDetails
-	plan.ServerDetails.ElementsAs(ctx, &planServerDetails, false)
-	state.ServerDetails.ElementsAs(ctx, &stateServerDetails, false)
+	diags = plan.ServerDetails.ElementsAs(ctx, &planServerDetails, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	diags = state.ServerDetails.ElementsAs(ctx, &stateServerDetails, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	if len(planServerDetails) != len(stateServerDetails) {
 		resp.Diagnostics.AddError("Error updating Baremetal", "Cannot add or delete serverDetail value.")
@@ -804,7 +857,11 @@ func (r *baremetalBaremetalResource) Delete(ctx context.Context, req resource.De
 	}
 
 	var serverDetails []baremetal.ServerDetails
-	state.ServerDetails.ElementsAs(ctx, &serverDetails, false)
+	diags = state.ServerDetails.ElementsAs(ctx, &serverDetails, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	baremetalIds := make([]string, 0)
 	for _, serverDetail := range serverDetails {

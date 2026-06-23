@@ -35,6 +35,7 @@ variable "id" {
 ### Optional
 
 - `id` (String) The unique identifier of the LB Server Group.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -46,20 +47,42 @@ variable "id" {
 Optional:
 
 - `account_id` (String) The account ID associated with the resource.
-- `description` (String) Enter a brief explanation or note about this resource (max 255 characters). This helps identify the purpose or usage of the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Server group for web servers
+  - maxLength : 255
 - `lb_health_check_id` (String) The LB Health Check ID.
-- `lb_method` (String) The load balancing method (ROUND_ROBIN, LEAST_CONNECTION, IP_HASH, WEIGHTED_ROUND_ROBIN, WEIGHTED_LEAST_CONNECTION).
+  - example: YOUR RESOURCE'S LB_HEALTH_CHECK_ID
+- `lb_method` (String) The load balancing method.
+  - example : ROUND_ROBIN
+  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION
 - `lb_name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
 - `loadbalancer_id` (String) The LoadBalancer ID associated with the server group.
-- `name` (String) The name of the LB Server Group (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).
-- `protocol` (String) The protocol for the server group (TCP, UDP).
-- `state` (String) The current state of the LB Server Group (CREATING, ACTIVE, DELETING, ERROR, EDITING).
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
+- `name` (String) The name of the LB Server Group.
+  - example : ServerGroup01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol for the server group.
+  - example : TCP
+  - pattern : TCP | UDP
+- `state` (String) The current state of the LB Server Group.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING
 - `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

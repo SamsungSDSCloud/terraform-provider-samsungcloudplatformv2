@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	"strings"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -20,8 +23,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &loadbalancerLoadbalancerResource{}
-	_ resource.ResourceWithConfigure = &loadbalancerLoadbalancerResource{}
+	_ resource.Resource                = &loadbalancerLoadbalancerResource{}
+	_ resource.ResourceWithConfigure   = &loadbalancerLoadbalancerResource{}
+	_ resource.ResourceWithImportState = &loadbalancerLoadbalancerResource{}
 )
 
 // NewLoadBalancerLoadBalancerResource is a helper function to simplify the provider implementation.
@@ -215,6 +219,10 @@ func (r *loadbalancerLoadbalancerResource) Configure(_ context.Context, req reso
 	r.client = inst.Client.LoadBalancer
 }
 
+func (r *loadbalancerLoadbalancerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLoadbalancerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
@@ -237,6 +245,14 @@ func (r *loadbalancerLoadbalancerResource) Create(ctx context.Context, req resou
 	}
 
 	plan.Id = types.StringValue(data.Loadbalancer.Id)
+
+	if err := waitForLoadbalancerStatus(ctx, r.client, data.Loadbalancer.Id, []string{}, []string{"ACTIVE"}); err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating Loadbalancer",
+			"Error waiting for Loadbalancer to become active: "+err.Error(),
+		)
+		return
+	}
 
 	// Map response body to schema and populate Computed attribute values
 	loadbalancerModel := createLoadbalancerModel(data)
@@ -264,6 +280,10 @@ func (r *loadbalancerLoadbalancerResource) Read(ctx context.Context, req resourc
 	// Get refreshed order value from Loadbalancer
 	data, err := r.client.GetLoadbalancer(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error reading Loadbalancer",
@@ -276,6 +296,16 @@ func (r *loadbalancerLoadbalancerResource) Read(ctx context.Context, req resourc
 
 	loadbalancerObjectValue, diags := types.ObjectValueFrom(ctx, loadbalancerModel.AttributeTypes(), loadbalancerModel)
 	state.Loadbalancer = loadbalancerObjectValue
+
+	// Reconcile loadbalancer_create input block with API response to detect drift
+	// Only populate if nil (e.g., after import) — preserve user config values otherwise
+	if state.LoadbalancerCreate == nil {
+		state.LoadbalancerCreate = &loadbalancer.LoadbalancerCreate{
+			Name:        types.StringValue(data.Loadbalancer.Name),
+			Description: virtualserverutil.ToNullableStringValue(data.Loadbalancer.Description.Get()),
+			LayerType:   types.StringValue(data.Loadbalancer.LayerType),
+		}
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -383,6 +413,16 @@ func createLoadbalancerModelForRead(data *scploadbalancer.LoadbalancerShowRespon
 		SubnetId:    types.StringValue(data.Loadbalancer.SubnetId),
 		VpcId:       types.StringValue(data.Loadbalancer.VpcId),
 	}
+}
+
+func waitForLoadbalancerStatus(ctx context.Context, loadbalancerClient *loadbalancer.Client, id string, pendingStates []string, targetStates []string) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, err := loadbalancerClient.GetLoadbalancer(ctx, id)
+		if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.Loadbalancer.State), nil
+	}, -1, -1, -1, -1)
 }
 
 func showLoadbalancerModel(data *scploadbalancer.LoadbalancerShowResponse) loadbalancer.LoadbalancerDetail {

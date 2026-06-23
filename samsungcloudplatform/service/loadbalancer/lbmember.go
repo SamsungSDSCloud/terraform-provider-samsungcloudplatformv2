@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"time"
 
+	"strings"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
@@ -15,6 +17,7 @@ import (
 	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -25,9 +28,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource               = &loadbalancerLbMemberResource{}
-	_ resource.ResourceWithConfigure  = &loadbalancerLbMemberResource{}
-	_ resource.ResourceWithModifyPlan = &loadbalancerLbMemberResource{}
+	_ resource.Resource                = &loadbalancerLbMemberResource{}
+	_ resource.ResourceWithConfigure   = &loadbalancerLbMemberResource{}
+	_ resource.ResourceWithModifyPlan  = &loadbalancerLbMemberResource{}
+	_ resource.ResourceWithImportState = &loadbalancerLbMemberResource{}
 )
 
 // NewLoadBalancerLbMemberResource is a helper function to simplify the provider implementation.
@@ -247,8 +251,8 @@ func (r *loadbalancerLbMemberResource) ModifyPlan(ctx context.Context, req resou
 
 	lbMemberCreate := plan.LbMemberCreate
 
-	// Skip if the create block was not provided (all fields null/unknown)
-	if lbMemberCreate.Name.IsNull() && lbMemberCreate.ObjectType.IsNull() {
+	// Skip if the create block was not provided (nil or all fields null/unknown)
+	if lbMemberCreate == nil || (lbMemberCreate.Name.IsNull() && lbMemberCreate.ObjectType.IsNull()) {
 		return
 	}
 
@@ -307,6 +311,20 @@ func (r *loadbalancerLbMemberResource) Configure(_ context.Context, req resource
 	r.client = inst.Client.LoadBalancer
 }
 
+func (r *loadbalancerLbMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: DirectConnectId/RoutingRuleId, got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("lb_server_group_id"), types.StringValue(parts[0]))
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLbMemberResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
@@ -328,17 +346,27 @@ func (r *loadbalancerLbMemberResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	//for _, member := range data.Members {
+	if data == nil || len(data.Members) == 0 {
+		resp.Diagnostics.AddError("Error creating Lb Member", "API returned no member in response")
+		return
+	}
 	member := data.Members[0]
 	plan.Id = types.StringValue(member.Id)
 
 	// Map response body to schema and populate Computed attribute values
 	lbMemberModel := createLbMemberModel(member)
-	lbMemberOjbectValue, _ := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	lbMemberOjbectValue, d := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.LbMember = lbMemberOjbectValue
 
 	// Set state to fully populated data
-	_ = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	err = waitForMemberStatus(ctx, r.client, member.LbServerGroupId, member.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -374,10 +402,14 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 	// Get refreshed order value from LB Member
 	data, err := r.client.GetLbMember(ctx, state.LbServerGroupId.ValueString(), state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Lb Member",
-			"Could not create Lb Member, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error get Lb Member",
+			"Could not get Lb Member, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
@@ -401,7 +433,11 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 		CreatedAt:       types.StringValue(lbMember.CreatedAt.Format(time.RFC3339)),
 	}
 
-	lbMemberOjbectValue, _ := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	lbMemberOjbectValue, d := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LbMember = lbMemberOjbectValue
 
 	// Set refreshed state
@@ -435,11 +471,18 @@ func (r *loadbalancerLbMemberResource) Update(ctx context.Context, req resource.
 
 	lbMemberModel := updateLbMemberModel(data)
 
-	lbMemberObjectValue, _ := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	lbMemberObjectValue, d := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LbMember = lbMemberObjectValue
 
 	// Set refreshed state
-	resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	err = waitForMemberStatus(ctx, r.client, data.Member.Get().LbServerGroupId, data.Member.Get().Id, []string{}, []string{"ACTIVE"})
 	if err != nil {

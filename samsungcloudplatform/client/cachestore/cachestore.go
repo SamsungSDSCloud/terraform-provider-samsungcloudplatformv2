@@ -2,9 +2,12 @@ package cachestore
 
 import (
 	"context"
+
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/cachestore/1.0"
+	cachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/cachestore/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
 )
 
 type Client struct {
@@ -50,7 +53,6 @@ func (client *Client) GetEngineVersionList(ctx context.Context) (*cachestore.Eng
 	return resp, err
 }
 
-
 // create (ctx, clusterResource) - (asyncResponse)
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*cachestore.AsyncResponse, error) {
 	req := client.sdkClient.CachestoreV1CacheStoreClustersApiAPI.CachestoreCreateCluster(ctx)
@@ -58,7 +60,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	// AllowableIpAddresses
 	var allowableIpAddresses []string
 
-	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown(){
+	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown() {
 		allowableIpAddresses = []string{}
 	} else {
 		for _, elem := range request.AllowableIpAddresses.Elements() {
@@ -88,30 +90,41 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 
 	// InstanceGroups
 	var convertedInstanceGroups []cachestore.RedisInstanceGroupRequest
-	for _, instanceGroup := range request.InstanceGroups {
+	for _, igElem := range request.InstanceGroups.Elements() {
+		igObj := igElem.(types.Object)
+		ig := database.InstanceGroup{
+			Id:                 igObj.Attributes()["id"].(types.String),
+			RoleType:           igObj.Attributes()["role_type"].(types.String),
+			ServerTypeName:     igObj.Attributes()["server_type_name"].(types.String),
+			BlockStorageGroups: igObj.Attributes()["block_storage_groups"].(types.List),
+			Instances:          igObj.Attributes()["instances"].(types.List),
+		}
+
 		var convertedBlockStorage []cachestore.RedisBlockStorageGroupRequest
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
+		for _, bsElem := range ig.BlockStorageGroups.Elements() {
+			bsObj := bsElem.(types.Object)
 			convertedBlockStorage = append(convertedBlockStorage, cachestore.RedisBlockStorageGroupRequest{
-				RoleType:   cachestore.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
-				SizeGb:     blockStorage.SizeGb.ValueInt32(),
-				VolumeType: cachestore.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
+				RoleType:   cachestore.BlockStorageGroupRoleType(bsObj.Attributes()["role_type"].(types.String).ValueString()),
+				SizeGb:     bsObj.Attributes()["size_gb"].(types.Int32).ValueInt32(),
+				VolumeType: cachestore.VolumeType(bsObj.Attributes()["volume_type"].(types.String).ValueString()).Ptr(),
 			})
 		}
 
 		var convertedInstance []cachestore.InstanceRequest
-		for _, instance := range instanceGroup.Instances {
+		for _, instElem := range ig.Instances.Elements() {
+			instObj := instElem.(types.Object)
 			convertedInstance = append(convertedInstance, cachestore.InstanceRequest{
-				RoleType:         cachestore.InstanceRoleType(instance.RoleType.ValueString()),
-				ServiceIpAddress: *cachestore.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
-				PublicIpId:       *cachestore.NewNullableString(instance.PublicIpId.ValueStringPointer()),
+				RoleType:         cachestore.InstanceRoleType(instObj.Attributes()["role_type"].(types.String).ValueString()),
+				ServiceIpAddress: *cachestore.NewNullableString(instObj.Attributes()["service_ip_address"].(types.String).ValueStringPointer()),
+				PublicIpId:       *cachestore.NewNullableString(instObj.Attributes()["public_ip_id"].(types.String).ValueStringPointer()),
 			})
 		}
 
 		convertedInstanceGroups = append(convertedInstanceGroups, cachestore.RedisInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           cachestore.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
-			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
+			RoleType:           cachestore.InstanceGroupRoleType(ig.RoleType.ValueString()),
+			ServerTypeName:     ig.ServerTypeName.ValueString(),
 		})
 	}
 
@@ -238,4 +251,52 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 	req = req.ResizeBlockStorageGroupRequest(*reqState)
 	_, _, err := req.Execute()
 	return err
+}
+
+func MapInstanceGroupResponses(sdkResp []cachestore.RedisInstanceGroupResponse) []database.InstanceGroupResponse {
+	if sdkResp == nil {
+		return nil
+	}
+
+	result := make([]database.InstanceGroupResponse, len(sdkResp))
+	for i, ig := range sdkResp {
+		bsGroups := make([]database.BlockStorageGroupResponse, len(ig.BlockStorageGroups))
+		for j, bs := range ig.BlockStorageGroups {
+			bsGroups[j] = database.BlockStorageGroupResponse{
+				Id:         bs.Id,
+				Name:       bs.Name,
+				RoleType:   string(bs.RoleType),
+				SizeGb:     bs.SizeGb,
+				VolumeType: string(bs.VolumeType),
+			}
+		}
+
+		instances := make([]database.InstanceResponse, len(ig.Instances))
+		for j, it := range ig.Instances {
+			var pubIP, serviceIP string
+			if it.ServiceIpAddress.Get() != nil {
+				serviceIP = *it.ServiceIpAddress.Get()
+			}
+			if it.PublicIpId.Get() != nil {
+				pubIP = *it.PublicIpId.Get()
+			}
+
+			instances[j] = database.InstanceResponse{
+				Name:             it.Name,
+				RoleType:         string(it.RoleType),
+				ServiceIpAddress: serviceIP,
+				PublicIpId:       pubIP,
+			}
+		}
+
+		result[i] = database.InstanceGroupResponse{
+			BlockStorageGroups: bsGroups,
+			Id:                 ig.Id,
+			Instances:          instances,
+			RoleType:           string(ig.RoleType),
+			ServerTypeName:     ig.ServerTypeName,
+		}
+	}
+
+	return result
 }

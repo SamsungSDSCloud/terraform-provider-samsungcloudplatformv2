@@ -48,48 +48,64 @@ func (d *loadbalancerLbCertificateDataSources) Schema(_ context.Context, _ datas
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("CertKind"): schema.StringAttribute{
-							Description: "The type of certificate (e.g., SERVER, CLIENT).",
-							Optional:    true,
+							Description: "The type of certificate.\n" +
+								"  - example : SERVER\n" +
+								"  - pattern : SERVER | CLIENT\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Cn"): schema.StringAttribute{
-							Description: "The common name (CN) of the certificate.",
-							Optional:    true,
+							Description: "The common name (CN) of the certificate.\n" +
+								"  - example : example.com\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "The timestamp when the resource was created, in ISO 8601 format.",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "The user id that created the resource.",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "The unique identifier of the LB Certificate.",
-							Optional:    true,
+							Description: "The unique identifier of the LB Certificate.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "The user id that last modified the resource.",
-							Computed:    true,
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "The name of the LB Certificate (1-63 characters, alphanumeric with spaces, hyphens, underscores, and dots allowed).",
-							Optional:    true,
+							Description: "The name of the LB Certificate.\n" +
+								"  - example : Certificate01\n" +
+								"  - minLength : 1\n" +
+								"  - maxLength : 63\n" +
+								"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-							Description: "The expiration date of the certificate (e.g., '2026-02-12T23:59:59Z').",
-							Optional:    true,
+							Description: "The expiration date of the certificate.\n" +
+								"  - example : 2026-02-12T23:59:59Z\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
-							Description: "The start date of the certificate validity (e.g., '2025-02-12T00:00:00Z').",
-							Optional:    true,
+							Description: "The start date of the certificate validity.\n" +
+								"  - example : 2025-02-12T00:00:00Z\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "The current state of the LB Certificate (ACTIVE, ERROR).",
-							Optional:    true,
+							Description: "The current state of the LB Certificate.\n" +
+								"  - example : ACTIVE\n" +
+								"  - pattern : ACTIVE | ERROR\n",
+							Optional: true,
 						},
 					},
 				},

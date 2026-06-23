@@ -28,7 +28,7 @@ output "networkloggingstorage_output" {
 
 variable "bucket_name" {
   type    = string
-  default = "bucket_name"
+  default = "test_bucket_name"
 }
 
 variable "resource_type" {

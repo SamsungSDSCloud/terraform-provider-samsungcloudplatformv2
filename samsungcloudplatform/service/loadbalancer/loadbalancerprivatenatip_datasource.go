@@ -46,11 +46,12 @@ func (d *loadbalancerLoadbalancerPrivateNatIpDataSource) Schema(_ context.Contex
 		Attributes: map[string]schema.Attribute{
 
 			common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-				Description: "loadbalancer id",
-				Optional:    true,
+				Description: "loadbalancer id.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Optional: true,
 			},
 			//  - Computed:true 로 읽기 전용 값임을 명시
-			//  - Optional:true 로 “값이 없을 경우 null” 을 허용
+			//  - Optional:true 로 "값이 없을 경우 null" 을 허용
 			common.ToSnakeCase("LoadbalancerPrivateNatIp"): schema.SingleNestedAttribute{
 				Description: "A detail of private NAT.",
 				Optional:    true, // null 허용
@@ -58,49 +59,59 @@ func (d *loadbalancerLoadbalancerPrivateNatIpDataSource) Schema(_ context.Contex
 				Attributes: map[string]schema.Attribute{
 
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was created, in ISO 8601 format.",
-						Optional:    true,
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Optional: true,
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "The user id that created the resource.",
-						Optional:    true,
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Optional: true,
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was last modified, in ISO 8601 format.",
-						Optional:    true,
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Optional: true,
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "The user id that last modified the resource.",
-						Optional:    true,
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Optional: true,
+						Computed: true,
 					},
 					common.ToSnakeCase("ExternalIpAddress"): schema.StringAttribute{
-						Description: "The external IP address.",
-						Optional:    true,
-						Computed:    true,
+						Description: "The external IP address.\n" +
+							"  - example : 10.0.0.1\n",
+						Optional: true,
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "The unique identifier of the Private NAT IP.",
-						Optional:    true,
-						Computed:    true,
+						Description: "The unique identifier of the Private NAT IP.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
+						Computed: true,
 					},
 					common.ToSnakeCase("InternalIpAddress"): schema.StringAttribute{
-						Description: "The internal IP address.",
-						Optional:    true,
-						Computed:    true,
+						Description: "The internal IP address.\n" +
+							"  - example : 192.168.1.100\n",
+						Optional: true,
+						Computed: true,
 					},
 					common.ToSnakeCase("PrivateNatIpId"): schema.StringAttribute{
-						Description: "The private NAT IP ID.",
-						Optional:    true,
-						Computed:    true,
+						Description: "The private NAT IP ID.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "The current state of the Private NAT IP (CREATING, ACTIVE, DELETING, ERROR).",
-						Optional:    true,
-						Computed:    true,
+						Description: "The current state of the Private NAT IP.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+						Optional: true,
+						Computed: true,
 					},
 				},
 			},

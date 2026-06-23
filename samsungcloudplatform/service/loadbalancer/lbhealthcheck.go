@@ -10,11 +10,13 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/loadbalancer/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"strings"
 	"time"
 )
 
@@ -22,6 +24,7 @@ import (
 var (
 	_ resource.Resource              = &loadbalancerLbHealthCheckResource{}
 	_ resource.ResourceWithConfigure = &loadbalancerLbHealthCheckResource{}
+	_ resource.ResourceWithImportState = &loadbalancerLbHealthCheckResource{}
 )
 
 // NewLoadBalancerLbHealthCheckResource is a helper function to simplify the provider implementation.
@@ -300,6 +303,10 @@ func (r *loadbalancerLbHealthCheckResource) Configure(_ context.Context, req res
 	r.clients = inst.Client
 }
 
+func (r *loadbalancerLbHealthCheckResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLbHealthCheckResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
@@ -322,6 +329,15 @@ func (r *loadbalancerLbHealthCheckResource) Create(ctx context.Context, req reso
 	}
 
 	plan.Id = types.StringValue(data.LbHealthCheck.Id)
+
+	// Wait for ACTIVE state
+	if err := waitForLbHealthCheckStatus(ctx, r.client, data.LbHealthCheck.Id, []string{}, []string{"ACTIVE"}); err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating Lb Health Check",
+			"Error waiting for Lb Health Check to become active: "+err.Error(),
+		)
+		return
+	}
 
 	// Map response body to schema and populate Computed attribute values
 	lbHealthCheckModel := createLbHealthCheckModel(data)
@@ -349,6 +365,10 @@ func (r *loadbalancerLbHealthCheckResource) Read(ctx context.Context, req resour
 	// Get refreshed order value from LB Health Check
 	data, err := r.client.GetLbHealthCheck(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating Lb Health Check",
@@ -361,6 +381,27 @@ func (r *loadbalancerLbHealthCheckResource) Read(ctx context.Context, req resour
 
 	lbHealthCheckObjectValue, diags := types.ObjectValueFrom(ctx, lbHealthCheckModel.AttributeTypes(), lbHealthCheckModel)
 	state.LbHealthCheck = lbHealthCheckObjectValue
+
+	// Reconcile lb_health_check_create input block with API response to detect drift
+	// Only populate if nil (e.g., after import) — preserve user config values otherwise
+	if state.LbHealthCheckCreate == nil {
+		state.LbHealthCheckCreate = &loadbalancer.LbHealthCheckCreate{
+			Name:                types.StringValue(data.LbHealthCheck.Name),
+			Description:         loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.Description.Get()),
+			Protocol:            loadbalancerutil.ToNullableStringValue((*string)(data.LbHealthCheck.Protocol)),
+			VpcId:               loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.VpcId.Get()),
+			SubnetId:            loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.SubnetId.Get()),
+			HealthCheckPort:     ToNullableInt32Value(data.LbHealthCheck.HealthCheckPort.Get()),
+			HealthCheckInterval: ToNullableInt32Value(data.LbHealthCheck.HealthCheckInterval),
+			HealthCheckTimeout:  ToNullableInt32Value(data.LbHealthCheck.HealthCheckTimeout),
+			HealthCheckCount:    ToNullableInt32Value(data.LbHealthCheck.HealthCheckCount),
+			HttpMethod:          loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.HttpMethod.Get()),
+			HealthCheckUrl:      loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.HealthCheckUrl.Get()),
+			ResponseCode:        loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.ResponseCode.Get()),
+			RequestData:         loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.RequestData.Get()),
+			Tags:                types.MapNull(types.StringType),
+		}
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -442,6 +483,16 @@ func ToNullableInt32Value(v *int32) types.Int32 {
 	return types.Int32Value(*v)
 }
 
+func waitForLbHealthCheckStatus(ctx context.Context, loadbalancerClient *loadbalancer.Client, id string, pendingStates []string, targetStates []string) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, err := loadbalancerClient.GetLbHealthCheck(ctx, id)
+		if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.LbHealthCheck.State), nil
+	}, -1, -1, -1, -1)
+}
+
 func createLbHealthCheckModel(data *scploadbalancer.LbHealthCheckShowResponse) loadbalancer.LbHealthCheckDetail {
 	lbHealthCheck := data.LbHealthCheck
 
@@ -451,9 +502,9 @@ func createLbHealthCheckModel(data *scploadbalancer.LbHealthCheckShowResponse) l
 		SubnetId:            loadbalancerutil.ToNullableStringValue(lbHealthCheck.SubnetId.Get()),
 		Protocol:            loadbalancerutil.ToNullableStringValue((*string)(lbHealthCheck.Protocol)),
 		HealthCheckPort:     ToNullableInt32Value(lbHealthCheck.HealthCheckPort.Get()),
-		HealthCheckInterval: types.Int32Value(*lbHealthCheck.HealthCheckInterval),
-		HealthCheckTimeout:  types.Int32Value(*lbHealthCheck.HealthCheckTimeout),
-		HealthCheckCount:    types.Int32Value(*lbHealthCheck.HealthCheckCount),
+		HealthCheckInterval: ToNullableInt32Value(lbHealthCheck.HealthCheckInterval),
+		HealthCheckTimeout:  ToNullableInt32Value(lbHealthCheck.HealthCheckTimeout),
+		HealthCheckCount:    ToNullableInt32Value(lbHealthCheck.HealthCheckCount),
 		HealthCheckUrl:      loadbalancerutil.ToNullableStringValue(lbHealthCheck.HealthCheckUrl.Get()),
 		HttpMethod:          loadbalancerutil.ToNullableStringValue(lbHealthCheck.HttpMethod.Get()),
 		ResponseCode:        loadbalancerutil.ToNullableStringValue(lbHealthCheck.ResponseCode.Get()),

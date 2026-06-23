@@ -3,6 +3,9 @@ package servicewatch
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
@@ -10,19 +13,20 @@ import (
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &serviceWatchEventRuleResource{}
-	_ resource.ResourceWithConfigure = &serviceWatchEventRuleResource{}
+	_ resource.Resource                = &serviceWatchEventRuleResource{}
+	_ resource.ResourceWithConfigure   = &serviceWatchEventRuleResource{}
+	_ resource.ResourceWithImportState = &serviceWatchEventRuleResource{}
 )
 
 // NewServiceWatchEventRuleResource is a helper function to simplify the provider implementation.
@@ -229,7 +233,11 @@ func (r *serviceWatchEventRuleResource) Create(ctx context.Context, req resource
 
 	// Map response body to schema and populate Computed attribute values
 	eventRule := convertEventRule(&data.EventRule)
-	eventRuleObjectValue, diags := types.ObjectValueFrom(ctx, eventRule.AttributeTypes(), eventRule)
+	eventRuleObjectValue, d := types.ObjectValueFrom(ctx, eventRule.AttributeTypes(), eventRule)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	plan.Id = types.StringValue(eventRule.Id.ValueString())
 	plan.EventRule = eventRuleObjectValue
@@ -256,6 +264,10 @@ func (r *serviceWatchEventRuleResource) Read(ctx context.Context, req resource.R
 	// Get refreshed value from Resource Group
 	data, err := r.client.GetEventRule(ctx, state.Id.ValueString())
 	if err != nil && data == nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Event Rule",
@@ -272,7 +284,11 @@ func (r *serviceWatchEventRuleResource) Read(ctx context.Context, req resource.R
 
 	// Map response body to schema and populate Computed attribute values
 	eventRule := convertEventRule(&data.EventRule)
-	eventRuleObjectValue, diags := types.ObjectValueFrom(ctx, eventRule.AttributeTypes(), eventRule)
+	eventRuleObjectValue, d := types.ObjectValueFrom(ctx, eventRule.AttributeTypes(), eventRule)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.EventRule = eventRuleObjectValue
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
@@ -318,7 +334,11 @@ func (r *serviceWatchEventRuleResource) Update(ctx context.Context, req resource
 
 	// Map response body to schema and populate Computed attribute values
 	eventRule := convertEventRule(&data.EventRule)
-	eventRuleObjectValue, diags := types.ObjectValueFrom(ctx, eventRule.AttributeTypes(), eventRule)
+	eventRuleObjectValue, d := types.ObjectValueFrom(ctx, eventRule.AttributeTypes(), eventRule)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.EventRule = eventRuleObjectValue
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
@@ -367,4 +387,9 @@ func convertEventRule(eventRuleResp *servicewatch2.EventRuleDTO) servicewatch.Ev
 		ResourceTypeId: types.StringPointerValue(eventRuleResp.ResourceTypeId.Get()),
 		ServiceId:      types.StringValue(eventRuleResp.ServiceId),
 	}
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *serviceWatchEventRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

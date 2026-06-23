@@ -3,24 +3,29 @@ package securitygroup
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &securityGroupRuleResource{}
-	_ resource.ResourceWithConfigure = &securityGroupRuleResource{}
+	_ resource.Resource                = &securityGroupRuleResource{}
+	_ resource.ResourceWithConfigure   = &securityGroupRuleResource{}
+	_ resource.ResourceWithImportState = &securityGroupRuleResource{}
 )
 
 // NewSecurityGroupResource is a helper function to simplify the provider implementation.
@@ -62,8 +67,9 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 			},
 			common.ToSnakeCase("SecurityGroupId"): schema.StringAttribute{
 				Description: "The identifier of the security group that the resource belongs to.\n" +
-					"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
-				Required: true,
+					"  - example : cff990e6d5ed43d3ab239e4aba0b4c3e",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required:      true,
 			},
 			common.ToSnakeCase("ethertype"): schema.StringAttribute{
 				Description: "The Ethernet protocol type the rule applies to.\n" +
@@ -73,43 +79,49 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Validators: []validator.String{
 					stringvalidator.OneOf("IPv4"),
 				},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("protocol"): schema.StringAttribute{
 				Description: "The network protocol the rule applies to.\n" +
-					"  - example: TCP\n" +
-					"  - valid: None/TCP/UDP/ICMP/1-254(IP Protocol Number)",
-				Optional: true,
+					"  - example : TCP",
+				Optional:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("portRangeMin"): schema.Int32Attribute{
 				Description: "The minimum port number of the rule's port range.\n" +
 					"  - example: 22\n" +
 					"  - valid: 1-65535. For ICMP, 0-255. For IP Protocol, None.\n" +
 					"  - constraints: None",
-				Optional: true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.Int32{int32planmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("portRangeMax"): schema.Int32Attribute{
 				Description: "The maximum port number of the rule's port range.\n" +
 					"  - example: 443\n" +
 					"  - valid: 1-65535. For ICMP and IP Protocol, None.\n" +
 					"  - constraints: None",
-				Optional: true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.Int32{int32planmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("RemoteIpPrefix"): schema.StringAttribute{
 				Description: "The remote IP address range the rule applies to in CIDR notation.\n" +
 					"  - example: 10.0.0.0/24\n" +
 					"  - valid: IPv4 CIDR",
-				Optional: true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("RemoteGroupId"): schema.StringAttribute{
 				Description: "The identifier of the remote security group the rule applies to.\n" +
 					"  - example: ce5a565f-20fa-48f7-b06d-be0f03d2b50c",
-				Optional: true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "A brief explanation or note about this resource.\n" +
 					"  - example: Security group for web tier\n" +
 					"  - constraints: maxLength: 255",
-				Optional: true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("Direction"): schema.StringAttribute{
 				Description: "The direction of the traffic the rule applies to.\n" +
@@ -119,6 +131,7 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Validators: []validator.String{
 					stringvalidator.OneOf("ingress", "egress"),
 				},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("SecurityGroupRule"): schema.SingleNestedAttribute{
 				Description: "Security Group Rule Object",
@@ -247,6 +260,15 @@ func (r *securityGroupRuleResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
+	// SG-FIX-04: Wait for security group rule to become available
+	if data == nil || data.SecurityGroupRule.Id == "" {
+		resp.Diagnostics.AddError(
+			"Error creating security group rule",
+			"empty response from API",
+		)
+		return
+	}
+
 	securityGroupRule := data.SecurityGroupRule
 	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(data.SecurityGroupRule.Id)
@@ -269,7 +291,11 @@ func (r *securityGroupRuleResource) Create(ctx context.Context, req resource.Cre
 		ModifiedBy:      types.StringValue(securityGroupRule.ModifiedBy),
 	}
 
-	sgrObjectValue, diags := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
+	sgrObjectValue, d := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.SecurityGroupRule = sgrObjectValue
 
 	// Set state to fully populated data
@@ -292,6 +318,10 @@ func (r *securityGroupRuleResource) Read(ctx context.Context, req resource.ReadR
 	// Get refreshed value from security group rule
 	data, err := r.client.GetSecurityGroupRule(ctx, state.Id.ValueString()) // client 를 호출한다.
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading security group rule",
@@ -300,6 +330,13 @@ func (r *securityGroupRuleResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
+	if data == nil || data.SecurityGroupRule.Id == "" {
+		resp.Diagnostics.AddError(
+			"Error Reading security group rule",
+			"empty response from API",
+		)
+		return
+	}
 	securityGroupRule := data.SecurityGroupRule
 
 	sgrModel := securitygroup.SecurityGroupRule{
@@ -319,7 +356,20 @@ func (r *securityGroupRuleResource) Read(ctx context.Context, req resource.ReadR
 		ModifiedAt:      types.StringValue(securityGroupRule.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:      types.StringValue(securityGroupRule.ModifiedBy),
 	}
-	sgrObjectValue, diags := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
+	sgrObjectValue, d := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	state.SecurityGroupId = types.StringValue(securityGroupRule.SecurityGroupId)
+	state.Ethertype = types.StringPointerValue(securityGroupRule.Ethertype.Get())
+	state.Protocol = types.StringPointerValue(securityGroupRule.Protocol.Get())
+	state.PortRangeMin = types.Int32PointerValue(securityGroupRule.PortRangeMin.Get())
+	state.PortRangeMax = types.Int32PointerValue(securityGroupRule.PortRangeMax.Get())
+	state.RemoteIpPrefix = types.StringPointerValue(securityGroupRule.RemoteIpPrefix.Get())
+	state.RemoteGroupId = types.StringPointerValue(securityGroupRule.RemoteGroupId.Get())
+	state.Description = types.StringPointerValue(securityGroupRule.Description.Get())
+	state.Direction = types.StringValue(string(securityGroupRule.Direction))
 	state.SecurityGroupRule = sgrObjectValue
 
 	// Set refreshed state
@@ -349,4 +399,8 @@ func (r *securityGroupRuleResource) Delete(ctx context.Context, req resource.Del
 		)
 		return
 	}
+}
+
+func (r *securityGroupRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
