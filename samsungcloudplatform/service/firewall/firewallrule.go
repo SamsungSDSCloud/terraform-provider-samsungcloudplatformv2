@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -191,25 +190,16 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 							"  - example: [10.10.10.0/24, 10.10.11.0/24]",
 						Required:    true,
 						ElementType: types.StringType,
-						PlanModifiers: []planmodifier.List{
-							listplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("DestinationAddress"): schema.ListAttribute{
 						Description: "The destination address the rule applies to.\n" +
 							"  - example: [192.168.0.0/16, 192.169.0.0/16]",
 						Required:    true,
 						ElementType: types.StringType,
-						PlanModifiers: []planmodifier.List{
-							listplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("Service"): schema.ListNestedAttribute{
 						Description: "The service ports the rule applies to.",
 						Required:    true,
-						PlanModifiers: []planmodifier.List{
-							listplanmodifier.RequiresReplace(),
-						},
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("ServiceType"): schema.StringAttribute{
@@ -234,9 +224,6 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 							"  - example: ALLOW\n" +
 							"  - valid: ALLOW, DENY",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 						Validators: []validator.String{
 							stringvalidator.OneOf("ALLOW", "DENY"),
 						},
@@ -246,9 +233,6 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 							"  - example: INBOUND\n" +
 							"  - valid: INBOUND, OUTBOUND",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 						Validators: []validator.String{
 							stringvalidator.OneOf("INBOUND", "OUTBOUND"),
 						},

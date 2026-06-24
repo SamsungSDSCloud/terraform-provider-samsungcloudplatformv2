@@ -11,7 +11,6 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,9 +21,8 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &vpcNatGatewayResource{}
-	_ resource.ResourceWithConfigure   = &vpcNatGatewayResource{}
-	_ resource.ResourceWithImportState = &vpcNatGatewayResource{}
+	_ resource.Resource              = &vpcNatGatewayResource{}
+	_ resource.ResourceWithConfigure = &vpcNatGatewayResource{}
 )
 
 // NewVpcNatGatewayResource is a helper function to simplify the provider implementation.
@@ -62,17 +60,11 @@ func (r *vpcNatGatewayResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "The identifier of the subnet that the nat gateway belongs to.\n" +
 					"  - example : 607e0938521643b5b4b266f343fae693",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("PublicipId"): schema.StringAttribute{
 				Description: "The identifier of the public IP address.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
@@ -232,17 +224,10 @@ func (r *vpcNatGatewayResource) Create(ctx context.Context, req resource.CreateR
 		ModifiedBy:          types.StringValue(natgateway.ModifiedBy),
 	}
 	natGatewayObjectValue, diags := types.ObjectValueFrom(ctx, natGatewayModel.AttributeTypes(), natGatewayModel)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 	plan.NatGateway = natGatewayObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	err = waitForNatGatewayStatus(ctx, r.client, natgateway.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -277,10 +262,6 @@ func (r *vpcNatGatewayResource) Read(ctx context.Context, req resource.ReadReque
 	// Get refreshed order value from vpc
 	data, err := r.client.GetNatGateway(ctx, state.Id.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading nat gateway",
@@ -288,20 +269,8 @@ func (r *vpcNatGatewayResource) Read(ctx context.Context, req resource.ReadReque
 		)
 		return
 	}
-	if data == nil {
-		resp.Diagnostics.AddError(
-			"Error reading data",
-			"An error occurred while reading data. Empty response",
-		)
-		return
-	}
 
 	natgateway := data.NatGateway
-
-	// Refresh input attributes from API response
-	state.SubnetId = types.StringValue(natgateway.SubnetId)
-	state.PublicipId = types.StringPointerValue(natgateway.PublicipId.Get())
-	state.Description = types.StringPointerValue(natgateway.Description.Get())
 
 	natGatewayModel := vpc.NatGateway{
 		Id:                  types.StringValue(natgateway.Id),
@@ -321,10 +290,6 @@ func (r *vpcNatGatewayResource) Read(ctx context.Context, req resource.ReadReque
 		ModifiedBy:          types.StringValue(natgateway.ModifiedBy),
 	}
 	natGatewayObjectValue, diags := types.ObjectValueFrom(ctx, natGatewayModel.AttributeTypes(), natGatewayModel)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 	state.NatGateway = natGatewayObjectValue
 
 	// Set refreshed state
@@ -387,14 +352,7 @@ func (r *vpcNatGatewayResource) Update(ctx context.Context, req resource.UpdateR
 		ModifiedBy:          types.StringValue(natgateway.ModifiedBy),
 	}
 	natGatewayObjectValue, diags := types.ObjectValueFrom(ctx, natGatewayModel.AttributeTypes(), natGatewayModel)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 	state.NatGateway = natGatewayObjectValue
-	state.SubnetId = types.StringValue(natgateway.SubnetId)
-	state.PublicipId = types.StringPointerValue(natgateway.PublicipId.Get())
-	state.Description = types.StringPointerValue(natgateway.Description.Get())
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -442,16 +400,4 @@ func waitForNatGatewayStatus(ctx context.Context, vpcClient *vpc.Client, id stri
 		}
 		return info, info.NatGateway.State, nil
 	}, -1, -1, -1, -1)
-}
-
-func (r *vpcNatGatewayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 1 || parts[0] == "" {
-		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Expected import ID format: nat_gateway_id, got: %q", req.ID),
-		)
-		return
-	}
-	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[0]))
 }

@@ -20,8 +20,6 @@ Manages VPN tunnels for encrypted site-to-site connections.
   - example: vpnGWProd
   - valid: English letters and numbers only
   - constraints: minLength: 1, maxLength: 20
-- `phase1` (Attributes) (see [below for nested schema](#nestedatt--phase1))
-- `phase2` (Attributes) (see [below for nested schema](#nestedatt--phase2))
 - `vpn_gateway_id` (String) The identifier of the VPN gateway that the resource belongs to.
   - example: YOUR RESOURCE'S VPN_GATEWAY_ID
 
@@ -30,6 +28,8 @@ Manages VPN tunnels for encrypted site-to-site connections.
 - `description` (String) A brief explanation or note about this resource.
   - example: VPN test
   - constraints: maxLength: 40
+- `phase1` (Attributes) (see [below for nested schema](#nestedatt--phase1))
+- `phase2` (Attributes) (see [below for nested schema](#nestedatt--phase2))
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.

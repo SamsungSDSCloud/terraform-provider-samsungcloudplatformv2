@@ -700,7 +700,6 @@ type VpcPeeringRuleResource struct {
 	DestinationCidr    types.String `tfsdk:"destination_cidr"`     // Destination CIDR
 	DestinationVpcType types.String `tfsdk:"destination_vpc_type"` // Destination VPC Type
 	Tags               types.Map    `tfsdk:"tags"`                 // Tag List
-	Id                 types.String `tfsdk:"id"`
 
 	// Output
 	VpcPeeringRule types.Object `tfsdk:"vpc_peering_rule"`

@@ -10,7 +10,6 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -21,9 +20,8 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &vpcTgwResource{}
-	_ resource.ResourceWithConfigure   = &vpcTgwResource{}
-	_ resource.ResourceWithImportState = &vpcTgwResource{}
+	_ resource.Resource              = &vpcTgwResource{}
+	_ resource.ResourceWithConfigure = &vpcTgwResource{}
 )
 
 // NewVpcTgwResource is a helper function to simplify the provider implementation.
@@ -40,10 +38,6 @@ type vpcTgwResource struct {
 // Metadata returns the data source type name.
 func (r *vpcTgwResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vpc_transit_gateway"
-}
-
-func (r *vpcTgwResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
 }
 
 // Schema defines the schema for the data source.
@@ -233,10 +227,6 @@ func (r *vpcTgwResource) Read(ctx context.Context, req resource.ReadRequest, res
 	// Get refreshed order value from vpc
 	data, err := r.client.GetTransitGatewayInfo(ctx, state.Id.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading tgw",

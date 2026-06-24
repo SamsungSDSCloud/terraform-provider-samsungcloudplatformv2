@@ -3,7 +3,6 @@ package vpc
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
@@ -22,9 +21,8 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &vpcTgwUplinkRuleResource{}
-	_ resource.ResourceWithConfigure   = &vpcTgwUplinkRuleResource{}
-	_ resource.ResourceWithImportState = &vpcTgwUplinkRuleResource{}
+	_ resource.Resource              = &vpcTgwUplinkRuleResource{}
+	_ resource.ResourceWithConfigure = &vpcTgwUplinkRuleResource{}
 )
 
 // NewVpcTgwUplinkRuleResource is a helper function to simplify the provider implementation.
@@ -41,31 +39,6 @@ type vpcTgwUplinkRuleResource struct {
 // Metadata returns the data source type name.
 func (r *vpcTgwUplinkRuleResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vpc_transit_gateway_uplink_rule"
-}
-
-func (r *vpcTgwUplinkRuleResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("transit_gateway_id"), request, response)
-
-	parts := strings.Split(request.ID, "/")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		response.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Expected import ID format: transitGatewayId/ruleId, got: %q", request.ID),
-		)
-		return
-	}
-
-	ruleValue := &vpc.TransitGatewayRuleValue{
-		Id: types.StringValue(parts[1]),
-	}
-	object, diag := types.ObjectValueFrom(ctx, ruleValue.AttributeTypes(), ruleValue)
-	response.Diagnostics.Append(diag...)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
-	response.State.SetAttribute(ctx, path.Root("transit_gateway_id"), types.StringValue(parts[0]))
-	response.State.SetAttribute(ctx, path.Root("transit_gateway_rule"), object)
 }
 
 // Configure adds the provider configured client to the data source.
@@ -180,7 +153,7 @@ func (r *vpcTgwUplinkRuleResource) Schema(ctx context.Context, _ resource.Schema
 				},
 				CustomType: vpc.TransitGatewayRuleType{
 					ObjectType: types.ObjectType{
-						AttrTypes: vpc.TransitGatewayRuleValue{}.AttributeTypes(),
+						AttrTypes: vpc.TransitGatewayRuleValue{}.AttributeTypes(ctx),
 					},
 				},
 				Computed: true,
@@ -234,10 +207,7 @@ func (r *vpcTgwUplinkRuleResource) Create(ctx context.Context, req resource.Crea
 
 	transitGatewayRule.State = types.StringValue(common.ActiveState)
 
-	transitGatewayRuleObjectValue, d := types.ObjectValueFrom(ctx, transitGatewayRule.AttributeTypes(), transitGatewayRule)
-	resp.Diagnostics.Append(d...)
-
-	plan.TransitGatewayRule = transitGatewayRuleObjectValue
+	plan.TransitGatewayRule, _ = types.ObjectValueFrom(ctx, transitGatewayRule.AttributeTypes(ctx), transitGatewayRule)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -261,10 +231,6 @@ func (r *vpcTgwUplinkRuleResource) Read(ctx context.Context, req resource.ReadRe
 
 	data, _, err := r.client.GetTGWRuleList(ctx, vpc.TransitGatewayRuleDataSource{Id: ruleId, TransitGatewayId: transitGatewayId})
 	if err != nil {
-		if strings.Contains(err.Error(), "404") {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Transit Gateway Uplink Rule",
@@ -274,17 +240,10 @@ func (r *vpcTgwUplinkRuleResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	if data.Count == 0 {
-		resp.State.RemoveResource(ctx)
 		return
 	}
 
 	rule := data.TransitGatewayRules[0]
-
-	// Rewrite configurable top-level input fields from API response to detect drift
-	state.Description = types.StringValue(rule.Description)
-	state.DestinationCidr = types.StringValue(rule.DestinationCidr)
-	state.DestinationType = types.StringValue(string(rule.DestinationType))
-	state.TransitGatewayId = transitGatewayId
 
 	transitGatewayRule := vpc.TransitGatewayRuleValue{
 		Description:     types.StringValue(rule.Description),
@@ -294,10 +253,7 @@ func (r *vpcTgwUplinkRuleResource) Read(ctx context.Context, req resource.ReadRe
 		State:           types.StringValue(string(rule.State)),
 	}
 
-	transitGatewayRuleObjectValue, d := types.ObjectValueFrom(ctx, transitGatewayRule.AttributeTypes(), transitGatewayRule)
-	state.TransitGatewayRule = transitGatewayRuleObjectValue
-
-	resp.Diagnostics.Append(d...)
+	state.TransitGatewayRule, _ = types.ObjectValueFrom(ctx, transitGatewayRule.AttributeTypes(ctx), transitGatewayRule)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

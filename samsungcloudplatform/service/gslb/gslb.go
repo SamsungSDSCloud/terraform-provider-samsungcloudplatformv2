@@ -404,8 +404,8 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
-	resp.Diagnostics.Append(diags...)
+	gslbObjectValue, d := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -446,8 +446,8 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
-	resp.Diagnostics.Append(diags...)
+	gslbObjectValue, d := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -481,11 +481,9 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 		}
 	}
 
-	// Rebuild resources from API response.
-	// Only overwrite state when the API returns valid data to avoid
-	// destroy/recreate on Read round-trip failure (GSLB-FIX-05).
+	// Rebuild resources from API response
 	resourceList, err := r.client.GetGslbResourceList(ctx, gslb.GslbResourceDataSource{GslbId: state.Id})
-	if err == nil && resourceList != nil && len(resourceList.GslbResources) > 0 {
+	if err == nil && resourceList != nil {
 		resources := make([]gslb.GslbResourceCreate, 0, len(resourceList.GslbResources))
 		for _, res := range resourceList.GslbResources {
 			resources = append(resources, gslb.GslbResourceCreate{
@@ -584,8 +582,8 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
-	resp.Diagnostics.Append(diags...)
+	gslbObjectValue, d := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -622,8 +620,8 @@ func (r *gslbGslbResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
-	resp.Diagnostics.Append(diags...)
+	gslbObjectValue, d := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -11,20 +11,16 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &vpcPrivateNatResource{}
-	_ resource.ResourceWithConfigure   = &vpcPrivateNatResource{}
-	_ resource.ResourceWithImportState = &vpcPrivateNatResource{}
+	_ resource.Resource              = &vpcPrivateNatResource{}
+	_ resource.ResourceWithConfigure = &vpcPrivateNatResource{}
 )
 
 // NewVpcPrivateNatResource is a helper function to simplify the provider implementation.
@@ -54,9 +50,6 @@ func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "The IP address range of the network in CIDR notation.\n" +
 					"  - example : 192.167.0.0/24",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. \n" +
@@ -69,25 +62,16 @@ func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "The name of the private NAT. \n" +
 					"  - example : PrivateNatName",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("ServiceResourceId"): schema.StringAttribute{
 				Description: "The identifier of the connected service resource. \n" +
 					"  - example : 3f342bf9a557405b997c2cf48c89cbc2",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("ServiceType"): schema.StringAttribute{
 				Description: "The type of the connected service.\n" +
 					"  - example : DIRECT_CONNECT | TRANSIT_GATEWAY",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 
@@ -233,19 +217,11 @@ func (r *vpcPrivateNatResource) Create(ctx context.Context, req resource.CreateR
 		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
-	privateNatObjectValue, diag := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	privateNatObjectValue, diags := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
 	plan.PrivateNat = privateNatObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	err = waitForPrivateNatStatus(ctx, r.client1d2, privateNat.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -280,21 +256,10 @@ func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadReque
 	// Get refreshed order value from Private NAT
 	data, err := r.client1d2.GetPrivateNat(ctx, state.Id.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Private NAT",
 			"Could not read Private NAT ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
-		)
-		return
-	}
-	if data == nil {
-		resp.Diagnostics.AddError(
-			"Error reading data",
-			"An error occurred while reading data. Empty response",
 		)
 		return
 	}
@@ -316,11 +281,7 @@ func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadReque
 		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
-	privateNatObjectValue, diag := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	privateNatObjectValue, _ := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
 	state.PrivateNat = privateNatObjectValue
 
 	// Set refreshed state
@@ -383,11 +344,7 @@ func (r *vpcPrivateNatResource) Update(ctx context.Context, req resource.UpdateR
 		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
-	privateNatObjectValue, diag := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	privateNatObjectValue, _ := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
 	plan.PrivateNat = privateNatObjectValue
 
 	diags = resp.State.Set(ctx, plan)
@@ -436,9 +393,4 @@ func waitForPrivateNatStatus(ctx context.Context, vpcClient *vpcv1d2.Client, id 
 		}
 		return info, string(info.PrivateNat.State), nil
 	}, -1, -1, -1, -1)
-}
-
-// ImportState imports an existing Private NAT into Terraform state.
-func (r *vpcPrivateNatResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
 }

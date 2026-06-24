@@ -19,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -74,8 +72,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 					" - example : Alert Test\n" +
 					" - minLength: 3\n" +
 					" - maxLength: 100\n",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(3, 100),
 				},
@@ -83,8 +80,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("Type"): schema.StringAttribute{
 				Description: "Alert type - METRIC_ALERT, SERVICE_ALERT, COMPOSITE_ALERT.\n" +
 					" - example : METRIC_ALERT\n",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(AlertTypeMetric, AlertTypeService, AlertTypeComposite),
 				},
@@ -120,8 +116,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
 				Description: "The name of the namespace.\n" +
 					" - example : Virtual Server\n",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required: true,
 			},
 			common.ToSnakeCase("MetricId"): schema.StringAttribute{
 				Description: "The unique identifier of the metric.\n" +
@@ -131,15 +126,13 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("MetricName"): schema.StringAttribute{
 				Description: "The name of the metric.\n" +
 					" - example : CPU Usage\n",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required: true,
 			},
 			common.ToSnakeCase("Dimensions"): schema.ListNestedAttribute{
 				Description: "List of dimensions.\n" +
 					" - example : [{\"key\": \"instance_id\", \"value\": \"i-12345678\"}]\n",
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.List{listplanmodifier.RequiresReplace()},
+				Optional: true,
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Key"): schema.StringAttribute{
@@ -158,14 +151,12 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("Period"): schema.Int32Attribute{
 				Description: "Period (seconds).\n" +
 					" - example : 300\n",
-				Required:      true,
-				PlanModifiers: []planmodifier.Int32{int32planmodifier.RequiresReplace()},
+				Required: true,
 			},
 			common.ToSnakeCase("Statistic"): schema.StringAttribute{
 				Description: "Statistic - SUM, AVG, MAX, MIN.\n" +
 					" - example : AVG\n",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(StatSum, StatAvg, StatMax, StatMin),
 				},
@@ -197,8 +188,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("Operator"): schema.StringAttribute{
 				Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE.\n" +
 					" - example : RANGE\n",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(OpEQ, OpNotEQ, OpGT, OpGTE, OpLT, OpLTE, OpRange),
 				},
@@ -212,8 +202,7 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("MissingDataOption"): schema.StringAttribute{
 				Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE.\n" +
 					" - example : BREACHING\n",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(MissingDataMissing, MissingDataBreaching, MissingDataNotBreaching, MissingDataIgnore),
 				},

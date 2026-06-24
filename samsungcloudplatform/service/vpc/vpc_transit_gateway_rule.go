@@ -11,7 +11,6 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.1"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,9 +21,8 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &vpcTgwRuleResource{}
-	_ resource.ResourceWithConfigure   = &vpcTgwRuleResource{}
-	_ resource.ResourceWithImportState = &vpcTgwRuleResource{}
+	_ resource.Resource              = &vpcTgwRuleResource{}
+	_ resource.ResourceWithConfigure = &vpcTgwRuleResource{}
 )
 
 // NewVpcTgwRuleResource is a helper function to simplify the provider implementation.
@@ -41,21 +39,6 @@ type vpcTgwRuleResource struct {
 // Metadata returns the data source type name.
 func (v vpcTgwRuleResource) Metadata(_ context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = request.ProviderTypeName + "_vpc_transit_gateway_rule"
-}
-
-func (r *vpcTgwRuleResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
-
-	parts := strings.Split(request.ID, "/")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		response.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Expected import ID format: transitGatewayId/routingRuleId, got: %q", request.ID),
-		)
-		return
-	}
-	response.State.SetAttribute(ctx, path.Root("transit_gateway_id"), types.StringValue(parts[0]))
-	response.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
 }
 
 // Schema defines the schema for the data source.
@@ -109,25 +92,25 @@ func (v *vpcTgwRuleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
-							"  - example : 2024-05-17T00:23:17Z",
-						Computed: true,
-					},
-					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "The user id that created the resource.\n" +
-							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-						Computed: true,
-					},
-					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
-							"  - example : 2024-05-17T00:23:17Z",
-						Computed: true,
-					},
-					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "The user id that modified the resource.\n" +
-							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-						Computed: true,
-					},
+                        Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+                            "  - example : 2024-05-17T00:23:17Z",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+                        Description: "The user id that created the resource.\n" +
+                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+                        Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+                            "  - example : 2024-05-17T00:23:17Z",
+                        Computed: true,
+                    },
+                    common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+                        Description: "The user id that modified the resource.\n" +
+                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+                        Computed: true,
+                    },
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
 							"  - example : resourceDescription",
@@ -286,10 +269,6 @@ func (r *vpcTgwRuleResource) Read(ctx context.Context, req resource.ReadRequest,
 	// Get refreshed order value from routing rule
 	data, err := r.client.GetRoutingRule(ctx, state.TransitGatewayId.ValueString(), state.Id.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading transit gateway routing rule",
@@ -298,15 +277,7 @@ func (r *vpcTgwRuleResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	routingRule := data.TransitGatewayRules[0]
-
-	// Rewrite configurable top-level input fields from API response to detect drift
-	state.Description = types.StringValue(routingRule.Description)
-	state.DestinationCidr = types.StringValue(routingRule.DestinationCidr)
-	state.DestinationType = types.StringValue(string(routingRule.DestinationType))
-	state.TgwConnectionVpcId = types.StringPointerValue(routingRule.TgwConnectionVpcId.Get())
-
-	routingRuleModel := createRoutingRuleModel(&routingRule)
+	routingRuleModel := createRoutingRuleModel(&data.TransitGatewayRules[0])
 
 	routingRuleObjectValue, diags := types.ObjectValueFrom(ctx, routingRuleModel.AttributeTypes(), routingRuleModel)
 	state.RoutingRule = routingRuleObjectValue

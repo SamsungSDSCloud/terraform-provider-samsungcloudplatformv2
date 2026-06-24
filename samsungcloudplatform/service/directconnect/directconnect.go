@@ -312,6 +312,11 @@ func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resou
 	state.Description = types.StringPointerValue(data.DirectConnect.Description.Get())
 	state.Bandwidth = types.Int32Value(data.DirectConnect.Bandwidth)
 	state.VpcId = types.StringValue(data.DirectConnect.VpcId)
+	if data.DirectConnect.FirewallId.IsSet() && data.DirectConnect.FirewallId.Get() != nil && *data.DirectConnect.FirewallId.Get() != "" {
+		state.FirewallEnabled = types.BoolValue(true)
+	} else {
+		state.FirewallEnabled = types.BoolValue(false)
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

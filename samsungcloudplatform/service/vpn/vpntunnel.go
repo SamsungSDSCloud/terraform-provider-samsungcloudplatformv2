@@ -78,7 +78,8 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 			Required: true,
 		},
 			"phase1": schema.SingleNestedAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"dpd_retry_interval": schema.Int32Attribute{
 						Description: "The Dead Peer Detection retry interval in seconds.\n" +
@@ -128,7 +129,8 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 				},
 			},
 			"phase2": schema.SingleNestedAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"perfect_forward_secrecy": schema.StringAttribute{
 						Description: "The Perfect Forward Secrecy setting for IKE phase 2.\n" +
@@ -470,11 +472,6 @@ func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadReques
 	state.VpnGatewayId = types.StringValue(vt.VpnGatewayId)
 	state.VpnTunnel = vtObjectValue
 
-	preSharedKey := types.StringValue("")
-	if state.Phase1 != nil {
-		preSharedKey = state.Phase1.PreSharedKey
-	}
-
 	state.Phase1 = &vpn.VpnPhase1v1d1Detail{
 		DpdRetryInterval:          vtModel.Phase1.DpdRetryInterval,
 		IkeVersion:                vtModel.Phase1.IkeVersion,
@@ -482,7 +479,7 @@ func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadReques
 		Phase1DiffieHellmanGroups: vtModel.Phase1.DiffieHellmanGroups,
 		Phase1Encryptions:         vtModel.Phase1.Encryptions,
 		Phase1LifeTime:            vtModel.Phase1.LifeTime,
-		PreSharedKey:              preSharedKey,
+		PreSharedKey:              types.StringValue(""),
 	}
 
 	state.Phase2 = &vpn.VpnPhase2v1d1Detail{

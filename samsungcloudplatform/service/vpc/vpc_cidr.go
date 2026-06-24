@@ -217,8 +217,7 @@ func (r *VpcCidrResource) Create(ctx context.Context, req resource.CreateRequest
 		vpcCidr.Cidrs = []vpcV1Dot2.VpcCidrInfo{}
 	}
 
-	vpcCidrObjectValue, d := types.ObjectValueFrom(ctx, vpcCidr.AttributeTypes(), vpcCidr)
-	resp.Diagnostics.Append(d...)
+	vpcCidrObjectValue, _ := types.ObjectValueFrom(ctx, vpcCidr.AttributeTypes(), vpcCidr)
 	plan.Vpc = vpcCidrObjectValue
 
 	// Set state

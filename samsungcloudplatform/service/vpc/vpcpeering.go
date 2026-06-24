@@ -11,7 +11,6 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,9 +21,8 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &vpcPeeringResource{}
-	_ resource.ResourceWithConfigure   = &vpcPeeringResource{}
-	_ resource.ResourceWithImportState = &vpcPeeringResource{}
+	_ resource.Resource              = &vpcPeeringResource{}
+	_ resource.ResourceWithConfigure = &vpcPeeringResource{}
 )
 
 // NewVpcVpcPeeringResource is a helper function to simplify the provider implementation.
@@ -42,10 +40,6 @@ type vpcPeeringResource struct {
 // Metadata returns the data source type name.
 func (r *vpcPeeringResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vpc_vpc_peering"
-}
-
-func (r *vpcPeeringResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
 }
 
 // Schema defines the schema for the data source.
@@ -293,10 +287,6 @@ func (r *vpcPeeringResource) Read(ctx context.Context, req resource.ReadRequest,
 	// Get refreshed order value from vpc
 	data, err := r.client.GetVpcPeering(ctx, state.Id.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading vpc peering",
@@ -326,7 +316,6 @@ func (r *vpcPeeringResource) Read(ctx context.Context, req resource.ReadRequest,
 		State:                    types.StringValue(string(vpcPeering.State)),
 	}
 	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
-	resp.Diagnostics.Append(diags...)
 
 	state.VpcPeering = vpcObjectValue
 
@@ -391,7 +380,6 @@ func (r *vpcPeeringResource) Update(ctx context.Context, req resource.UpdateRequ
 		State:                    types.StringValue(string(vpcPeering.State)),
 	}
 	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
-	resp.Diagnostics.Append(diags...)
 
 	state.VpcPeering = vpcObjectValue
 

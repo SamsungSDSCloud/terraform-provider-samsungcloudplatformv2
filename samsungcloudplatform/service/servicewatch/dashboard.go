@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -66,8 +65,7 @@ func (r *serviceWatchDashboardResource) Schema(_ context.Context, _ resource.Sch
 					" - example : Production-Web-Servers\n" +
 					" - minLength: 3\n" +
 					" - maxLength: 512\n",
-				Optional:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Optional: true,
 			}, common.ToSnakeCase("Type"): schema.StringAttribute{
 				Description: "Dashboard type.\n" +
 					" - example : Custom\n",
@@ -106,8 +104,7 @@ func (r *serviceWatchDashboardResource) Schema(_ context.Context, _ resource.Sch
 			common.ToSnakeCase("Widgets"): schema.ListNestedAttribute{
 				Description: "List of widgets.\n" +
 					" - example : [{\"id\": \"widget-123\", \"type\": \"metric\"}]\n",
-				Optional:      true,
-				PlanModifiers: []planmodifier.List{listplanmodifier.RequiresReplace()},
+				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{

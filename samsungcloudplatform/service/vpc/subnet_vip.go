@@ -10,20 +10,16 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &VPCSubnetVipResource{}
-	_ resource.ResourceWithConfigure   = &VPCSubnetVipResource{}
-	_ resource.ResourceWithImportState = &VPCSubnetVipResource{}
+	_ resource.Resource              = &VPCSubnetVipResource{}
+	_ resource.ResourceWithConfigure = &VPCSubnetVipResource{}
 )
 
 // NewVPCSubnetVipResource is a helper function to simplify the provider implementation.
@@ -53,9 +49,6 @@ func (r *VPCSubnetVipResource) Schema(_ context.Context, _ resource.SchemaReques
 				Description: "The identifier of the subnet that the subnet vip belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this VPC Subnet Vip. This help identify the purpose or usage of the subnet vip.\n" +
@@ -66,9 +59,6 @@ func (r *VPCSubnetVipResource) Schema(_ context.Context, _ resource.SchemaReques
 				Description: "The virtual IP address assigned to the subnet vip.\n" +
 					"  - example : 192.168.20.6",
 				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 
 			// Output
@@ -104,7 +94,7 @@ func (r *VPCSubnetVipResource) Schema(_ context.Context, _ resource.SchemaReques
 					common.ToSnakeCase("State"): schema.StringAttribute{
 						Description: "The current lifecycle state of the subnet vip.\n" +
 							"  - enum : CREATING, ACTIVE, DELETING, DELETED, ERROR\n" +
-							"  - example : ACTIVE",
+                            "  - example : ACTIVE",
 						Computed: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
@@ -287,11 +277,7 @@ func (r *VPCSubnetVipResource) Create(ctx context.Context, req resource.CreateRe
 		subnetVip.StaticNat = &vpcv1d2.StaticNatSummary{}
 	}
 
-	subnetVipObjectValue, diag := types.ObjectValueFrom(ctx, subnetVip.AttributeTypes(), subnetVip)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	subnetVipObjectValue, _ := types.ObjectValueFrom(ctx, subnetVip.AttributeTypes(), subnetVip)
 	plan.SubnetVip = subnetVipObjectValue
 	plan.Description = subnetVip.Description
 
@@ -336,14 +322,6 @@ func (r *VPCSubnetVipResource) Read(ctx context.Context, req resource.ReadReques
 		)
 		return
 	}
-	if data == nil {
-		resp.Diagnostics.AddError(
-			"Error reading data",
-			"An error occurred while reading data. Empty response",
-		)
-		return
-	}
-
 	// Map API response to object
 	subnetVip := &vpcv1d2.VpcSubnetVipDetail{
 		Id:               types.StringValue(data.SubnetVip.Id),
@@ -392,14 +370,9 @@ func (r *VPCSubnetVipResource) Read(ctx context.Context, req resource.ReadReques
 		subnetVip.StaticNat = &vpcv1d2.StaticNatSummary{}
 	}
 
-	subnetVipObjectValue, diag := types.ObjectValueFrom(ctx, subnetVip.AttributeTypes(), subnetVip)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	subnetVipObjectValue, _ := types.ObjectValueFrom(ctx, subnetVip.AttributeTypes(), subnetVip)
 	state.SubnetVip = subnetVipObjectValue
 	state.Description = subnetVip.Description
-	state.VirtualIpAddress = subnetVip.VirtualIpAddress
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)
@@ -523,11 +496,7 @@ func (r *VPCSubnetVipResource) Update(ctx context.Context, req resource.UpdateRe
 		subnetVip.StaticNat = &vpcv1d2.StaticNatSummary{}
 	}
 
-	subnetVipObjectValue, diag := types.ObjectValueFrom(ctx, subnetVip.AttributeTypes(), subnetVip)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	subnetVipObjectValue, _ := types.ObjectValueFrom(ctx, subnetVip.AttributeTypes(), subnetVip)
 	state.SubnetVip = subnetVipObjectValue
 	state.Description = plan.Description
 
@@ -537,29 +506,4 @@ func (r *VPCSubnetVipResource) Update(ctx context.Context, req resource.UpdateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-// ImportState imports an existing resource into Terraform state.
-func (r *VPCSubnetVipResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Expected import ID format: subnetId/subnetVipId, got: %q", req.ID),
-		)
-		return
-	}
-
-	subnetVipDetail := &vpcv1d2.VpcSubnetVipDetail{
-		Id:       types.StringValue(parts[1]),
-		SubnetId: types.StringValue(parts[0]),
-	}
-	subnetVipObject, diag := types.ObjectValueFrom(ctx, subnetVipDetail.AttributeTypes(), subnetVipDetail)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.State.SetAttribute(ctx, path.Root("subnet_id"), types.StringValue(parts[0]))
-	resp.State.SetAttribute(ctx, path.Root("subnet_vip"), subnetVipObject)
 }

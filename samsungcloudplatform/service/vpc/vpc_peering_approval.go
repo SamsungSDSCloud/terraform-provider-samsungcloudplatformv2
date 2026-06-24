@@ -198,9 +198,6 @@ func (r *vpcPeeringApprovalReource) Read(ctx context.Context, req resource.ReadR
 
 	vpcPeering := data.VpcPeering
 
-	// Rewrite configurable top-level input fields from API response to detect drift
-	state.VpcPeeringID = types.StringValue(vpcPeering.Id)
-
 	vpcPeeringModel := vpcv1.VpcPeering{
 		Id:                       types.StringValue(vpcPeering.Id),
 		Name:                     types.StringValue(vpcPeering.Name),
@@ -219,8 +216,7 @@ func (r *vpcPeeringApprovalReource) Read(ctx context.Context, req resource.ReadR
 		ModifiedBy:               types.StringValue(vpcPeering.ModifiedBy),
 		State:                    types.StringValue(string(vpcPeering.State)),
 	}
-	vpcObjectValue, d := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
-	resp.Diagnostics.Append(d...)
+	vpcObjectValue, _ := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
 
 	state.VpcPeering = vpcObjectValue
 
@@ -235,7 +231,7 @@ func (r *vpcPeeringApprovalReource) Read(ctx context.Context, req resource.ReadR
 func (r *vpcPeeringApprovalReource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var state vpcv1.VpcPeeringApprovalResource
 
-	diags := req.Plan.Get(ctx, &state)
+	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -271,8 +267,7 @@ func (r *vpcPeeringApprovalReource) Update(ctx context.Context, req resource.Upd
 		ModifiedBy:               types.StringValue(vpcPeering.ModifiedBy),
 		State:                    types.StringValue(string(vpcPeering.State)),
 	}
-	vpcObjectValue, d := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
-	resp.Diagnostics.Append(d...)
+	vpcObjectValue, _ := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
 
 	state.VpcPeering = vpcObjectValue
 
@@ -359,7 +354,7 @@ func (r *vpcPeeringApprovalReource) Delete(ctx context.Context, req resource.Del
 func (r *vpcPeeringApprovalReource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var state vpcv1.VpcPeeringApprovalResource
 
-	diags := req.Plan.Get(ctx, &state)
+	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -395,8 +390,7 @@ func (r *vpcPeeringApprovalReource) Create(ctx context.Context, req resource.Cre
 		ModifiedBy:               types.StringValue(vpcPeering.ModifiedBy),
 		State:                    types.StringValue(string(vpcPeering.State)),
 	}
-	vpcObjectValue, d := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
-	resp.Diagnostics.Append(d...)
+	vpcObjectValue, _ := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
 
 	state.VpcPeering = vpcObjectValue
 

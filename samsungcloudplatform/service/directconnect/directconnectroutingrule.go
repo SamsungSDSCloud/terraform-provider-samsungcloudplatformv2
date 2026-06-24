@@ -323,9 +323,7 @@ func (r *directConnectRoutingRuleResource) Read(ctx context.Context, req resourc
 	state.DestinationType = types.StringValue(string(rr.DestinationType))
 	state.DestinationCidr = types.StringValue(rr.DestinationCidr)
 	state.DestinationResourceId = types.StringPointerValue(rr.DestinationResourceId.Get())
-	if rr.Description != "" {
-		state.Description = types.StringValue(rr.Description)
-	}
+	state.Description = types.StringValue(rr.Description)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
