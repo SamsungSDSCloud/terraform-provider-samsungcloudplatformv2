@@ -415,6 +415,10 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 	}
 
 	lbMember := data.Member.Get()
+
+	// Rewrite configurable top-level input fields from API response to detect drift
+	state.LbServerGroupId = types.StringValue(lbMember.LbServerGroupId)
+
 	lbMemberModel := loadbalancer.LbMemberDetail{
 		LbServerGroupId: types.StringValue(lbMember.LbServerGroupId),
 		Name:            types.StringValue(lbMember.Name),

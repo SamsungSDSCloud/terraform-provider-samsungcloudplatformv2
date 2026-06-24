@@ -11,6 +11,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.1"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -20,8 +21,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcTgwVpcConnectionResource{}
-	_ resource.ResourceWithConfigure = &vpcTgwVpcConnectionResource{}
+	_ resource.Resource                = &vpcTgwVpcConnectionResource{}
+	_ resource.ResourceWithConfigure   = &vpcTgwVpcConnectionResource{}
+	_ resource.ResourceWithImportState = &vpcTgwVpcConnectionResource{}
 )
 
 // NewVpcTgwVpcConnectionResource is a helper function to simplify the provider implementation.
@@ -58,6 +60,22 @@ func (r *vpcTgwVpcConnectionResource) Configure(ctx context.Context, req resourc
 
 func (v vpcTgwVpcConnectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vpc_transit_gateway_vpc_connection"
+}
+
+func (r *vpcTgwVpcConnectionResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
+
+	parts := strings.Split(request.ID, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		response.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: TransitGaewayId/VpcConnectionId, got: %q", request.ID),
+		)
+		return
+	}
+
+	response.State.SetAttribute(ctx, path.Root("transit_gateway_id"), types.StringValue(parts[0]))
+	response.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
 }
 
 func (v *vpcTgwVpcConnectionResource) Schema(ctx context.Context, request resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -100,25 +118,25 @@ func (v *vpcTgwVpcConnectionResource) Schema(ctx context.Context, request resour
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-                        Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
-                            "  - example : 2024-05-17T00:23:17Z",
-                        Computed: true,
-                    },
-                    common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-                        Description: "The user id that created the resource.\n" +
-                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-                        Computed: true,
-                    },
-                    common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-                        Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
-                            "  - example : 2024-05-17T00:23:17Z",
-                        Computed: true,
-                    },
-                    common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-                        Description: "The user id that modified the resource.\n" +
-                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-                        Computed: true,
-                    },
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
+					},
+					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
+					},
+					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
+					},
+					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+						Description: "The user id that modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
+					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
 						Description: "The current lifecycle state of the connection.\n " +
 							"  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING\n" +
@@ -209,6 +227,10 @@ func (r vpcTgwVpcConnectionResource) Read(ctx context.Context, req resource.Read
 	data, err := r.client.GetTransitGatewayVpcConnection(ctx, state.TransitGatewayId.ValueString(), state.Id.ValueString())
 
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading tgw vpc connection",
@@ -223,7 +245,13 @@ func (r vpcTgwVpcConnectionResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	vpcconnectionModel := createTgwVpcConnectionModel(&data.TransitGatewayVpcConnections[0])
+	conn := data.TransitGatewayVpcConnections[0]
+
+	// Rewrite configurable top-level input fields from API response to detect drift
+	state.TransitGatewayId = types.StringValue(conn.TransitGatewayId)
+	state.VpcId = types.StringValue(conn.VpcId)
+
+	vpcconnectionModel := createTgwVpcConnectionModel(&conn)
 
 	vpcconnectionObjectValue, diags := types.ObjectValueFrom(ctx, vpcconnectionModel.AttributeTypes(), vpcconnectionModel)
 	state.TgwVpcConnection = vpcconnectionObjectValue

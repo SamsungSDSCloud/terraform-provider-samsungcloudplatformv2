@@ -136,16 +136,21 @@ func (client *Client) GetFirewallRuleList(page types.Int32, size types.Int32, so
 func (client *Client) CreateFirewallRule(ctx context.Context, request FirewallRuleResource) (*scpfirewall.FirewallRuleShowResponse, error) {
 	req := client.sdkClient.FirewallV1FirewallRulesApiAPI.CreateFirewallRule(ctx)
 
+	frc := request.FirewallRuleCreate
+	if frc == nil {
+		return nil, fmt.Errorf("firewall_rule_create block is required")
+	}
+
 	firewallRuleElement := scpfirewall.FirewallRuleCreateRequest{
-		SourceAddress:      request.FirewallRuleCreate.SourceAddress,
-		DestinationAddress: request.FirewallRuleCreate.DestinationAddress,
-		Service:            convertFirewallPorts(request.FirewallRuleCreate.Service),
-		Action:             scpfirewall.FirewallRuleAction(request.FirewallRuleCreate.Action.ValueString()),
-		Direction:          scpfirewall.FirewallRuleDirection(request.FirewallRuleCreate.Direction.ValueString()),
-		OrderRuleId:        request.FirewallRuleCreate.OrderRuleId.ValueStringPointer(),
-		OrderDirection:     convertOrderDirection(request.FirewallRuleCreate.OrderDirection.ValueStringPointer()),
-		Status:             scpfirewall.FirewallStatusType(request.FirewallRuleCreate.Status.ValueString()),
-		Description:        *scpfirewall.NewNullableString(request.FirewallRuleCreate.Description.ValueStringPointer()),
+		SourceAddress:      frc.SourceAddress,
+		DestinationAddress: frc.DestinationAddress,
+		Service:            convertFirewallPorts(frc.Service),
+		Action:             scpfirewall.FirewallRuleAction(frc.Action.ValueString()),
+		Direction:          scpfirewall.FirewallRuleDirection(frc.Direction.ValueString()),
+		OrderRuleId:        frc.OrderRuleId.ValueStringPointer(),
+		OrderDirection:     convertOrderDirection(frc.OrderDirection.ValueStringPointer()),
+		Status:             scpfirewall.FirewallStatusType(frc.Status.ValueString()),
+		Description:        *scpfirewall.NewNullableString(frc.Description.ValueStringPointer()),
 	}
 
 	req = req.FirewallRuleCreateSingleRequest(scpfirewall.FirewallRuleCreateSingleRequest{
@@ -165,13 +170,18 @@ func (client *Client) CreateFirewallRule(ctx context.Context, request FirewallRu
 func (client *Client) UpdateFirewallRule(ctx context.Context, firewallRuleId string, request FirewallRuleResource) (*scpfirewall.FirewallRuleShowResponse, error) {
 	req := client.sdkClient.FirewallV1FirewallRulesApiAPI.SetFirewallRule(ctx, firewallRuleId)
 
+	frc := request.FirewallRuleCreate
+	if frc == nil {
+		return nil, fmt.Errorf("firewall_rule_create block is required")
+	}
+
 	req = req.FirewallRuleSetRequest(scpfirewall.FirewallRuleSetRequest{
-		SourceAddress:      request.FirewallRuleCreate.SourceAddress,
-		DestinationAddress: request.FirewallRuleCreate.DestinationAddress,
-		Service:            convertFirewallPorts(request.FirewallRuleCreate.Service),
-		Action:             scpfirewall.FirewallRuleAction(request.FirewallRuleCreate.Action.ValueString()),
-		Direction:          scpfirewall.FirewallRuleDirection(request.FirewallRuleCreate.Direction.ValueString()),
-		Description:        *scpfirewall.NewNullableString(request.FirewallRuleCreate.Description.ValueStringPointer()),
+		SourceAddress:      frc.SourceAddress,
+		DestinationAddress: frc.DestinationAddress,
+		Service:            convertFirewallPorts(frc.Service),
+		Action:             scpfirewall.FirewallRuleAction(frc.Action.ValueString()),
+		Direction:          scpfirewall.FirewallRuleDirection(frc.Direction.ValueString()),
+		Description:        *scpfirewall.NewNullableString(frc.Description.ValueStringPointer()),
 	})
 
 	resp, _, err := req.Execute()

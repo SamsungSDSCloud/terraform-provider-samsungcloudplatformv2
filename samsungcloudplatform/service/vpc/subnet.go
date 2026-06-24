@@ -14,9 +14,12 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -25,8 +28,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcSubnetResource{}
-	_ resource.ResourceWithConfigure = &vpcSubnetResource{}
+	_ resource.Resource                = &vpcSubnetResource{}
+	_ resource.ResourceWithConfigure   = &vpcSubnetResource{}
+	_ resource.ResourceWithImportState = &vpcSubnetResource{}
 )
 
 // NewVpcSubnetResource is a helper function to simplify the provider implementation.
@@ -57,6 +61,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The ranges of IP addresses available for allocation within the subnet.\n" +
 					"  - example : [{ \"start\": \"192.168.0.3\", \"end\": \"192.168.0.254\" }]",
 				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("end"): schema.StringAttribute{
@@ -89,6 +96,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"  - maxMask : /28\n" +
 					"  - minMask : /16",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 				Description: "The timestamp when the subnet was created in ISO 8601 format.\n" +
@@ -134,6 +144,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"  - example: [\"1.1.1.1\", \"2.2.2.2\"]",
 				MarkdownDescription: "The list of DNS name server addresses for the subnet.\n" +
 					"  - example: [\"1.1.1.1\", \"2.2.2.2\"]",
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("GatewayIpAddress"): schema.StringAttribute{
 				Optional: true,
@@ -142,6 +155,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"  - example: 192.168.0.1",
 				MarkdownDescription: "The gateway IP address of the subnet.\n" +
 					"  - example: 192.168.0.1",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("HostRoutes"): schema.ListNestedAttribute{
 				Description: "The static host routes configured for the subnet.\n" +
@@ -149,6 +165,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The static host routes configured for the subnet.\n" +
 					"  - example : [{ \"destination\": \"192.168.24.0/24\", \"nexthop\": \"192.168.0.5\" }]",
 				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Destination"): schema.StringAttribute{
@@ -204,6 +223,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					stringvalidator.RegexMatches(regexp.MustCompile("^[a-zA-Z0-9-]*$"), "Enter 3 -20 chars. (English, number, hyphen)"),
 				},
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
 				Description: "The current lifecycle state of the subnet.\n" +
@@ -219,6 +241,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The type of the subnet.\n" +
 					"  - example : GENERAL | LOCAL | VPC_ENDPOINT",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("VpcID"): schema.StringAttribute{
 				Description: "The identifier of the VPC that the subnet belongs to.\n" +
@@ -226,6 +251,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The identifier of the VPC that the subnet belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("VpcName"): schema.StringAttribute{
 				Description: "The name of the VPC that the subnet belongs to.\n" +
@@ -318,10 +346,21 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 	// Get refreshed order value from vpc
 	data, err := r.client.GetSubnet(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading subnet",
 			"Could not read subnet ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
 		)
 		return
 	}
@@ -340,7 +379,62 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 	state.ModifiedBy = types.StringValue(subnet.ModifiedBy)
 	state.DhcpIpAddress = types.StringPointerValue(subnet.DhcpIpAddress.Get())
 
-	dnsNameservers, _ := types.SetValueFrom(ctx, types.StringType, subnet.GetDnsNameservers())
+	state.VpcId = types.StringValue(subnet.VpcId)
+	if subnet.Type.IsValid() {
+		state.Type = types.StringValue(string(subnet.Type))
+	}
+	state.Name = types.StringValue(subnet.Name)
+	state.Cidr = types.StringValue(subnet.Cidr)
+
+	// Map AllocationPools from API response
+	if subnet.AllocationPools != nil {
+		for _, p := range subnet.AllocationPools {
+			if pool, ok := p.(map[string]interface{}); ok {
+				start := ""
+				if s, ok := pool["start"].(string); ok {
+					start = s
+				}
+				end := ""
+				if e, ok := pool["end"].(string); ok {
+					end = e
+				}
+				state.AllocationPools = append(state.AllocationPools, vpc.AllocationPool{
+					Start: types.StringValue(start),
+					End:   types.StringValue(end),
+				})
+			}
+		}
+	} else {
+		state.AllocationPools = []vpc.AllocationPool{}
+	}
+
+	// Map HostRoutes from API response
+	if subnet.HostRoutes != nil {
+		for _, r := range subnet.HostRoutes {
+			if route, ok := r.(map[string]interface{}); ok {
+				destination := ""
+				if d, ok := route["destination"].(string); ok {
+					destination = d
+				}
+				nexthop := ""
+				if n, ok := route["nexthop"].(string); ok {
+					nexthop = n
+				}
+				state.HostRoutes = append(state.HostRoutes, vpc.HostRoute{
+					Destination: types.StringValue(destination),
+					Nexthop:     types.StringValue(nexthop),
+				})
+			}
+		}
+	} else {
+		state.HostRoutes = []vpc.HostRoute{}
+	}
+
+	dnsNameservers, diag := types.SetValueFrom(ctx, types.StringType, subnet.GetDnsNameservers())
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	state.DnsNameservers = dnsNameservers
 
@@ -422,4 +516,9 @@ func waitForSubnetStatus(ctx context.Context, vpcClient *vpc.Client, id string, 
 		}
 		return info, string(info.Subnet.State), nil
 	}, -1, -1, -1, -1)
+}
+
+// ImportState imports an existing resource into Terraform state.
+func (r *vpcSubnetResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
 }

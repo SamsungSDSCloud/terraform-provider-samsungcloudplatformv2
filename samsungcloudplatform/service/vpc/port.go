@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"strings"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
@@ -22,8 +25,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcPortResource{}
-	_ resource.ResourceWithConfigure = &vpcPortResource{}
+	_ resource.Resource                = &vpcPortResource{}
+	_ resource.ResourceWithConfigure   = &vpcPortResource{}
+	_ resource.ResourceWithImportState = &vpcPortResource{}
 )
 
 // NewVpcPortResource is a helper function to simplify the provider implementation.
@@ -108,6 +112,9 @@ func (r *vpcPortResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				MarkdownDescription: "The fixed IP address assigned to the port.\n" +
 					"  - example : 172.24.4.2",
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("MacAddress"): schema.StringAttribute{
 				Description: "The MAC address of the port.\n" +
@@ -152,6 +159,9 @@ func (r *vpcPortResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					"  - minLength : 3\n" +
 					"  - pattern : ^[a-zA-Z0-9-]+$",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
 				Description: "The current lifecycle state of the port.\n" +
@@ -166,6 +176,9 @@ func (r *vpcPortResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				MarkdownDescription: "The identifier of the subnet that the port belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("SubnetName"): schema.StringAttribute{
 				Description: "The name of the subnet that the port belongs to.\n" +
@@ -229,7 +242,7 @@ func (r *vpcPortResource) Configure(_ context.Context, req resource.ConfigureReq
 func (r *vpcPortResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan vpc.PortResource
-	diags := req.Config.Get(ctx, &plan)
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,11 +280,22 @@ func (r *vpcPortResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// Get refreshed order value from port
 	data, err := r.client.GetPort(ctx, state.Id.ValueString())
-	if err != nil || !data.Port.IsSet() {
+	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading port",
 			"Could not read port ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+	if data == nil || !data.Port.IsSet() {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
 		)
 		return
 	}
@@ -336,4 +360,8 @@ func (r *vpcPortResource) Delete(ctx context.Context, req resource.DeleteRequest
 		)
 		return
 	}
+}
+
+func (r *vpcPortResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
 }

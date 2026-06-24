@@ -76,8 +76,8 @@ Optional:
   - example : my-zone.com
 - `private_dns_id` (String) The DNS server ID for registering a Hosted Zone. Input this only when the Hosted Zone is of Private type.
   - example: YOUR RESOURCE'S PRIVATE_DNS_ID
-- `type` (String) The type of the hosted zone (e.g., PUBLIC or PRIVATE).
-  - example : PRIVATE
+- `type` (String) The type of the hosted zone (e.g., public or private).
+  - example : private
 
 
 <a id="nestedatt--zone"></a>
@@ -91,8 +91,8 @@ Optional:
   - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
   - example : This is description
-- `hosted_zone_type` (String) The type of the hosted zone (e.g., PUBLIC or PRIVATE).
-  - example : PRIVATE
+- `hosted_zone_type` (String) The type of the hosted zone (e.g., public or private).
+  - example : private
 - `id` (String) Hosted Zone ID
   - example: YOUR RESOURCE'S ID
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.

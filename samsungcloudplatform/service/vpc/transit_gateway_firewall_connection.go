@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"strings"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	vpcv1d2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,8 +19,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &tgwFirewallConnectionResource{}
-	_ resource.ResourceWithConfigure = &tgwFirewallConnectionResource{}
+	_ resource.Resource                = &tgwFirewallConnectionResource{}
+	_ resource.ResourceWithConfigure   = &tgwFirewallConnectionResource{}
+	_ resource.ResourceWithImportState = &tgwFirewallConnectionResource{}
 )
 
 // NewVpcTgwFirewallConnectionResource is a helper function to simplify the provider implementation.
@@ -34,6 +38,10 @@ type tgwFirewallConnectionResource struct {
 // Metadata returns the data source type name.
 func (r *tgwFirewallConnectionResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vpc_transit_gateway_firewall_connection"
+}
+
+func (r *tgwFirewallConnectionResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("transit_gateway_id"), request, response)
 }
 
 // Schema defines the schema for the data source.
@@ -213,7 +221,8 @@ func (r *tgwFirewallConnectionResource) Create(ctx context.Context, req resource
 	}
 
 	tgw.FirewallConnectionState = types.StringValue("ACTIVE")
-	tgwObjectValue, _ := types.ObjectValueFrom(ctx, tgw.AttributeTypes(), tgw)
+	tgwObjectValue, d := types.ObjectValueFrom(ctx, tgw.AttributeTypes(), tgw)
+	resp.Diagnostics.Append(d...)
 	plan.TransitGateway = tgwObjectValue
 
 	// Set state
@@ -236,6 +245,10 @@ func (r *tgwFirewallConnectionResource) Read(ctx context.Context, req resource.R
 
 	tgwResp, err := r.clientv1d2.GetTransitGatewayInfo(ctx, state.TransitGatewayId.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Unable to Read GetTransitGatewayInfo",
 			err.Error(),
@@ -247,6 +260,9 @@ func (r *tgwFirewallConnectionResource) Read(ctx context.Context, req resource.R
 		return
 	}
 	data := tgwResp.TransitGateway
+
+	// Rewrite configurable top-level input fields from API response to detect drift
+	state.TransitGatewayId = types.StringValue(data.Id)
 
 	transitGateway := vpcv1d2.TransitGateway{
 		Id:            types.StringValue(data.Id),
@@ -263,7 +279,8 @@ func (r *tgwFirewallConnectionResource) Read(ctx context.Context, req resource.R
 		UplinkEnabled: types.BoolPointerValue(data.UplinkEnabled),
 	}
 
-	tgwObjectValue, _ := types.ObjectValueFrom(ctx, transitGateway.AttributeTypes(), transitGateway)
+	tgwObjectValue, d := types.ObjectValueFrom(ctx, transitGateway.AttributeTypes(), transitGateway)
+	resp.Diagnostics.Append(d...)
 	state.TransitGateway = tgwObjectValue
 
 	// Set state

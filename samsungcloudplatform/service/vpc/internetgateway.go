@@ -12,8 +12,10 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.1"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -22,8 +24,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcInternetGatewayResource{}
-	_ resource.ResourceWithConfigure = &vpcInternetGatewayResource{}
+	_ resource.Resource                = &vpcInternetGatewayResource{}
+	_ resource.ResourceWithConfigure   = &vpcInternetGatewayResource{}
+	_ resource.ResourceWithImportState = &vpcInternetGatewayResource{}
 )
 
 // NewVpcInternetGatewayResource is a helper function to simplify the provider implementation.
@@ -61,6 +64,9 @@ func (r *vpcInternetGatewayResource) Schema(_ context.Context, _ resource.Schema
 				Description: "The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.\n" +
 					"  - example : IGW | GGW | SIGW",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
@@ -78,16 +84,25 @@ func (r *vpcInternetGatewayResource) Schema(_ context.Context, _ resource.Schema
 				Description: "Whether the firewall is enabled for the internet gateway.(Enable : true, Disable : false)\n" +
 					"  - example : true | false",
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("FirewallLoggable"): schema.BoolAttribute{
 				Description: "Whether firewall logging is enabled for the internet gateway.(Enable : true, Disable : false)\n" +
 					"  - example : true | false",
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
 				Description: "The identifier of the VPC that the internet gateway belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("InternetGateway"): schema.SingleNestedAttribute{
 				Description: "InternetGateway",
@@ -218,10 +233,17 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 	igwModel := createInternetGatewayModel(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.InternetGateway = igwObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	err = waitForInternetGatewayStatus(ctx, r.client, data.InternetGateway.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -256,6 +278,10 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 	// Get refreshed order value from internet gateway
 	data, err := r.client.GetInternetGateway(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading internet gateway",
@@ -263,10 +289,27 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
+		)
+		return
+	}
+
+	// Refresh input attributes from API response
+	state.Type = types.StringValue(string(data.InternetGateway.Type))
+	state.Description = types.StringPointerValue(data.InternetGateway.Description.Get())
+	state.Loggable = types.BoolValue(data.InternetGateway.GetLoggable())
+	state.VpcId = types.StringValue(data.InternetGateway.VpcId)
 
 	igwModel := createInternetGatewayModel(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.InternetGateway = igwObjectValue
 
 	// Set refreshed state
@@ -312,6 +355,10 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 	igwModel := createInternetGatewayModel(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.InternetGateway = igwObjectValue
 
 	diags = resp.State.Set(ctx, state)
@@ -380,4 +427,16 @@ func waitForInternetGatewayStatus(ctx context.Context, vpcClient *vpc.Client, id
 		}
 		return info, string(info.InternetGateway.State), nil
 	}, -1, -1, -1, -1)
+}
+
+func (r *vpcInternetGatewayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 1 || parts[0] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: internet_gateway_id, got: %q", req.ID),
+		)
+		return
+	}
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[0]))
 }

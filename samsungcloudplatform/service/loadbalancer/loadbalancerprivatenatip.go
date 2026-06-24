@@ -61,6 +61,9 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Schema(_ context.Context,
 				Description: "The LoadBalancer ID associated with the Private NAT IP.\n" +
 					"  - example : 46c681018e33453085ca7c8db54e0076\n",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("LoadbalancerPrivateNatIp"): schema.SingleNestedAttribute{
 				Description: "A detail of private NAT.",
@@ -220,6 +223,10 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Read(ctx context.Context,
 		resp.Diagnostics.AddError("Error reading Private NAT", err.Error())
 		return
 	}
+
+	// Rewrite configurable top-level input fields from API response to detect drift
+	privateNat := data.StaticNat.Get()
+	state.Id = loadbalancerutil.ToNullableStringValue(privateNat.Id.Get())
 
 	staticNatModel := createLoadbalancerPrivateNatModelFromShow(data)
 	staticNatObjectValue, d := types.ObjectValueFrom(ctx, staticNatModel.AttributeTypes(), staticNatModel)

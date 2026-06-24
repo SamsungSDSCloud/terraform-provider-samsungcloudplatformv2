@@ -79,8 +79,8 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 						Optional: true,
 					},
 					common.ToSnakeCase("HostedZoneType"): schema.StringAttribute{
-						Description: "The type of the hosted zone (e.g., PUBLIC or PRIVATE).\n" +
-							"  - example : PRIVATE ",
+						Description: "The type of the hosted zone (e.g., public or private).\n" +
+							"  - example : private ",
 						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
@@ -150,11 +150,11 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 						Optional: true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "The type of the hosted zone (e.g., PUBLIC or PRIVATE).\n" +
-							"  - example : PRIVATE ",
+						Description: "The type of the hosted zone (e.g., public or private).\n" +
+							"  - example : private ",
 						Optional: true,
 						Validators: []validator.String{
-							stringvalidator.OneOf("PUBLIC", "PRIVATE"),
+							stringvalidator.OneOf("public", "private"),
 						},
 					},
 				},

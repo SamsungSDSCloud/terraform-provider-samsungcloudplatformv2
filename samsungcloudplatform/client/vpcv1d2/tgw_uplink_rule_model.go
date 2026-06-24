@@ -31,12 +31,12 @@ type TransitGatewayRuleType struct {
 func (v TransitGatewayRuleValue) Type(ctx context.Context) attr.Type {
 	return TransitGatewayRuleType{
 		basetypes.ObjectType{
-			AttrTypes: v.AttributeTypes(ctx),
+			AttrTypes: v.AttributeTypes(),
 		},
 	}
 }
 
-func (v TransitGatewayRuleValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+func (v TransitGatewayRuleValue) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"description":      basetypes.StringType{},
 		"destination_cidr": basetypes.StringType{},

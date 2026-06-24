@@ -57,11 +57,17 @@ func (d *vpcPrivateNatIpResource) Schema(_ context.Context, _ resource.SchemaReq
 				Description: "The identifier of the private NAT that the resource belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("IpAddress"): schema.StringAttribute{
 				Description: "The IP address assigned to the private NAT.\n" +
 					"  - example : 192.168.10.0",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
@@ -70,6 +76,9 @@ func (d *vpcPrivateNatIpResource) Schema(_ context.Context, _ resource.SchemaReq
 				Optional: true,
 				Computed: true,
 				Default:  stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("PrivateNatIp"): schema.SingleNestedAttribute{
 				Description: "Private NAT IP",
@@ -213,7 +222,11 @@ func (r *vpcPrivateNatIpResource) Create(ctx context.Context, req resource.Creat
 		ModifiedAt:           types.StringValue(privateNatIp.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:           types.StringValue(privateNatIp.ModifiedBy),
 	}
-	privateNatIpObjectValue, diags := types.ObjectValueFrom(ctx, privateNatIpModel.AttributeTypes(), privateNatIpModel)
+	privateNatIpObjectValue, diag := types.ObjectValueFrom(ctx, privateNatIpModel.AttributeTypes(), privateNatIpModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.PrivateNatIp = privateNatIpObjectValue
 
 	// Set state to fully populated data
@@ -225,6 +238,10 @@ func (r *vpcPrivateNatIpResource) Create(ctx context.Context, req resource.Creat
 }
 
 func (r *vpcPrivateNatIpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	resp.Diagnostics.AddWarning(
+		"Read not supported",
+		"Private NAT IP resources do not support read operations.",
+	)
 }
 
 func (r *vpcPrivateNatIpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

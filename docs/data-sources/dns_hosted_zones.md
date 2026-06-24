@@ -62,8 +62,8 @@ Optional:
   - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
   - example : This is description
-- `hosted_zone_type` (String) The type of the hosted zone (e.g., PUBLIC or PRIVATE).
-  - example : PRIVATE
+- `hosted_zone_type` (String) The type of the hosted zone (e.g., public or private).
+  - example : private
 - `id` (String) The unique identifier of the hosted zone.
   - example: YOUR RESOURCE'S ID
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.

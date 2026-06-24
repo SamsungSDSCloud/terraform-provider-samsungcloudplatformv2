@@ -63,8 +63,8 @@ func (d *dnsHostedZoneDataSource) Schema(_ context.Context, _ datasource.SchemaR
 						Optional: true,
 					},
 					common.ToSnakeCase("HostedZoneType"): schema.StringAttribute{
-						Description: "The type of the hosted zone (e.g., PUBLIC or PRIVATE).\n" +
-							"  - example : PRIVATE ",
+						Description: "The type of the hosted zone (e.g., public or private).\n" +
+							"  - example : private ",
 						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{

@@ -11,6 +11,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -21,8 +22,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcVpcEndpointResource{}
-	_ resource.ResourceWithConfigure = &vpcVpcEndpointResource{}
+	_ resource.Resource                = &vpcVpcEndpointResource{}
+	_ resource.ResourceWithConfigure   = &vpcVpcEndpointResource{}
+	_ resource.ResourceWithImportState = &vpcVpcEndpointResource{}
 )
 
 // NewVpcVpcEndpointResource is a helper function to simplify the provider implementation.
@@ -40,6 +42,10 @@ type vpcVpcEndpointResource struct {
 // Metadata returns the data source type name.
 func (r *vpcVpcEndpointResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vpc_vpc_endpoint"
+}
+
+func (r *vpcVpcEndpointResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
 }
 
 // Schema defines the schema for the data source.
@@ -305,6 +311,10 @@ func (r *vpcVpcEndpointResource) Read(ctx context.Context, req resource.ReadRequ
 	// Get refreshed order value from vpc
 	data, err := r.client.GetVpcEndpoint(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading vpc endpoint",

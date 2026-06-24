@@ -61,6 +61,9 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Schema(_ context.Context, 
 				Description: "The LoadBalancer ID associated with the Public NAT IP.\n" +
 					"  - example : 46c681018e33453085ca7c8db54e0076\n",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("LoadbalancerPublicNatIp"): schema.SingleNestedAttribute{
 				Description: "A detail of public NAT.",

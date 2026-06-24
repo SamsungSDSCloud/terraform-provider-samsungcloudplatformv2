@@ -140,6 +140,9 @@ variable "firewall_rule3" {
 
 - `firewall_id` (String) The identifier of the firewall associated with the resource.
   - example: YOUR RESOURCE'S FIREWALL_ID
+
+### Optional
+
 - `firewall_rule_create` (Attributes) Firewall rule create object (see [below for nested schema](#nestedatt--firewall_rule_create))
 
 ### Read-Only

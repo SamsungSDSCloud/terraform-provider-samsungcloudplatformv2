@@ -65,6 +65,7 @@ func MapPort(port *vpc.PortV1Dot2, state *PortResource) {
 	state.ModifiedAt = types.StringValue(port.ModifiedAt.Format(time.RFC3339))
 	state.Name = types.StringValue(port.Name)
 	state.State = types.StringValue(port.State)
+	state.SubnetId = types.StringValue(port.SubnetId)
 	state.SubnetName = types.StringValue(port.SubnetName)
 	state.VpcId = types.StringValue(port.VpcId)
 	state.VpcName = types.StringValue(port.VpcName)
