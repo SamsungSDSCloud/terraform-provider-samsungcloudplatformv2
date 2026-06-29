@@ -85,6 +85,7 @@ jobs:
         continue-on-error: true
 
       - name: Run acceptance tests
+        id: run_tests
         run: |
           PKGS=$(go list ./samsungcloudplatform/service/... \
             | { grep -vE '/samsungcloudplatform/service/(virtualserver|servicewatch)(/|$)' || true; })
@@ -94,9 +95,53 @@ jobs:
           fi
           echo "test packages:"
           echo "$PKGS"
-          go test $PKGS -v -cover -timeout 600m
+          set +e
+          go test $PKGS -v -json -cover -timeout 600m 2>&1 | tee test_result.json
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          set -e
 
       - name: Sweep after tests
         if: always() && steps.sweep_pkgs.outputs.list != ''
         run: go test ${{ steps.sweep_pkgs.outputs.list }} -v -sweep=${{ matrix.region }} -timeout 600m
         continue-on-error: true
+
+      - name: Parse test results
+        if: always()
+        id: parse
+        env:
+          TEST_RESULT_FILE: test_result.json
+          MAIL_BODY_FILE: email.txt
+          MAIL_FAILURE_FILE: test_failures.log
+          SCP_TF_DEFAULT_REGION: ${{ matrix.region }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_DATE: ${{ github.event.head_commit.timestamp }}
+        run: |
+          ATTACHMENT=$(python3 .github/scripts/parse_test_result.py | grep '^attachment=' | cut -d= -f2)
+          echo "attachment=${ATTACHMENT}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.region }}
+          path: |
+            test_result.json
+            email.txt
+            test_failures.log
+          retention-days: 7
+
+      - name: Send email
+        if: always()
+        env:
+          MAIL_SERVER_ADDRESS: ${{ secrets.MAIL_SERVER_ADDRESS }}
+          MAIL_SERVER_PORT: ${{ secrets.MAIL_SERVER_PORT }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_SUBJECT: "[Terraform] Acceptance Test 결과 - ${{ env.RUN_DATE_SHORT }} (${{ matrix.region }})"
+          MAIL_BODY_FILE: email.txt
+          MAIL_ATTACHMENT: ${{ steps.parse.outputs.attachment }}
+        run: |
+          RUN_DATE_SHORT=$(date -u +"%Y-%m-%d")
+          export MAIL_SUBJECT="[Terraform] Acceptance Test 결과 - ${RUN_DATE_SHORT} (${{ matrix.region }})"
+          python3 .github/scripts/send_email.py
