@@ -145,11 +145,11 @@ jobs:
       #   if: always()
       #   continue-on-error: true
       #   env:
-      #     MAIL_SERVER_ADDRESS: smtp.samsung.net
-      #     MAIL_SERVER_PORT: 25
+      #     MAIL_SERVER_ADDRESS: 
+      #     MAIL_SERVER_PORT: 
       #     MAIL_USERNAME: scp.terraform
-      #     MAIL_PASSWORD: terraform77*
-      #     MAIL_TO: jjung.han@samsung.com
+      #     MAIL_PASSWORD: 
+      #     MAIL_TO: 
       #     MAIL_BODY_FILE: email.txt
       #     MAIL_ATTACHMENT: ${{ steps.parse.outputs.attachment }}
       #   run: |
