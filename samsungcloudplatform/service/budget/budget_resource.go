@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"strings"
+	"strconv"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/budget" // client 를 import 한다.
@@ -27,6 +28,14 @@ var (
 	// [BUDGET-FIX-01] ImportState 인터페이스 추가
 	_ resource.ResourceWithImportState = &budgetBudgetResource{}
 )
+
+func convertStringToInt32(value string) types.Int32 {
+    if value == "" {
+        return types.Int32Null()
+    }
+    v, _ := strconv.Atoi(value)
+    return types.Int32Value(int32(v))
+}
 
 // NewBudgetBudgetResource is a helper function to simplify the provider implementation.
 func NewBudgetBudgetResource() resource.Resource {
@@ -111,6 +120,13 @@ func (r *budgetBudgetResource) Create(ctx context.Context, req resource.CreateRe
 		)
 		return
 	}
+    if data == nil {
+        resp.Diagnostics.AddError(
+            "Error creating budget",
+            "Empty response from API",
+        )
+        return
+    }
 
 	budgetData := data.Budget
 	plan.Id = types.StringValue(budgetData.Id)
@@ -145,7 +161,7 @@ func (r *budgetBudgetResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	budgetModel := budget.Budget{
-		Amount:     types.Int32Value(budgetData.Amount),
+		Amount:     convertStringToInt32(budgetData.Amount),
 		CreatedAt:  types.StringValue(budgetData.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:  types.StringPointerValue(budgetData.CreatedBy),
 		BudgetId:   types.StringValue(budgetData.Id),
@@ -201,10 +217,17 @@ func (r *budgetBudgetResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 		return
 	}
+    if data == nil {
+        resp.Diagnostics.AddError(
+            "Error reading budget",
+            "Empty response from API",
+        )
+        return
+    }
 
 	budgetData := data.Budget
 	budgetModel := budget.Budget{
-		Amount:     types.Int32Value(budgetData.Amount),
+		Amount:     convertStringToInt32(budgetData.Amount),
 		CreatedAt:  types.StringValue(budgetData.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:  types.StringPointerValue(budgetData.CreatedBy),
 		BudgetId:   types.StringValue(budgetData.Id),
@@ -277,18 +300,24 @@ func (r *budgetBudgetResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+    if data == nil {
+        resp.Diagnostics.AddError("Error reading budget", "empty response from API")
+        return
+    }
+
 	budgetElement := data.Budget
 
 	budgetModel := budget.Budget{
 		BudgetId:   types.StringValue(budgetElement.Id),
 		Name:       types.StringValue(budgetElement.Name),
-		Amount:     types.Int32Value(budgetElement.Amount),
+		Amount:     convertStringToInt32(budgetElement.Amount),
 		BudgetType: types.StringValue(budgetElement.Type),
 		Unit:       types.StringValue(budgetElement.Unit),
-		CreatedAt:  types.StringValue(budgetElement.ModifiedAt.Format(time.RFC3339)),
+		CreatedAt:  types.StringValue(budgetElement.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:  types.StringPointerValue(budgetElement.CreatedBy),
 		ModifiedAt: types.StringValue(budgetElement.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy: types.StringPointerValue(budgetElement.ModifiedBy),
+		StartMonth: types.StringValue(budgetElement.StartMonth), // 추가: StartMonth 매핑
 	}
 
 	budgetObjectValue, diags := types.ObjectValueFrom(ctx, budgetModel.AttributeTypes(), budgetModel)

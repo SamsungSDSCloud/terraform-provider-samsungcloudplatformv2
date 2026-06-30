@@ -1,11 +1,11 @@
 variable "description" {
   type    = string
-  default = "TGW cidr one of vpc"
+  default = "TGW rule nam dep trai"
 }
 
 variable "destination_cidr" {
   type    = string
-  default = "1.1.0.0/17"
+  default = "192.168.100.0/24"
 }
 
 variable "destination_type" {

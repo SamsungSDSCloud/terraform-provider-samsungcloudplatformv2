@@ -11,16 +11,20 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcVpcPeeringRuleResource{}
-	_ resource.ResourceWithConfigure = &vpcVpcPeeringRuleResource{}
+	_ resource.Resource                = &vpcVpcPeeringRuleResource{}
+	_ resource.ResourceWithConfigure   = &vpcVpcPeeringRuleResource{}
+	_ resource.ResourceWithImportState = &vpcVpcPeeringRuleResource{}
 )
 
 // NewVpcVpcPeeringRuleResource is a helper function to simplify the provider implementation.
@@ -40,6 +44,22 @@ func (r *vpcVpcPeeringRuleResource) Metadata(_ context.Context, req resource.Met
 	resp.TypeName = req.ProviderTypeName + "_vpc_vpc_peering_rule"
 }
 
+func (r *vpcVpcPeeringRuleResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("vpc_peering_id"), request, response)
+
+	parts := strings.Split(request.ID, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		response.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: vpcPeeringId/ruleId, got: %q", request.ID),
+		)
+		return
+	}
+
+	response.State.SetAttribute(ctx, path.Root("vpc_peering_id"), types.StringValue(parts[0]))
+	response.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
+}
+
 // Schema defines the schema for the resource.
 func (r *vpcVpcPeeringRuleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -53,7 +73,7 @@ func (r *vpcVpcPeeringRuleResource) Schema(_ context.Context, _ resource.SchemaR
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
 				Description: "The destination IP address range in CIDR notation.\n  - Example : 192.168.1.0/24",
-				Required: true,
+				Required:    true,
 			},
 			common.ToSnakeCase("DestinationVpcType"): schema.StringAttribute{
 				Description: "The type of the destination VPC.\n" +
@@ -62,7 +82,14 @@ func (r *vpcVpcPeeringRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Required: true,
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
-
+			common.ToSnakeCase("Id"): schema.StringAttribute{
+				Description: "The unique identifier of the VPC peering rule.\n" +
+					"  - example : 6fdb3ffbe5ae4878a1ef6f55e208aa05",
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			// Output
 			common.ToSnakeCase("VpcPeeringRule"): schema.SingleNestedAttribute{
 				Description: "VPC Peering Rule details",
@@ -204,7 +231,10 @@ func (r *vpcVpcPeeringRuleResource) Create(ctx context.Context, req resource.Cre
 		DestinationVpcType: types.StringValue(string(result.VpcPeeringRule.DestinationVpcType)),
 		VpcPeeringId:       types.StringValue(plan.VpcPeeringId.ValueString()),
 	}
-	vpcPeeringRuleValue, _ := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
+	vpcPeeringRuleValue, diags := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
+	resp.Diagnostics.Append(diags...)
+
+	plan.Id = types.StringValue(result.VpcPeeringRule.Id)
 	plan.VpcPeeringRule = vpcPeeringRuleValue
 
 	err = waitForVpcPeeringRuleStatus(ctx, r.client, plan.VpcPeeringId.ValueString(), result.VpcPeeringRule.Id, []string{}, []string{"ACTIVE"})
@@ -216,7 +246,7 @@ func (r *vpcVpcPeeringRuleResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	resp.State.Set(ctx, plan)
+	diags = resp.State.Set(ctx, plan)
 
 	// Refresh resource state
 	readReq := resource.ReadRequest{
@@ -240,17 +270,24 @@ func (r *vpcVpcPeeringRuleResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	var rule vpc.VpcPeeringRule
-	errR := state.VpcPeeringRule.As(ctx, &rule, basetypes.ObjectAsOptions{})
-	if errR != nil {
-		resp.Diagnostics.AddError(
-			"Failed to parse VPC peering rule",
-			fmt.Sprintf("An error occurred while parsing VPC peering rule: %s", errR),
-		)
-		return
+	// If VpcPeeringRule is null (e.g. after import), use the rule ID from state
+	ruleId := types.StringNull()
+	if !state.VpcPeeringRule.IsNull() && !state.VpcPeeringRule.IsUnknown() {
+		var rule vpc.VpcPeeringRule
+		errR := state.VpcPeeringRule.As(ctx, &rule, basetypes.ObjectAsOptions{})
+		if errR != nil {
+			resp.Diagnostics.AddError(
+				"Failed to parse VPC peering rule",
+				fmt.Sprintf("An error occurred while parsing VPC peering rule: %s", errR),
+			)
+			return
+		}
+		ruleId = rule.Id
+	} else {
+		ruleId = state.Id
 	}
 
-	data, status, err := r.client.GetVpcPeeringRule(ctx, state.VpcPeeringId.ValueString(), rule.Id.ValueString())
+	data, status, err := r.client.GetVpcPeeringRule(ctx, state.VpcPeeringId.ValueString(), ruleId.ValueString())
 	if err != nil {
 		// Check if the error indicates the resource was not found
 		if status == 404 {
@@ -259,11 +296,15 @@ func (r *vpcVpcPeeringRuleResource) Read(ctx context.Context, req resource.ReadR
 		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Failed to read VPC peering rule",
+			"Failed to read VPC peering rule with"+" VpcPeeringId  "+state.VpcPeeringId.ValueString()+" ruleId "+ruleId.ValueString(),
 			fmt.Sprintf("An error occurred while reading VPC peering rule: %s. Details: %s", err.Error(), detail),
 		)
 		return
 	}
+
+	// Rewrite configurable top-level input fields from API response to detect drift
+	state.DestinationCidr = types.StringValue(data.DestinationCidr)
+	state.DestinationVpcType = types.StringValue(string(data.DestinationVpcType))
 
 	// Set the nested structure in the plan
 	vpcPeeringModel := vpc.VpcPeeringRule{
@@ -282,7 +323,10 @@ func (r *vpcVpcPeeringRuleResource) Read(ctx context.Context, req resource.ReadR
 		DestinationVpcType: types.StringValue(string(data.DestinationVpcType)),
 		VpcPeeringId:       types.StringValue(data.VpcPeeringId),
 	}
-	vpcPeeringRuleValue, _ := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
+	vpcPeeringRuleValue, diags := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
+	resp.Diagnostics.Append(diags...)
+
+	state.Id = types.StringValue(data.Id)
 	state.VpcPeeringRule = vpcPeeringRuleValue
 
 	diags = resp.State.Set(ctx, &state)

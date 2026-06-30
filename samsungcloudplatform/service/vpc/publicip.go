@@ -3,25 +3,30 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"strings"
+
+	"time"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.1"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcPublicipResource{}
-	_ resource.ResourceWithConfigure = &vpcPublicipResource{}
+	_ resource.Resource                = &vpcPublicipResource{}
+	_ resource.ResourceWithConfigure   = &vpcPublicipResource{}
+	_ resource.ResourceWithImportState = &vpcPublicipResource{}
 )
 
 // NewVpcPublicipResource is a helper function to simplify the provider implementation.
@@ -67,9 +72,10 @@ func (r *vpcPublicipResource) Schema(_ context.Context, _ resource.SchemaRequest
 				Optional: true,
 				Computed: true,
 				Default:  stringdefault.StaticString(""),
-			}, common.ToSnakeCase("Publicip"): schema.SingleNestedAttribute{
+			},
+			common.ToSnakeCase("Publicip"): schema.SingleNestedAttribute{
 				Description: "Publicip",
-				Computed: true,
+				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
 						Description: "The unique identifier of the public ip.\n" +
@@ -188,6 +194,10 @@ func (r *vpcPublicipResource) Create(ctx context.Context, req resource.CreateReq
 	plan.Id = types.StringValue(data.Publicip.Id)
 	publicipModel := createPublicipModel(data)
 	publicipObjectValue, diags := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.Publicip = publicipObjectValue
 
 	// Set state to fully populated data
@@ -211,6 +221,10 @@ func (r *vpcPublicipResource) Read(ctx context.Context, req resource.ReadRequest
 	// Get refreshed order value from publicip
 	data, err := r.client.GetPublicip(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading publicip",
@@ -218,10 +232,23 @@ func (r *vpcPublicipResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
+		)
+		return
+	}
 
 	publicipModel := createPublicipModel(data)
-	publicipObjectValue, diags := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	publicipObjectValue, diag := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Publicip = publicipObjectValue
+	// Refresh input attributes
+	state.Description = publicipModel.Description
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -263,7 +290,11 @@ func (r *vpcPublicipResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	publicipModel := createPublicipModel(data)
-	publicipObjectValue, diags := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	publicipObjectValue, diag := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Publicip = publicipObjectValue
 
 	diags = resp.State.Set(ctx, state)
@@ -318,4 +349,9 @@ func createPublicipModel(data *scpvpc.PublicipShowResponse) vpc.Publicip {
 		publicipModel.AttachedResourceType = types.StringPointerValue(nil)
 	}
 	return publicipModel
+}
+
+// ImportState imports an existing resource into Terraform state.
+func (r *vpcPublicipResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
 }

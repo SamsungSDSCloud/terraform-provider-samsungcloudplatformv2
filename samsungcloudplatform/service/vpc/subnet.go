@@ -14,6 +14,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -25,8 +26,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcSubnetResource{}
-	_ resource.ResourceWithConfigure = &vpcSubnetResource{}
+	_ resource.Resource                = &vpcSubnetResource{}
+	_ resource.ResourceWithConfigure   = &vpcSubnetResource{}
+	_ resource.ResourceWithImportState = &vpcSubnetResource{}
 )
 
 // NewVpcSubnetResource is a helper function to simplify the provider implementation.
@@ -318,10 +320,21 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 	// Get refreshed order value from vpc
 	data, err := r.client.GetSubnet(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading subnet",
 			"Could not read subnet ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
 		)
 		return
 	}
@@ -340,7 +353,21 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 	state.ModifiedBy = types.StringValue(subnet.ModifiedBy)
 	state.DhcpIpAddress = types.StringPointerValue(subnet.DhcpIpAddress.Get())
 
-	dnsNameservers, _ := types.SetValueFrom(ctx, types.StringType, subnet.GetDnsNameservers())
+	state.VpcId = types.StringValue(subnet.VpcId)
+	if subnet.Type.IsValid() {
+		state.Type = types.StringValue(string(subnet.Type))
+	}
+	state.Name = types.StringValue(subnet.Name)
+	state.Cidr = types.StringValue(subnet.Cidr)
+
+	// Ignore AllocationPools data drift
+	// Ignore HostRoutes data drift
+
+	dnsNameservers, diag := types.SetValueFrom(ctx, types.StringType, subnet.GetDnsNameservers())
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	state.DnsNameservers = dnsNameservers
 
@@ -369,6 +396,12 @@ func (r *vpcSubnetResource) Update(ctx context.Context, req resource.UpdateReque
 			"Error Updating subnet",
 			"Could not update subnet, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
+		return
+	}
+	// Save plan to state to avoid inconsistent data
+	diags = resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -422,4 +455,9 @@ func waitForSubnetStatus(ctx context.Context, vpcClient *vpc.Client, id string, 
 		}
 		return info, string(info.Subnet.State), nil
 	}, -1, -1, -1, -1)
+}
+
+// ImportState imports an existing resource into Terraform state.
+func (r *vpcSubnetResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
 }

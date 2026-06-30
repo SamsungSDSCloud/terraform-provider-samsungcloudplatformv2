@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -66,33 +65,21 @@ func (r *certificateManagerResource) Schema(_ context.Context, _ resource.Schema
 				Description: "Certificate body.\n" +
 					"  - example : 'encoded certificate body data'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("CertChain"): schema.StringAttribute{
 				Description: "Certificate chain.\n" +
 					"  - example : 'encoded certificate chain data'",
 				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "Certificate Name.\n" +
 					"  - example : 'test-certificate'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("PrivateKey"): schema.StringAttribute{
 				Description: "Encoded private key data.\n" +
 					"  - example : '<encoded private_key data>'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Recipients"): schema.ListAttribute{
 				Description: "List of recipients.\n" +
@@ -101,25 +88,16 @@ func (r *certificateManagerResource) Schema(_ context.Context, _ resource.Schema
 					ElemType: types.StringType,
 				},
 				Optional: true,
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("region"): schema.StringAttribute{
 				Description: "Name of region.\n" +
 					"  - example : 'west1'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Timezone"): schema.StringAttribute{
 				Description: "Timezone indentifier.\n" +
 					"  - example : 'Asia/Seoul'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Certificate"): schema.SingleNestedAttribute{
 				Description: "Certificate detail",
@@ -286,10 +264,8 @@ func (r *certificateManagerResource) Read(ctx context.Context, req resource.Read
 	state.Certificate = vgObjectValue
 
 	// Update input fields from API response for drift detection Region, timezone, recipients not exist in API response
+	// Sensitive cert data (CertBody, CertChain, PrivateKey) will not be returned
 	state.Name = types.StringValue(data.Certificate.Name)
-	state.CertBody = types.StringValue(data.Certificate.CertBody)
-	state.CertChain = types.StringPointerValue(data.Certificate.CertChain.Get())
-	state.PrivateKey = types.StringValue(data.Certificate.PrivateKey)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

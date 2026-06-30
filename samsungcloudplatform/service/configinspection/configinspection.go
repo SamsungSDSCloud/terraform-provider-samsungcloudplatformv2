@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -52,9 +50,6 @@ func (r *configInspectionDiagnosisResource) Schema(ctx context.Context, req reso
 				Description: "Account Identifier.\n" +
 					"  - example : '0e3dffc50eb247a1adxxxxxxxxxxxxxx'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("AuthKeyRequest"): schema.SingleNestedAttribute{
 				Description: "Auth key request",
@@ -64,33 +59,21 @@ func (r *configInspectionDiagnosisResource) Schema(ctx context.Context, req reso
 						Description: "Id of diagnosis.\n" +
 							"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 						Optional: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("AuthKeyCreatedAt"): schema.StringAttribute{
 						Description: "Created date of authkey.\n" +
 							"  - example : '2022-01-01 12:00:00'",
 						Optional: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("AuthKeyExpiredAt"): schema.StringAttribute{
 						Description: "Expired date of authkey.\n" +
 							"  - example : '2023-01-01 12:00:00'",
 						Optional: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("AuthKeyId"): schema.StringAttribute{
 						Description: "Id of auth key.\n" +
 							"  - example : '9b72a9856e494exxxxxxxxxxxxxxxxxx'",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 				},
 			},
@@ -99,60 +82,39 @@ func (r *configInspectionDiagnosisResource) Schema(ctx context.Context, req reso
 					"  - example : 'SCP'\n" +
 					"  - enum : SCP | AWS | Azure",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("DiagnosisAccountId"): schema.StringAttribute{
 				Description: "Account Id of diagnosis.\n" +
 					"  - example : '0e3dffc50eb247a1adxxxxxxxxxxxxxx'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("DiagnosisCheckType"): schema.StringAttribute{
 				Description: "Check type of diagnosis.\n" +
 					"  - example : 'BP'\n" +
 					"  - enum : BP | SSI",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
 				Description: "Id of diagnosis.\n" +
 					"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("DiagnosisName"): schema.StringAttribute{
 				Description: "Name of diagnosis.\n" +
 					"  - example : 'Sample Diagnosis Name'\n" +
 					"  - pattern : `^[a-zA-Z0-9-_]+$`",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("DiagnosisType"): schema.StringAttribute{
 				Description: "Config inspection type.\n" +
 					"  - example : 'Console'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("PlanType"): schema.StringAttribute{
 				Description: "Billing plan for the inspection.\n" +
 					"  - example : 'STANDARD'\n" +
 					"  - enum : STANDARD | MONTHLY",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("ScheduleRequest"): schema.SingleNestedAttribute{
 				Description: "Schedule request.",
@@ -162,49 +124,31 @@ func (r *configInspectionDiagnosisResource) Schema(ctx context.Context, req reso
 						Description: "Id of diagnosis.\n" +
 							"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("DiagnosisStartTimePattern"): schema.StringAttribute{
 						Description: "Start time (5-minute increments, 00 to 23 hours, 00 to 55 minutes).\n" +
 							"  - example : '08:00'",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("FrequencyType"): schema.StringAttribute{
 						Description: "Schedule type (monthly, weekly, daily).\n" +
 							"  - example : 'MONTH'",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("FrequencyValue"): schema.StringAttribute{
 						Description: "Schedule value (01~31, MONDAY~SUNDAY, everyDay).\n" +
 							"  - example : 1",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("UseDiagnosisCheckTypeBp"): schema.StringAttribute{
 						Description: "Checklist Best Practice Use.\n" +
 							"  - example : 'y'",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					common.ToSnakeCase("UseDiagnosisCheckTypeSsi"): schema.StringAttribute{
 						Description: "Checklist SSI usage.\n" +
 							"  - example : 'y'",
 						Required: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 				},
 			},

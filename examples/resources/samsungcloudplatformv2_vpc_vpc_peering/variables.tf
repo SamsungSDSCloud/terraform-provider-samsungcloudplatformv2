@@ -10,7 +10,7 @@ variable "approver_vpc_id" {
 
 variable "name" {
   type    = string
-  default = "test_vpc_peerings"
+  default = "nam-test-vpc"
 }
 
 variable "requester_vpc_id" {

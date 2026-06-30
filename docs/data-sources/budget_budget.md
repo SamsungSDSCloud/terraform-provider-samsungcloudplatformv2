@@ -37,14 +37,20 @@ variable "budget_budget_budget_id" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) ID
-- `name` (String) Name (between 1 and 64 characters)
+- `id` (String) ID of the budget to filter by.
+
+Example: `aaaaaa123456789abcede`
+- `name` (String) Name of the budget to filter by.
+
+Allowed length: 20 korean character, english character, digit, space, +=,.@-_.
+
+Example: `ex_month_budget`
 
 ### Read-Only
 
-- `budget` (Attributes) Account budget. (see [below for nested schema](#nestedatt--budget))
-- `notifications` (Attributes) Notifications (see [below for nested schema](#nestedatt--notifications))
-- `prevention` (Attributes) Prevention (see [below for nested schema](#nestedatt--prevention))
+- `budget` (Attributes) Details of the account budget. (see [below for nested schema](#nestedatt--budget))
+- `notifications` (Attributes) Settings for budget alerts when usage exceeds defined thresholds. (see [below for nested schema](#nestedatt--notifications))
+- `prevention` (Attributes) Settings to prevent new resource generation when budget usage exceeds the threshold. (see [below for nested schema](#nestedatt--prevention))
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -64,16 +70,40 @@ Required:
 
 Read-Only:
 
-- `amount` (Number) Amount
-- `budget_id` (String) BudgetId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `start_month` (String) StartMonth
-- `type` (String) Type
-- `unit` (String) Unit
+- `amount` (Number) The budget amount in the specified currency unit.
+
+Example: `1000000`
+- `budget_id` (String) The unique ID of the budget.
+
+Example: `ab1234567890abcdef`
+- `created_at` (String) The datetime when the budget was created.
+
+Example: `2024-01-15T00:00:00`
+- `created_by` (String) The user who created the budget.
+
+Example: `user@example.com`
+- `modified_at` (String) The datetime when the budget was last modified.
+
+Example: `2024-01-15T00:00:00`
+- `modified_by` (String) The user who last modified the budget.
+
+Example: `user@example.com`
+- `name` (String) The name of the budget.
+
+Example: `ex_month_budget`
+- `start_month` (String) The month when the budget period starts.
+
+Example: `2024-01`
+- `type` (String) The type of the budget. Default type is  `COST`
+
+Allowed values: `COST`
+
+Example: `COST`
+- `unit` (String) The budget manage unit.
+
+Allowed values: `MONTHLY` | `OVERALL`
+
+Example: `MONTHLY`
 
 
 <a id="nestedatt--notifications"></a>
@@ -81,10 +111,24 @@ Read-Only:
 
 Optional:
 
-- `is_use_notification` (Boolean) IsUseNotification
-- `notification_send_period` (String) NotificationSendPeriod
-- `receivers` (List of String) Receivers
-- `thresholds` (List of Number) Thresholds
+- `is_use_notification` (Boolean) Whether to enable budget notifications.
+
+Allowed values:`true`|`false`
+
+Example: `true`
+- `notification_send_period` (String) When to send budget notifications.
+
+Allowed values: `FIRST` | `DAILY` | `NONE`
+
+Example: `FIRST`
+- `receivers` (List of String) Email addresses to receive budget notifications.
+
+Example: `["user@example.com"]`
+- `thresholds` (List of Number) Percentage thresholds at which to send notifications.
+
+Allowed values: `70` | `80` | `90` | `100`
+
+Example: `[80, 100]`
 
 
 <a id="nestedatt--prevention"></a>
@@ -92,6 +136,16 @@ Optional:
 
 Optional:
 
-- `is_use_prevention` (Boolean) IsUsePrevention
-- `receivers` (List of String) Receivers
-- `threshold` (Number) Threshold
+- `is_use_prevention` (Boolean) Whether to prevent new resource creation when budget threshold is exceeded.
+
+Allowed values:`true`|`false`
+
+Example: `true`
+- `receivers` (List of String) Email addresses to notify when budget prevention is triggered.
+
+Example: `["admin@example.com"]`
+- `threshold` (Number) Budget threshold percentage to trigger prevention.
+
+Allowed values: One of the numbers `70` | `80` | `90` | `100`
+
+Example: `90`

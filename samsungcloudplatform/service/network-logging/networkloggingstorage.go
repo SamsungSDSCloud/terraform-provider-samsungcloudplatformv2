@@ -67,13 +67,11 @@ func (r *networkLoggingNetworkLoggingStorageResource) Schema(_ context.Context, 
 				Validators: []validator.String{
 					stringvalidator.OneOf("FIREWALL", "SECURITY_GROUP", "NAT"),
 				},
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("BucketName"): schema.StringAttribute{
 				Description: "Name of the Bucket. \n" +
 				    "  - example : bucket_name",
 				Required:    true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 				Description: "The timestamp when the resource was created, in ISO 8601 format. \n" +

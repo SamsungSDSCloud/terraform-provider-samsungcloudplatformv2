@@ -92,14 +92,10 @@ variable "tag" {
 <a id="nestedatt--public_domain_name_create"></a>
 ### Nested Schema for `public_domain_name_create`
 
-Optional:
+Required:
 
 - `address_type` (String) The type of address for the domain registration.
   - example : DOMESTIC
-- `auto_extension` (Boolean) Indicates whether automatic extension is enabled for the domain.
-  - example : true
-- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
-  - example : This is description
 - `domestic_first_address_en` (String) Domestic first address in English
   - example : Samsung-ro 123
 - `domestic_first_address_ko` (String) Domestic first address in Korean
@@ -126,6 +122,13 @@ Optional:
   - example : 홍길동
 - `register_telno` (String) The telephone number of the domain registrant.
   - example : 82-10-1234-5678
+
+Optional:
+
+- `auto_extension` (Boolean) Indicates whether automatic extension is enabled for the domain.
+  - example : true
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
 
 
 <a id="nestedatt--public_domain_name"></a>

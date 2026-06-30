@@ -50,12 +50,18 @@ variable "budget_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) Id (between 1 and 64 characters)
-- `name` (String) Name (between 1 and 64 characters)
+- `id` (String) The unique ID of the budget.
+
+Example: `bud-1234567890abcdef`
+- `name` (String) The name of the budget.
+
+Example: `ex_month_budget`
 
 ### Read-Only
 
-- `ids` (List of String) ID List
+- `ids` (List of String) The id list of budget.
+
+Example: `["bud-1234567890abcdef"]`
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`

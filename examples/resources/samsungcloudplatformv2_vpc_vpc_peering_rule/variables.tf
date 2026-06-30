@@ -5,7 +5,7 @@ variable "vpc_peering_id" {
 
 variable "destination_cidr" {
   type    = string
-  default = "1.1.1.0/28"
+  default = "77.33.0.0/24"
 }
 
 variable "destination_vpc_type" {

@@ -5,7 +5,7 @@ variable "routing_rule_transit_gateway_id" {
 
 variable "routing_rule_description" {
   type    = string
-  default = "description VPC"
+  default = "nam dep trai 1"
 }
 
 variable "routing_rule_destination_type" {
@@ -15,7 +15,7 @@ variable "routing_rule_destination_type" {
 
 variable "routing_rule_destination_cidr" {
   type    = string
-  default = "1.1.0.0/17"
+  default = "1.1.0.0/25"
 }
 
 variable "routing_rule_tgw_connection_vpc_id" {

@@ -241,7 +241,8 @@ func (r *tgwFirewallResource) Create(ctx context.Context, req resource.CreateReq
 		tgw.FirewallId = types.StringValue(firewalLst.Firewalls[0].Id)
 	}
 
-	tgwObjectValue, _ := types.ObjectValueFrom(ctx, tgw.AttributeTypes(), tgw)
+	tgwObjectValue, d := types.ObjectValueFrom(ctx, tgw.AttributeTypes(), tgw)
+	resp.Diagnostics.Append(d...)
 	plan.TransitGateway = tgwObjectValue
 
 	// Set state

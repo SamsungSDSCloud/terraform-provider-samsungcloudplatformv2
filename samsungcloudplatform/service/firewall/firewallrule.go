@@ -61,9 +61,6 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 				Description: "The identifier of the firewall associated with the resource.\n" +
 					"  - example: 68db67f78abd405da98a6056a8ee42af",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("FirewallRule"): schema.SingleNestedAttribute{
 				Description: "Firewall Rule.",
@@ -183,7 +180,7 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 			},
 			common.ToSnakeCase("FirewallRuleCreate"): schema.SingleNestedAttribute{
 				Description: "Firewall rule create object",
-				Optional:    true,
+				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("SourceAddress"): schema.ListAttribute{
 						Description: "The source IP addresses the rule applies to.\n" +

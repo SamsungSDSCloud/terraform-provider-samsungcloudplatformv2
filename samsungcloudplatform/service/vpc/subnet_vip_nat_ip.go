@@ -9,6 +9,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,8 +17,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &VPCSubnetVipNatIpResource{}
-	_ resource.ResourceWithConfigure = &VPCSubnetVipNatIpResource{}
+	_ resource.Resource                = &VPCSubnetVipNatIpResource{}
+	_ resource.ResourceWithConfigure   = &VPCSubnetVipNatIpResource{}
+	_ resource.ResourceWithImportState = &VPCSubnetVipNatIpResource{}
 )
 
 // NewVPCSubnetVipNatIpResource is a helper function to simplify the provider implementation.
@@ -123,7 +125,6 @@ func (r *VPCSubnetVipNatIpResource) Create(ctx context.Context, req resource.Cre
 
 	// Map API response to object
 	plan.Id = types.StringValue(apiResponse.Id)
-	plan.State = types.StringValue(apiResponse.State)
 
 	waitForState := "ACTIVE"
 	err = waitForVpcSubnetNatIpStatus(ctx, r.client, plan.SubnetId.ValueString(), plan.VipId.ValueString(), plan.PublicipId.ValueString(), []string{}, []string{waitForState})
@@ -169,13 +170,22 @@ func (r *VPCSubnetVipNatIpResource) Read(ctx context.Context, req resource.ReadR
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
+		)
+		return
+	}
 
 	// Map API response to object
 	if data.SubnetVip.StaticNat.IsSet() {
 		staticNat := data.SubnetVip.StaticNat.Get()
 		if staticNat != nil && staticNat.PublicipId == state.PublicipId.ValueString() {
-			state.Id = types.StringValue(data.SubnetVip.StaticNat.Get().Id)
-			state.State = types.StringValue(data.SubnetVip.StaticNat.Get().State)
+			state.Id = types.StringValue(staticNat.Id)
+			state.State = types.StringValue(staticNat.State)
+			state.PublicipId = types.StringValue(staticNat.PublicipId)
+			// state.NatType is not exist in api response
 		} else {
 			// Subnet VIP NAT IP was changed without us knowing so we are not managed this VIP NAT IP resource anymore
 			resp.State.RemoveResource(ctx)
@@ -242,4 +252,21 @@ func waitForVpcSubnetNatIpStatus(ctx context.Context, vpcClient *vpcv1d2.Client,
 		}
 		return info, "DELETED", nil
 	}, -1, -1, -1, -1)
+}
+
+// ImportState imports an existing resource into Terraform state.
+func (r *VPCSubnetVipNatIpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Expected ID format: subnetId/vipId/publicipId
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 3 || parts[0] == "" || parts[1] == "" || parts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: subnetId/vipId/publicipId, got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("subnet_id"), types.StringValue(parts[0]))
+	resp.State.SetAttribute(ctx, path.Root("vip_id"), types.StringValue(parts[1]))
+	resp.State.SetAttribute(ctx, path.Root("publicip_id"), types.StringValue(parts[2]))
 }

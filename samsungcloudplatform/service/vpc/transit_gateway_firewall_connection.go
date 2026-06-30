@@ -89,6 +89,11 @@ func (r *tgwFirewallConnectionResource) Schema(_ context.Context, _ resource.Sch
 							"  - example: ['bbb93aca123f4bb2b2c0f206f4a86b2b']",
 						Computed: true,
 					},
+					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
+						Description: "Firewall ID\n" +
+							"  - example: 'bbb93aca123f4bb2b2c0f206f4a86b2b'",
+						Computed: true,
+					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
 						Description: "The unique identifier of the transit gateway.\n" +
 							"  - example: fe860e0af0c04dcd8182b84f907f31f4",

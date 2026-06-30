@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -65,41 +64,26 @@ func (r *certificateManagerSelfSignResource) Schema(_ context.Context, _ resourc
 				Description: "Certificate Common Name.\n" +
 					"  - example : 'test.go.kr'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "Certificate Name.\n" +
 					"  - example : 'test-certificate'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
 				Description: "Certificate Expire Date.\n" +
 					"  - example : '20251212'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
 				Description: "Certificate Start Date.\n" +
 					"  - example : '20250101'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Organization"): schema.StringAttribute{
 				Description: "Certificate Organization Name.\n" +
 					"  - example : 'samsungSDS'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Recipients"): schema.ListAttribute{
 				Description: "Expired certificates Recipients",
@@ -107,25 +91,16 @@ func (r *certificateManagerSelfSignResource) Schema(_ context.Context, _ resourc
 					ElemType: types.StringType,
 				},
 				Optional: true,
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Region"): schema.StringAttribute{
 				Description: "Name of region.\n" +
 					"  - example : 'west1'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Timezone"): schema.StringAttribute{
 				Description: "Timezone indentifier.\n" +
 					"  - example : 'Asia/Seoul'",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Certificate"): schema.SingleNestedAttribute{
 				Description: "Certificate detail",
@@ -237,17 +212,12 @@ func (r *certificateManagerSelfSignResource) Create(ctx context.Context, req res
 
 	plan.Certificate = certificateObjectValue
 
+	// Save data into Terraform state
 	diags = resp.State.Set(ctx, plan)
-
-	readReq := resource.ReadRequest{
-		State: resp.State,
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, readReq, readResp)
-
-	resp.State = readResp.State
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -307,8 +277,6 @@ func (r *certificateManagerSelfSignResource) Read(ctx context.Context, req resou
 	state.NotBeforeDt = types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339))
 	state.NotAfterDt = types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339))
 	state.Organization = types.StringValue(data.Certificate.Organization)
-
-	// Region and Timezone are not included in the API response — retain the input values.
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

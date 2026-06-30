@@ -68,16 +68,19 @@ variable "tag" {
 <a id="nestedatt--hosted_zone_create"></a>
 ### Nested Schema for `hosted_zone_create`
 
+Required:
+
+- `name` (String) The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.
+  - example : my-zone.com
+- `type` (String) The type of the hosted zone (e.g., public or private).
+  - example : private
+
 Optional:
 
 - `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
   - example : This is description
-- `name` (String) The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.
-  - example : my-zone.com
 - `private_dns_id` (String) The DNS server ID for registering a Hosted Zone. Input this only when the Hosted Zone is of Private type.
   - example: YOUR RESOURCE'S PRIVATE_DNS_ID
-- `type` (String) The type of the hosted zone (e.g., public or private).
-  - example : private
 
 
 <a id="nestedatt--zone"></a>

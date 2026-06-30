@@ -316,7 +316,7 @@ func (r *loadbalancerLbMemberResource) ImportState(ctx context.Context, req reso
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 		resp.Diagnostics.AddError(
 			"Invalid Import ID",
-			fmt.Sprintf("Expected import ID format: DirectConnectId/RoutingRuleId, got: %q", req.ID),
+			fmt.Sprintf("Expected import ID format: lb_server_group_id/lb_member_id, got: %q", req.ID),
 		)
 		return
 	}

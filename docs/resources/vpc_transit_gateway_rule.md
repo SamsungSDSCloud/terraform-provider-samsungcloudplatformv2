@@ -36,7 +36,7 @@ variable "routing_rule_transit_gateway_id" {
 
 variable "routing_rule_description" {
   type    = string
-  default = "description VPC"
+  default = "nam dep trai 1"
 }
 
 variable "routing_rule_destination_type" {
@@ -46,7 +46,7 @@ variable "routing_rule_destination_type" {
 
 variable "routing_rule_destination_cidr" {
   type    = string
-  default = "1.1.0.0/17"
+  default = "1.1.0.0/25"
 }
 
 variable "routing_rule_tgw_connection_vpc_id" {
@@ -88,10 +88,6 @@ Read-Only:
 
 - `account_id` (String) The identifier of the account that owns the routing rule.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
-  - example : 2024-05-17T00:23:17Z
-- `created_by` (String) The user id that created the resource.
-  - example: YOUR RESOURCE'S CREATED_BY
 - `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
   - example : resourceDescription
 - `destination_cidr` (String) The destination IP address range in CIDR notation.
@@ -104,10 +100,6 @@ Read-Only:
   - example : ON-PREM | VPC
 - `id` (String) The unique identifier of the routing rule.
   - example: YOUR RESOURCE'S ID
-- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
-  - example : 2024-05-17T00:23:17Z
-- `modified_by` (String) The user id that modified the resource.
-  - example: YOUR RESOURCE'S MODIFIED_BY
 - `source_resource_id` (String) The identifier of the source resource.
   - example: YOUR RESOURCE'S SOURCE_RESOURCE_ID
 - `source_resource_name` (String) The name of the source resource.

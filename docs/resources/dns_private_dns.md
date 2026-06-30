@@ -66,14 +66,17 @@ variable "tag" {
 <a id="nestedatt--private_dns_create"></a>
 ### Nested Schema for `private_dns_create`
 
+Required:
+
+- `name` (String) The name for the private DNS to be created.
+  - example : private-dns01
+
 Optional:
 
 - `connected_vpc_ids` (List of String) The list of VPC identifiers connected to this private DNS.Only VPCs that are connected to the DNS can query the domain information registered in it.
   - example: YOUR RESOURCE'S CONNECTED_VPC_IDS
 - `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
   - example : This is description
-- `name` (String) The name for the private DNS to be created.
-  - example : private-dns01
 
 
 <a id="nestedatt--private_dns"></a>

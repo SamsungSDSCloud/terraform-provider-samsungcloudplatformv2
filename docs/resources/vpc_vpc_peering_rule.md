@@ -37,7 +37,7 @@ variable "vpc_peering_id" {
 
 variable "destination_cidr" {
   type    = string
-  default = "1.1.1.0/28"
+  default = "77.33.0.0/24"
 }
 
 variable "destination_vpc_type" {
@@ -73,6 +73,8 @@ variable "tags" {
 
 ### Read-Only
 
+- `id` (String) The unique identifier of the VPC peering rule.
+  - example: YOUR RESOURCE'S ID
 - `vpc_peering_rule` (Attributes) VPC Peering Rule details (see [below for nested schema](#nestedatt--vpc_peering_rule))
 
 <a id="nestedatt--vpc_peering_rule"></a>

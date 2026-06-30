@@ -61,9 +61,6 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Schema(_ context.Context,
 				Description: "The LoadBalancer ID associated with the Private NAT IP.\n" +
 					"  - example : 46c681018e33453085ca7c8db54e0076\n",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("LoadbalancerPrivateNatIp"): schema.SingleNestedAttribute{
 				Description: "A detail of private NAT.",
@@ -159,7 +156,7 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Configure(_ context.Conte
 }
 
 func (r *loadbalancerLoadbalancerPrivateNatIpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("loadbalancer_id"), req, resp)
 }
 
 // Create creates the resource and sets the initial Terraform state.

@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
+	vpc1d2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpcv1d2"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.1"
+	scpvpcv1d2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.2"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -21,8 +23,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcTgwRuleResource{}
-	_ resource.ResourceWithConfigure = &vpcTgwRuleResource{}
+	_ resource.Resource                = &vpcTgwRuleResource{}
+	_ resource.ResourceWithConfigure   = &vpcTgwRuleResource{}
+	_ resource.ResourceWithImportState = &vpcTgwRuleResource{}
 )
 
 // NewVpcTgwRuleResource is a helper function to simplify the provider implementation.
@@ -31,14 +34,30 @@ func NewVpcTgwRuleResource() resource.Resource {
 }
 
 type vpcTgwRuleResource struct {
-	config  *scpsdk.Configuration
-	client  *vpc.Client
-	clients *client.SCPClient
+	config    *scpsdk.Configuration
+	client    *vpc.Client
+	client1d2 *vpc1d2.Client
+	clients   *client.SCPClient
 }
 
 // Metadata returns the data source type name.
 func (v vpcTgwRuleResource) Metadata(_ context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = request.ProviderTypeName + "_vpc_transit_gateway_rule"
+}
+
+func (r *vpcTgwRuleResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
+
+	parts := strings.Split(request.ID, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		response.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: transitGatewayId/routingRuleId, got: %q", request.ID),
+		)
+		return
+	}
+	response.State.SetAttribute(ctx, path.Root("transit_gateway_id"), types.StringValue(parts[0]))
+	response.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
 }
 
 // Schema defines the schema for the data source.
@@ -91,26 +110,6 @@ func (v *vpcTgwRuleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 						Computed: true,
 					},
-					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-                        Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
-                            "  - example : 2024-05-17T00:23:17Z",
-                        Computed: true,
-                    },
-                    common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-                        Description: "The user id that created the resource.\n" +
-                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-                        Computed: true,
-                    },
-                    common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-                        Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
-                            "  - example : 2024-05-17T00:23:17Z",
-                        Computed: true,
-                    },
-                    common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-                        Description: "The user id that modified the resource.\n" +
-                            "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-                        Computed: true,
-                    },
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
 							"  - example : resourceDescription",
@@ -197,6 +196,7 @@ func (r *vpcTgwRuleResource) Configure(ctx context.Context, request resource.Con
 	}
 
 	r.client = inst.Client.Vpc
+	r.client1d2 = inst.Client.VpcV1Dot2 // For VPC v1.2
 	r.clients = inst.Client
 }
 
@@ -204,7 +204,7 @@ func (r *vpcTgwRuleResource) Configure(ctx context.Context, request resource.Con
 func (r *vpcTgwRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 
 	// Retrieve values from plan
-	var plan vpc.RoutingRuleResource
+	var plan vpc1d2.TransitGatewayRuleResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -212,7 +212,7 @@ func (r *vpcTgwRuleResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Create new routing rule
-	data, err := r.client.CreateTgwRule(ctx, plan)
+	data, err := r.client1d2.CreateTGWRule(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -269,6 +269,10 @@ func (r *vpcTgwRuleResource) Read(ctx context.Context, req resource.ReadRequest,
 	// Get refreshed order value from routing rule
 	data, err := r.client.GetRoutingRule(ctx, state.TransitGatewayId.ValueString(), state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading transit gateway routing rule",
@@ -277,7 +281,7 @@ func (r *vpcTgwRuleResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	routingRuleModel := createRoutingRuleModel(&data.TransitGatewayRules[0])
+	routingRuleModel := detailRoutingRuleModel(&data.TransitGatewayRules[0])
 
 	routingRuleObjectValue, diags := types.ObjectValueFrom(ctx, routingRuleModel.AttributeTypes(), routingRuleModel)
 	state.RoutingRule = routingRuleObjectValue
@@ -291,6 +295,10 @@ func (r *vpcTgwRuleResource) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (v vpcTgwRuleResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+	response.Diagnostics.AddWarning(
+		"Update not supported",
+		"VPC Subnet VIP NAT IP resource do not support update operations. The resource will not be updated.",
+	)
 }
 
 func (r vpcTgwRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -323,19 +331,33 @@ func (r vpcTgwRuleResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 }
 
-func createRoutingRuleModel(data *scpvpc.TransitGatewayRule) vpc.RoutingRule {
+func detailRoutingRuleModel(data *scpvpc.TransitGatewayRule) vpc.RoutingRule {
 	return vpc.RoutingRule{
 		AccountId:               types.StringValue(data.AccountId),
-		CreatedAt:               types.StringValue(data.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:               types.StringValue(data.CreatedBy),
 		Description:             types.StringValue(data.Description),
 		DestinationCidr:         types.StringValue(data.DestinationCidr),
 		DestinationResourceId:   types.StringPointerValue(data.DestinationResourceId.Get()),
 		DestinationResourceName: types.StringPointerValue(data.DestinationResourceName.Get()),
 		DestinationType:         types.StringValue(string(data.DestinationType)),
 		Id:                      types.StringValue(data.Id),
-		ModifiedAt:              types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:              types.StringValue(data.ModifiedBy),
+		SourceResourceId:        types.StringPointerValue(data.SourceResourceId.Get()),
+		SourceResourceName:      types.StringPointerValue(data.SourceResourceName.Get()),
+		SourceType:              types.StringValue(string(data.SourceType)),
+		State:                   types.StringValue(string(data.State)),
+		TgwConnectionVpcId:      types.StringPointerValue(data.TgwConnectionVpcId.Get()),
+		TgwConnectionVpcName:    types.StringPointerValue(data.TgwConnectionVpcName.Get()),
+	}
+}
+
+func createRoutingRuleModel(data *scpvpcv1d2.TransitGatewayVpcRule) vpc1d2.CreatedRoutingRule {
+	return vpc1d2.CreatedRoutingRule{
+		AccountId:               types.StringValue(data.AccountId),
+		Description:             types.StringValue(data.Description),
+		DestinationCidr:         types.StringValue(data.DestinationCidr),
+		DestinationResourceId:   types.StringPointerValue(data.DestinationResourceId.Get()),
+		DestinationResourceName: types.StringPointerValue(data.DestinationResourceName.Get()),
+		DestinationType:         types.StringValue(string(data.DestinationType)),
+		Id:                      types.StringValue(data.Id),
 		SourceResourceId:        types.StringPointerValue(data.SourceResourceId.Get()),
 		SourceResourceName:      types.StringPointerValue(data.SourceResourceName.Get()),
 		SourceType:              types.StringValue(string(data.SourceType)),

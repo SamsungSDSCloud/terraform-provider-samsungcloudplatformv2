@@ -65,9 +65,6 @@ func (r *vpcVpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 					"  - maxMask : /24\n" +
 					"  - minMask : /16",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.\n" +
@@ -223,10 +220,10 @@ func (r *vpcVpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 					common.ToSnakeCase("State"): schema.StringAttribute{
 						Description: "The current lifecycle state of the vpc.\n" +
 							"  - enum: [\"ACTIVE\",\"ERROR\"]\n" +
-                            "  - example : ACTIVE",
+							"  - example : ACTIVE",
 						MarkdownDescription: "The current lifecycle state of the vpc.\n" +
 							"  - enum: [\"ACTIVE\",\"ERROR\"]\n" +
-                            "  - example : ACTIVE",
+							"  - example : ACTIVE",
 						Computed: true,
 					},
 				},

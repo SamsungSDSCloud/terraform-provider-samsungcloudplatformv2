@@ -213,7 +213,11 @@ func (r *vpcPrivateNatIpResource) Create(ctx context.Context, req resource.Creat
 		ModifiedAt:           types.StringValue(privateNatIp.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:           types.StringValue(privateNatIp.ModifiedBy),
 	}
-	privateNatIpObjectValue, diags := types.ObjectValueFrom(ctx, privateNatIpModel.AttributeTypes(), privateNatIpModel)
+	privateNatIpObjectValue, diag := types.ObjectValueFrom(ctx, privateNatIpModel.AttributeTypes(), privateNatIpModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.PrivateNatIp = privateNatIpObjectValue
 
 	// Set state to fully populated data
@@ -225,6 +229,10 @@ func (r *vpcPrivateNatIpResource) Create(ctx context.Context, req resource.Creat
 }
 
 func (r *vpcPrivateNatIpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	resp.Diagnostics.AddWarning(
+		"Read not supported",
+		"Private NAT IP resources do not support read operations.",
+	)
 }
 
 func (r *vpcPrivateNatIpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

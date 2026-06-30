@@ -5,7 +5,7 @@ variable "transit_gateway_id" {
 
 variable "product_type" {
   type    = string
-  default = "TGW_BM"
+  default = "TGW_IGW"
 }
 
 

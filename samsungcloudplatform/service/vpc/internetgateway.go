@@ -12,6 +12,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
 	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vpc/1.1"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,8 +23,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcInternetGatewayResource{}
-	_ resource.ResourceWithConfigure = &vpcInternetGatewayResource{}
+	_ resource.Resource                = &vpcInternetGatewayResource{}
+	_ resource.ResourceWithConfigure   = &vpcInternetGatewayResource{}
+	_ resource.ResourceWithImportState = &vpcInternetGatewayResource{}
 )
 
 // NewVpcInternetGatewayResource is a helper function to simplify the provider implementation.
@@ -69,10 +71,12 @@ func (r *vpcInternetGatewayResource) Schema(_ context.Context, _ resource.Schema
 				Optional: true,
 				Computed: true,
 				Default:  stringdefault.StaticString(""),
-			}, common.ToSnakeCase("Loggable"): schema.BoolAttribute{
+			},
+			common.ToSnakeCase("Loggable"): schema.BoolAttribute{
 				Description: "Whether logging is enabled for the NAT.(NAT logging Enable : true, NAT logging Diable : false) \n" +
 					"  - example : true | false",
 				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("FirewallEnabled"): schema.BoolAttribute{
 				Description: "Whether the firewall is enabled for the internet gateway.(Enable : true, Disable : false)\n" +
@@ -218,10 +222,17 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 	igwModel := createInternetGatewayModel(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.InternetGateway = igwObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	err = waitForInternetGatewayStatus(ctx, r.client, data.InternetGateway.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -256,6 +267,10 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 	// Get refreshed order value from internet gateway
 	data, err := r.client.GetInternetGateway(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading internet gateway",
@@ -263,10 +278,27 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
+		)
+		return
+	}
+
+	// Refresh input attributes from API response
+	state.Type = types.StringValue(string(data.InternetGateway.Type))
+	state.Description = types.StringPointerValue(data.InternetGateway.Description.Get())
+	state.Loggable = types.BoolValue(data.InternetGateway.GetLoggable())
+	state.VpcId = types.StringValue(data.InternetGateway.VpcId)
 
 	igwModel := createInternetGatewayModel(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.InternetGateway = igwObjectValue
 
 	// Set refreshed state
@@ -312,7 +344,12 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 	igwModel := createInternetGatewayModel(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.InternetGateway = igwObjectValue
+	state.Loggable = types.BoolValue(data.InternetGateway.GetLoggable())
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -380,4 +417,16 @@ func waitForInternetGatewayStatus(ctx context.Context, vpcClient *vpc.Client, id
 		}
 		return info, string(info.InternetGateway.State), nil
 	}, -1, -1, -1, -1)
+}
+
+func (r *vpcInternetGatewayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 1 || parts[0] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: internet_gateway_id, got: %q", req.ID),
+		)
+		return
+	}
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[0]))
 }

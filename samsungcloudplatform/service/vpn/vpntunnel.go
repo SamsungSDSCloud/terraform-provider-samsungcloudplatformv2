@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -64,6 +65,8 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 				"  - example: VPN test\n" +
 				"  - constraints: maxLength: 40",
 			Optional: true,
+			Computed: true,
+			Default: stringdefault.StaticString(""),
 		},
 		"name": schema.StringAttribute{
 			Description: "The name of the resource.\n" +
@@ -78,8 +81,7 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 			Required: true,
 		},
 			"phase1": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"dpd_retry_interval": schema.Int32Attribute{
 						Description: "The Dead Peer Detection retry interval in seconds.\n" +
@@ -129,8 +131,7 @@ func (r *vpnVpnTunnelResource) Schema(_ context.Context, _ resource.SchemaReques
 				},
 			},
 			"phase2": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"perfect_forward_secrecy": schema.StringAttribute{
 						Description: "The Perfect Forward Secrecy setting for IKE phase 2.\n" +
@@ -479,7 +480,7 @@ func (r *vpnVpnTunnelResource) Read(ctx context.Context, req resource.ReadReques
 		Phase1DiffieHellmanGroups: vtModel.Phase1.DiffieHellmanGroups,
 		Phase1Encryptions:         vtModel.Phase1.Encryptions,
 		Phase1LifeTime:            vtModel.Phase1.LifeTime,
-		PreSharedKey:              types.StringValue(""),
+		PreSharedKey:              getPreSharedKey(state.Phase1),
 	}
 
 	state.Phase2 = &vpn.VpnPhase2v1d1Detail{
@@ -588,6 +589,15 @@ func (r *vpnVpnTunnelResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 		return
 	}
+}
+
+// getPreSharedKey returns the PSK from prior state. The API never echoes it back,
+// so we preserve the value to avoid "inconsistent result" errors.
+func getPreSharedKey(phase1 *vpn.VpnPhase1v1d1Detail) types.String {
+	if phase1 != nil {
+		return phase1.PreSharedKey
+	}
+	return types.StringValue("")
 }
 
 func mapPhase1Detail(phase1 scpvpn.VpnPhase1DetailV1Dot1) vpn.VpnPhase1v1Dot1Detail {

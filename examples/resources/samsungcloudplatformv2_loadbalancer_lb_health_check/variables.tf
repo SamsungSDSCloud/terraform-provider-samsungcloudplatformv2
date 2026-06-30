@@ -21,7 +21,7 @@ variable "lb_health_check_http" {
     health_check_interval = "30"
     health_check_port     = "100"
     health_check_timeout  = "20"
-    health_check_url      = "/test-terraform"
+    health_check_url      = "/namdeptrai-test-terraform"
     http_method           = "POST"
     name                  = "test-terraform-http"
     protocol              = "HTTP"
@@ -59,7 +59,7 @@ variable "lb_health_check_https" {
     health_check_interval = "30"
     health_check_port     = null
     health_check_timeout  = "20"
-    health_check_url      = "/test-terraform"
+    health_check_url      = "/namdeptrai-test-terraform"
     http_method           = "POST"
     name                  = "test-terraform-http"
     protocol              = "HTTPS"

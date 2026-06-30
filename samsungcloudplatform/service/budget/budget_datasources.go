@@ -45,22 +45,25 @@ func (d *budgetBudgetDataSources) Schema(_ context.Context, _ datasource.SchemaR
 		Description: "list of account budget",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id (between 1 and 64 characters)",
+				Description: "Unique ID of the budget.",
+				MarkdownDescription: "The unique ID of the budget.\n\nExample: `bud-1234567890abcdef`",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 64),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name (between 1 and 64 characters)",
+				Description:         "Budget name",
+				MarkdownDescription: "The name of the budget.\n\nExample: `ex_month_budget`",
 				Optional:    true,
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
+					stringvalidator.LengthBetween(1, 20),
 				},
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType: types.StringType,
-				Description: "ID List",
+				Description:         "Budget ID List",
+				MarkdownDescription: "The id list of budget.\n\nExample: `[\"bud-1234567890abcdef\"]`",
 				Computed:    true,
 			},
 		},

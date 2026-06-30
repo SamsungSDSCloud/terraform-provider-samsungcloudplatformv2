@@ -11,6 +11,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -21,8 +22,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcNatGatewayResource{}
-	_ resource.ResourceWithConfigure = &vpcNatGatewayResource{}
+	_ resource.Resource                = &vpcNatGatewayResource{}
+	_ resource.ResourceWithConfigure   = &vpcNatGatewayResource{}
+	_ resource.ResourceWithImportState = &vpcNatGatewayResource{}
 )
 
 // NewVpcNatGatewayResource is a helper function to simplify the provider implementation.
@@ -224,10 +226,17 @@ func (r *vpcNatGatewayResource) Create(ctx context.Context, req resource.CreateR
 		ModifiedBy:          types.StringValue(natgateway.ModifiedBy),
 	}
 	natGatewayObjectValue, diags := types.ObjectValueFrom(ctx, natGatewayModel.AttributeTypes(), natGatewayModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.NatGateway = natGatewayObjectValue
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	err = waitForNatGatewayStatus(ctx, r.client, natgateway.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -262,10 +271,21 @@ func (r *vpcNatGatewayResource) Read(ctx context.Context, req resource.ReadReque
 	// Get refreshed order value from vpc
 	data, err := r.client.GetNatGateway(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading nat gateway",
 			"Could not read nat gateway ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
 		)
 		return
 	}
@@ -290,7 +310,14 @@ func (r *vpcNatGatewayResource) Read(ctx context.Context, req resource.ReadReque
 		ModifiedBy:          types.StringValue(natgateway.ModifiedBy),
 	}
 	natGatewayObjectValue, diags := types.ObjectValueFrom(ctx, natGatewayModel.AttributeTypes(), natGatewayModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.NatGateway = natGatewayObjectValue
+
+	// Refresh input attributes from API response
+	state.Description = types.StringPointerValue(natgateway.Description.Get())
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -352,6 +379,10 @@ func (r *vpcNatGatewayResource) Update(ctx context.Context, req resource.UpdateR
 		ModifiedBy:          types.StringValue(natgateway.ModifiedBy),
 	}
 	natGatewayObjectValue, diags := types.ObjectValueFrom(ctx, natGatewayModel.AttributeTypes(), natGatewayModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.NatGateway = natGatewayObjectValue
 
 	diags = resp.State.Set(ctx, state)
@@ -400,4 +431,16 @@ func waitForNatGatewayStatus(ctx context.Context, vpcClient *vpc.Client, id stri
 		}
 		return info, info.NatGateway.State, nil
 	}, -1, -1, -1, -1)
+}
+
+func (r *vpcNatGatewayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 1 || parts[0] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: nat_gateway_id, got: %q", req.ID),
+		)
+		return
+	}
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[0]))
 }

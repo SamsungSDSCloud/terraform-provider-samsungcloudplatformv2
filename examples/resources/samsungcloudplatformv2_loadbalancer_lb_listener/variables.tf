@@ -237,7 +237,7 @@ variable "lb_listener_https" {
     idle_timeout          = 240
     insert_client_ip      = null
     loadbalancer_id       = "ENTER YOUR RESOURCE'S LOADBALANCER_ID"
-    name                  = "terraform-https"
+    name                  = "namdeptrai-test"
     persistence           = "source-ip"
     protocol              = "HTTPS"
     response_timeout      = null
