@@ -130,17 +130,29 @@ jobs:
             test_failures.log
           retention-days: 7
 
-      - name: Send email
+      - name: Print email attachment
         if: always()
-        env:
-          MAIL_SERVER_ADDRESS: smtp.samsung.net
-          MAIL_SERVER_PORT: 25
-          MAIL_USERNAME: scp.terraform
-          MAIL_PASSWORD: terraform77*
-          MAIL_TO: jjung.han@samsung.com
-          MAIL_BODY_FILE: email.txt
-          MAIL_ATTACHMENT: ${{ steps.parse.outputs.attachment }}
         run: |
-          RUN_DATE_SHORT=$(date -u +"%Y-%m-%d")
-          export MAIL_SUBJECT="[Terraform] Acceptance Test 결과 - ${RUN_DATE_SHORT} (${{ matrix.region }})"
-          python3 .github/scripts/send_email.py
+          ATTACHMENT="${{ steps.parse.outputs.attachment }}"
+          if [ -f "$ATTACHMENT" ]; then
+            echo "=== Mail attachment: $ATTACHMENT ==="
+            cat "$ATTACHMENT"
+          else
+            echo "No attachment file found: $ATTACHMENT"
+          fi
+
+      # - name: Send email
+      #   if: always()
+      #   continue-on-error: true
+      #   env:
+      #     MAIL_SERVER_ADDRESS: smtp.samsung.net
+      #     MAIL_SERVER_PORT: 25
+      #     MAIL_USERNAME: scp.terraform
+      #     MAIL_PASSWORD: terraform77*
+      #     MAIL_TO: jjung.han@samsung.com
+      #     MAIL_BODY_FILE: email.txt
+      #     MAIL_ATTACHMENT: ${{ steps.parse.outputs.attachment }}
+      #   run: |
+      #     RUN_DATE_SHORT=$(date -u +"%Y-%m-%d")
+      #     export MAIL_SUBJECT="[Terraform] Acceptance Test 결과 - ${RUN_DATE_SHORT} (${{ matrix.region }})"
+      #     python3 .github/scripts/send_email.py
