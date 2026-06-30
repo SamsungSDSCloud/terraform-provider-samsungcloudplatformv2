@@ -114,8 +114,8 @@ jobs:
           MAIL_FAILURE_FILE: test_failures.log
           SCP_TF_DEFAULT_REGION: ${{ matrix.region }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          RUN_DATE: ${{ github.event.head_commit.timestamp }}
         run: |
+          export RUN_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           ATTACHMENT=$(python3 .github/scripts/parse_test_result.py | grep '^attachment=' | cut -d= -f2)
           echo "attachment=${ATTACHMENT}" >> "$GITHUB_OUTPUT"
 
@@ -133,12 +133,11 @@ jobs:
       - name: Send email
         if: always()
         env:
-          MAIL_SERVER_ADDRESS: ${{ secrets.MAIL_SERVER_ADDRESS }}
-          MAIL_SERVER_PORT: ${{ secrets.MAIL_SERVER_PORT }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          MAIL_TO: ${{ secrets.MAIL_TO }}
-          MAIL_SUBJECT: "[Terraform] Acceptance Test 결과 - ${{ env.RUN_DATE_SHORT }} (${{ matrix.region }})"
+          MAIL_SERVER_ADDRESS: smtp.samsung.net
+          MAIL_SERVER_PORT: 25
+          MAIL_USERNAME: scp.terraform
+          MAIL_PASSWORD: terraform77*
+          MAIL_TO: jjung.han@samsung.com
           MAIL_BODY_FILE: email.txt
           MAIL_ATTACHMENT: ${{ steps.parse.outputs.attachment }}
         run: |
