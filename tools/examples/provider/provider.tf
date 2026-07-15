@@ -1,2 +1,0 @@
-provider "samsungcloudplatformv2" {
-}
