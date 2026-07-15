@@ -6,8 +6,8 @@ import (
 	"math"
 	"net/http"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	multinodegpuclustersdk1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/multinodegpucluster/1.3"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	multinodegpuclustersdk1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/multinodegpucluster/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

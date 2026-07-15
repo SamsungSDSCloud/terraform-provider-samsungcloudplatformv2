@@ -3,9 +3,9 @@ package postgresql
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	postgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/postgresql/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	postgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/postgresql/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

@@ -3,9 +3,9 @@ package mysql
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	mysql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/mysql/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	mysql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/mysql/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

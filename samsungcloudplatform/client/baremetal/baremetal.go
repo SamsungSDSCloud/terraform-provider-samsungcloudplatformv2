@@ -5,8 +5,8 @@ import (
 	"math"
 	"net/http"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpbaremetal1d2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/baremetal/1.2"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpbaremetal1d2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/baremetal/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

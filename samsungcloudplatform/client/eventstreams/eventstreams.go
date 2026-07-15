@@ -3,11 +3,11 @@ package eventstreams
 import (
 	"context"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	eventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/eventstreams/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	eventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/eventstreams/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
 )
 
 type Client struct {

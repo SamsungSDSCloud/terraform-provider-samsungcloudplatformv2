@@ -5,8 +5,8 @@ import (
 	"math"
 	"strings"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	servicewatch "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.4"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	servicewatch "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/servicewatch/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )

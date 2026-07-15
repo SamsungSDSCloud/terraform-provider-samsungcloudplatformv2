@@ -3,7 +3,7 @@ package organization
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/organization/1.2"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/organization/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"

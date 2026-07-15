@@ -4,8 +4,8 @@ import (
 	"context"
 	"math"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/quota/1.5"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/quota/1.5"
 )
 
 type Client struct {
