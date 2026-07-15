@@ -1,0 +1,183 @@
+package loadbalancer
+
+import (
+	"context"
+	"fmt"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/loadbalancer"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"time"
+)
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ datasource.DataSource              = &loadbalancerLbCertificateDataSources{}
+	_ datasource.DataSourceWithConfigure = &loadbalancerLbCertificateDataSources{}
+)
+
+// NewResourceManagerResourceGroupDataSources is a helper function to simplify the provider implementation.
+func NewLoadbalancerLbCertificateDataSources() datasource.DataSource {
+	return &loadbalancerLbCertificateDataSources{}
+}
+
+// resourceManagerResourceGroupDataSources is the data source implementation.
+type loadbalancerLbCertificateDataSources struct {
+	config  *scpsdk.Configuration
+	client  *loadbalancer.Client
+	clients *client.SCPClient
+}
+
+// Metadata returns the data source type name.
+func (d *loadbalancerLbCertificateDataSources) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_loadbalancer_lb_certificates" // service 의 metadata 를 {{ provider명 }}_{{ 서비스명 }}_{{ 복수형 리소스명 }} 형태로 추가한다.
+}
+
+// Schema defines the schema for the data source.
+func (d *loadbalancerLbCertificateDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
+	resp.Schema = schema.Schema{
+		Description: "List all LB Certificates.",
+		Attributes: map[string]schema.Attribute{
+			common.ToSnakeCase("LbCertificates"): schema.ListNestedAttribute{
+				Description: "List of LB Certificates.",
+				Computed:    true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						common.ToSnakeCase("CertKind"): schema.StringAttribute{
+							Description: "The type of certificate.\n" +
+								"  - example : SERVER\n" +
+								"  - pattern : SERVER | CLIENT\n",
+							Optional: true,
+						},
+						common.ToSnakeCase("Cn"): schema.StringAttribute{
+							Description: "The common name (CN) of the certificate.\n" +
+								"  - example : example.com\n",
+							Optional: true,
+						},
+						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
+						},
+						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
+						},
+						common.ToSnakeCase("Id"): schema.StringAttribute{
+							Description: "The unique identifier of the LB Certificate.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
+						},
+						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
+						},
+						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
+						},
+						common.ToSnakeCase("Name"): schema.StringAttribute{
+							Description: "The name of the LB Certificate.\n" +
+								"  - example : Certificate01\n" +
+								"  - minLength : 1\n" +
+								"  - maxLength : 63\n" +
+								"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+							Optional: true,
+						},
+						common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
+							Description: "The expiration date of the certificate.\n" +
+								"  - example : 2026-02-12T23:59:59Z\n",
+							Optional: true,
+						},
+						common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
+							Description: "The start date of the certificate validity.\n" +
+								"  - example : 2025-02-12T00:00:00Z\n",
+							Optional: true,
+						},
+						common.ToSnakeCase("State"): schema.StringAttribute{
+							Description: "The current state of the LB Certificate.\n" +
+								"  - example : ACTIVE\n" +
+								"  - pattern : ACTIVE | ERROR\n",
+							Optional: true,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+// Configure adds the provider configured client to the data source.
+func (d *loadbalancerLbCertificateDataSources) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	// Add a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	inst, ok := req.ProviderData.(client.Instance)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *client.Instance, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	d.client = inst.Client.LoadBalancer
+	d.clients = inst.Client
+}
+
+// Read refreshes the Terraform state with the latest data.
+func (d *loadbalancerLbCertificateDataSources) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var state loadbalancer.LbCertificateDataSource
+
+	diags := req.Config.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	data, err := d.client.GetLbCertificateList(ctx, state)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Read LbCertificates",
+			err.Error(),
+		)
+		return
+	}
+
+	for _, lbcertificate := range data.Certificates {
+
+		lbcertificateState := loadbalancer.LbCertificate{
+			CertKind:    types.StringValue(lbcertificate.CertKind),
+			Cn:          types.StringValue(lbcertificate.Cn),
+			CreatedAt:   loadbalancerutil.ToNullableTimeString(lbcertificate.CreatedAt),
+			CreatedBy:   loadbalancerutil.ToNullableStringValue(lbcertificate.CreatedBy.Get()),
+			Id:          types.StringValue(lbcertificate.Id),
+			ModifiedAt:  loadbalancerutil.ToNullableTimeString(lbcertificate.ModifiedAt),
+			ModifiedBy:  loadbalancerutil.ToNullableStringValue(lbcertificate.ModifiedBy.Get()),
+			Name:        types.StringValue(lbcertificate.Name),
+			NotAfterDt:  types.StringValue(lbcertificate.NotAfterDt.Format(time.RFC3339)),
+			NotBeforeDt: types.StringValue(lbcertificate.NotBeforeDt.Format(time.RFC3339)),
+			State:       types.StringValue(lbcertificate.State),
+		}
+
+		state.LbCertificates = append(state.LbCertificates, lbcertificateState)
+
+		// Set state
+		diags = resp.State.Set(ctx, &state)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+}

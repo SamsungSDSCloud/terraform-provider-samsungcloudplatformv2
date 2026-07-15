@@ -1,0 +1,3 @@
+output "networkLoggingConfigurations" {
+  value = data.samsungcloudplatformv2_network_logging_network_logging_configurations.networkloggingconfigurations
+}

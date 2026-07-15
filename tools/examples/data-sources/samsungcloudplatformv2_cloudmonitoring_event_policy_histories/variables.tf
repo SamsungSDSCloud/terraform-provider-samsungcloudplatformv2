@@ -1,0 +1,26 @@
+
+
+variable "QueryStartDt" {
+  type    = string
+  default = "2025-04-14T00:00:00.000Z"
+}
+
+variable "QueryEndDt" {
+  type    = string
+  default = "2025-04-17T08:00:00.000Z"
+}
+
+variable "XResourceType" {
+  type    = string
+  default = "VM"
+}
+
+variable "EventPolicyId" {
+  type    = number
+  default = 21323
+}
+
+
+
+
+

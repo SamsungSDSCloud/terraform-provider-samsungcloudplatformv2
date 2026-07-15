@@ -1,0 +1,9 @@
+category:
+  dns_hosted_zone: DNS
+  dns_hosted_zones: DNS
+  dns_private_dns: DNS
+  dns_private_dnss: DNS
+  dns_public_domain_name: DNS
+  dns_public_domain_names: DNS
+  dns_record: DNS
+  dns_records: DNS
