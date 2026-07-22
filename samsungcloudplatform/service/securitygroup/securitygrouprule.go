@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -68,8 +67,7 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("SecurityGroupId"): schema.StringAttribute{
 				Description: "The identifier of the security group that the resource belongs to.\n" +
 					"  - example : cff990e6d5ed43d3ab239e4aba0b4c3e",
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
-				Required:      true,
+				Required: true,
 			},
 			common.ToSnakeCase("ethertype"): schema.StringAttribute{
 				Description: "The Ethernet protocol type the rule applies to.\n" +
@@ -79,49 +77,42 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Validators: []validator.String{
 					stringvalidator.OneOf("IPv4"),
 				},
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("protocol"): schema.StringAttribute{
 				Description: "The network protocol the rule applies to.\n" +
 					"  - example : TCP",
-				Optional:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Optional: true,
 			},
 			common.ToSnakeCase("portRangeMin"): schema.Int32Attribute{
 				Description: "The minimum port number of the rule's port range.\n" +
 					"  - example: 22\n" +
 					"  - valid: 1-65535. For ICMP, 0-255. For IP Protocol, None.\n" +
 					"  - constraints: None",
-				Optional:      true,
-				PlanModifiers: []planmodifier.Int32{int32planmodifier.RequiresReplace()},
+				Optional: true,
 			},
 			common.ToSnakeCase("portRangeMax"): schema.Int32Attribute{
 				Description: "The maximum port number of the rule's port range.\n" +
 					"  - example: 443\n" +
 					"  - valid: 1-65535. For ICMP and IP Protocol, None.\n" +
 					"  - constraints: None",
-				Optional:      true,
-				PlanModifiers: []planmodifier.Int32{int32planmodifier.RequiresReplace()},
+				Optional: true,
 			},
 			common.ToSnakeCase("RemoteIpPrefix"): schema.StringAttribute{
 				Description: "The remote IP address range the rule applies to in CIDR notation.\n" +
 					"  - example: 10.0.0.0/24\n" +
 					"  - valid: IPv4 CIDR",
-				Optional:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Optional: true,
 			},
 			common.ToSnakeCase("RemoteGroupId"): schema.StringAttribute{
 				Description: "The identifier of the remote security group the rule applies to.\n" +
 					"  - example: ce5a565f-20fa-48f7-b06d-be0f03d2b50c",
-				Optional:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Optional: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "A brief explanation or note about this resource.\n" +
 					"  - example: Security group for web tier\n" +
 					"  - constraints: maxLength: 255",
-				Optional:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Optional: true,
 			},
 			common.ToSnakeCase("Direction"): schema.StringAttribute{
 				Description: "The direction of the traffic the rule applies to.\n" +
@@ -131,7 +122,6 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Validators: []validator.String{
 					stringvalidator.OneOf("ingress", "egress"),
 				},
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("SecurityGroupRule"): schema.SingleNestedAttribute{
 				Description: "Security Group Rule Object",

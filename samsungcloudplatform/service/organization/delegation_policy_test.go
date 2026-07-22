@@ -2,6 +2,7 @@ package organization_test
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -13,23 +14,62 @@ import (
 )
 
 func TestAccDelegationPolicyResourceTest(t *testing.T) {
+	offering, err := getTestOffering()
+	if err != nil {
+		t.Fatalf("failed to get offering: %v", err)
+	}
+
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"samsungcloudplatformv2": providerserver.NewProtocol6WithError(samsungcloudplatform.NewProvider("test")),
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDelegationPolicyCreate(),
+				Config: testAccDelegationPolicyCreate(offering),
 			},
 			{
-				Config: testAccDelegationPolicyUpdate(),
+				Config: testAccDelegationPolicyUpdate(offering),
 			},
 		},
 	})
 }
 
-func testAccDelegationPolicyCreate() string {
+func getTestOffering() (string, error) {
+	scpClient, err := SharedClientForRegion("kr-west1")
+	if err != nil {
+		return "", fmt.Errorf("failed to create client: %w", err)
+	}
+
+	u, err := url.Parse(scpClient.Client.Organization.Config.AuthUrl)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse auth url %q: %w", scpClient.Client.Organization.Config.AuthUrl, err)
+	}
+	parts := strings.Split(u.Hostname(), ".")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("unexpected auth url format: %s", scpClient.Client.Organization.Config.AuthUrl)
+	}
+	return parts[1], nil
+}
+
+func getDelegationPolicyBaseConfig() string {
+	return `
+		data "samsungcloudplatformv2_organization_organizations" "organizations" {
+			size = 1
+		}
+
+		resource "samsungcloudplatformv2_iam_user" "delegation_policy_user" {
+			account_id         = data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].master_account_id
+			description        = "test-acc delegation policy test user"
+			password           = "U2NvcmVTY3AhMjM="
+			temporary_password = true
+			user_name          = "test-acc-delegation-policy-user"
+		}
+	`
+}
+
+func testAccDelegationPolicyCreate(offering string) string {
 	return fmt.Sprintf(`
+		%s
 		resource "samsungcloudplatformv2_organization_delegation_policy" "delegation_policy" {
 			document = {
 				statement = [
@@ -40,18 +80,19 @@ func testAccDelegationPolicyCreate() string {
 						resource = ["*"]
 						sid = "test-acc-sid-1"
 						principal = {
-							scp = ["srn:dev2::f045159f40c64125a1fe61bd71d1c14c:::iam:user/e3a6e3f99c1040639e9a3c8f8b7427de"]
+							scp = ["srn:%s::${data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].master_account_id}:::iam:user/${samsungcloudplatformv2_iam_user.delegation_policy_user.user_id}"]
 						}
 					}
 				]
 				version = "2024-07-01"
 			}
-			organization_id = "o-2b63982e88b74dbcb71ee972b13e2ce1"
-		}`)
+			organization_id = data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].id
+		}`, getDelegationPolicyBaseConfig(), offering)
 }
 
-func testAccDelegationPolicyUpdate() string {
+func testAccDelegationPolicyUpdate(offering string) string {
 	return fmt.Sprintf(`
+		%s
 		resource "samsungcloudplatformv2_organization_delegation_policy" "delegation_policy" {
 			document = {
 				statement = [
@@ -61,14 +102,14 @@ func testAccDelegationPolicyUpdate() string {
 						resource = ["*"]
 						sid = "test-acc-sid-1"
 						principal = {
-							scp = ["srn:dev2::b219cfc010b04804a6e69a6931b09cc1:::iam:user/dece6618dde444eeb7a4ff4bee84361a"]
+							scp = ["srn:%s::${data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].master_account_id}:::iam:user/${samsungcloudplatformv2_iam_user.delegation_policy_user.user_id}"]
 						}
 					}
 				]
 				version = "2024-07-01"
 			}
-			organization_id = "o-2b63982e88b74dbcb71ee972b13e2ce1"
-		}`)
+			organization_id = data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].id
+		}`, getDelegationPolicyBaseConfig(), offering)
 }
 
 func init() {

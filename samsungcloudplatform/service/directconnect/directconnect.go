@@ -15,8 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -64,9 +62,6 @@ func (r *directConnectDirectConnectResource) Schema(_ context.Context, _ resourc
 				Description: "The bandwidth capacity(1Gpbs, 10Gpbs, 20Gpbs or 40Gpbs) of the connection.\n" +
 					"  - example : 1 | 10 | 20 | 40",
 				Required: true,
-				PlanModifiers: []planmodifier.Int32{
-					int32planmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this direct connect. This help identify the purpose or usage of the resource. \n" +
@@ -79,33 +74,21 @@ func (r *directConnectDirectConnectResource) Schema(_ context.Context, _ resourc
 				Description: "Whether the firewall is enabled for the direct connect.(firewall Enable : true, firewall Diable : false)\n" +
 					"  - example : true | false",
 				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("FirewallLoggable"): schema.BoolAttribute{
 				Description: "Whether firewall logging is enabled for the direct connect.(firewall logging Enable : true, firewall logging Diable : false) \n" +
 					"  - example : true | false",
 				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "The name of the direct connect.\n" +
 					"- example : directConnectName",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
 				Description: "The identifier of the VPC that the direct connect belongs to.\n" +
 					"- example : 023c57b14f11483689338d085e061492",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("DirectConnect"): schema.SingleNestedAttribute{
 				Description: "DirectConnect",
@@ -312,11 +295,6 @@ func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resou
 	state.Description = types.StringPointerValue(data.DirectConnect.Description.Get())
 	state.Bandwidth = types.Int32Value(data.DirectConnect.Bandwidth)
 	state.VpcId = types.StringValue(data.DirectConnect.VpcId)
-	if data.DirectConnect.FirewallId.IsSet() && data.DirectConnect.FirewallId.Get() != nil && *data.DirectConnect.FirewallId.Get() != "" {
-		state.FirewallEnabled = types.BoolValue(true)
-	} else {
-		state.FirewallEnabled = types.BoolValue(false)
-	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

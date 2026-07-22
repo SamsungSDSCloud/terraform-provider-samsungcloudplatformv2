@@ -39,10 +39,10 @@ func testAccOrganizationCreate(name string, useScpYn bool) string {
 
 func testAccOrganizationUpdate(name string, useScpYn bool) string {
 	return fmt.Sprintf(`
-resource "samsungcloudplatformv2_organization" "org" {
-  name       = "%s"
-  use_scp_yn = %t
-}`, name, useScpYn)
+		resource "samsungcloudplatformv2_organization" "org" {
+			name       = "%s"
+			use_scp_yn = %t
+		}`, name, useScpYn)
 }
 
 func init() {

@@ -5,12 +5,34 @@ variable "igw_vpc_id" {
 
 variable "igw_type" {
   type    = string
-  default = "IGW"
+  default = "GGW"
 }
 
 variable "igw_description" {
   type    = string
-  default = "igw create test"
+  default = "igw update test 4"
+}
+
+variable "loggable" {
+  type    = bool
+  default = null
+}
+
+variable "firewall_enabled" {
+  type    = bool
+  default = null
+}
+
+variable "firewall_loggable" {
+  type    = bool
+  default = null
+}
+
+variable "tags" {
+  type = map(string)
+  default = {
+    test_tag_key = "test_tag_value"
+  }
 }
 
 

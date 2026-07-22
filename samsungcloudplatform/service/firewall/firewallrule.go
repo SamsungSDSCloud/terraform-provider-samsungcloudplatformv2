@@ -381,9 +381,15 @@ func (r *firewallFirewallRuleResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 	state.FirewallRule = firewallRuleObjectValue
-	// Map additional fields to state (input block & top‑level id)
 	state.FirewallId = types.StringValue(data.FirewallRule.FirewallId)
-	state.FirewallRuleCreate = firewall.FirewallRuleCreate{
+	// Save order fields from previous state before overwriting
+	oldOrderRuleId := types.StringNull()
+	oldOrderDirection := types.StringNull()
+	if state.FirewallRuleCreate != nil {
+		oldOrderRuleId = state.FirewallRuleCreate.OrderRuleId
+		oldOrderDirection = state.FirewallRuleCreate.OrderDirection
+	}
+	state.FirewallRuleCreate = &firewall.FirewallRuleCreate{
 		SourceAddress:      data.FirewallRule.SourceAddress,
 		DestinationAddress: data.FirewallRule.DestinationAddress,
 		Service:            firewallRuleModel.Service,
@@ -391,6 +397,8 @@ func (r *firewallFirewallRuleResource) Read(ctx context.Context, req resource.Re
 		Direction:          types.StringValue(string(data.FirewallRule.Direction)),
 		Status:             types.StringValue(string(data.FirewallRule.Status)),
 		Description:        types.StringPointerValue(data.FirewallRule.Description.Get()),
+		OrderRuleId:        oldOrderRuleId,
+		OrderDirection:     oldOrderDirection,
 	}
 
 	// Set refreshed state

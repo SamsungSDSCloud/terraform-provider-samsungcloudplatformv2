@@ -62,6 +62,8 @@ Read-Only:
 - `firewall_connection_state` (String) Firewall Connection State
   - enum: ATTACHING | ACTIVE | DETACHING | DELETED | INACTIVE | ERROR
   - example: INACTIVE
+- `firewall_id` (String) Firewall ID
+  - example: YOUR RESOURCE'S FIREWALL_ID
 - `firewall_ids` (String) List of firewall IDs
   - example: ['YOUR RESOURCE'S FIREWALL_IDS']
 - `id` (String) The unique identifier of the transit gateway.

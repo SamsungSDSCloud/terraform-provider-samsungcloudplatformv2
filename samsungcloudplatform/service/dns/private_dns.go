@@ -52,8 +52,8 @@ func (r *dnsPrivateDnsResource) Schema(_ context.Context, _ resource.SchemaReque
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "The unique identifier of the private DNS.\n" +
-                      "  - example : 10fjkewefprivatedns3193rud543 ",
-				Computed:    true,
+					"  - example : 10fjkewefprivatedns3193rud543 ",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -160,7 +160,7 @@ func (r *dnsPrivateDnsResource) Schema(_ context.Context, _ resource.SchemaReque
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "The name for the private DNS to be created.\n" +
 							"  - example : private-dns01 ",
-						Optional: true,
+						Required: true,
 					},
 				},
 			},

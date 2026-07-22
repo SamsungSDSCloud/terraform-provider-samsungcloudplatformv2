@@ -1,6 +1,7 @@
 package vpcv1d2
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -39,4 +40,51 @@ type RoutingRule struct {
 	State                   types.String `tfsdk:"state"`
 	TgwConnectionVpcId      types.String `tfsdk:"tgw_connection_vpc_id"`
 	TgwConnectionVpcName    types.String `tfsdk:"tgw_connection_vpc_name"`
+}
+
+type TransitGatewayRuleResource struct {
+	// Input
+	TransitGatewayId   types.String `tfsdk:"transit_gateway_id"`
+	Description        types.String `tfsdk:"description"`
+	DestinationCidr    types.String `tfsdk:"destination_cidr"`
+	DestinationType    types.String `tfsdk:"destination_type"`
+	TgwConnectionVpcId types.String `tfsdk:"tgw_connection_vpc_id"`
+
+	// Output
+	Id          types.String `tfsdk:"id"`
+	RoutingRule types.Object `tfsdk:"routing_rule"`
+}
+
+type CreatedRoutingRule struct {
+	AccountId               types.String `tfsdk:"account_id"`
+	Description             types.String `tfsdk:"description"`
+	DestinationCidr         types.String `tfsdk:"destination_cidr"`
+	DestinationResourceId   types.String `tfsdk:"destination_resource_id"`
+	DestinationResourceName types.String `tfsdk:"destination_resource_name"`
+	DestinationType         types.String `tfsdk:"destination_type"`
+	Id                      types.String `tfsdk:"id"`
+	SourceResourceId        types.String `tfsdk:"source_resource_id"`
+	SourceResourceName      types.String `tfsdk:"source_resource_name"`
+	SourceType              types.String `tfsdk:"source_type"`
+	State                   types.String `tfsdk:"state"`
+	TgwConnectionVpcId      types.String `tfsdk:"tgw_connection_vpc_id"`
+	TgwConnectionVpcName    types.String `tfsdk:"tgw_connection_vpc_name"`
+}
+
+func (m CreatedRoutingRule) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"account_id":                types.StringType,
+		"description":               types.StringType,
+		"destination_cidr":          types.StringType,
+		"destination_resource_id":   types.StringType,
+		"destination_resource_name": types.StringType,
+		"destination_type":          types.StringType,
+		"id":                        types.StringType,
+		"source_resource_id":        types.StringType,
+		"source_resource_name":      types.StringType,
+		"source_type":               types.StringType,
+		"state":                     types.StringType,
+		"tgw_connection_vpc_id":     types.StringType,
+		"tgw_connection_vpc_name":   types.StringType,
+	}
 }

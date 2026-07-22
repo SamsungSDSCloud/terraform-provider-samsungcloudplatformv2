@@ -51,8 +51,8 @@ func (r *dnsRecordResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "The unique identifier of the DNS record.\n" +
-                    "  - example : 6ed7bc1-4b05-3cc7-7105-c1b71f7f30a7 ",
-				Computed:    true,
+					"  - example : 6ed7bc1-4b05-3cc7-7105-c1b71f7f30a7 ",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -162,13 +162,13 @@ func (r *dnsRecordResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "The name for the DNS record to be created.\n" +
 							"  - example : test.app ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("Records"): schema.ListAttribute{
 						ElementType: types.StringType,
 						Description: "A list of data for this record\n" +
 							"  - example : [\"12.34.45.67\"]",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("Ttl"): schema.Int32Attribute{
 						Description: "The Time-To-Live (TTL) value in seconds for the DNS record.\n" +
@@ -178,7 +178,7 @@ func (r *dnsRecordResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					common.ToSnakeCase("Type"): schema.StringAttribute{
 						Description: "The type of the DNS record to create (e.g., A, AAAA, CNAME, MX, TXT).\n" +
 							"  - example : A ",
-						Optional: true,
+						Required: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("A", "AAAA", "CNAME", "MX", "TXT", "SPF"),
 						},
@@ -323,6 +323,7 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 	state.Record = recordObjectValue
+	state.HostedZoneId = recordModel.ZoneId
 
 	if state.RecordCreate == nil {
 		state.RecordCreate = &dns.RecordCreate{}

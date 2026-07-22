@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -62,25 +63,24 @@ func (r *vpnVpnGatewayResource) Schema(_ context.Context, _ resource.SchemaReque
 					"  - example: VPN test\n" +
 					"  - constraints: maxLength: 40",
 				Optional: true,
+				Computed: true,
+				Default: stringdefault.StaticString(""),
 			},
 			common.ToSnakeCase("IpAddress"): schema.StringAttribute{
 				Description: "The IP address assigned to the resource.\n" +
 					"  - example: 10.0.0.0/24",
 				Required: true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("IpId"): schema.StringAttribute{
 				Description: "The identifier of the IP address assigned to the resource.\n" +
 					"  - example: bd07e102fe574edf8a1748957c45bdbf",
 				Required: true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("IpType"): schema.StringAttribute{
 				Description: "The type of the IP address assigned to the resource.\n" +
 					"  - example: PUBLIC\n" +
 					"  - valid: PUBLIC",
 				Required: true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "The name of the resource.\n" +
@@ -93,7 +93,6 @@ func (r *vpnVpnGatewayResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "The identifier of the VPC that the resource belongs to.\n" +
 					"  - example: f32265726b694b32920aa3b111f4c715",
 				Required: true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("VpnGateway"): schema.SingleNestedAttribute{
 				Description: "The identifier of the VPN gateway that the resource belongs to.\n" +

@@ -656,16 +656,12 @@ type RoutingRuleResource struct {
 
 type RoutingRule struct {
 	AccountId               types.String `tfsdk:"account_id"`
-	CreatedAt               types.String `tfsdk:"created_at"`
-	CreatedBy               types.String `tfsdk:"created_by"`
 	Description             types.String `tfsdk:"description"`
 	DestinationCidr         types.String `tfsdk:"destination_cidr"`
 	DestinationResourceId   types.String `tfsdk:"destination_resource_id"`
 	DestinationResourceName types.String `tfsdk:"destination_resource_name"`
 	DestinationType         types.String `tfsdk:"destination_type"`
 	Id                      types.String `tfsdk:"id"`
-	ModifiedAt              types.String `tfsdk:"modified_at"`
-	ModifiedBy              types.String `tfsdk:"modified_by"`
 	SourceResourceId        types.String `tfsdk:"source_resource_id"`
 	SourceResourceName      types.String `tfsdk:"source_resource_name"`
 	SourceType              types.String `tfsdk:"source_type"`
@@ -696,6 +692,7 @@ type VpcPeeringRuleDataSource struct {
 
 type VpcPeeringRuleResource struct {
 	// Input
+	Id                 types.String `tfsdk:"id"`                   // VPC Peering ID
 	VpcPeeringId       types.String `tfsdk:"vpc_peering_id"`       // VPC Peering ID
 	DestinationCidr    types.String `tfsdk:"destination_cidr"`     // Destination CIDR
 	DestinationVpcType types.String `tfsdk:"destination_vpc_type"` // Destination VPC Type
@@ -746,16 +743,12 @@ func (m VpcPeeringRule) AttributeTypes() map[string]attr.Type {
 func (m RoutingRule) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"account_id":                types.StringType,
-		"created_at":                types.StringType,
-		"created_by":                types.StringType,
 		"description":               types.StringType,
 		"destination_cidr":          types.StringType,
 		"destination_resource_id":   types.StringType,
 		"destination_resource_name": types.StringType,
 		"destination_type":          types.StringType,
 		"id":                        types.StringType,
-		"modified_at":               types.StringType,
-		"modified_by":               types.StringType,
 		"source_resource_id":        types.StringType,
 		"source_resource_name":      types.StringType,
 		"source_type":               types.StringType,

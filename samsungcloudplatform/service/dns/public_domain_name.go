@@ -51,7 +51,7 @@ func (r *dnsPublicDomainNameResource) Schema(_ context.Context, _ resource.Schem
 			"id": schema.StringAttribute{
 				Description: "The unique identifier of the public domain name.\n" +
 					"  - example : 125jkdkt5fpublicdomain3193rud546 ",
-				Computed:    true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -206,7 +206,7 @@ func (r *dnsPublicDomainNameResource) Schema(_ context.Context, _ resource.Schem
 					common.ToSnakeCase("AddressType"): schema.StringAttribute{
 						Description: "The type of address for the domain registration.\n" +
 							"  - example : DOMESTIC ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("AutoExtension"): schema.BoolAttribute{
 						Description: "Indicates whether automatic extension is enabled for the domain.\n" +
@@ -221,67 +221,67 @@ func (r *dnsPublicDomainNameResource) Schema(_ context.Context, _ resource.Schem
 					common.ToSnakeCase("DomesticFirstAddressEn"): schema.StringAttribute{
 						Description: "Domestic first address in English\n" +
 							"  - example : Samsung-ro 123 ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("DomesticFirstAddressKo"): schema.StringAttribute{
 						Description: "Domestic first address in Korean\n" +
 							"  - example : 삼성로 123 ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("DomesticSecondAddressEn"): schema.StringAttribute{
 						Description: "Domestic second address in English\n" +
 							"  - example : Suwon-si, Gyeonggi-do ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("DomesticSecondAddressKo"): schema.StringAttribute{
 						Description: "Domestic second address in Korean\n" +
 							"  - example : 경기도 수원시 ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "The name for the public domain name to be created.\n" +
 							"  - example : example.com ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("OverseasFirstAddress"): schema.StringAttribute{
 						Description: "Overseas first address for the domain registration.\n" +
 							"  - example : 123 Main Street ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("OverseasSecondAddress"): schema.StringAttribute{
 						Description: "Overseas second address for the domain registration.\n" +
 							"  - example : Suite 100 ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("OverseasThirdAddress"): schema.StringAttribute{
 						Description: "Overseas third address for the domain registration.\n" +
 							"  - example : City, State 12345 ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("PostalCode"): schema.StringAttribute{
 						Description: "The postal code for the domain registration.\n" +
 							"  - example : 12345 ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("RegisterEmail"): schema.StringAttribute{
 						Description: "The email address of the domain registrant.\n" +
 							"  - example : user@example.com ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("RegisterNameEn"): schema.StringAttribute{
 						Description: "The name of the domain registrant in English\n" +
 							"  - example : John Doe ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("RegisterNameKo"): schema.StringAttribute{
 						Description: "The name of the domain registrant in Korean\n" +
 							"  - example : 홍길동 ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("RegisterTelno"): schema.StringAttribute{
 						Description: "The telephone number of the domain registrant.\n" +
 							"  - example : 82-10-1234-5678 ",
-						Optional: true,
+						Required: true,
 					},
 				},
 			},

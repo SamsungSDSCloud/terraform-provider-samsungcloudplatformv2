@@ -218,7 +218,7 @@ func (r *configInspectionDiagnosisResource) Create(ctx context.Context, req reso
 	} else {
 		resp.Diagnostics.AddError(
 			"Failed to create config inspection",
-			"An error occurred while creating config inspection. No response",
+			"An error occurred while creating config inspection. Empty response",
 		)
 		return
 	}
@@ -256,8 +256,38 @@ func (r *configInspectionDiagnosisResource) Read(ctx context.Context, req resour
 		)
 		return
 	}
+	if res == nil {
+		resp.Diagnostics.AddError(
+			"Error reading config inspection",
+			"An error occurred while reading config inspection. Empty response",
+		)
+		return
+	}
 	// Terraform resource only manage ID (used for deletion)
 	state.CreatedDiagnosisId = types.StringValue(res.SummaryResponses.DiagnosisId)
+
+	// Update input fields from API response for drift detection
+	state.AccountId = types.StringPointerValue(res.AuthKeyResponses.UserId)
+	state.DiagnosisAccountId = types.StringValue(res.SummaryResponses.DiagnosisAccountId)
+	state.CspType = types.StringValue(res.SummaryResponses.CspType)
+	state.DiagnosisCheckType = types.StringValue(res.SummaryResponses.DiagnosisCheckType)
+	state.DiagnosisId = types.StringValue(res.SummaryResponses.DiagnosisId)
+	state.DiagnosisName = types.StringValue(res.SummaryResponses.DiagnosisName)
+	state.DiagnosisType = types.StringValue(res.SummaryResponses.DiagnosisType)
+	state.PlanType = types.StringValue(res.SummaryResponses.PlanType)
+	state.ScheduleRequest = &configinspection.DiagnosisScheduleRequest{
+		DiagnosisId:               types.StringPointerValue(res.ScheduleResponse.DiagnosisId),
+		DiagnosisStartTimePattern: types.StringPointerValue(res.ScheduleResponse.DiagnosisStartTimePattern),
+		FrequencyType:             types.StringPointerValue(res.ScheduleResponse.FrequencyType),
+		FrequencyValue:            types.StringPointerValue(res.ScheduleResponse.FrequencyValue),
+		UseDiagnosisCheckTypeBp:   types.StringPointerValue(res.ScheduleResponse.UseDiagnosisCheckTypeBp),
+		UseDiagnosisCheckTypeSsi:  types.StringPointerValue(res.ScheduleResponse.UseDiagnosisCheckTypeSsi),
+	}
+	state.AuthKeyRequest = &configinspection.AuthKeyRequest{
+		AuthKeyId:        types.StringPointerValue(res.AuthKeyResponses.AuthKeyId),
+		AuthKeyCreatedAt: types.StringPointerValue(res.AuthKeyResponses.AuthKeyCreatedAt),
+		AuthKeyExpiredAt: types.StringPointerValue(res.AuthKeyResponses.AuthKeyExpiredAt),
+	}
 
 	// Save updated data into Terraform state
 	diags = resp.State.Set(ctx, &state)

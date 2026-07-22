@@ -404,7 +404,11 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 
 	gslbModel := convertResponseToGslb(details)
 
-	gslbObjectValue, _ := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.Gslb = gslbObjectValue
 
 	// Set state to fully populated data
@@ -442,7 +446,11 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, _ := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Gslb = gslbObjectValue
 
 	// Reconstruct gslb_create from API response so that:
@@ -473,9 +481,11 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 		}
 	}
 
-	// Rebuild resources from API response
+	// Rebuild resources from API response.
+	// Only overwrite state when the API returns valid data to avoid
+	// destroy/recreate on Read round-trip failure (GSLB-FIX-05).
 	resourceList, err := r.client.GetGslbResourceList(ctx, gslb.GslbResourceDataSource{GslbId: state.Id})
-	if err == nil && resourceList != nil {
+	if err == nil && resourceList != nil && len(resourceList.GslbResources) > 0 {
 		resources := make([]gslb.GslbResourceCreate, 0, len(resourceList.GslbResources))
 		for _, res := range resourceList.GslbResources {
 			resources = append(resources, gslb.GslbResourceCreate{
@@ -575,7 +585,11 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, _ := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Gslb = gslbObjectValue
 
 	// Set refreshed state
@@ -609,7 +623,11 @@ func (r *gslbGslbResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	gslbModel := convertResponseToGslb(data)
 
-	gslbObjectValue, _ := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Gslb = gslbObjectValue
 
 	// Set refreshed state

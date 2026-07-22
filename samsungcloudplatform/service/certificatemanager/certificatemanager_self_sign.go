@@ -35,7 +35,11 @@ type certificateManagerSelfSignResource struct {
 }
 
 func (r *certificateManagerSelfSignResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
-	// Non-compliant: Empty function
+	// This is a no-op implementation
+	response.Diagnostics.AddError(
+		"Update not supported",
+		"This resource does not support in-place updates.",
+	)
 }
 
 // Metadata returns the data source type name.
@@ -192,7 +196,7 @@ func (r *certificateManagerSelfSignResource) Create(ctx context.Context, req res
 	if data == nil {
 		resp.Diagnostics.AddError(
 			"Error creating certificate manager self sign",
-			"An error occurred while creating certificate manager self sign. No response",
+			"An error occurred while creating certificate manager self sign. Empty response",
 		)
 		return
 	}
@@ -208,20 +212,20 @@ func (r *certificateManagerSelfSignResource) Create(ctx context.Context, req res
 		State:       types.StringValue(data.Certificate.State),
 	}
 
-	certificateObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	certificateObjectValue, dia := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	resp.Diagnostics.Append(dia...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	plan.Certificate = certificateObjectValue
 
+	// Save data into Terraform state
 	diags = resp.State.Set(ctx, plan)
-
-	readReq := resource.ReadRequest{
-		State: resp.State,
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, readReq, readResp)
-
-	resp.State = readResp.State
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -248,6 +252,13 @@ func (r *certificateManagerSelfSignResource) Read(ctx context.Context, req resou
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error Reading certificate manager",
+			"An error occurred while reading certificate manager. Empty response",
+		)
+		return
+	}
 
 	vgModel := certificatemanager.Certificate{
 		Id:          types.StringValue(data.Certificate.Id),
@@ -259,14 +270,21 @@ func (r *certificateManagerSelfSignResource) Read(ctx context.Context, req resou
 		State:       types.StringValue(data.Certificate.State),
 	}
 
-	vgObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	vgObjectValue, dia := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	resp.Diagnostics.Append(dia...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	state.Certificate = vgObjectValue
 
-	// Update top-level input fields from API response for drift detection
+	// Update top-level input fields from API response for drift detection.
+	// region/timezone are not returned by the API
 	state.Cn = types.StringValue(data.Certificate.Cn)
 	state.Name = types.StringValue(data.Certificate.Name)
 	state.NotBeforeDt = types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339))
 	state.NotAfterDt = types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339))
+	state.Organization = types.StringValue(data.Certificate.Organization)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -291,15 +309,6 @@ func (r *certificateManagerSelfSignResource) Delete(ctx context.Context, req res
 		resp.Diagnostics.AddError(
 			"Error Deleting certificate manager",
 			"Could not delete certificate manager, unexpected error: "+err.Error()+"\nReason: "+detail,
-		)
-		return
-	}
-
-	err = waitForCertificateManagerStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"DELETED"})
-	if err != nil && !strings.Contains(err.Error(), "404") {
-		resp.Diagnostics.AddError(
-			"Error deleting certificate manager",
-			"Error waiting for certificate manager to become deleted: "+err.Error(),
 		)
 		return
 	}

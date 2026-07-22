@@ -214,7 +214,7 @@ var AllowSDKDefaultVersion = map[string][]string{
 	// Multi-node GPU Cluster
 	multinodegpucluster.ServiceType: {"v1.3"},
 	// ServiceWatch
-	servicewatch.ServiceType: {"v1.2", "v1.3"},
+	servicewatch.ServiceType: {"v1.4"},
 
 	// Misc.
 

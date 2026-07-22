@@ -19,32 +19,34 @@ func TestAccOrganizationUnitResourceTest(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccOrganizationUnitCreate("test-acc-org-unit", "test-acc organization unit description", "o-2b63982e88b74dbcb71ee972b13e2ce1", "r-def2433dbbae4f13913d213250ecb533"),
+				Config: testAccOrganizationUnitCreate("test-acc-org-unit", "test-acc organization unit description"),
 			},
 			{
-				Config: testAccOrganizationUnitUpdate("test-acc-org-unit", "test-acc organization unit description updated", "o-2b63982e88b74dbcb71ee972b13e2ce1"),
+				Config: testAccOrganizationUnitUpdate("test-acc-org-unit", "test-acc organization unit description updated"),
 			},
 		},
 	})
 }
 
-func testAccOrganizationUnitCreate(name string, description string, organizationId string, parentUnitId string) string {
+func testAccOrganizationUnitCreate(name string, description string) string {
 	return fmt.Sprintf(`
+		%s
 		resource "samsungcloudplatformv2_organization_unit" "organization_unit" {
 			name = "%s"
 			description = "%s"
-			organization_id = "%s"
-			parent_unit_id = "%s"
-		}`, name, description, organizationId, parentUnitId)
+			organization_id = data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].id
+			parent_unit_id = data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].root_unit_id
+		}`, getOrganizationDataSource(), name, description)
 }
 
-func testAccOrganizationUnitUpdate(name string, description string, organizationId string) string {
+func testAccOrganizationUnitUpdate(name string, description string) string {
 	return fmt.Sprintf(`
+		%s
 		resource "samsungcloudplatformv2_organization_unit" "organization_unit" {
 			name = "%s"
 			description = "%s"
-			organization_id = "%s"
-		}`, name, description, organizationId)
+			organization_id = data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].id
+		}`, getOrganizationDataSource(), name, description)
 }
 
 func init() {
@@ -67,7 +69,6 @@ func sweepOrganizationUnit(region string) error {
 	}
 
 	var deleteResourceList []string
-
 	for _, unit := range units.GetOrganizationUnits() {
 		name := unit.GetName()
 		if strings.HasPrefix(name, "test-acc") {

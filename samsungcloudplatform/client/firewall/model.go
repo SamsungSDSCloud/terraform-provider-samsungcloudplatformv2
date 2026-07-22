@@ -93,10 +93,10 @@ type FirewallRuleDataSourceIds struct {
 }
 
 type FirewallRuleResource struct {
-	Id                 types.String       `tfsdk:"id"`
-	FirewallRule       types.Object       `tfsdk:"firewall_rule"`
-	FirewallId         types.String       `tfsdk:"firewall_id"`
-	FirewallRuleCreate FirewallRuleCreate `tfsdk:"firewall_rule_create"`
+	Id                 types.String        `tfsdk:"id"`
+	FirewallRule       types.Object        `tfsdk:"firewall_rule"`
+	FirewallId         types.String        `tfsdk:"firewall_id"`
+	FirewallRuleCreate *FirewallRuleCreate `tfsdk:"firewall_rule_create"`
 }
 
 type FirewallRuleCreate struct {

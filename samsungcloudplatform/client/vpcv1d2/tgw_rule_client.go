@@ -47,3 +47,17 @@ func (client *Client) GetTGWRuleList(ctx context.Context, request TransitGateway
 	resp, httpResponse, err := req.Execute()
 	return resp, httpResponse, err
 }
+
+func (client *Client) CreateTGWRule(ctx context.Context, request TransitGatewayRuleResource) (*vpc.TransitGatewayRuleShowResponse, error) {
+	req := client.sdkClient.VpcV1TransitGatewayRulesApiAPI.CreateTransitGatewayRule(ctx, request.TransitGatewayId.ValueString())
+
+	req = req.TransitGatewayRuleCreateRequest(vpc.TransitGatewayRuleCreateRequest{
+		Description:        request.Description.ValueStringPointer(),
+		DestinationCidr:    request.DestinationCidr.ValueString(),
+		DestinationType:    vpc.TransitGatewayVpcRuleDestinationType(request.DestinationType.ValueString()),
+		TgwConnectionVpcId: request.TgwConnectionVpcId.ValueString(),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}

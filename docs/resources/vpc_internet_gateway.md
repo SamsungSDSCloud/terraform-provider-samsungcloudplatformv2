@@ -16,9 +16,13 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_vpc_internet_gateway" "internetgateway" {
-  vpc_id = var.igw_vpc_id
-  type = var.igw_type
-  description = var.igw_description
+  vpc_id            = var.igw_vpc_id
+  type              = var.igw_type
+  description       = var.igw_description
+  loggable          = var.loggable
+  firewall_enabled  = var.firewall_enabled
+  firewall_loggable = var.firewall_loggable
+  tags              = var.tags
 }
 
 
@@ -34,12 +38,34 @@ variable "igw_vpc_id" {
 
 variable "igw_type" {
   type    = string
-  default = "IGW"
+  default = "GGW"
 }
 
 variable "igw_description" {
   type    = string
-  default = "igw create test"
+  default = "igw update test 4"
+}
+
+variable "loggable" {
+  type    = bool
+  default = null
+}
+
+variable "firewall_enabled" {
+  type    = bool
+  default = null
+}
+
+variable "firewall_loggable" {
+  type    = bool
+  default = null
+}
+
+variable "tags" {
+  type = map(string)
+  default = {
+    test_tag_key = "test_tag_value"
+  }
 }
 ```
 

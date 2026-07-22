@@ -186,12 +186,10 @@ func (r *accountRemoveResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	state := accountRemoveStateData{
-		OrganizationId: planData.OrganizationId,
-		AccountId:      planData.AccountId,
+		OrganizationId:   planData.OrganizationId,
+		AccountId:        planData.AccountId,
+		TargetAccountIds: planData.TargetAccountIds,
 	}
-	targetAccountIdsValue, targetDiags := types.ListValueFrom(ctx, types.StringType, accountIds)
-	resp.Diagnostics.Append(targetDiags...)
-	state.TargetAccountIds = targetAccountIdsValue
 
 	result, err := r.client.RemoveAccounts(ctx, accountIds, orgId)
 	if err != nil {

@@ -240,7 +240,7 @@ func (client *Client) CancelInvitations(ctx context.Context, request InvitationC
 		} else if rawResp != nil {
 			errMsg += fmt.Sprintf(", StatusCode: %d", rawResp.StatusCode)
 		}
-		return nil, fmt.Errorf(errMsg)
+		return nil, fmt.Errorf("%s", errMsg)
 	}
 	return resp, err
 }

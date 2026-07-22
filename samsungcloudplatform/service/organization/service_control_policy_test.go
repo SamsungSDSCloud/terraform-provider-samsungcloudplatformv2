@@ -29,8 +29,17 @@ func TestAccServiceControlPolicyResourceTest(t *testing.T) {
 	})
 }
 
+func getOrganizationDataSource() string {
+	return `
+		data "samsungcloudplatformv2_organization_organizations" "organizations" {
+			size = 1
+		}
+	`
+}
+
 func testAccServiceControlPolicyCreate() string {
 	return fmt.Sprintf(`
+		%s
 		resource "samsungcloudplatformv2_organization_service_control_policy" "service_control_policy" {
 			name        = "test-acc-service-control-policy"
 			description = "test-acc description"
@@ -49,12 +58,13 @@ func testAccServiceControlPolicyCreate() string {
 				]
 				version = "2024-07-01"
 			}
-			organization_id = "o-2b63982e88b74dbcb71ee972b13e2ce1"
-		}`)
+			organization_id = data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].id
+		}`, getOrganizationDataSource())
 }
 
 func testAccServiceControlPolicyUpdate() string {
 	return fmt.Sprintf(`
+		%s
 		resource "samsungcloudplatformv2_organization_service_control_policy" "service_control_policy" {
 			name        = "test-acc-service-control-policy-update"
 			description = "test-acc description updated"
@@ -73,8 +83,8 @@ func testAccServiceControlPolicyUpdate() string {
 				]
 				version = "2024-07-01"
 			}
-			organization_id = "o-2b63982e88b74dbcb71ee972b13e2ce1"
-		}`)
+			organization_id = data.samsungcloudplatformv2_organization_organizations.organizations.organizations[0].id
+		}`, getOrganizationDataSource())
 }
 
 func init() {

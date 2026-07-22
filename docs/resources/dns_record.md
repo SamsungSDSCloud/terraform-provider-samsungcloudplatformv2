@@ -65,18 +65,21 @@ variable "id" {
 <a id="nestedatt--record_create"></a>
 ### Nested Schema for `record_create`
 
-Optional:
+Required:
 
-- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
-  - example : This is description
 - `name` (String) The name for the DNS record to be created.
   - example : test.app
 - `records` (List of String) A list of data for this record
   - example : ["12.34.45.67"]
-- `ttl` (Number) The Time-To-Live (TTL) value in seconds for the DNS record.
-  - example : 3600
 - `type` (String) The type of the DNS record to create (e.g., A, AAAA, CNAME, MX, TXT).
   - example : A
+
+Optional:
+
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : This is description
+- `ttl` (Number) The Time-To-Live (TTL) value in seconds for the DNS record.
+  - example : 3600
 
 
 <a id="nestedatt--record"></a>

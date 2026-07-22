@@ -156,7 +156,7 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Configure(_ context.Conte
 }
 
 func (r *loadbalancerLoadbalancerPrivateNatIpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("loadbalancer_id"), req, resp)
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -220,6 +220,10 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Read(ctx context.Context,
 		resp.Diagnostics.AddError("Error reading Private NAT", err.Error())
 		return
 	}
+
+	// Rewrite configurable top-level input fields from API response to detect drift
+	privateNat := data.StaticNat.Get()
+	state.Id = loadbalancerutil.ToNullableStringValue(privateNat.Id.Get())
 
 	staticNatModel := createLoadbalancerPrivateNatModelFromShow(data)
 	staticNatObjectValue, d := types.ObjectValueFrom(ctx, staticNatModel.AttributeTypes(), staticNatModel)

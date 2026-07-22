@@ -52,8 +52,8 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "The unique identifier of the hosted zone to query.\n" +
-                    "  - example : 3432012nfdksdf03ktrld9234lgfg ",
-				Computed:    true,
+					"  - example : 3432012nfdksdf03ktrld9234lgfg ",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -142,7 +142,7 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description: "The domain name that a DNS service manages. all DNS records for that domain and its sub‑domains are stored and served within this hosted zone.\n" +
 							"  - example : my-zone.com ",
-						Optional: true,
+						Required: true,
 					},
 					common.ToSnakeCase("PrivateDnsId"): schema.StringAttribute{
 						Description: "The DNS server ID for registering a Hosted Zone. Input this only when the Hosted Zone is of Private type.\n" +
@@ -152,7 +152,7 @@ func (r *dnsHostedZoneResource) Schema(_ context.Context, _ resource.SchemaReque
 					common.ToSnakeCase("Type"): schema.StringAttribute{
 						Description: "The type of the hosted zone (e.g., public or private).\n" +
 							"  - example : private ",
-						Optional: true,
+						Required: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("public", "private"),
 						},

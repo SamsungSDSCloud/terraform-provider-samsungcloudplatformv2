@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     samsungcloudplatformv2 = {
-      version = "5.0.0"
+      version = "5.1.0"
       source  = "SamsungSDSCloud/samsungcloudplatformv2"
     }
   }

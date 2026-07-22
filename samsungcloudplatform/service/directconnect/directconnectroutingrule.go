@@ -65,25 +65,16 @@ func (r *directConnectRoutingRuleResource) Schema(_ context.Context, _ resource.
 				Description: "The type of the routing destination.In the VPC, the Direct Connect direction is ON_PREMISE, in the opposite direction—from Direct Connect toward the VPC—the direction is VPC.\n" +
 					"  -  example : ON-PREMISE | VPC",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
 				Description: "The destination IP address range in CIDR notation.\n" +
 					"  - example : 10.10.10.0/24",
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("DestinationResourceId"): schema.StringAttribute{
 				Description: "The identifier of the destination resource.When the Destination Type is VPC, provide the VpcId.\n " +
 					"  -  example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
 				Description: "Enter a brief explanation or note about this routing rule. This help identify the purpose or usage of the resource.\n" +
@@ -91,9 +82,6 @@ func (r *directConnectRoutingRuleResource) Schema(_ context.Context, _ resource.
 					"  - maxLength : 50\n" +
 					"  - minLength : 1",
 				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			common.ToSnakeCase("RoutingRule"): schema.SingleNestedAttribute{
 				Description: "Direct Connect Routing Rule",
@@ -323,7 +311,9 @@ func (r *directConnectRoutingRuleResource) Read(ctx context.Context, req resourc
 	state.DestinationType = types.StringValue(string(rr.DestinationType))
 	state.DestinationCidr = types.StringValue(rr.DestinationCidr)
 	state.DestinationResourceId = types.StringPointerValue(rr.DestinationResourceId.Get())
-	state.Description = types.StringValue(rr.Description)
+	if rr.Description != "" {
+		state.Description = types.StringValue(rr.Description)
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

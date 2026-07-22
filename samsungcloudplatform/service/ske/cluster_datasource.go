@@ -341,7 +341,7 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		Subnet:                                d.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Subnet.Get())),
 		Volume:                                d.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Volume.Get())),
 		SecurityGroupList:                     securityGroups,
-		ManagedSecurityGroup:                  d.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Vpc.Get())),
+		ManagedSecurityGroup:                  d.makeExternalResourceModel((*scpske.ExternalResource)(cluster.ManagedSecurityGroup.Get())),
 		CreatedAt:                             types.StringValue(cluster.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:                             types.StringValue(cluster.CreatedBy),
 		ModifiedAt:                            types.StringValue(cluster.ModifiedAt.Format(time.RFC3339)),
