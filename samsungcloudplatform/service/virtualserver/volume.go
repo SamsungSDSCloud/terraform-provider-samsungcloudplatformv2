@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/virtualserver/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/virtualserver/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -25,8 +26,9 @@ const reasonPrefix = "\nReason: "
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &virtualServerVolumeResource{}
-	_ resource.ResourceWithConfigure = &virtualServerVolumeResource{}
+	_ resource.Resource               = &virtualServerVolumeResource{}
+	_ resource.ResourceWithConfigure  = &virtualServerVolumeResource{}
+	_ resource.ResourceWithModifyPlan = &virtualServerVolumeResource{}
 )
 
 // NewComputeVolumeResource is a helper function to simplify the provider implementation.
@@ -90,6 +92,9 @@ func (r *virtualServerVolumeResource) Schema(_ context.Context, _ resource.Schem
 					"  - Available values: ssd_provisioned, ssd, hdd",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("Encrypted"): schema.BoolAttribute{
 				Description:         "Encryption flag.",
@@ -144,6 +149,11 @@ func (r *virtualServerVolumeResource) Schema(_ context.Context, _ resource.Schem
 				Optional: true,
 			},
 			"tags": tag.ResourceSchema(),
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Required:            true,
+				Description:         "Zone ID\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone ID\n  - example: kr-west1-a",
+			},
 		},
 	}
 }
@@ -196,7 +206,7 @@ func (r *virtualServerVolumeResource) AsyncPollingQosUpdate(ctx context.Context,
 	return fmt.Errorf("timeout waiting for volume update (ID: %s)", volumeId)
 }
 
-func (r *virtualServerVolumeResource) MapGetResponseToState(resp *scpvirtualserver.VolumeShowResponseV1Dot2, state virtualserver.VolumeResource, tagsMap types.Map) virtualserver.VolumeResource {
+func (r *virtualServerVolumeResource) MapGetResponseToState(resp *scpvirtualserver.VolumeShowResponseV1Dot4, state virtualserver.VolumeResource, tagsMap types.Map) virtualserver.VolumeResource {
 	return virtualserver.VolumeResource{
 		Id:            types.StringValue(resp.Id),
 		Name:          types.StringPointerValue(resp.Name.Get()),
@@ -211,6 +221,7 @@ func (r *virtualServerVolumeResource) MapGetResponseToState(resp *scpvirtualserv
 		MaxThroughput: types.Int32PointerValue(resp.MaxThroughput.Get()),
 		MaxIops:       types.Int32PointerValue(resp.MaxIops.Get()),
 		Tags:          tagsMap,
+		Zone:          types.StringValue(resp.Zone),
 	}
 }
 
@@ -247,7 +258,7 @@ func (r *virtualServerVolumeResource) Create(ctx context.Context, req resource.C
 		}
 	}
 
-	getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
+	getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponseV1Dot4, error) {
 		return r.client.GetVolume(ctx, id)
 	}
 
@@ -272,7 +283,7 @@ func (r *virtualServerVolumeResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, data.Id)
+	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, data.Id, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -310,7 +321,7 @@ func (r *virtualServerVolumeResource) Read(ctx context.Context, req resource.Rea
 		)
 		return
 	}
-	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -339,16 +350,10 @@ func (r *virtualServerVolumeResource) updateVolumeName(
 		return true
 	}
 
-	_, err := r.client.UpdateVolume(ctx, state.Id.ValueString(), plan)
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddError(
-			"Error updating volume",
-			"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
-		)
-		return false
-	}
-	return true
+	return r.applyVolumeUpdate(ctx, state.Id.ValueString(), "name update", func() error {
+		_, err := r.client.UpdateVolume(ctx, state.Id.ValueString(), plan)
+		return err
+	}, resp)
 }
 
 func (r *virtualServerVolumeResource) updateVolumeSize(
@@ -361,16 +366,10 @@ func (r *virtualServerVolumeResource) updateVolumeSize(
 		return true
 	}
 
-	_, err := r.client.ExtendVolume(ctx, state.Id.ValueString(), plan)
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddError(
-			"Error updating volume",
-			"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
-		)
-		return false
-	}
-	return true
+	return r.applyVolumeUpdate(ctx, state.Id.ValueString(), "size update", func() error {
+		_, err := r.client.ExtendVolume(ctx, state.Id.ValueString(), plan)
+		return err
+	}, resp)
 }
 
 func (r *virtualServerVolumeResource) updateVolumeServers(
@@ -386,25 +385,18 @@ func (r *virtualServerVolumeResource) updateVolumeServers(
 	addedVmIds, deletedVmIds := getOldAndNewVmIds(plan, state)
 
 	for _, deletedVmId := range deletedVmIds {
-		err := r.client.DetachVolume(ctx, state.Id.ValueString(), deletedVmId)
-		if err != nil {
-			detail := client.GetDetailFromError(err)
-			resp.Diagnostics.AddError(
-				"Error updating volume",
-				"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
-			)
+		if !r.applyVolumeUpdate(ctx, state.Id.ValueString(), "volume detach", func() error {
+			return r.client.DetachVolume(ctx, state.Id.ValueString(), deletedVmId)
+		}, resp) {
 			return false
 		}
 	}
 
 	for _, addedVmId := range addedVmIds {
-		_, err := r.client.AttachVolume(ctx, state.Id.ValueString(), addedVmId)
-		if err != nil {
-			detail := client.GetDetailFromError(err)
-			resp.Diagnostics.AddError(
-				"Error updating volume",
-				"Could not update volume, unexpected error: "+err.Error()+reasonPrefix+detail,
-			)
+		if !r.applyVolumeUpdate(ctx, state.Id.ValueString(), "volume attach", func() error {
+			_, err := r.client.AttachVolume(ctx, state.Id.ValueString(), addedVmId)
+			return err
+		}, resp) {
 			return false
 		}
 	}
@@ -485,7 +477,7 @@ func (r *virtualServerVolumeResource) Update(ctx context.Context, req resource.U
 	}
 
 	tagElements := plan.Tags.Elements()
-	tagsMap, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, plan.Id.ValueString(), tagElements)
+	tagsMap, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, plan.Id.ValueString(), tagElements, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -549,4 +541,94 @@ func (r *virtualServerVolumeResource) ImportState(
 	resp *resource.ImportStateResponse,
 ) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *virtualServerVolumeResource) AsyncPollingVolumeUpdate(ctx context.Context, volumeId string, maxAttempts int, internal time.Duration) error {
+	ticker := time.NewTicker(internal)
+	defer ticker.Stop()
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		vol, err := r.client.GetVolume(ctx, volumeId)
+		if err != nil {
+			return fmt.Errorf("failed to get volume during polling: %w", err)
+		}
+
+		if strings.ToUpper(vol.State) == common.AvailableState || strings.ToUpper(vol.State) == common.ComputeVolumeInUseState {
+			return nil
+		}
+
+		if strings.ToUpper(vol.State) == common.ErrorState {
+			return fmt.Errorf("volume entered error state (ID: %s)", volumeId)
+		}
+
+		if attempt < maxAttempts {
+			select {
+			case <-ticker.C:
+				continue
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	}
+
+	return fmt.Errorf("timeout waiting for volume update (ID: %s)", volumeId)
+}
+
+func (r *virtualServerVolumeResource) applyVolumeUpdate(ctx context.Context, volumeId string, description string, apiCall func() error, resp *resource.UpdateResponse) bool {
+	if err := apiCall(); err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error updating volume",
+			"Could not update volume "+description+", unexpected error: "+err.Error()+reasonPrefix+detail,
+		)
+		return false
+	}
+
+	err := r.AsyncPollingVolumeUpdate(ctx, volumeId, 100, 3*time.Second)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error updating volume",
+			"Timed out waiting for "+description+": "+err.Error()+reasonPrefix+detail,
+		)
+		return false
+	}
+	return true
+}
+
+func (r *virtualServerVolumeResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan virtualserver.VolumeResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var state virtualserver.VolumeResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	immutableFields := []string{"Zone"}
+
+	changeFields, err := virtualserverutil.GetChangedFields(plan, state, immutableFields)
+	if err != nil {
+		return
+	}
+
+	if virtualserverutil.IsOverlapFields(immutableFields, changeFields) {
+		resp.Diagnostics.AddError(
+			"Error Updating Volume",
+			"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
+		)
+		return
+	}
 }

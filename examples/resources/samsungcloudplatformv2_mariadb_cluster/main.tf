@@ -17,4 +17,5 @@ resource "samsungcloudplatformv2_mariadb_cluster" "cluster" {
   service_state             = var.service_state
   virtual_ip_address        = var.virtual_ip_address
   vip_public_ip_id          = var.vip_public_ip_id
+  service_watch_log_collection    = var.service_watch_log_collection
 }

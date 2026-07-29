@@ -95,16 +95,22 @@ Read-Only:
   - example: YOUR RESOURCE'S MODIFIED_BY
 - `name` (String) Nodepool Name
   - example: sample-nodepool
+- `preferred_ips` (String) Preferred IPs
+  - example: 192.168.0.0-192.168.0.255,192.168.99.0
 - `server_group_id` (String) Server Group ID
   - example: YOUR RESOURCE'S SERVER_GROUP_ID
 - `server_type` (Attributes) Server Type (see [below for nested schema](#nestedatt--nodepool--server_type))
 - `status` (String) Nodepool Status
   - pattern: RUNNING|CREATING|SCALINGUP|SCALINGDOWN|DELETING
   - example: RUNNING
+- `subnet_id` (String) Subnet ID
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `taints` (Attributes List) Node Pool Taints (see [below for nested schema](#nestedatt--nodepool--taints))
 - `volume_size` (Number) Volume Size
   - example: 104
 - `volume_type` (Attributes) Volume Type (see [below for nested schema](#nestedatt--nodepool--volume_type))
+- `zone` (String) Availability zone
+  - example: kr-west1-a
 
 <a id="nestedatt--nodepool--advanced_settings"></a>
 ### Nested Schema for `nodepool.advanced_settings`

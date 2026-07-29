@@ -41,6 +41,8 @@ variable "id" {
 
 - `account_id` (String) Account ID 
   - example: YOUR RESOURCE'S ACCOUNT_ID
+- `az_type` (String) Availability Zone Type 
+  - example : 'single'
 - `created_at` (String) Created At 
   - example: '2024-07-30T04:54:33.219373Z'
 - `encryption_enabled` (Boolean) Volume Encryption Enabled 
@@ -60,10 +62,10 @@ variable "id" {
   - example: 'none'
 - `state` (String) The current lifecycle state of the volume. Valid values: creating, available, error, deleting. 
   - example: 'available'
-- `type_id` (String) The unique identifier of the storage tier (volume type) assigned to this volume. 
-  - example: YOUR RESOURCE'S TYPE_ID
 - `type_name` (String) Volume Type Name 
   - example: 'HDD' 
   - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$`
 - `usage` (Number) The current usage of the volume in GiB. 
   - example: 100000
+- `zone` (String) Zone 
+  - example : 'kr-west1-a'

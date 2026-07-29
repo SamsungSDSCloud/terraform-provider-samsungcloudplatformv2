@@ -20,4 +20,9 @@ variable "volume_server" {
   default = []
 }
 
+variable "zone" {
+  type    = string
+  default = "kr-west1-a"
+}
+
 

@@ -102,7 +102,6 @@ variable "timezone" {
   default = "Asia/Seoul"
 }
 
-// OPTION
 variable "maintenance_option" {
   type = object({
     period_hour            = string
@@ -134,5 +133,12 @@ variable "license" {
   type    = string
   default = "{\n   \"license\":{\n      \"uid\":\"f5c002e6-c29d-4dde-bce4-cdb35bf85ab8\",\n      \"type\":\"trial\",\n      \"issue_date_in_millis\":1745193600000,\n      \"expiry_date_in_millis\":1752969599999,\n      \"max_nodes\":3,\n      \"issued_to\":\"S-Core Co., Ltd. (non-production environments)\",\n      \"issuer\":\"API\",\n      \"signature\":\"AAAAAwAAAA2ZzeOwjqKpsuwZQJCbAAABmC9ZN0hjZDBGYnVyRXpCOW5Bb3FjZDAxOWpSbTVoMVZwUzRxVk1PSmkxaktJRVl5MUYvUWh3bHZVUTllbXNPbzBUemtnbWpBbmlWRmRZb25KNFlBR2x0TXc2K2p1Y1VtMG1UQU9TRGZVSGRwaEJGUjE3bXd3LzRqZ05iLzRteWFNekdxRGpIYlFwYkJiNUs0U1hTVlJKNVlXekMrSlVUdFIvV0FNeWdOYnlESDc3MWhlY3hSQmdKSjJ2ZTcvYlBFOHhPQlV3ZHdDQ0tHcG5uOElCaDJ4K1hob29xSG85N0kvTWV3THhlQk9NL01VMFRjNDZpZEVXeUtUMXIyMlIveFpJUkk2WUdveEZaME9XWitGUi9WNTZVQW1FMG1DenhZU0ZmeXlZakVEMjZFT2NvOWxpZGlqVmlHNC8rWVVUYzMwRGVySHpIdURzKzFiRDl4TmM1TUp2VTBOUlJZUlAyV0ZVL2kvVk10L0NsbXNFYVZwT3NSU082dFNNa2prQ0ZsclZ4NTltbU1CVE5lR09Bck93V2J1Y3c9PQAAAQCdy6pBHZq1yaRofO7pDJJrEGmcnsUpa4BmsWywjbOU3zc3zLp6hvVuoWQ8bys6wl+lflToI51p6WinnyGmiFJoSvkNUMquuJMvEza5MlBzu4yb7mZKEUa4hxvz7IjQOltXP7KUXnMa98SrHx9Fkf/N80ZFhGD9t25UBkBgYvKEWTCztmOmNXTX/Sdq+JixfuijiA75EVGWhge7tGc6OpfHBgpZOJIxGOTAIUQiBxWK1ZdBF76CwhEVTbkMiKutvNsbwwo+yWiNGjq0mCUDYZUMXp6T4xk0VLzrmgGhBCqSR2BJzESq1Yk2VmIBv2Sn7JzokbGB3SB7FYQHKArVsinU\",\n      \"start_date_in_millis\":1745193600000\n   }\n}"
 }
+
+
+variable "service_watch_log_collection" {
+  type    = bool
+  default = true
+}
+
 
 

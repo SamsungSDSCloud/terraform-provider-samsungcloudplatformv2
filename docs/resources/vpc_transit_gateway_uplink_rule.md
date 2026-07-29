@@ -30,12 +30,12 @@ output "uplink_output" {
 
 variable "description" {
   type    = string
-  default = "TGW rule nam dep trai"
+  default = "TGW cidr one of vpc"
 }
 
 variable "destination_cidr" {
   type    = string
-  default = "192.168.100.0/24"
+  default = "1.1.0.0/17"
 }
 
 variable "destination_type" {

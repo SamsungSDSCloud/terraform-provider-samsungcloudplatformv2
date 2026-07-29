@@ -10,13 +10,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/baremetal"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/baremetal"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpbaremetal1d1 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/baremetal/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpbaremetal1d2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/baremetal/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -252,7 +252,10 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							Description:         "local subnet ID\n  - example: 8d0581b1bbde4195a623abbb1b05700d",
 							MarkdownDescription: "local subnet ID\n  - example: 8d0581b1bbde4195a623abbb1b05700d",
-							Default:             stringdefault.StaticString(""),
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+							Default: stringdefault.StaticString(""),
 						},
 						"bare_metal_local_subnet_ip_address": schema.StringAttribute{
 							Optional:            true,
@@ -303,14 +306,20 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							Description:         "Use Public NAT\n  - example: true",
 							MarkdownDescription: "Use Public NAT\n  - example: true",
-							Default:             booldefault.StaticBool(false),
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
+							Default: booldefault.StaticBool(false),
 						},
 						"public_ip_address_id": schema.StringAttribute{
 							Optional:            true,
 							Computed:            true,
 							Description:         "public IP address id\n  - example: a765a07e8d9b46f4918fd7d5ed004654",
 							MarkdownDescription: "public IP address id\n  - example: a765a07e8d9b46f4918fd7d5ed004654",
-							Default:             stringdefault.StaticString(""),
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+							Default: stringdefault.StaticString(""),
 						},
 						"server_type_id": schema.StringAttribute{
 							Required:            true,
@@ -320,13 +329,6 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 								stringplanmodifier.RequiresReplace(),
 							},
 						},
-						"use_hyper_threading": schema.BoolAttribute{
-							Optional:            true,
-							Computed:            true,
-							Description:         "Use Hyper Threading\n  - example: true",
-							MarkdownDescription: "Use Hyper Threading\n  - example: true",
-							Default:             booldefault.StaticBool(false),
-						},
 						"id": schema.StringAttribute{
 							Computed:            true,
 							Description:         "Bare Metal Server ID\n  - example: 20c507a036c447cdb3b19468d8ea62ac",
@@ -334,6 +336,11 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
+						},
+						"zone": schema.StringAttribute{
+							Required:            true,
+							Description:         "Availability Zone\n  - example: kr-west1-a",
+							MarkdownDescription: "Availability Zone\n  - example: kr-west1-a",
 						},
 						"state": schema.StringAttribute{
 							Optional: true,
@@ -344,7 +351,9 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Bare Metal Server state\n" +
 								"  - example: RUNNING\n" +
 								"  - pattern: RUNNING | STOPPED",
-							Default: stringdefault.StaticString(common.RunningState),
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 							Validators: []validator.String{
 								stringvalidator.OneOf(common.RunningState, common.StoppedState),
 							},
@@ -439,7 +448,7 @@ func (r *baremetalBaremetalResource) ModifyPlan(ctx context.Context, req resourc
 			resp.Diagnostics.AddError("Placement group value error", err.Error())
 		}
 
-		imageList, err := r.client.GetImageList(ctx, plan.RegionId.ValueString())
+		imageList, err := r.client.GetImageList(ctx)
 		if err != nil {
 			detail := client.GetDetailFromError(err)
 			resp.Diagnostics.AddError(
@@ -637,7 +646,7 @@ func (r *baremetalBaremetalResource) Read(ctx context.Context, req resource.Read
 	}
 
 	// Get Tags
-	tagsMap, err := tag.GetTags(r.clients, "baremetal", "baremetal", baremetalId)
+	tagsMap, err := tag.GetTags(r.clients, "baremetal", "baremetal", baremetalId, false)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Reading Baremetal Tag", err.Error())
 		return
@@ -827,7 +836,7 @@ func (r *baremetalBaremetalResource) Update(ctx context.Context, req resource.Up
 	// update tags
 	tagElements := plan.Tags.Elements()
 	for _, serverDetail := range planServerDetails {
-		tagsMap, err := tag.UpdateTags(r.clients, "baremetal", "baremetal", serverDetail.Id.ValueString(), tagElements)
+		tagsMap, err := tag.UpdateTags(r.clients, "baremetal", "baremetal", serverDetail.Id.ValueString(), tagElements, false)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error updating tags",
@@ -907,7 +916,7 @@ func waitForBaremetalStatus(ctx context.Context, baremetalClient *baremetal.Clie
 	}, -1, -1, -1, -1)
 }
 
-func setBaremetalDetailToResource(baremetalDetail *scpbaremetal1d1.BaremetalShowResponseV1Dot1, baremetalResource *baremetal.BaremetalResource) {
+func setBaremetalDetailToResource(baremetalDetail *scpbaremetal1d2.BaremetalShowResponseV1Dot2, baremetalResource *baremetal.BaremetalResource) {
 	//basic info
 	baremetalResource.AccountId = types.StringValue(baremetalDetail.AccountId)
 	baremetalResource.ImageId = types.StringValue(baremetalDetail.ImageId)
@@ -941,7 +950,7 @@ func setBaremetalDetailToResource(baremetalDetail *scpbaremetal1d1.BaremetalShow
 	baremetalResource.ModifiedAt = types.StringValue(baremetalDetail.ModifiedAt.String())
 }
 
-func getServerDetailInfo(baremetalDetail *scpbaremetal1d1.BaremetalShowResponseV1Dot1, serverDetail *baremetal.ServerDetails) {
+func getServerDetailInfo(baremetalDetail *scpbaremetal1d2.BaremetalShowResponseV1Dot2, serverDetail *baremetal.ServerDetails) {
 
 	var localSubnetIpaddress, localSubnetId string
 	if len(baremetalDetail.LocalSubnetInfo) == 0 {
@@ -957,9 +966,9 @@ func getServerDetailInfo(baremetalDetail *scpbaremetal1d1.BaremetalShowResponseV
 	serverDetail.ServerTypeId = types.StringValue(baremetalDetail.ProductTypeId)
 	serverDetail.BareMetalLocalSubnetIpAddress = types.StringValue(localSubnetIpaddress)
 	serverDetail.BareMetalLocalSubnetId = types.StringValue(localSubnetId)
-	serverDetail.UseHyperThreading = types.BoolValue(baremetalDetail.HyperThreadingUse)
 	serverDetail.IpAddress = types.StringValue(baremetalDetail.PolicyIp)
 	serverDetail.State = types.StringValue(baremetalDetail.State)
+	serverDetail.Zone = types.StringPointerValue(baremetalDetail.Zone.Get())
 
 	// nat info
 	if baremetalDetail.PublicNatInfo.IsSet() && baremetalDetail.PublicNatInfo.Get() != nil {
@@ -987,7 +996,7 @@ func validatePlacementGroup(usePlacementGroup bool, placementGroupName string) e
 	return nil
 }
 
-func getImageInfo(imageList *scpbaremetal1d1.ImageListResponse, imageId string) (string, error) {
+func getImageInfo(imageList *scpbaremetal1d2.ImageListResponse, imageId string) (string, error) {
 	var osType string
 
 	for _, image := range imageList.Images {
@@ -1060,7 +1069,7 @@ func validateServerDetailInfo(serverDetails []baremetal.ServerDetails, osType st
 		}
 
 		// validate state
-		if serverDetail.State.ValueString() != common.RunningState {
+		if !serverDetail.State.IsUnknown() && serverDetail.State.ValueString() != common.RunningState {
 			errorList = append(errorList, errors.New("state value must be RUNNING, when server creation request is made"))
 		}
 	}

@@ -60,11 +60,16 @@ variable "service_state" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `service_state` (String) ServiceState
-- `size` (Number) Size (between 1 and 10000)
-- `sort` (String) Sort
+- `name` (String) Cluster name
+  - example: mytest
+- `page` (Number) The number of items per page.
+  - example : 20
+- `service_state` (String) Service state
+  - example: RUNNING
+- `size` (Number) The page number for pagination.
+  - example : 0
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : created_at:asc
 
 ### Read-Only
 
@@ -75,17 +80,28 @@ variable "service_state" {
 
 Required:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `role_type` (String) RoleType
-- `service_state` (String) ServiceState
+- `account_id` (String) The identifier of the account that owns the endpoint.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created by
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Modified At
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified by
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) Cluster name
+  - example: mytest
+- `role_type` (String) Role type
+  - example: ORIGIN
+- `service_state` (String) Service state
+  - example: RUNNING
 
 Optional:
 
-- `ha_enabled` (Boolean) HaEnabled
-- `instance_count` (Number) InstanceCount
+- `ha_enabled` (Boolean) HA availability
+  - example: false
+- `instance_count` (Number) Instance Count
+  - example: 2

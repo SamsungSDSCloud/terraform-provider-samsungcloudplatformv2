@@ -75,6 +75,7 @@ Read-Only:
   - example: 2024-05-17T00:23:17Z
 - `quota_item` (String) Specific quota item within the resource
   - example: QUOTA.REQUEST.COUNT
+- `reclamation_period` (Number)
 - `reduction` (Boolean) Auto-reduction policy  - example: false
 - `request` (Boolean) Request status  - example: false
 - `request_class` (String) Request class for quota item - example: Account

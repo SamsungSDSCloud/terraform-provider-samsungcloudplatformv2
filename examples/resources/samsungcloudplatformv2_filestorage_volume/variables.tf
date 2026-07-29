@@ -28,10 +28,7 @@ variable "access_rules" {
     object_type = string,
     object_id   = string
   }))
-  default = [{
-    object_id   = "ENTER YOUR RESOURCE'S OBJECT_ID"
-    object_type = "VM"
-  }]
+  default = []
 }
 
 variable "tags" {
@@ -39,6 +36,11 @@ variable "tags" {
   default = {
     test_terraform = "test_terraform_value"
   }
+}
+
+variable "zone" {
+  type    = string
+  default = "kr-west1-a"
 }
 
 

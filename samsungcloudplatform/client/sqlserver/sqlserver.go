@@ -2,9 +2,10 @@ package sqlserver
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/sqlserver/1.0"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/sqlserver/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -47,8 +48,9 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*sqlserver.EngineListResponse, error) {
+func (client *Client) GetEngineVersionList(ctx context.Context, productImageType string) (*sqlserver.EngineListResponse, error) {
 	req := client.sdkClient.SqlserverV1SqlserverMasterDataApiAPI.SqlserverListEngineVersions(ctx)
+	req = req.ProductImageType(sqlserver.ProductImageType(productImageType))
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -106,6 +108,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	var convertedInitConfigOption = sqlserver.SqlserverInitConfigOptionRequest{
+		AdEnabled:            initConfigOption.AdEnabled.ValueBoolPointer(),
 		AuditEnabled:         initConfigOption.AuditEnabled.ValueBoolPointer(),
 		BackupOption:         *sqlserver.NewNullableSqlserverBackupOption(convertedBackupOption),
 		DatabaseCollation:    databaseCollation,
@@ -115,6 +118,21 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		DatabaseUserPassword: initConfigOption.DatabaseUserPassword.ValueString(),
 		Databases:            convertedDatabases,
 		License:              initConfigOption.License.ValueString(),
+	}
+
+	// AdConfig
+	if !initConfigOption.AdConfig.AdDomainName.IsNull() {
+		adConfig := sqlserver.SqlserverAdConfigRequest{
+			AdDomainName:        initConfigOption.AdConfig.AdDomainName.ValueString(),
+			AdNetbiosName:       initConfigOption.AdConfig.AdNetbiosName.ValueString(),
+			AdUserId:            initConfigOption.AdConfig.AdUserId.ValueString(),
+			AdUserPassword:      initConfigOption.AdConfig.AdUserPassword.ValueString(),
+			FailoverClusterName: *sqlserver.NewNullableString(initConfigOption.AdConfig.FailoverClusterName.ValueStringPointer()),
+		}
+		for _, dns := range initConfigOption.AdConfig.AdDnsServers.Elements() {
+			adConfig.AdDnsServers = append(adConfig.AdDnsServers, dns.(types.String).ValueString())
+		}
+		convertedInitConfigOption.AdConfig = *sqlserver.NewNullableSqlserverAdConfigRequest(&adConfig)
 	}
 
 	// initconfig data 확인
@@ -142,7 +160,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
 		for _, instance := range instVals {
 			convertedInstance = append(convertedInstance, sqlserver.SqlserverInstanceRequest{
-				RoleType:         sqlserver.InstanceRoleType(instance.RoleType.ValueString()),
+				RoleType:         sqlserver.SqlserverInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *sqlserver.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *sqlserver.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
@@ -151,7 +169,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		convertedInstanceGroups = append(convertedInstanceGroups, sqlserver.SqlserverInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           sqlserver.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           sqlserver.SqlserverInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -181,39 +199,43 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.SqlserverClusterCreateRequest(sqlserver.SqlserverClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *sqlserver.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		VipPublicIpId:        *sqlserver.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
-		VirtualIpAddress:     *sqlserver.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+	req = req.SqlserverClusterCreateRequestV1Dot1(sqlserver.SqlserverClusterCreateRequestV1Dot1{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *sqlserver.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		VipPublicIpId:             *sqlserver.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
+		VirtualIpAddress:          *sqlserver.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		ServiceWatchLogCollection: *sqlserver.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull() && initConfigOption.BackupOption.ArchiveFrequencyMinute.IsNull() && initConfigOption.BackupOption.FullBackupDayOfWeek.IsNull()
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*sqlserver.SqlserverClusterDetailResponse, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*sqlserver.SqlserverClusterDetailResponseV1Dot1, int, error) {
 	req := client.sdkClient.SqlserverV1SqlserverClustersApiAPI.SqlserverShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {

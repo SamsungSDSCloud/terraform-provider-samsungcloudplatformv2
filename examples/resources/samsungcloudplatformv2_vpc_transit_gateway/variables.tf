@@ -1,5 +1,5 @@
 variable "name" {
-  default = "tgwNamdeptrai"
+  default = "tgwNAMLEE01"
 }
 
 variable "tags" {

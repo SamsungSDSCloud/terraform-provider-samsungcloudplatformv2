@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -66,6 +66,11 @@ func (d *virtualServerVolumeDataSources) Schema(_ context.Context, _ datasource.
 				MarkdownDescription: "Whether the volume is bootable.\n  - example: false",
 				Optional:            true,
 			},
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Description:         "Zone ID.\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone ID.\n  - example: kr-west1-a",
+				Optional:            true,
+			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType:         types.StringType,
 				Computed:            true,
@@ -111,7 +116,7 @@ func (d *virtualServerVolumeDataSources) Read(ctx context.Context, req datasourc
 		return
 	}
 
-	ids, err := GetVolumes(d.clients, state.Name, state.State, state.Bootable, state.Filter)
+	ids, err := GetVolumes(d.clients, state.Name, state.State, state.Bootable, state.Zone, state.Filter)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Volumes",
@@ -127,8 +132,8 @@ func (d *virtualServerVolumeDataSources) Read(ctx context.Context, req datasourc
 	}
 }
 
-func GetVolumes(clients *client.SCPClient, Name types.String, State types.String, Bootable types.Bool, filters []filter.Filter) ([]types.String, error) {
-	data, err := clients.VirtualServer.GetVolumeListWithParam(Name, State, Bootable)
+func GetVolumes(clients *client.SCPClient, Name types.String, State types.String, Bootable types.Bool, Zone types.String, filters []filter.Filter) ([]types.String, error) {
+	data, err := clients.VirtualServer.GetVolumeListWithParam(Name, State, Bootable, Zone)
 	if err != nil {
 		return nil, err
 	}

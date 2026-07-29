@@ -192,6 +192,8 @@ variable "missing_data_option" {
  - example: YOUR RESOURCE'S MODIFIED_BY
 - `namespace_id` (String) The unique identifier of the namespace.
  - example: YOUR RESOURCE'S NAMESPACE_ID
+- `timestamp` (String) The timestamp when the alert was triggered, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
 
 <a id="nestedatt--dimensions"></a>
 ### Nested Schema for `dimensions`

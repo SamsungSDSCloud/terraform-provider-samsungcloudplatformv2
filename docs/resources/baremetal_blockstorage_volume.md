@@ -17,6 +17,7 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_baremetal_blockstorage_volume" "volume"{
+  zone = var.zone
   name = var.block_storage_name
   disk_type = var.disk_type
   size_gb = var.size_gb
@@ -35,6 +36,11 @@ output "block_storage_output" {
   description = "description"
 }
 
+
+variable "zone" {
+  type    = string
+  default = "kr-west1-y"
+}
 
 variable "block_storage_name" {
   type    = string
@@ -110,6 +116,8 @@ variable "delete_timeouts" {
   - example : 10 
   - maximum : 16384 
   - minimum : 1
+- `zone` (String) zone. 
+  - example: kr-west1-a
 
 ### Optional
 

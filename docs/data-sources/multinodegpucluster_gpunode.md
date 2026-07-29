@@ -92,3 +92,5 @@ variable "id" {
   - example: Asia/Seoul
 - `vpc_id` (String) VPC ID
   - example: YOUR RESOURCE'S VPC_ID
+- `zone` (String) Zone
+  - example: kr-west1-a

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_configinspection Resource - samsungcloudplatformv2"
 subcategory: Config inspection
 description: |-
-  Config inspection resource.
+  Manages a Config Inspection resource for automated security compliance assessment. This resource creates and manages security diagnosis configurations that scan your cloud infrastructure against industry best practices and organizational security policies to identify vulnerabilities and compliance violations.
 ---
 
 # samsungcloudplatformv2_configinspection (Resource)
 
-Config inspection resource.
+Manages a Config Inspection resource for automated security compliance assessment. This resource creates and manages security diagnosis configurations that scan your cloud infrastructure against industry best practices and organizational security policies to identify vulnerabilities and compliance violations.
 
 ## Example Usage
 
@@ -134,7 +134,7 @@ variable "tags" {
 
 - `account_id` (String) Account Identifier.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `auth_key_request` (Attributes) Auth key request (see [below for nested schema](#nestedatt--auth_key_request))
+- `auth_key_request` (Attributes) Authentication key configuration for secure access during security assessments. Defines credentials that allow the diagnosis service to scan your cloud resources. (see [below for nested schema](#nestedatt--auth_key_request))
 - `csp_type` (String) Type of cloud service provider.
   - example : 'SCP'
   - enum : SCP | AWS | Azure

@@ -168,3 +168,4 @@ Read-Only:
 - `virtual_size` (Number) Virtual disk size (bytes).
 - `visibility` (String) Image visibility.
 - `volumes` (String) Volume information.
+- `zone` (String) Zone

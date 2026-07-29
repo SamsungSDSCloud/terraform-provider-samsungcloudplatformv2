@@ -6,11 +6,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 const (
@@ -97,6 +98,9 @@ const (
 	BlockStorageTypeOS      string = "OS"
 	BlockStorageTypeData    string = "DATA"
 	BlockStorageTypeArchive string = "ARCHIVE"
+
+	// Compute
+	ComputeVolumeInUseState string = "IN-USE"
 )
 
 func ToSnakeCase(str string) string {

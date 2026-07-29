@@ -20,6 +20,15 @@ variable "ha_enabled" {
 
 variable "init_config_option" {
   type = object({
+    ad_config = object({
+      ad_dns_servers        = set(string)
+      ad_domain_name        = string
+      ad_netbios_name       = string
+      ad_user_id            = string
+      ad_user_password      = string
+      failover_cluster_name = string
+    })
+    ad_enabled             = bool
     audit_enabled          = bool
     database_collation     = string
     database_port          = number
@@ -39,6 +48,15 @@ variable "init_config_option" {
     }))
   })
   default = {
+    ad_config = {
+      ad_dns_servers        = ["192.168.35.218"]
+      ad_domain_name        = "scp.dev2"
+      ad_netbios_name       = "SCP"
+      ad_user_id            = "ENTER YOUR RESOURCE'S AD_USER_ID"
+      ad_user_password      = "ENTER YOUR RESOURCE'S AD_USER_PASSWORD"
+      failover_cluster_name = "Chlwjrghk001"
+    }
+    ad_enabled    = true
     audit_enabled = false
     backup_option = {
       archive_frequency_minute = null
@@ -49,7 +67,7 @@ variable "init_config_option" {
     database_collation     = "SQL_Latin1_General_CP1_CI_AS"
     database_port          = 2866
     database_service_name  = "Sqlserver"
-    database_user_name     = "sqlserver"
+    database_user_name     = "sdsv"
     database_user_password = "ENTER YOUR RESOURCE'S DATABASE_USER_PASSWORD"
     databases = [{
       database_name = "sqlserver"
@@ -97,7 +115,7 @@ variable "instance_name_prefix" {
 
 variable "name" {
   type    = string
-  default = "sqlserverb"
+  default = "sqlserverTd"
 }
 
 variable "subnet_id" {
@@ -119,10 +137,10 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = "0.5"
-    starting_day_of_week   = "MON"
-    starting_time          = "0000"
-    use_maintenance_option = true
+    period_hour            = null
+    starting_day_of_week   = null
+    starting_time          = null
+    use_maintenance_option = null
   }
 }
 
@@ -146,6 +164,11 @@ variable "tags" {
   default = {
     key = "value"
   }
+}
+
+variable "service_watch_log_collection" {
+  type    = bool
+  default = false
 }
 
 

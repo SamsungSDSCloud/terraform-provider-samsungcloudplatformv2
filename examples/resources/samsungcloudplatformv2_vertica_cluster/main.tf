@@ -15,4 +15,5 @@ resource "samsungcloudplatformv2_vertica_cluster" "cluster" {
   timezone                = var.timezone
   license                 = var.license
   tags                    = var.tags
+  service_watch_log_collection = var.service_watch_log_collection
 }

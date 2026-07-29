@@ -23,14 +23,22 @@ List of Engine Versions.
 
 Required:
 
-- `end_of_service` (Boolean) EndOfService
-- `id` (String) Id
-- `name` (String) Name
-- `os_type` (String) OsType
-- `product_image_type` (String) ProductImageType
-- `software_version` (String) SoftwareVersion
+- `end_of_service` (Boolean) End of Service
+  - example: false
+- `id` (String) Engine version ID
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Engine version name
+  - example: MariaDB Community 11.4.10
+- `os_type` (String) OS type
+  - example: RHEL
+- `product_image_type` (String) Product image type
+  - example: MariaDB Community
+- `software_version` (String) Software version
+  - example: 11.4.10
 
 Optional:
 
-- `major_version` (String) MajorVersion
-- `os_version` (String) OsVersion
+- `major_version` (String) Software major version
+  - example: 11.4
+- `os_version` (String) OS version
+  - example: 8.5

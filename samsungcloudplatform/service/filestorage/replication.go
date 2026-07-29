@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/filestorage"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/filestorage/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/filestorage"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/filestorage/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -90,8 +90,8 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 					"  - pattern: `^(5min|hourly|daily|weekly|monthly)$` \n",
 				Required: true,
 			},
-			"region": schema.StringAttribute{
-				Description: "The destination region where the replication target volume will be created. \n" +
+			"zone": schema.StringAttribute{
+				Description: "Zone \n" +
 					"  - example : 'kr-west1' \n",
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -114,7 +114,6 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 					"  - pattern: `^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$` \n",
 				Optional:  true,
 				WriteOnly: true,
-				Sensitive: true,
 			},
 			"replication_id": schema.StringAttribute{
 				Description: "Replication ID \n" +
@@ -148,8 +147,8 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 					"  - example : 'my_volume' \n",
 				Computed: true,
 			},
-			"replication_volume_region": schema.StringAttribute{
-				Description: "The region where the target volume is located. \n" +
+			"replication_volume_zone": schema.StringAttribute{
+				Description: "Target Volume Zone \n" +
 					"  - example : 'kr-west1' \n",
 				Computed: true,
 			},
@@ -168,8 +167,8 @@ func (f *fileStorageReplicationResource) Schema(ctx context.Context, request res
 					"  - example : 'my_volume' \n",
 				Computed: true,
 			},
-			"source_volume_region": schema.StringAttribute{
-				Description: "The region where the source volume is located. \n" +
+			"source_volume_zone": schema.StringAttribute{
+				Description: "Source Volume Zone \n" +
 					"  - example : 'kr-west1' \n",
 				Computed: true,
 			},
@@ -285,7 +284,7 @@ func (f *fileStorageReplicationResource) Update(ctx context.Context, request res
 		ReplicationUpdateType: coalesceString(plan.ReplicationUpdateType, state.ReplicationUpdateType),
 		BackupRetentionCount:  plan.BackupRetentionCount,
 	}
-	f.client.Config.Region = state.ReplicationVolumeRegion.ValueString()
+	f.client.Config.Region = state.ReplicationVolumeZone.ValueString()
 	err := f.client.UpdateVolumeReplication(ctx, state.ReplicationId.ValueString(), state.ReplicationVolumeId.ValueString(), policy)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
@@ -348,7 +347,7 @@ func (f *fileStorageReplicationResource) Delete(ctx context.Context, request res
 	if response.Diagnostics.HasError() {
 		return
 	}
-	f.client.Config.Region = state.ReplicationVolumeRegion.ValueString()
+	f.client.Config.Region = state.ReplicationVolumeZone.ValueString()
 	if state.ReplicationType == types.StringValue("backup") {
 		err = f.client.DeleteVolume(ctx, state.ReplicationVolumeId.ValueString())
 
@@ -365,14 +364,14 @@ func (f *fileStorageReplicationResource) Delete(ctx context.Context, request res
 	}
 }
 
-func mapReplicationToPlan(replication *scpfilestorage.ReplicationShowResponse, plan filestorage.ReplicationResource) filestorage.ReplicationResource {
+func mapReplicationToPlan(replication *scpfilestorage.ReplicationShowResponseV1Dot2, plan filestorage.ReplicationResource) filestorage.ReplicationResource {
 	plan.SourceVolumeId = types.StringValue(replication.SourceVolumeId)
 	plan.SourceVolumeName = types.StringValue(replication.SourceVolumeName)
-	plan.SourceVolumeRegion = types.StringValue(replication.SourceVolumeRegion)
+	plan.SourceVolumeZone = types.StringValue(replication.SourceVolumeZone)
 	plan.SourceVolumeAccessLevel = types.StringValue(replication.SourceVolumeAccessLevel)
 	plan.ReplicationVolumeId = types.StringValue(replication.ReplicationVolumeId)
 	plan.ReplicationVolumeName = types.StringValue(replication.ReplicationVolumeName)
-	plan.ReplicationVolumeRegion = types.StringValue(replication.ReplicationVolumeRegion)
+	plan.ReplicationVolumeZone = types.StringValue(replication.ReplicationVolumeZone)
 	plan.ReplicationVolumeAccessLevel = types.StringValue(replication.ReplicationVolumeAccessLevel)
 	plan.ReplicationFrequency = types.StringValue(replication.ReplicationFrequency)
 	plan.ReplicationId = types.StringValue(replication.ReplicationId)
@@ -383,8 +382,8 @@ func mapReplicationToPlan(replication *scpfilestorage.ReplicationShowResponse, p
 	return plan
 }
 
-func waitForReplicationStatus(ctx context.Context, fileStorageClient *filestorage.Client, params map[string]string, pendingStates []string, targetStates []string) (*scpfilestorage.ReplicationShowResponse, error) {
-	var response *scpfilestorage.ReplicationShowResponse
+func waitForReplicationStatus(ctx context.Context, fileStorageClient *filestorage.Client, params map[string]string, pendingStates []string, targetStates []string) (*scpfilestorage.ReplicationShowResponseV1Dot2, error) {
+	var response *scpfilestorage.ReplicationShowResponseV1Dot2
 	return response, client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
 		replication, err := fileStorageClient.GetVolumeReplication(ctx, params[ReplicationId], params[VolumeId])
 		if err != nil {
@@ -398,7 +397,7 @@ func waitForReplicationStatus(ctx context.Context, fileStorageClient *filestorag
 	}, -1, -1, -1, -1)
 }
 
-func getCurrentStatus(params map[string]string, replication *scpfilestorage.ReplicationShowResponse) string {
+func getCurrentStatus(params map[string]string, replication *scpfilestorage.ReplicationShowResponseV1Dot2) string {
 	if params[FieldName] == BackupRetentionCount {
 		if v := replication.BackupRetentionCount.Get(); v != nil {
 			return strconv.Itoa(int(*v))

@@ -3,9 +3,9 @@ package searchengine
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	searchengine "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/searchengine/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	searchengine "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/searchengine/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -45,8 +45,9 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*searchengine.EngineListResponse, error) {
+func (client *Client) GetEngineVersionList(ctx context.Context, productImageType string) (*searchengine.EngineListResponse, error) {
 	req := client.sdkClient.SearchengineV1SearchEngineMasterDataApiAPI.SearchengineListEngineVersions(ctx)
+	req = req.ProductImageType(searchengine.ProductImageType(productImageType))
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -103,7 +104,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []searchengine.InstanceGroupRequest
+	var convertedInstanceGroups []searchengine.SearchEngineInstanceGroupRequest
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
@@ -118,21 +119,21 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 			})
 		}
 
-		var convertedInstance []searchengine.InstanceRequest
+		var convertedInstance []searchengine.SearchEngineInstanceRequest
 		var instVals []database.Instance
 		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
 		for _, instance := range instVals {
-			convertedInstance = append(convertedInstance, searchengine.InstanceRequest{
-				RoleType:         searchengine.InstanceRoleType(instance.RoleType.ValueString()),
+			convertedInstance = append(convertedInstance, searchengine.SearchEngineInstanceRequest{
+				RoleType:         searchengine.SearchEngineInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *searchengine.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *searchengine.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, searchengine.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, searchengine.SearchEngineInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           searchengine.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           searchengine.SearchEngineInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -162,39 +163,43 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.SearchEngineClusterCreateRequest(searchengine.SearchEngineClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		IsCombined:           request.IsCombined.ValueBoolPointer(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *searchengine.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		License:              *searchengine.NewNullableString(request.License.ValueStringPointer()),
+	req = req.SearchEngineClusterCreateRequestV1Dot1(searchengine.SearchEngineClusterCreateRequestV1Dot1{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		IsCombined:                request.IsCombined.ValueBoolPointer(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		Name:                      request.Name.ValueString(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *searchengine.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		License:                   *searchengine.NewNullableString(request.License.ValueStringPointer()),
+		ServiceWatchLogCollection: *searchengine.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull()
 
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*searchengine.SearchEngineClusterDetailResponse, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*searchengine.SearchEngineClusterDetailResponseV1Dot1, int, error) {
 	req := client.sdkClient.SearchengineV1SearchEngineClustersApiAPI.SearchengineShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {

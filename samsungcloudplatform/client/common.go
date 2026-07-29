@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"strings"
 	"time"
@@ -140,7 +140,9 @@ func GetDetailFromError(err error) string {
 			details = append(details, detail.(string))
 		case []interface{}:
 			for _, d := range detail.([]interface{}) {
-				details = append(details, d.(string))
+				if s, ok := d.(string); ok {
+					details = append(details, s)
+				}
 			}
 		}
 	}

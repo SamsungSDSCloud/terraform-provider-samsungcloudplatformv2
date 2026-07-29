@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/multinodegpucluster"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	multinodegpuclustersdk1d2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/multinodegpucluster/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/multinodegpucluster"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	multinodegpuclustersdk1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/multinodegpucluster/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -103,8 +103,8 @@ func GpuNodeResourceSchema(ctx context.Context) schema.Schema {
 					"cluster_fabric_id": schema.StringAttribute{
 						Optional:            true,
 						Computed:            true,
-						Description:         "Cluster Fabric ID\n - example: 20c507a036c447cdb3b19468d8ea62ac",
-						MarkdownDescription: "Cluster Fabric ID\n - example: 20c507a036c447cdb3b19468d8ea62ac",
+						Description:         "Cluster Fabric ID. Enter the target cluster's ID to add GPU Nodes to an existing cluster, or omit it to create a new cluster.\n - example: 20c507a036c447cdb3b19468d8ea62ac",
+						MarkdownDescription: "Cluster Fabric ID. Enter the target cluster's ID to add GPU Nodes to an existing cluster, or omit it to create a new cluster.\n - example: 20c507a036c447cdb3b19468d8ea62ac",
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
@@ -112,7 +112,7 @@ func GpuNodeResourceSchema(ctx context.Context) schema.Schema {
 					"cluster_fabric_name": schema.StringAttribute{
 						Required: true,
 						Description: "Cluster Fabric Name. Enter 3 to 15 char (English, number and -) starting with English." +
-							" Do not use '-' for the last char." +
+							" Do not use '-' for the last char.\n" +
 							"  - minLength: 3\n" +
 							"  - maxLength: 15\n" +
 							"  - pattern: ^([a-zA-Z]{1})([a-zA-Z0-9-]{1,13})([a-zA-Z0-9]{1})$\n" +
@@ -235,6 +235,12 @@ func GpuNodeResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "OS User Id. When linux image value must be 'root'\n  - example: root",
 				MarkdownDescription: "OS User Id. When linux image value must be 'root'\n  - example: root",
 				Default:             stringdefault.StaticString("root"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("root"),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"os_user_password": schema.StringAttribute{
 				Required:  true,
@@ -336,22 +342,29 @@ func GpuNodeResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Server state\n" +
 								"  - example: RUNNING\n" +
 								"  - pattern: RUNNING | STOPPED",
-							Default: stringdefault.StaticString(common.RunningState),
 							Validators: []validator.String{
 								stringvalidator.OneOf(common.RunningState, common.StoppedState),
 							},
+                        	PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"zone": schema.StringAttribute{
+							Required:            true,
+							Description:         "Zone\n  - example: kr-west1-a",
+							MarkdownDescription: "Zone\n  - example: kr-west1-a",
 						},
 					},
 				},
 				Required: true,
-				Description: "Detailed settings for each server, 2 or more server on creation\n" +
-					"  - example: [{state: RUNNING}, {state: RUNNING}]\n" +
+				Description: "Detailed settings for each server, 2 or more servers on new fabric creation\n" +
+					"  - example: [{state: 'RUNNING', zone: 'kr-west1-a'}, {state: 'RUNNING', zone: 'kr-west1-a'}]\n" +
 					"  - maxLength: 5\n" +
-					"  - minLength: 2\n",
-				MarkdownDescription: "Detailed settings for each server, 2 or more server on creation\n" +
-					"  - example: [{state: RUNNING}, {state: RUNNING}]\n" +
+					"  - minLength: 1\n",
+				MarkdownDescription: "Detailed settings for each server, 2 or more servers on new fabric creation\n" +
+					"  - example: [{state: 'RUNNING', zone: 'kr-west1-a'}, {state: 'RUNNING', zone: 'kr-west1-a'}]\n" +
 					"  - maxLength: 5\n" +
-					"  - minLength: 2\n",
+					"  - minLength: 1\n",
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 5),
 				},
@@ -516,7 +529,7 @@ func (multinodegpuclusterRS *GpunodeResource) Read(ctx context.Context, req reso
 	}
 
 	// Get Tags
-	tagsMap, err := tag.GetTags(multinodegpuclusterRS.clients, "multinodegpucluster", "gpu-node", gpunodeId)
+	tagsMap, err := tag.GetTags(multinodegpuclusterRS.clients, "multinodegpucluster", "gpu-node", gpunodeId, false)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Reading GPU Node Tag", err.Error())
 		return
@@ -688,7 +701,7 @@ func (multinodegpuclusterRS *GpunodeResource) Update(ctx context.Context, req re
 	// update tags
 	tagElements := plan.Tags.Elements()
 	for _, serverDetail := range planServerDetails {
-		tagsMap, err := tag.UpdateTags(multinodegpuclusterRS.clients, "multinodegpucluster", "gpu-node", serverDetail.Id.ValueString(), tagElements)
+		tagsMap, err := tag.UpdateTags(multinodegpuclusterRS.clients, "multinodegpucluster", "gpu-node", serverDetail.Id.ValueString(), tagElements, false)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error updating tags",
@@ -790,7 +803,7 @@ func (multinodegpuclusterRS *GpunodeResource) ModifyPlan(ctx context.Context, re
 	if planServerDetails[0].Id.IsUnknown() {
 		// create validate start
 
-		if len(planServerDetails) < 2 {
+		if len(planServerDetails) < 2 && plan.ClusterFabricDetails.ClusterFabricId.ValueString() == "" {
 			resp.Diagnostics.AddError(
 				"Error creating server",
 				"The minimum number of generated servers in the GPU Node is 2",
@@ -934,7 +947,7 @@ func (multinodegpuclusterRS *GpunodeResource) ImportState(ctx context.Context, r
 
 }
 
-func setGpuNodeDetailToResource(nodeDetail *multinodegpuclustersdk1d2.GpuNodeShowResponse, resource *multinodegpuclusterClient.GpuNodeResource) {
+func setGpuNodeDetailToResource(nodeDetail *multinodegpuclustersdk1d3.GpuNodeShowResponseV1Dot3, resource *multinodegpuclusterClient.GpuNodeResource) {
 
 	// basic info
 	resource.AccountId = types.StringValue(nodeDetail.AccountId)
@@ -1030,7 +1043,7 @@ func findNodesInFabric(ctx context.Context, multinodegpuclusterRS *GpunodeResour
 	return serverDetailsListType, allDiags, nil
 }
 
-func setServerDetailInfo(ctx context.Context, nodeDetail multinodegpuclustersdk1d2.GpuNodeShowResponse) (multinodegpuclusterClient.ServerDetailsValue, diag.Diagnostics) {
+func setServerDetailInfo(ctx context.Context, nodeDetail multinodegpuclustersdk1d3.GpuNodeShowResponseV1Dot3) (multinodegpuclusterClient.ServerDetailsValue, diag.Diagnostics) {
 	var serverDetail multinodegpuclusterClient.ServerDetailsValue
 	var diags diag.Diagnostics
 
@@ -1047,11 +1060,12 @@ func setServerDetailInfo(ctx context.Context, nodeDetail multinodegpuclustersdk1
 		serverDetail.PolicyNat = types.StringPointerValue(nodeDetail.PolicyNat.Get())
 	}
 	serverDetail.PolicyUseNat = types.BoolPointerValue(nodeDetail.PolicyUseNat)
+	serverDetail.Zone = types.StringValue(nodeDetail.Zone)
 
 	return serverDetail, diags
 }
 
-func getImageInfo(imageList *multinodegpuclustersdk1d2.GpuNodeImageListResponse, imageId string) (string, error) {
+func getImageInfo(imageList *multinodegpuclustersdk1d3.GpuNodeImageListResponse, imageId string) (string, error) {
 	var osType string
 
 	for _, image := range imageList.Images {
@@ -1074,6 +1088,9 @@ func validateServerDetailInfo(serverDetails []multinodegpuclusterClient.ServerDe
 	for _, serverDetail := range serverDetails {
 
 		// validate state
+		if serverDetail.State.IsNull() || serverDetail.State.IsUnknown() {
+			continue
+		}
 		if serverDetail.State.ValueString() != common.RunningState {
 			errorList = append(errorList, errors.New("state value must be RUNNING, when server creation request is made"))
 		}

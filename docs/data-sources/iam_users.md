@@ -86,7 +86,8 @@ variable "account_id" {
   - example : 'scp'
 - `user_name` (String) Filter users by username.
   - example : 'john.doe'
-- `users` (Attributes List) List of users matching the filter criteria. (see [below for nested schema](#nestedatt--users))
+- `users` (Attributes List) List of users matching the filter criteria.
+  - example : [{"id": "usr-1234567890abcdef", "name": "John Doe", "email": "user@example.com", ...}] (see [below for nested schema](#nestedatt--users))
 
 <a id="nestedatt--users"></a>
 ### Nested Schema for `users`
@@ -105,11 +106,13 @@ Optional:
   - example : 'Doe'
 - `password` (String) User password (masked for security).
   - example: YOUR RESOURCE'S PASSWORD
-- `policies` (Attributes List) Policies (see [below for nested schema](#nestedatt--users--policies))
+- `policies` (Attributes List) List of policies attached to the user.
+  - example : [{"id": "pol-1234567890abcdef", "name": "MyPolicy"}] (see [below for nested schema](#nestedatt--users--policies))
 
 Read-Only:
 
-- `access_keys` (Attributes List) Access Keys (see [below for nested schema](#nestedatt--users--access_keys))
+- `access_keys` (Attributes List) List of access keys belonging to the user.
+  - example : [{"id": "12345678-1234-1234-1234-1234567890ab", "access_key": "ak-example-access-key-id", "is_enabled": true, ...}] (see [below for nested schema](#nestedatt--users--access_keys))
 - `account_id` (String) Account ID of the user.
   - example: YOUR RESOURCE'S ACCOUNT_ID
 - `created_at` (String) Timestamp when the user was created.
@@ -124,7 +127,8 @@ Read-Only:
   - example : 'user@example.com'
 - `email_authenticated` (Boolean) Whether the email has been authenticated.
   - example : true
-- `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--users--groups))
+- `groups` (Attributes List) List of groups the user belongs to.
+  - example : [{"id": "grp-1234567890abcdef", "name": "MyGroup"}] (see [below for nested schema](#nestedatt--users--groups))
 - `id` (String) Unique identifier of the user.
   - example: YOUR RESOURCE'S ID
 - `last_password_update_at` (String) Timestamp when the password was last updated.

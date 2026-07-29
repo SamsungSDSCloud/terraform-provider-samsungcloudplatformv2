@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/certificatemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/certificatemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,7 +39,9 @@ func (d *certificateManagerDetailDataSource) Metadata(_ context.Context, req dat
 // Schema defines the schema for the data source.
 func (d *certificateManagerDetailDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Detail of certificate manager.",
+		Description: "Retrieves detailed information about a specific SSL/TLS certificate by its ID. " +
+			"Use this data source to get comprehensive details about a certificate including its validity period, " +
+			"common name, state, and other metadata. Useful for referencing existing certificates in your infrastructure.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
 				Description: "Certificate ID.\n" +
@@ -47,8 +49,9 @@ func (d *certificateManagerDetailDataSource) Schema(_ context.Context, _ datasou
 				Optional: true,
 			},
 			common.ToSnakeCase("Certificate"): schema.SingleNestedAttribute{
-				Description: "A Detail certificate.",
-				Computed:    true,
+				Description: "Detailed information about the retrieved certificate. " +
+					"Contains all metadata including ID, name, common name, validity period, and current state.",
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CertKind"): schema.StringAttribute{
 						Description: "Certificate type.\n" +

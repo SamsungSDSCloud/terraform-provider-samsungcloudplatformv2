@@ -3,7 +3,7 @@ package virtualserver
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,6 +17,7 @@ type VolumeDataSourceIds struct {
 	State    types.String    `tfsdk:"state"`
 	Name     types.String    `tfsdk:"name"`
 	Bootable types.Bool      `tfsdk:"bootable"`
+	Zone     types.String    `tfsdk:"zone"`
 	Filter   []filter.Filter `tfsdk:"filter"`
 	Ids      []types.String  `tfsdk:"ids"`
 }
@@ -25,6 +26,7 @@ type VolumeDataSource struct {
 	State    types.String    `tfsdk:"state"`
 	Name     types.String    `tfsdk:"name"`
 	Bootable types.Bool      `tfsdk:"bootable"`
+	Zone     types.String    `tfsdk:"zone"`
 	Filter   []filter.Filter `tfsdk:"filter"`
 	Volume   types.Object    `tfsdk:"volume"`
 }
@@ -43,6 +45,7 @@ type VolumeResource struct {
 	Tags          types.Map      `tfsdk:"tags"`
 	MaxIops       types.Int32    `tfsdk:"max_iops"`
 	MaxThroughput types.Int32    `tfsdk:"max_throughput"`
+	Zone          types.String   `tfsdk:"zone"`
 }
 type Volume struct {
 	Id            types.String   `tfsdk:"id"`
@@ -57,6 +60,7 @@ type Volume struct {
 	Servers       []VolumeServer `tfsdk:"servers"`
 	MaxIops       types.Int32    `tfsdk:"max_iops"`
 	MaxThroughput types.Int32    `tfsdk:"max_throughput"`
+	Zone          types.String   `tfsdk:"zone"`
 }
 
 type VolumeServer struct {
@@ -83,6 +87,7 @@ func (m Volume) AttributeTypes() map[string]attr.Type {
 		},
 		"max_iops":       types.Int32Type,
 		"max_throughput": types.Int32Type,
+		"zone":           types.StringType,
 	}
 }
 
@@ -138,6 +143,7 @@ type ServerDataSourceIds struct {
 	VpcId              types.String    `tfsdk:"vpc_id"`
 	ServerTypeId       types.String    `tfsdk:"server_type_id"`
 	AutoScalingGroupId types.String    `tfsdk:"auto_scaling_group_id"`
+	Zone               types.String    `tfsdk:"zone"`
 	Filter             []filter.Filter `tfsdk:"filter"`
 	Ids                []types.String  `tfsdk:"ids"`
 }
@@ -152,6 +158,7 @@ type ServerDataSource struct {
 	VpcId              types.String    `tfsdk:"vpc_id"`
 	ServerTypeId       types.String    `tfsdk:"server_type_id"`
 	AutoScalingGroupId types.String    `tfsdk:"auto_scaling_group_id"`
+	Zone               types.String    `tfsdk:"zone"`
 	Filter             []filter.Filter `tfsdk:"filter"`
 	Server             types.Object    `tfsdk:"server"`
 }
@@ -181,6 +188,7 @@ type Server struct {
 	Volumes               []ServerVolume  `tfsdk:"volumes"`
 	VpcId                 types.String    `tfsdk:"vpc_id"`
 	PartitionNumber       types.Int32     `tfsdk:"partition_number"`
+	Zone                  types.String    `tfsdk:"zone"`
 }
 
 type ServerAddress struct {
@@ -241,6 +249,7 @@ type ServerResource struct {
 	VpcId                 types.String `tfsdk:"vpc_id"`
 	PartitionNumber       types.Int32  `tfsdk:"partition_number"`
 	Tags                  types.Map    `tfsdk:"tags"`
+	Zone                  types.String `tfsdk:"zone"`
 }
 
 type ServerResourceNetwork struct {
@@ -340,6 +349,7 @@ func (m Server) AttributeTypes() map[string]attr.Type {
 		},
 		"vpc_id":           types.StringType,
 		"partition_number": types.Int32Type,
+		"zone":             types.StringType,
 	}
 }
 
@@ -446,6 +456,7 @@ type Image struct {
 	Url                  types.String `tfsdk:"url"`
 	CreatedAt            types.String `tfsdk:"created_at"`
 	UpdatedAt            types.String `tfsdk:"updated_at"`
+	Zone                 types.String `tfsdk:"zone"`
 }
 
 type ImageResource struct {
@@ -479,6 +490,7 @@ type ImageResource struct {
 	Url                  types.String `tfsdk:"url"`
 	CreatedAt            types.String `tfsdk:"created_at"`
 	UpdatedAt            types.String `tfsdk:"updated_at"`
+	Zone                 types.String `tfsdk:"zone"`
 	Tags                 types.Map    `tfsdk:"tags"`
 }
 
@@ -513,6 +525,7 @@ func (m Image) AttributeTypes() map[string]attr.Type {
 		"url":                     types.StringType,
 		"created_at":              types.StringType,
 		"updated_at":              types.StringType,
+		"zone":                    types.StringType,
 	}
 }
 

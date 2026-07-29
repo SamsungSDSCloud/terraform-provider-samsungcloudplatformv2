@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/configinspection"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/configinspection"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -43,7 +43,7 @@ func (r *configInspectionDiagnosisResource) Metadata(ctx context.Context, req re
 // Schema defines the resource schema
 func (r *configInspectionDiagnosisResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Config inspection resource.",
+		Description: "Manages a Config Inspection resource for automated security compliance assessment. This resource creates and manages security diagnosis configurations that scan your cloud infrastructure against industry best practices and organizational security policies to identify vulnerabilities and compliance violations.",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
@@ -52,7 +52,7 @@ func (r *configInspectionDiagnosisResource) Schema(ctx context.Context, req reso
 				Required: true,
 			},
 			common.ToSnakeCase("AuthKeyRequest"): schema.SingleNestedAttribute{
-				Description: "Auth key request",
+				Description: "Authentication key configuration for secure access during security assessments. Defines credentials that allow the diagnosis service to scan your cloud resources.",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{

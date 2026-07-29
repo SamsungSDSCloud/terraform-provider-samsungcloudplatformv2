@@ -6,26 +6,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/vpc"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/virtualserver/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpc"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/virtualserver/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
-	_ resource.Resource              = &virtualServerServerResource{}
-	_ resource.ResourceWithConfigure = &virtualServerServerResource{}
+	_ resource.Resource               = &virtualServerServerResource{}
+	_ resource.ResourceWithConfigure  = &virtualServerServerResource{}
+	_ resource.ResourceWithModifyPlan = &virtualServerServerResource{}
 )
 
 var osDiskDeviceNames = []string{"/dev/vda", "/dev/sda"}
@@ -126,18 +131,21 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 							MarkdownDescription: "Port ID.\n  - example: 12345678-1234-1234-1234-123456789012",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
 							Description:         "Subnet ID.",
 							MarkdownDescription: "Subnet ID.\n  - example: ab313c43291e4b678f4bacffe10768ae",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("FixedIp"): schema.StringAttribute{
 							Description:         "Fixed IP address.",
 							MarkdownDescription: "Fixed IP address.\n  - example: 192.168.1.100",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
 							Description:         "Public IP ID.",
@@ -191,6 +199,9 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 					"  - note: For GPU Server, only GPU standard images (scp_image_type=gpu_standard, gpu_custom) can be used.",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("KeypairName"): schema.StringAttribute{
 				Description:         "Keypair name. Specifies the keypair for SSH access.",
@@ -207,6 +218,7 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 				MarkdownDescription: "Lock status. When locked, most user operations are blocked.\n  - example: false",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("Metadata"): schema.MapAttribute{
 				Description:         "Metadata. Specifies key-value pairs to store on the server.",
@@ -214,6 +226,9 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
 				Description:         "Modification timestamp.",
@@ -247,6 +262,9 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 					"  - Available values: compute, container",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("ProductOffering"): schema.StringAttribute{
 				Description: "Product offering. Determines the server type.\n" +
@@ -257,6 +275,9 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 					"  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm\n",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("SecurityGroups"): schema.ListAttribute{
 				Description:         "Security group ID list.",
@@ -264,6 +285,7 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
+				PlanModifiers:       []planmodifier.List{listplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("UserData"): schema.StringAttribute{
 				Description: "User data script. Base64-encoded script to run on server startup.\n" +
@@ -279,6 +301,9 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 				MarkdownDescription: "Server group ID. Places the server in a specific server group.\n  - example: 616fb98f-46ca-475e-917e-2563e5a8cd19",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("ServerTypeId"): schema.StringAttribute{
 				Description: "Server type ID. Determines CPU, memory, and other server specifications.\n" +
@@ -294,8 +319,9 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 				MarkdownDescription: "Server state.\n" +
 					"  - example: ACTIVE\n" +
 					"  - Available values: ACTIVE, SHUTOFF",
-				Optional: true,
-				Computed: true,
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("BootVolume"): schema.SingleNestedAttribute{
 				Description:         "Boot volume settings. Defines the root disk where OS is installed.",
@@ -312,6 +338,7 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 						MarkdownDescription: "Whether to delete volume when server is terminated.\n  - example: true",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 					},
 					common.ToSnakeCase("Size"): schema.Int32Attribute{
 						Description:         "Volume size (GiB). Must be a multiple of 8.",
@@ -332,12 +359,14 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 						MarkdownDescription: "Maximum IOPS. Number of read/write operations per second.\n  - example: 10000",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseStateForUnknown()},
 					},
 					common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
 						Description:         "Maximum throughput (MB/s). Amount of data transferred per second.",
 						MarkdownDescription: "Maximum throughput (MB/s). Amount of data transferred per second.\n  - example: 500",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseStateForUnknown()},
 					},
 				},
 			},
@@ -358,6 +387,7 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 							MarkdownDescription: "Whether to delete volume when server is terminated.\n  - example: true",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("Size"): schema.Int32Attribute{
 							Description:         "Volume size (GiB). Must be a multiple of 8.",
@@ -370,7 +400,7 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 							Optional:            true,
 							Computed:            true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
+								stringplanmodifier.UseNonNullStateForUnknown(),
 							},
 						},
 						common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
@@ -378,12 +408,14 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 							MarkdownDescription: "Maximum IOPS. Number of read/write operations per second.\n  - example: 10000",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
 							Description:         "Maximum throughput (MB/s). Amount of data transferred per second.",
 							MarkdownDescription: "Maximum throughput (MB/s). Amount of data transferred per second.\n  - example: 500",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseNonNullStateForUnknown()},
 						},
 					},
 				},
@@ -398,8 +430,14 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 				MarkdownDescription: "Partition number. Only used when server group type is partition.\n  - example: 1",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseStateForUnknown()},
 			},
 			"tags": tag.ResourceSchema(),
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Required:            true,
+				Description:         "Zone ID\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone ID\n  - example: kr-west1-a",
+			},
 		},
 	}
 
@@ -430,7 +468,7 @@ func (r *virtualServerServerResource) AsyncPollingTags(ctx context.Context, reso
 	defer ticker.Stop()
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, resourceId)
+		tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, resourceId, false)
 
 		if err != nil {
 			return types.Map{}, fmt.Errorf("attempt %d/%d failed: %w",
@@ -697,7 +735,7 @@ func (r *virtualServerServerResource) buildVolumeSets(getServerVolumes *scpvirtu
 }
 
 func (r *virtualServerServerResource) categorizeVolumes(
-	getVolumes *scpvirtualserver.VolumeListResponseV1Dot2,
+	getVolumes *scpvirtualserver.VolumeListResponseV1Dot4,
 	volumeIdsSet map[string]bool,
 	volumeDeleteOnTerminationSet map[string]bool,
 	volumeBootVolumeSet map[string]bool,
@@ -870,7 +908,7 @@ func (r *virtualServerServerResource) mapNetworksBySubnetOnly(
 
 func (r *virtualServerServerResource) processNetworks(
 	ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponse,
+	resp *scpvirtualserver.ServerShowResponseV1Dot4,
 	state virtualserver.ServerResource,
 ) (types.Map, error) {
 	var networkMap map[string]virtualserver.ServerResourceNetwork
@@ -941,7 +979,7 @@ func (r *virtualServerServerResource) processNetworks(
 	return networks, nil
 }
 
-func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.ServerShowResponse) types.Map {
+func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.ServerShowResponseV1Dot4) types.Map {
 	metadataMap := make(map[string]attr.Value)
 	for k, v := range resp.Metadata {
 		metadataMap[k] = types.StringValue(v.(string))
@@ -952,7 +990,7 @@ func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.Ser
 
 func (r *virtualServerServerResource) processSecurityGroups(
 	ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponse,
+	resp *scpvirtualserver.ServerShowResponseV1Dot4,
 	state virtualserver.ServerResource,
 ) ([]attr.Value, error) {
 	getSecurityGroups, err := r.client.GetServerSecurityGroupList(ctx, resp.Id)
@@ -974,7 +1012,7 @@ func (r *virtualServerServerResource) processSecurityGroups(
 }
 
 func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponse, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
+	resp *scpvirtualserver.ServerShowResponseV1Dot4, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
 	networks, err := r.processNetworks(ctx, resp, state)
 	if err != nil {
 		return virtualserver.ServerResource{}, err
@@ -1026,6 +1064,7 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 		VpcId:                 virtualserverutil.ToNullableStringValue(resp.VpcId.Get()),
 		PartitionNumber:       virtualserverutil.ToNullableInt32Value(resp.PartitionNumber.Get()),
 		Tags:                  tagsMap,
+		Zone:                  types.StringValue(resp.Zone),
 	}, nil
 }
 
@@ -1124,7 +1163,7 @@ func (r *virtualServerServerResource) handlerUpdateServerType(ctx context.Contex
 		return err
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponse, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot4, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -1358,7 +1397,7 @@ func (r *virtualServerServerResource) createExtraVolume(
 	serverId string,
 	plan virtualserver.ServerResource,
 	planExtraVolume virtualserver.ServerResourceVolume,
-	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error),
+	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot4, error),
 ) error {
 	volumeResource := virtualserver.VolumeResource{
 		Name:          types.StringValue(serverId + "-blank-vol"),
@@ -1367,6 +1406,7 @@ func (r *virtualServerServerResource) createExtraVolume(
 		Tags:          plan.Tags,
 		MaxIops:       planExtraVolume.MaxIops,
 		MaxThroughput: planExtraVolume.MaxThroughput,
+		Zone:          plan.Zone,
 	}
 	resp, err := r.client.CreateVolume(ctx, volumeResource)
 	if err != nil {
@@ -1401,7 +1441,7 @@ func (r *virtualServerServerResource) deleteExtraVolume(
 	ctx context.Context,
 	stateVolume virtualserver.ServerResourceVolume,
 	serverId string,
-	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error),
+	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot4, error),
 ) error {
 	err := r.client.DetachVolume(ctx, stateVolume.Id.ValueString(), serverId)
 	if err != nil {
@@ -1446,7 +1486,7 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 			}
 		}
 
-		getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
+		getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponseV1Dot4, error) {
 			return r.client.GetVolume(ctx, id)
 		}
 
@@ -1479,7 +1519,7 @@ func (r *virtualServerServerResource) handlerUpdateTag(ctx context.Context, req 
 	serviceName, resourceType := r.resolveServerServiceInfoFromModel(state)
 
 	// Server
-	_, err := tag.UpdateTags(r.clients, serviceName, resourceType, plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, serviceName, resourceType, plan.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
@@ -1487,21 +1527,21 @@ func (r *virtualServerServerResource) handlerUpdateTag(ctx context.Context, req 
 	var networkMap map[string]virtualserver.ServerResourceNetwork
 	state.Networks.ElementsAs(ctx, &networkMap, false)
 	for _, network := range networkMap {
-		_, err := tag.UpdateTags(r.clients, ServiceNameVpc, ResourceTypePort, network.PortId.ValueString(), plan.Tags.Elements())
+		_, err := tag.UpdateTags(r.clients, ServiceNameVpc, ResourceTypePort, network.PortId.ValueString(), plan.Tags.Elements(), false)
 		if err != nil {
 			return err
 		}
 	}
 	// Volume
 	stateBootVolume, _ := objectToBootVolume(state.BootVolume)
-	_, err = tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, stateBootVolume.Id.ValueString(), plan.Tags.Elements())
+	_, err = tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, stateBootVolume.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
 	var extraVolumeMap map[string]virtualserver.ServerResourceVolume
-	state.ExtraVolumes.ElementsAs(ctx, &networkMap, false)
+	state.ExtraVolumes.ElementsAs(ctx, &extraVolumeMap, false)
 	for _, volume := range extraVolumeMap {
-		_, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, volume.Id.ValueString(), plan.Tags.Elements())
+		_, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, volume.Id.ValueString(), plan.Tags.Elements(), false)
 		if err != nil {
 			return err
 		}
@@ -1545,7 +1585,7 @@ func (r *virtualServerServerResource) handlerUpdateServerState(ctx context.Conte
 		return err
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponse, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot4, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -1587,7 +1627,7 @@ func (r *virtualServerServerResource) AsyncPollingServerDeleted(ctx context.Cont
 	return fmt.Errorf("max attempts reached (%d)", maxAttempts)
 }
 
-func (r *virtualServerServerResource) resolveServerServiceInfoFromResponse(response *scpvirtualserver.ServerShowResponse) (serviceName, resourceType string) {
+func (r *virtualServerServerResource) resolveServerServiceInfoFromResponse(response *scpvirtualserver.ServerShowResponseV1Dot4) (serviceName, resourceType string) {
 	if response.ProductOffering.Get().Ptr() != nil &&
 		(*response.ProductOffering.Get().Ptr() == ProductOfferingGpuServer || *response.ProductOffering.Get().Ptr() == ProductOfferingK8sGpuServer) {
 		return ServiceNameGpuServer, ResourceTypeGpuServer
@@ -1638,7 +1678,7 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponse, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot4, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -1653,7 +1693,7 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 	}
 
 	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(getData)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, data.Servers[0].Id)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, data.Servers[0].Id, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -1708,7 +1748,7 @@ func (r *virtualServerServerResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(data)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -1789,16 +1829,6 @@ func (r *virtualServerServerResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	immutableFields := []string{"ImageId", "KeypairName", "Metadata", "ProductCategory", "ProductOffering", "UserData", "ServerGroupId"}
-
-	if virtualserverutil.IsOverlapFields(immutableFields, changeFields) {
-		resp.Diagnostics.AddError(
-			"Error Updating Server",
-			"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
-		)
-		return
-	}
-
 	if virtualserverutil.IsOverlapFields([]string{"Lock"}, changeFields) {
 		if plan.Lock.ValueBool() {
 			handlers = append(handlers, &virtualserver.UpdateHandler{
@@ -1838,7 +1868,7 @@ func (r *virtualServerServerResource) Update(ctx context.Context, req resource.U
 	}
 
 	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(data)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -1898,4 +1928,41 @@ func (r *virtualServerServerResource) ImportState(
 	resp *resource.ImportStateResponse,
 ) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *virtualServerServerResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan virtualserver.ServerResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var state virtualserver.ServerResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	immutableFields := []string{"ImageId", "KeypairName", "Metadata", "ProductCategory", "ProductOffering", "UserData", "ServerGroupId", "Zone"}
+
+	changeFields, err := virtualserverutil.GetChangedFields(plan, state, immutableFields)
+	if err != nil {
+		return
+	}
+
+	if virtualserverutil.IsOverlapFields(immutableFields, changeFields) {
+		resp.Diagnostics.AddError(
+			"Error Updating Server",
+			"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
+		)
+		return
+	}
 }

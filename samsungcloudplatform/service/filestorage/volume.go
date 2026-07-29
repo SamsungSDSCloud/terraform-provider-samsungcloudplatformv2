@@ -7,22 +7,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/filestorage/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/filestorage/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+const reasonPrefix = "\nReason: "
 
 var (
 	_ resource.Resource                = &fileStorageVolumeResource{}
@@ -59,7 +63,6 @@ func VolumeResourceSchema() schema.Schema {
 			"cifs_password": schema.StringAttribute{
 				Optional:  true,
 				WriteOnly: true,
-				Sensitive: true,
 				Description: "Cifs Password \n" +
 					"  - example : '<YOUR_CIFS_PASSWORD>' \n" +
 					"  - maxLength: 20  \n" +
@@ -86,6 +89,9 @@ func VolumeResourceSchema() schema.Schema {
 				Optional: true,
 				Description: "File Unit Recovery Enabled \n" +
 					"  - example : true \n",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -120,6 +126,9 @@ func VolumeResourceSchema() schema.Schema {
 				Optional: true,
 				Description: "Volume Mount Path \n" +
 					"  - example : 'xxx.xx.xxx.xxx'",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"protocol": schema.StringAttribute{
 				Required: true,
@@ -140,22 +149,20 @@ func VolumeResourceSchema() schema.Schema {
 				Description:         "The current lifecycle state of the volume. Valid values: creating, available, error, deleting.",
 				MarkdownDescription: "The current lifecycle state of the volume. Valid values: creating, available, error, deleting.",
 			},
-			"type_id": schema.StringAttribute{
-				Computed: true,
-				Description: "The unique identifier of the storage tier (volume type) assigned to this volume. \n" +
-					"  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
-			},
 			"type_name": schema.StringAttribute{
 				Required: true,
 				Description: "Volume Type Name \n" +
 					"  - example : 'HDD' \n" +
-					"  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$` \n",
+					"  - pattern: `^(HDD|SSD|HighPerformanceSSD)$` \n",
 			},
 			// 별도로 Optional: true 추가
 			"usage": schema.Int64Attribute{
 				Computed:    true,
 				Optional:    true,
 				Description: "The current usage of the volume in GiB.",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			// custom으로 추가
 			"tags": tag.ResourceSchema(),
@@ -188,6 +195,11 @@ func VolumeResourceSchema() schema.Schema {
 						},
 					},
 				},
+			},
+			"zone": schema.StringAttribute{
+				Required: true,
+				Description: "Zone \n" +
+					"  - example : 'kr-west1-a' \n",
 			},
 		},
 	}
@@ -233,7 +245,7 @@ func (r *fileStorageVolumeResource) Create(ctx context.Context, request resource
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error creating volume",
-			"Could not create volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not create volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -267,13 +279,13 @@ func (r *fileStorageVolumeResource) Create(ctx context.Context, request resource
 			if err != nil {
 				detail := client.GetDetailFromError(err)
 				response.Diagnostics.AddError("Error Updating AccessRule",
-					"Could not update AccessRule, unexpected error: "+err.Error()+"\nReason: "+detail)
+					"Could not update AccessRule, unexpected error: "+err.Error()+reasonPrefix+detail)
 				return
 			}
 		}
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", volume.Id)
+	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", volume.Id, false)
 	if err != nil {
 		response.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -320,12 +332,12 @@ func (r *fileStorageVolumeResource) Read(ctx context.Context, request resource.R
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error Reading Volume",
-			"Could not read Volume ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			"Could not read Volume ID "+state.Id.ValueString()+": "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", state.Id.ValueString(), false)
 	if err != nil {
 		response.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -367,7 +379,7 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error Updating Volume",
-			"Could not update Volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not update Volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -376,7 +388,7 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 		detail := client.GetDetailFromError(detailErr)
 		response.Diagnostics.AddError(
 			"Error Reading Volume",
-			"Could not read Volume ID "+plan.Id.ValueString()+": "+detailErr.Error()+"\nReason: "+detail,
+			"Could not read Volume ID "+plan.Id.ValueString()+": "+detailErr.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -389,7 +401,7 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 			if err != nil {
 				detail := client.GetDetailFromError(err)
 				response.Diagnostics.AddError("Error Updating AccessRule",
-					"Could not update AccessRule, unexpected error: "+err.Error()+"\nReason: "+detail)
+					"Could not update AccessRule, unexpected error: "+err.Error()+reasonPrefix+detail)
 				return
 			}
 		}
@@ -401,13 +413,25 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 			if err != nil {
 				detail := client.GetDetailFromError(err)
 				response.Diagnostics.AddError("Error Updating AccessRule",
-					"Could not update AccessRule, unexpected error: "+err.Error()+"\nReason: "+detail)
+					"Could not update AccessRule, unexpected error: "+err.Error()+reasonPrefix+detail)
 				return
 			}
 		}
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", state.Id.ValueString())
+	//--------------- Tag Update ---------------//
+	if !plan.Tags.Equal(state.Tags) {
+		_, err := tag.UpdateTags(r.clients, "filestorage", "volume", plan.Id.ValueString(), plan.Tags.Elements(), false)
+		if err != nil {
+			response.Diagnostics.AddError(
+				"Error Updating Tag",
+				err.Error(),
+			)
+			return
+		}
+	}
+
+	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", state.Id.ValueString(), false)
 	if err != nil {
 		response.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -415,8 +439,16 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 		)
 		return
 	}
+	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
 
 	newState, err := r.MapGetResponseToState(ctx, data, state, tagsMap)
+	if err != nil {
+		response.Diagnostics.AddError(
+			"Error Reading Volume",
+			err.Error(),
+		)
+		return
+	}
 	diags = response.State.Set(ctx, newState)
 	response.Diagnostics.Append(diags...)
 
@@ -441,7 +473,7 @@ func (r *fileStorageVolumeResource) Delete(ctx context.Context, request resource
 			if err != nil {
 				detail := client.GetDetailFromError(err)
 				response.Diagnostics.AddError("Error Updating AccessRule",
-					"Could not update AccessRule, unexpected error: "+err.Error()+"\nReason: "+detail)
+					"Could not update AccessRule, unexpected error: "+err.Error()+reasonPrefix+detail)
 				return
 			}
 		}
@@ -453,7 +485,7 @@ func (r *fileStorageVolumeResource) Delete(ctx context.Context, request resource
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error Deleting Volume",
-			"Could not delete Volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not delete Volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -484,7 +516,7 @@ func (r *fileStorageVolumeResource) ProcessAccessRules(stateRules, planRules []f
 	return toAdd, toRemove
 }
 
-func (r *fileStorageVolumeResource) MapGetResponseToState(ctx context.Context, resp *scpfilestorage.VolumeShowResponse, state filestorage.VolumeResource, tagsMap types.Map) (filestorage.VolumeResource, error) {
+func (r *fileStorageVolumeResource) MapGetResponseToState(ctx context.Context, resp *scpfilestorage.VolumeShowResponseV1Dot2, state filestorage.VolumeResource, tagsMap types.Map) (filestorage.VolumeResource, error) {
 
 	// AccessRule
 	getAccessRule, err := r.client.GetVolumeAccessRules(ctx, resp.Id)
@@ -534,16 +566,16 @@ func (r *fileStorageVolumeResource) MapGetResponseToState(ctx context.Context, r
 		Protocol:                types.StringValue(resp.Protocol),
 		Purpose:                 types.StringValue(resp.Purpose),
 		State:                   types.StringValue(resp.State),
-		TypeId:                  types.StringValue(resp.TypeId),
 		TypeName:                types.StringValue(resp.TypeName),
 		Usage:                   usage,
 		Tags:                    tagsMap,
 		AccessRules:             accessRules,
+		Zone:                    types.StringValue(resp.Zone),
 	}, nil
 }
 
-func waitForVolumeStatus(ctx context.Context, fileStorageClient *filestorage.Client, id string, pendingStates []string, targetStates []string) (*scpfilestorage.VolumeShowResponse, error) {
-	var showResponse *scpfilestorage.VolumeShowResponse
+func waitForVolumeStatus(ctx context.Context, fileStorageClient *filestorage.Client, id string, pendingStates []string, targetStates []string) (*scpfilestorage.VolumeShowResponseV1Dot2, error) {
+	var showResponse *scpfilestorage.VolumeShowResponseV1Dot2
 	err := client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
 		info, err := fileStorageClient.GetVolume(ctx, id)
 		if err != nil {

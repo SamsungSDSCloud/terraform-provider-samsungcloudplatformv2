@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_certificate_managers Data Source - samsungcloudplatformv2"
 subcategory: Certificate Manager
 description: |-
-  list of certificate managers.
+  Provides a list of SSL/TLS certificates registered in the Certificate Manager service. This data source allows you to query and filter certificates based on various criteria such as name, common name (CN), state, and ownership. Use this to retrieve information about existing certificates for use in other resources or data sources.
 ---
 
 # samsungcloudplatformv2_certificate_managers (Data Source)
 
-list of certificate managers.
+Provides a list of SSL/TLS certificates registered in the Certificate Manager service. This data source allows you to query and filter certificates based on various criteria such as name, common name (CN), state, and ownership. Use this to retrieve information about existing certificates for use in other resources or data sources.
 
 ## Example Usage
 

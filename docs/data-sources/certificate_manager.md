@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_certificate_manager Data Source - samsungcloudplatformv2"
 subcategory: Certificate Manager
 description: |-
-  Detail of certificate manager.
+  Retrieves detailed information about a specific SSL/TLS certificate by its ID. Use this data source to get comprehensive details about a certificate including its validity period, common name, state, and other metadata. Useful for referencing existing certificates in your infrastructure.
 ---
 
 # samsungcloudplatformv2_certificate_manager (Data Source)
 
-Detail of certificate manager.
+Retrieves detailed information about a specific SSL/TLS certificate by its ID. Use this data source to get comprehensive details about a certificate including its validity period, common name, state, and other metadata. Useful for referencing existing certificates in your infrastructure.
 
 ## Example Usage
 
@@ -40,7 +40,7 @@ variable "id" {
 
 ### Read-Only
 
-- `certificate` (Attributes) A Detail certificate. (see [below for nested schema](#nestedatt--certificate))
+- `certificate` (Attributes) Detailed information about the retrieved certificate. Contains all metadata including ID, name, common name, validity period, and current state. (see [below for nested schema](#nestedatt--certificate))
 
 <a id="nestedatt--certificate"></a>
 ### Nested Schema for `certificate`

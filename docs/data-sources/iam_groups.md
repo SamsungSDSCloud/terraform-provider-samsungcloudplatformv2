@@ -66,7 +66,8 @@ variable "name" {
 
 ### Read-Only
 
-- `groups` (Attributes List) List of groups matching the filter criteria. (see [below for nested schema](#nestedatt--groups))
+- `groups` (Attributes List) List of groups matching the filter criteria.
+  - example : [{"id": "grp-1234567890abcdef", "name": "MyGroup", ...}] (see [below for nested schema](#nestedatt--groups))
 
 <a id="nestedatt--groups"></a>
 ### Nested Schema for `groups`
@@ -87,7 +88,8 @@ Read-Only:
   - example : 'scp'
 - `id` (String) Unique identifier of the group.
   - example: YOUR RESOURCE'S ID
-- `members` (Attributes List) List of members in the group. (see [below for nested schema](#nestedatt--groups--members))
+- `members` (Attributes List) List of members in the group.
+  - example : [{"user_id": "usr-1234567890abcdef", "user_email": "member@example.com", ...}] (see [below for nested schema](#nestedatt--groups--members))
 - `modified_at` (String) Timestamp when the group was last modified.
   - example : '2024-01-01T00:00:00Z'
 - `modified_by` (String) User who last modified the group.
@@ -98,7 +100,8 @@ Read-Only:
   - example : 'John Doe'
 - `name` (String) Display name of the group.
   - example : 'MyGroup'
-- `policies` (Attributes List) (see [below for nested schema](#nestedatt--groups--policies))
+- `policies` (Attributes List) List of policies attached to the group.
+  - example : [{"id": "pol-1234567890abcdef", "policy_name": "MyPolicy", ...}] (see [below for nested schema](#nestedatt--groups--policies))
 - `resource_type` (String) Type of resource the group applies to.
   - example : 'group'
 - `service_name` (String) Name of the service the group applies to.
@@ -178,7 +181,8 @@ Read-Only:
   - example : 'MyPolicy'
 - `policy_type` (String) Type of the policy.
   - example : 'SYSTEM_MANAGED' | 'USER_DEFINED' | 'INLINE'
-- `policy_versions` (Attributes List) List of versions of the policy. (see [below for nested schema](#nestedatt--groups--policies--policy_versions))
+- `policy_versions` (Attributes List) List of versions of the policy.
+  - example : [{"id": "v-1234567890abcdef", "policy_version_name": "v1", ...}] (see [below for nested schema](#nestedatt--groups--policies--policy_versions))
 - `resource_type` (String) Type of resource the policy applies to.
   - example : 'policy'
 - `service_name` (String) Name of the service the policy applies to.
@@ -205,7 +209,8 @@ Read-Only:
   - example : '2024-01-01T00:00:00Z'
 - `modified_by` (String) User who last modified the policy version.
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `policy_document` (Attributes) The policy document containing the permission definitions. (see [below for nested schema](#nestedatt--groups--policies--policy_versions--policy_document))
+- `policy_document` (Attributes) The policy document containing the permission definitions.
+  - example : {"version": "2012-10-17", "statement": [{"sid": "Stmt1", "effect": "Allow", ...}]} (see [below for nested schema](#nestedatt--groups--policies--policy_versions--policy_document))
 - `policy_id` (String) ID of the policy this version belongs to.
   - example: YOUR RESOURCE'S POLICY_ID
 - `policy_version_name` (String) Name of the policy version.
@@ -216,7 +221,8 @@ Read-Only:
 
 Read-Only:
 
-- `statement` (Attributes List) List of policy statements defining the permissions. (see [below for nested schema](#nestedatt--groups--policies--policy_versions--policy_document--statement))
+- `statement` (Attributes List) List of policy statements defining the permissions.
+  - example : [{"sid": "Stmt1", "effect": "Allow", "action": ["iam:CreateRole"], "resource": ["*"]}] (see [below for nested schema](#nestedatt--groups--policies--policy_versions--policy_document--statement))
 - `version` (String) Policy document version.
   - example : '2024-07-01'
 
@@ -233,7 +239,8 @@ Read-Only:
   - example : 'Allow'
 - `not_action` (List of String) List of actions that are not allowed by this statement.
   - example : ['iam:DeleteRole']
-- `principal` (Attributes) Principal that is allowed or denied access. (see [below for nested schema](#nestedatt--groups--policies--policy_versions--policy_document--statement--principal))
+- `principal` (Attributes) Principal that is allowed or denied access.
+  - example : {"principal_string": "arn:aws:iam::123456789012:user/admin"} (see [below for nested schema](#nestedatt--groups--policies--policy_versions--policy_document--statement--principal))
 - `resource` (List of String) List of resources the statement applies to.
   - example : ['srn:e::123456789012:::iam:role/12345678']
 - `sid` (String) Statement ID for the statement.

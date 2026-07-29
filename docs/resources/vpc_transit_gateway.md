@@ -29,7 +29,7 @@ output "tgw01" {
 
 
 variable "name" {
-  default = "tgwNamdeptrai"
+  default = "tgwNAMLEE01"
 }
 
 variable "tags" {

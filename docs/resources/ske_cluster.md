@@ -109,8 +109,6 @@ variable "service_watch_logging_enabled" {
   - minLength: 3
   - pattern: ^[a-z][a-z0-9\-]*[a-z0-9]$
   - example: sample-cluster
-- `security_group_id_list` (List of String) Security Group ID List
-  - example: [bdfda539-bd2e-4a5c-9021-ec6d52d1ca79]
 - `service_watch_logging_enabled` (Boolean) Service Watch Enabled
   - example: true
 - `subnet_id` (String) Subnet ID
@@ -126,6 +124,8 @@ variable "service_watch_logging_enabled" {
   - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name', type='vm'} (see [below for nested schema](#nestedatt--private_endpoint_access_control_resources))
 - `public_endpoint_access_control_ip` (String) Public Endpoint Access Control IP
   - example: 192.168.0.0
+- `security_group_id_list` (List of String) Security Group ID List
+  - example: [bdfda539-bd2e-4a5c-9021-ec6d52d1ca79]
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.

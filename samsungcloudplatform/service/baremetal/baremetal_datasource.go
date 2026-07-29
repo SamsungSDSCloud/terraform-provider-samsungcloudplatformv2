@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/baremetal"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/baremetal"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -290,6 +290,11 @@ func BaremetalDataSourceSchema() schema.Schema {
 				Description:         "VPC ID\n  - example: e58348b1bc9148e5af86500fd4ef99ca",
 				MarkdownDescription: "VPC ID\n  - example: e58348b1bc9148e5af86500fd4ef99ca",
 			},
+			"zone": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Availability Zone\n  - example: kr-west1-a",
+				MarkdownDescription: "Availability Zone\n  - example: kr-west1-a",
+			},
 		},
 	}
 }
@@ -324,6 +329,7 @@ func (d *baremetalBaremetalDataSource) Read(ctx context.Context, req datasource.
 	state.ServerType = types.StringValue(data.ServerType)
 	state.State = types.StringValue(data.State)
 	state.TimeZone = types.StringValue(data.TimeZone)
+	state.Zone = types.StringPointerValue(data.Zone.Get())
 
 	// network info
 	state.NetworkId = types.StringValue(data.NetworkId)

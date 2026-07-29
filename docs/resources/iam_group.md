@@ -71,6 +71,7 @@ variable "group_user_ids" {
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
+  - example : {"env": "production", "team": "platform"}
 - `user_ids` (List of String) List of user IDs to add as members of the group.
   - example: YOUR RESOURCE'S USER_IDS
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/iam"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -95,67 +95,53 @@ func (d *iamGroupMemberDataSources) Schema(_ context.Context, _ datasource.Schem
 				Optional: true,
 				Description: "Name of the user who created this group member.\n" +
 					"  - example : 'John Doe'",
-				MarkdownDescription: "Name of the user who created this group member.\n  - example : 'John Doe'",
 			},
 			"creator_email": schema.StringAttribute{
 				Optional: true,
 				Description: "Email address of the user who created this group member.\n" +
 					"  - example : 'user@example.com'",
-				MarkdownDescription: "Email address of the user who created this group member.\n  - example : 'user@example.com'",
 			},
 			"group_members": schema.ListNestedAttribute{
-				Optional:            true,
-				Computed:            true,
-				Description:         "Group Members",
-				MarkdownDescription: "Group Members",
+				Optional: true,
+				Computed: true,
+				Description: "List of members belonging to the group.\n" +
+					"  - example : [{\"user_id\": \"usr-1234567890abcdef\", \"user_email\": \"member@example.com\", ...}]",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"created_at": schema.StringAttribute{
 							Computed: true,
 							Description: "Timestamp when the group member was added.\n" +
 								"  - example : '2024-01-01T00:00:00Z'",
-							MarkdownDescription: "Timestamp when the group member was added.\n" +
-								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"created_by": schema.StringAttribute{
 							Computed: true,
 							Description: "User who added the group member.\n" +
-								"  - example : 'user@example.com'",
-							MarkdownDescription: "User who added the group member.\n" +
 								"  - example : 'user@example.com'",
 						},
 						"creator_created_at": schema.StringAttribute{
 							Computed: true,
 							Description: "Timestamp when the creator was created.\n" +
 								"  - example : '2024-01-01T00:00:00Z'",
-							MarkdownDescription: "Timestamp when the creator was created.\n" +
-								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"creator_email": schema.StringAttribute{
 							Computed: true,
 							Description: "Email of the user who created this group member.\n" +
-								"  - example : 'user@example.com'",
-							MarkdownDescription: "Email of the user who created this group member.\n" +
 								"  - example : 'user@example.com'",
 						},
 						"creator_last_login_at": schema.StringAttribute{
 							Optional: true,
 							Description: "Timestamp when the creator last logged in.\n" +
 								"  - example : '2024-01-01T00:00:00Z'",
-							MarkdownDescription: "Timestamp when the creator last logged in.\n" +
-								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"creator_name": schema.StringAttribute{
 							Computed: true,
 							Description: "Name of the user who created this group member.\n" +
 								"  - example : 'John Doe'",
-							MarkdownDescription: "Name of the user who created this group member.\n" +
-								"  - example : 'John Doe'",
 						},
 						"groups": schema.ListNestedAttribute{
-							Computed:            true,
-							Description:         "Groups",
-							MarkdownDescription: "Groups",
+							Computed: true,
+							Description: "List of groups the user belongs to.\n" +
+								"  - example : [{\"id\": \"grp-1234567890abcdef\", \"name\": \"MyGroup\"}]",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"id": schema.StringAttribute{
@@ -189,8 +175,6 @@ func (d *iamGroupMemberDataSources) Schema(_ context.Context, _ datasource.Schem
 						"user_last_login_at": schema.StringAttribute{
 							Optional: true,
 							Description: "Timestamp when the user last logged in.\n" +
-								"  - example : '2024-01-01T00:00:00Z'",
-							MarkdownDescription: "Timestamp when the user last logged in.\n" +
 								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"user_name": schema.StringAttribute{

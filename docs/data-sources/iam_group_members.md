@@ -83,7 +83,8 @@ variable "creator_email" {
   - example : 'John Doe'
 - `group_id` (String) Group ID to filter members.
   - example: YOUR RESOURCE'S GROUP_ID
-- `group_members` (Attributes List) Group Members (see [below for nested schema](#nestedatt--group_members))
+- `group_members` (Attributes List) List of members belonging to the group.
+  - example : [{"user_id": "usr-1234567890abcdef", "user_email": "member@example.com", ...}] (see [below for nested schema](#nestedatt--group_members))
 - `page` (Number) Page (between 0 and 10000)
   - example : 0
 - `size` (Number) Size (between 1 and 10000)
@@ -117,7 +118,8 @@ Read-Only:
   - example : 'user@example.com'
 - `creator_name` (String) Name of the user who created this group member.
   - example : 'John Doe'
-- `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--group_members--groups))
+- `groups` (Attributes List) List of groups the user belongs to.
+  - example : [{"id": "grp-1234567890abcdef", "name": "MyGroup"}] (see [below for nested schema](#nestedatt--group_members--groups))
 - `user_created_at` (String) Timestamp when the user account was created.
   - example : '2024-01-01T00:00:00Z'
 - `user_email` (String) Email address of the user.

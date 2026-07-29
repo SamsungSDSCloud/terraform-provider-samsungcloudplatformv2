@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_configinspection_configinspection Data Source - samsungcloudplatformv2"
 subcategory: Config inspection
 description: |-
-  Detail of config inspection object.
+  Retrieves detailed information about a specific Config Inspection object. This data source provides comprehensive details about a security compliance configuration including authentication settings, scheduling information, and diagnosis summary.
 ---
 
 # samsungcloudplatformv2_configinspection_configinspection (Data Source)
 
-Detail of config inspection object.
+Retrieves detailed information about a specific Config Inspection object. This data source provides comprehensive details about a security compliance configuration including authentication settings, scheduling information, and diagnosis summary.
 
 ## Example Usage
 

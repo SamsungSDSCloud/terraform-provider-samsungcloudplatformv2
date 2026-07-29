@@ -2,7 +2,8 @@ package multinodegpucluster
 
 import (
 	"context"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -20,6 +21,7 @@ type GpuNodeList struct {
 	Ip                types.String    `tfsdk:"ip"`
 	State             types.String    `tfsdk:"state"`
 	VpcId             types.String    `tfsdk:"vpc_id"`
+	Zone              types.String    `tfsdk:"zone"`
 }
 
 type GpuNodeDataSource struct {
@@ -50,6 +52,7 @@ type GpuNodeDataSource struct {
 	State             types.String `tfsdk:"state"`
 	TimeZone          types.String `tfsdk:"time_zone"`
 	VpcId             types.String `tfsdk:"vpc_id"`
+	Zone              types.String `tfsdk:"zone"`
 }
 
 type GpuNodeResource struct {
@@ -108,6 +111,7 @@ type ServerDetailsValue struct {
 	PolicyUseNat types.Bool   `tfsdk:"policy_use_nat"`
 	ServerType   types.String `tfsdk:"server_type"`
 	State        types.String `tfsdk:"state"`
+	Zone         types.String `tfsdk:"zone"`
 }
 
 func (v ServerDetailsValue) AttributeTypes() map[string]attr.Type {
@@ -124,10 +128,10 @@ func (v ServerDetailsValue) AttributeTypes() map[string]attr.Type {
 		"policy_use_nat": types.BoolType,
 		"server_type":    types.StringType,
 		"state":          types.StringType,
+		"zone":           types.StringType,
 	}
 }
 
 type ServerDetailsValueType struct {
 	basetypes.ObjectType
 }
-

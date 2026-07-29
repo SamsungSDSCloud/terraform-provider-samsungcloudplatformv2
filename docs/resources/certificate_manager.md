@@ -108,7 +108,7 @@ variable "tags" {
 ### Read-Only
 
 - `certificate` (Attributes) Certificate detail (see [below for nested schema](#nestedatt--certificate))
-- `id` (String) Identifier of the resource.
+- `id` (String) Unique identifier of the imported certificate. Automatically generated upon successful creation. Use this ID to reference the certificate in other resources or data sources.
 
 <a id="nestedatt--certificate"></a>
 ### Nested Schema for `certificate`

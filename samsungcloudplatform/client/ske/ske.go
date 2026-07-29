@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/ske/1.4"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/ske/1.5"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -46,14 +46,14 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*scpske.AsyncResponse, error) {
 	req := client.sdkClient.SkeV1ClustersApiAPI.CreateCluster(ctx)
 
-	var securityGroupIdList []string
+	securityGroupIdList := []string{}
 	for _, securityGroupId := range request.SecurityGroupIdList {
 		securityGroupIdList = append(securityGroupIdList, securityGroupId.ValueString())
 	}
 
 	tags := convertTags(request.Tags.Elements())
 
-	req = req.ClusterCreateRequestV1Dot1(scpske.ClusterCreateRequestV1Dot1{
+	req = req.ClusterCreateRequestV1Dot5(scpske.ClusterCreateRequestV1Dot5{
 		Name:                                  request.Name.ValueString(),
 		KubernetesVersion:                     request.KubernetesVersion.ValueString(),
 		VpcId:                                 request.VpcId.ValueString(),
@@ -78,7 +78,7 @@ func (client *Client) DeleteCluster(ctx context.Context, clusterId string) (*scp
 	return resp, err
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*scpske.ClusterShowResponseV1Dot1, int, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*scpske.ClusterShowResponseV1Dot5, int, error) {
 	req := client.sdkClient.SkeV1ClustersApiAPI.ShowCluster(ctx, clusterId)
 
 	resp, httpResponse, err := req.Execute()
@@ -110,10 +110,10 @@ func (client *Client) UpgradeCluster(ctx context.Context, clusterId string, requ
 	return resp, err
 }
 
-func (client *Client) UpdateClusterSecurityGroups(ctx context.Context, clusterId string, request ClusterResource) (*scpske.ClusterShowResponse, error) {
+func (client *Client) UpdateClusterSecurityGroups(ctx context.Context, clusterId string, request ClusterResource) (*scpske.ClusterShowResponseV1Dot5, error) {
 	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterSecurityGroups(ctx, clusterId)
 
-	var securityGroupIdList []string
+	securityGroupIdList := []string{}
 	for _, securityGroupId := range request.SecurityGroupIdList {
 		securityGroupIdList = append(securityGroupIdList, securityGroupId.ValueString())
 	}
@@ -212,10 +212,10 @@ func (client *Client) GetNodePoolList(ctx context.Context, request NodepoolDataS
 	return resp, err
 }
 
-func (client *Client) CreateNodepool(ctx context.Context, request NodepoolResource) (*scpske.NodepoolShowResponseV1Dot4, error) {
+func (client *Client) CreateNodepool(ctx context.Context, request NodepoolResource) (*scpske.NodepoolShowResponseV1Dot5, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.CreateNodepool(ctx)
 
-	req = req.NodepoolCreateRequestV1Dot4(scpske.NodepoolCreateRequestV1Dot4{
+	req = req.NodepoolCreateRequestV1Dot5(scpske.NodepoolCreateRequestV1Dot5{
 		Name:                request.Name.ValueString(),
 		ClusterId:           request.ClusterId.ValueString(),
 		CustomImageId:       *scpske.NewNullableString(request.CustomImageId.ValueStringPointer()),
@@ -239,6 +239,9 @@ func (client *Client) CreateNodepool(ctx context.Context, request NodepoolResour
 		VolumeMaxIops:       *scpske.NewNullableInt32(request.VolumeMaxIops.ValueInt32Pointer()),       // v1.4
 		VolumeMaxThroughput: *scpske.NewNullableInt32(request.VolumeMaxThroughput.ValueInt32Pointer()), // v1.4
 		ScpGpuDriver:        *scpske.NewNullableString(request.ScpGpuDriver.ValueStringPointer()),      // v1.4
+		PreferredIps:        *scpske.NewNullableString(request.PreferredIps.ValueStringPointer()),      // v1.5
+		SubnetId:            *scpske.NewNullableString(request.SubnetId.ValueStringPointer()),          // v1.5
+		Zone:                *scpske.NewNullableString(request.Zone.ValueStringPointer()),              // v1.5
 	})
 
 	resp, _, err := req.Execute()
@@ -312,7 +315,7 @@ func (client *Client) DeleteNodepool(ctx context.Context, nodepoolId string) (*s
 	return resp, err
 }
 
-func (client *Client) GetNodepool(ctx context.Context, nodepoolId string) (*scpske.NodepoolShowResponseV1Dot4, int, error) {
+func (client *Client) GetNodepool(ctx context.Context, nodepoolId string) (*scpske.NodepoolShowResponseV1Dot5, int, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.ShowNodepool(ctx, nodepoolId)
 
 	resp, httpResponse, err := req.Execute()
@@ -428,6 +431,17 @@ func (client *Client) GetNodepoolImageList(ctx context.Context, request Nodepool
 	req = req.Sort(request.Sort.ValueString())
 	req = req.KubernetesVersion(request.KubernetesVersion.ValueString())
 	req = req.Os(request.Os.ValueString())
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) SetNodepoolPreferredIps(ctx context.Context, nodepoolId string, preferredIps string) (*scpske.AsyncResponse, error) {
+	req := client.sdkClient.SkeV1NodepoolsApiAPI.SetNodepoolPreferredIps(ctx, nodepoolId)
+
+	req = req.NodepoolPreferredIpsSetRequest(scpske.NodepoolPreferredIpsSetRequest{
+		PreferredIps: preferredIps,
+	})
 
 	resp, _, err := req.Execute()
 	return resp, err

@@ -100,9 +100,11 @@ variable "subnet_id" {
 variable "server_details" {
   type = list(object({
     state = string
+    zone  = string
   }))
   default = [{
     state = "RUNNING"
+    zone  = "kr-west1-a"
   }]
 }
 
@@ -150,10 +152,10 @@ variable "delete_timeouts" {
   - pattern: ^[A-Za-z0-9@$!%*#&]+$
 - `region_id` (String) Region ID
   - example: YOUR RESOURCE'S REGION_ID
-- `server_details` (Attributes List) Detailed settings for each server, 2 or more server on creation
-  - example: [{state: RUNNING}, {state: RUNNING}]
+- `server_details` (Attributes List) Detailed settings for each server, 2 or more servers on new fabric creation
+  - example: [{state: 'RUNNING', zone: 'kr-west1-a'}, {state: 'RUNNING', zone: 'kr-west1-a'}]
   - maxLength: 5
-  - minLength: 2 (see [below for nested schema](#nestedatt--server_details))
+  - minLength: 1 (see [below for nested schema](#nestedatt--server_details))
 - `server_type_id` (String) Server Type ID
   - example: YOUR RESOURCE'S SERVER_TYPE_ID
 - `subnet_id` (String) Subnet ID
@@ -212,12 +214,17 @@ Required:
 
 Optional:
 
-- `cluster_fabric_id` (String) Cluster Fabric ID
+- `cluster_fabric_id` (String) Cluster Fabric ID. Enter the target cluster's ID to add GPU Nodes to an existing cluster, or omit it to create a new cluster.
  - example: YOUR RESOURCE'S CLUSTER_FABRIC_ID
 
 
 <a id="nestedatt--server_details"></a>
 ### Nested Schema for `server_details`
+
+Required:
+
+- `zone` (String) Zone
+  - example: kr-west1-a
 
 Optional:
 

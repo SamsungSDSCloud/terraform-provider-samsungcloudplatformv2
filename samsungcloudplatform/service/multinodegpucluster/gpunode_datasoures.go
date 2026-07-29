@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/multinodegpucluster"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/multinodegpucluster"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -103,6 +103,11 @@ func GpuNodesDataSourcesSchema() schema.Schema {
 				Description:         "VPC ID\n  - example: e58348b1bc9148e5af86500fd4ef99ca",
 				MarkdownDescription: "VPC ID\n  - example: e58348b1bc9148e5af86500fd4ef99ca",
 			},
+			"zone": schema.StringAttribute{
+				Optional:            true,
+				Description:         "Zone\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone\n  - example: kr-west1-a",
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"filter": filter.DataSourceSchema(),
@@ -121,7 +126,7 @@ func (multinodegpuclusterDS *GpunodeDataSources) Read(ctx context.Context, req d
 		return
 	}
 
-	data, err := multinodegpuclusterDS.client.GetGpuNodeList(ctx, state.GpuNodeName, state.State, state.Ip, state.VpcId, state.ClusterFabricName, state.ClusterFabricId)
+	data, err := multinodegpuclusterDS.client.GetGpuNodeList(ctx, state)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Resource Group",

@@ -59,6 +59,8 @@ variable "id" {
  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
  - example: YOUR RESOURCE'S MODIFIED_BY
+- `namespace_code` (String) Namespace code of the dashboard.
+ - example : kr-west1
 - `widgets` (Attributes List) List of widgets.
  - example : [{"id": "75da70a1a4fb486ab0282cf90693ec3c", "type": "metric"}] (see [below for nested schema](#nestedatt--widgets))
 

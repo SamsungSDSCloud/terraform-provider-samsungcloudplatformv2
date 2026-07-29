@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/importstate"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/iam/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/importstate"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -86,9 +86,9 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 					"created_at": schema.StringAttribute{
 						Computed: true,
 						Description: "생성 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 						MarkdownDescription: "생성 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"created_by": schema.StringAttribute{
 						Computed: true,
@@ -101,9 +101,9 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 						Computed: true,
 						Optional: true,
 						Description: "생성 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 						MarkdownDescription: "생성 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"creator_email": schema.StringAttribute{
 						Computed: true,
@@ -115,9 +115,9 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 					"creator_last_login_at": schema.StringAttribute{
 						Computed: true,
 						Description: "생성자 마지막 로그인 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 						MarkdownDescription: "생성자 마지막 로그인 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"creator_name": schema.StringAttribute{
 						Computed: true,
@@ -154,9 +154,9 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 						Computed: true,
 						Optional: true,
 						Description: "생성 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 						MarkdownDescription: "생성 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"user_email": schema.StringAttribute{
 						Computed: true,
@@ -175,9 +175,9 @@ func (r *iamGroupMemberResource) Schema(_ context.Context, _ resource.SchemaRequ
 					"user_last_login_at": schema.StringAttribute{
 						Computed: true,
 						Description: "User 마지막 로그인 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 						MarkdownDescription: "User 마지막 로그인 일시\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"user_name": schema.StringAttribute{
 						Computed: true,

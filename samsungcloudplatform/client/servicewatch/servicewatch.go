@@ -5,8 +5,8 @@ import (
 	"math"
 	"strings"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	servicewatch "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	servicewatch "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/servicewatch/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -23,11 +23,11 @@ func NewClient(config *scpsdk.Configuration) *Client {
 	}
 }
 
-func (client *Client) GetDashboardList(request DashboardDataSources) (*servicewatch.DashboardPageResponse, error) {
+func (client *Client) GetDashboardList(request DashboardDataSources) (*servicewatch.DashboardPageResponseV1Dot4, error) {
 	ctx := context.Background()
 	req := client.sdkClient.ServicewatchV1DashboardsAPIAPI.ListDashboards(ctx)
 
-	req = req.Size(math.MaxInt32) // 조건에 맞는 모든 리스트 조회를 위해 size 는 Int32 최대값으로 지정한다.
+	req = req.Size(math.MaxInt32) // Set size to Int32 max to retrieve all matching list items.
 	if !request.Name.IsNull() {
 		req = req.Name(request.Name.ValueString())
 	}
@@ -48,7 +48,7 @@ func (client *Client) GetDashboardList(request DashboardDataSources) (*servicewa
 	return resp, err
 }
 
-func (client *Client) GetDashboard(ctx context.Context, dashboardId string) (*servicewatch.DashboardDetailResponseV1Dot1, error) {
+func (client *Client) GetDashboard(ctx context.Context, dashboardId string) (*servicewatch.DashboardDetailResponseV1Dot4, error) {
 	req := client.sdkClient.ServicewatchV1DashboardsAPIAPI.ShowDashboard(ctx, dashboardId)
 
 	resp, _, err := req.Execute()
@@ -171,7 +171,7 @@ func (client *Client) DeleteLogStream(ctx context.Context, logGroupId string, lo
 	return resp, err
 }
 
-func (client *Client) GetAlert(ctx context.Context, alertId string) (*servicewatch.AlertDetailResponse, error) {
+func (client *Client) GetAlert(ctx context.Context, alertId string) (*servicewatch.AlertDetailResponseV1Dot3, error) {
 	req := client.sdkClient.ServicewatchV1AlertsAPIsAPI.ShowAlert(ctx, alertId)
 
 	resp, _, err := req.Execute()
@@ -229,19 +229,19 @@ func (client *Client) UpdateAlertDescription(ctx context.Context, alertId string
 	return resp, err
 }
 
-func (client *Client) UpdateAlert(ctx context.Context, alertId string, request AlertResource) (*servicewatch.AlertSetResponse, error) {
+func (client *Client) UpdateAlert(ctx context.Context, alertId string, request AlertResource) (*servicewatch.AlertSetResponseV1Dot3, error) {
 	req := client.sdkClient.ServicewatchV1AlertsAPIsAPI.SetAlert(ctx, alertId)
 
 	missingData := servicewatch.MissingDataOptionEnum(request.MissingDataOption.ValueString())
 	level := servicewatch.AlertLevelEnum(request.Level.ValueString())
 
 	req = req.AlertSetRequest(servicewatch.AlertSetRequest{
-		Level:             &level,
+		Level:             level,
 		NamespaceId:       request.NamespaceId.ValueString(),
 		MetricId:          request.MetricId.ValueString(),
 		Dimensions:        convertAlertDimension(ctx, request.Dimensions),
 		Period:            request.Period.ValueInt32(),
-		Statistic:         request.Statistic.ValueString(),
+		Statistic:         servicewatch.StatisticEnum(request.Statistic.ValueString()),
 		EvaluationCount:   request.EvaluationCount.ValueInt32Pointer(),
 		Threshold:         nullableFloat32(request.Threshold),
 		UpperBound:        nullableFloat32(request.UpperBound),

@@ -6,16 +6,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/virtualserver/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/virtualserver/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -83,12 +85,18 @@ func (r *virtualServerImageResource) Schema(_ context.Context, _ resource.Schema
 				MarkdownDescription: "Container format.\n  - example: bare",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("DiskFormat"): schema.StringAttribute{
 				Description:         "Disk format.",
 				MarkdownDescription: "Disk format.\n  - example: qcow2",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("File"): schema.StringAttribute{
 				Description:         "Image file URL.",
@@ -100,12 +108,18 @@ func (r *virtualServerImageResource) Schema(_ context.Context, _ resource.Schema
 				MarkdownDescription: "Minimum disk size (GB).\n  - example: 100",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("MinRam"): schema.Int32Attribute{
 				Description:         "Minimum RAM size (MB).",
 				MarkdownDescription: "Minimum RAM size (MB).\n  - example: 2048",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
 				Description: "Image name.\n" +
@@ -127,6 +141,9 @@ func (r *virtualServerImageResource) Schema(_ context.Context, _ resource.Schema
 					"  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("OsHashAlgo"): schema.StringAttribute{
 				Description:         "Hash algorithm for image integrity verification.",
@@ -163,6 +180,9 @@ func (r *virtualServerImageResource) Schema(_ context.Context, _ resource.Schema
 				MarkdownDescription: "Deletion protection. When set to true, prevents image deletion.\n  - example: false",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("RootDeviceName"): schema.StringAttribute{
 				Description:         "Root device name.",
@@ -213,6 +233,9 @@ func (r *virtualServerImageResource) Schema(_ context.Context, _ resource.Schema
 					"  - Available values: shared, private",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("Url"): schema.StringAttribute{
 				Description: "Object Storage URL. Only qcow2 format is allowed.\n" +
@@ -223,6 +246,9 @@ func (r *virtualServerImageResource) Schema(_ context.Context, _ resource.Schema
 					"  - note: Specify only when creating an image via URL.",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 				Description:         "Creation timestamp.",
@@ -233,6 +259,10 @@ func (r *virtualServerImageResource) Schema(_ context.Context, _ resource.Schema
 				Description:         "Update timestamp.",
 				MarkdownDescription: "Update timestamp.",
 				Computed:            true,
+			},
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Description: "Zone",
+				Computed:    true,
 			},
 			"tags": tag.ResourceSchema(),
 		},
@@ -258,7 +288,7 @@ func (r *virtualServerImageResource) Configure(_ context.Context, req resource.C
 	r.clients = inst.Client
 }
 
-func (r *virtualServerImageResource) MapGetResponseToState(resp *scpvirtualserver.ImageShowResponseV1Dot2, tagsMap types.Map) virtualserver.ImageResource {
+func (r *virtualServerImageResource) MapGetResponseToState(resp *scpvirtualserver.ImageShowResponseV1Dot4, tagsMap types.Map) virtualserver.ImageResource {
 	return virtualserver.ImageResource{
 		Volumes:              types.StringPointerValue(resp.Volumes.Get()),
 		Checksum:             types.StringPointerValue(resp.Checksum.Get()),
@@ -289,6 +319,7 @@ func (r *virtualServerImageResource) MapGetResponseToState(resp *scpvirtualserve
 		Url:                  types.StringPointerValue(resp.Url.Get()),
 		CreatedAt:            types.StringValue(resp.CreatedAt),
 		UpdatedAt:            types.StringValue(resp.UpdatedAt),
+		Zone:                 types.StringPointerValue(resp.Zone.Get()),
 		Tags:                 tagsMap,
 	}
 }
@@ -311,14 +342,14 @@ func (r *virtualServerImageResource) handlerUpdateTag(ctx context.Context, req r
 	req.State.Get(ctx, &state)
 
 	serviceName, resourceType := r.resolveImageServiceInfoFromModel(state)
-	_, err := tag.UpdateTags(r.clients, serviceName, resourceType, plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, serviceName, resourceType, plan.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *virtualServerImageResource) resolveImageServiceInfoFromResponse(response *scpvirtualserver.ImageShowResponseV1Dot2) (serviceName, resourceType string) {
+func (r *virtualServerImageResource) resolveImageServiceInfoFromResponse(response *scpvirtualserver.ImageShowResponseV1Dot4) (serviceName, resourceType string) {
 	if response.ScpImageType.Get() != nil && *response.ScpImageType.Get() == ScpImageTypeGpuCustom {
 		return ServiceNameGpuServer, ResourceTypeImage
 	}
@@ -370,7 +401,7 @@ func (r *virtualServerImageResource) Create(ctx context.Context, req resource.Cr
 		imageId = data.Id
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ImageShowResponseV1Dot2, error) {
+	getFunc := func(id string) (*scpvirtualserver.ImageShowResponseV1Dot4, error) {
 		return r.client.GetImage(ctx, id)
 	}
 
@@ -385,7 +416,7 @@ func (r *virtualServerImageResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	serviceName, resourceType := r.resolveImageServiceInfoFromResponse(getData)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, imageId)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, imageId, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -426,7 +457,7 @@ func (r *virtualServerImageResource) Read(ctx context.Context, req resource.Read
 	}
 
 	serviceName, resourceType := r.resolveImageServiceInfoFromResponse(data)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -515,7 +546,7 @@ func (r *virtualServerImageResource) Update(ctx context.Context, req resource.Up
 	}
 
 	serviceName, resourceType := r.resolveImageServiceInfoFromResponse(getData)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",

@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/region"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -251,7 +251,7 @@ func (r *resourceManagerResourceGroupResource) Create(ctx context.Context, req r
 	}
 
 	tagElements := plan.Tags.Elements()
-	tagsMap, err := tag.UpdateTags(r.clients, "resourcemanager", "resource-group", resourceGroup.Id, tagElements)
+	tagsMap, err := tag.UpdateTags(r.clients, "resourcemanager", "resource-group", resourceGroup.Id, tagElements, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating tags",
@@ -336,7 +336,7 @@ func (r *resourceManagerResourceGroupResource) Read(ctx context.Context, req res
 	resourceGroup := data.ResourceGroup
 
 	// Get Tags
-	tagsMap, err := tag.GetTags(r.clients, "resourcemanager", "resource-group", resourceGroup.Id)
+	tagsMap, err := tag.GetTags(r.clients, "resourcemanager", "resource-group", resourceGroup.Id, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -425,7 +425,7 @@ func (r *resourceManagerResourceGroupResource) Update(ctx context.Context, req r
 	resourceGroup := data.ResourceGroup
 
 	tagElements := state.Tags.Elements()
-	tagsMap, err := tag.UpdateTags(r.clients, "resourcemanager", "resource-group", resourceGroup.Id, tagElements)
+	tagsMap, err := tag.UpdateTags(r.clients, "resourcemanager", "resource-group", resourceGroup.Id, tagElements, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating tags",
@@ -488,7 +488,7 @@ func (r *resourceManagerResourceGroupResource) Delete(ctx context.Context, req r
 		return
 	}
 
-	tag.UpdateTags(r.clients, "resourcemanager", "resource-group", state.Id.ValueString(), make(map[string]attr.Value))
+	tag.UpdateTags(r.clients, "resourcemanager", "resource-group", state.Id.ValueString(), make(map[string]attr.Value), false)
 
 	// Delete existing Resource Group
 	err := r.client.DeleteResourceGroup(ctx, state.Id.ValueString())

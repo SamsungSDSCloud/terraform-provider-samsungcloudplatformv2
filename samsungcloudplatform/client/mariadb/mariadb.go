@@ -3,9 +3,9 @@ package mariadb
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	mariadb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/mariadb/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	mariadb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/mariadb/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -154,38 +154,42 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	req = req.MariadbClusterCreateRequestV1Dot1(mariadb.MariadbClusterCreateRequestV1Dot1{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *mariadb.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		VipPublicIpId:        *mariadb.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
-		VirtualIpAddress:     *mariadb.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *mariadb.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		VipPublicIpId:             *mariadb.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
+		VirtualIpAddress:          *mariadb.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		ServiceWatchLogCollection: *mariadb.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull() && initConfigOption.BackupOption.ArchiveFrequencyMinute.IsNull()
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*mariadb.MariadbClusterDetailResponseV1Dot1, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*mariadb.MariadbClusterDetailResponseV1Dot1, int, error) {
 	req := client.sdkClient.MariadbV1MariadbClustersApiAPI.MariadbShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {

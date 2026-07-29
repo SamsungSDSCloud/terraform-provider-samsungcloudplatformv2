@@ -3,11 +3,11 @@ package cachestore
 import (
 	"context"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	cachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/cachestore/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	cachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/cachestore/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
 )
 
 type Client struct {
@@ -46,9 +46,10 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*cachestore.EngineListResponse, error) {
+// productImageType이 비어있지 않으면 해당 product image type으로 필터링하여 조회한다.
+func (client *Client) GetEngineVersionList(ctx context.Context, productImageType string) (*cachestore.EngineListResponse, error) {
 	req := client.sdkClient.CachestoreV1CacheStoreMasterDataApiAPI.CachestoreListEngineVersions(ctx)
-
+	req = req.ProductImageType(cachestore.ProductImageType(productImageType))
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -85,7 +86,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	var convertedInitConfigOption = cachestore.RedisInitConfigOption{
 		BackupOption:         *cachestore.NewNullableBackupOption(convertedBackupOption),
 		DatabasePort:         *cachestore.NewNullableInt32(initConfigOption.DatabasePort.ValueInt32Pointer()),
-		DatabaseUserPassword: *cachestore.NewNullableString(initConfigOption.DatabaseUserPassword.ValueStringPointer()),
+		DatabaseUserPassword: initConfigOption.DatabaseUserPassword.ValueString(),
 	}
 
 	// InstanceGroups
@@ -110,11 +111,11 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 			})
 		}
 
-		var convertedInstance []cachestore.InstanceRequest
+		var convertedInstance []cachestore.CachestoreInstanceRequest
 		for _, instElem := range ig.Instances.Elements() {
 			instObj := instElem.(types.Object)
-			convertedInstance = append(convertedInstance, cachestore.InstanceRequest{
-				RoleType:         cachestore.InstanceRoleType(instObj.Attributes()["role_type"].(types.String).ValueString()),
+			convertedInstance = append(convertedInstance, cachestore.CachestoreInstanceRequest{
+				RoleType:         cachestore.CacheStoreInstanceRoleType(instObj.Attributes()["role_type"].(types.String).ValueString()),
 				ServiceIpAddress: *cachestore.NewNullableString(instObj.Attributes()["service_ip_address"].(types.String).ValueStringPointer()),
 				PublicIpId:       *cachestore.NewNullableString(instObj.Attributes()["public_ip_id"].(types.String).ValueStringPointer()),
 			})
@@ -123,7 +124,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		convertedInstanceGroups = append(convertedInstanceGroups, cachestore.RedisInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           cachestore.InstanceGroupRoleType(ig.RoleType.ValueString()),
+			RoleType:           cachestore.CacheStoreInstanceGroupRoleType(ig.RoleType.ValueString()),
 			ServerTypeName:     ig.ServerTypeName.ValueString(),
 		})
 	}
@@ -153,39 +154,43 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.RedisClusterCreateRequest(cachestore.RedisClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		ReplicaCount:         *cachestore.NewNullableInt32(request.ReplicaCount.ValueInt32Pointer()),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *cachestore.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
+	req = req.RedisClusterCreateRequestV1Dot1(cachestore.RedisClusterCreateRequestV1Dot1{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		ReplicaCount:              request.ReplicaCount.ValueInt32Pointer(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *cachestore.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		ServiceWatchLogCollection: *cachestore.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull()
 
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*cachestore.RedisClusterDetailResponse, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*cachestore.RedisClusterDetailResponseV1Dot1, int, error) {
 	req := client.sdkClient.CachestoreV1CacheStoreClustersApiAPI.CachestoreShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {

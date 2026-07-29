@@ -49,28 +49,28 @@ variable "gslb" {
     }))
   })
   default = {
-    algorithm   = "round_robin"
-    description = "bbb"
+    algorithm   = "ROUND_ROBIN"
+    description = "ExampleDescriptionForGSLB"
     env_usage   = "PUBLIC"
     health_check = {
       health_check_interval      = 10
       health_check_probe_timeout = 6
       health_check_user_id       = "ENTER YOUR RESOURCE'S HEALTH_CHECK_USER_ID"
       health_check_user_password = "ENTER YOUR RESOURCE'S HEALTH_CHECK_USER_PASSWORD"
-      protocol                   = "http"
-      receive_string             = "asdsad11"
-      send_string                = "asdsad2"
-      service_port               = 40
+      protocol                   = "HTTP"
+      receive_string             = "ExampleReceiveString1"
+      send_string                = "ExampleSendString1"
+      service_port               = 80
       timeout                    = 30
     }
-    name = "terraform.gslb.dev2.samsungsdscloud.com"
+    name = "example.gslb.e.samsungsdscloud.com"
     resources = [{
-      description = "string"
+      description = "ExampleResource1"
       destination = "1.1.1.1"
       region      = "KR-WEST-1"
       weight      = 40
       }, {
-      description = "string"
+      description = "ExampleResource2"
       destination = "3.3.3.3"
       region      = "KR-WEST-2"
       weight      = 50
@@ -146,7 +146,7 @@ Optional:
 
 Required:
 
-- `protocol` (String) The protocol used for health checks (e.g., ICMP, TCP, HTTP, HTTPS).
+- `protocol` (String) The protocol used for health checks (e.g., ICMP, TCP, HTTP, HTTPS, NONE).
   - example : TCP
 
 Optional:

@@ -67,13 +67,13 @@ Read-Only:
   - example: YOUR RESOURCE'S REPLICATION_VOLUME_ID
 - `replication_volume_name` (String) Target Volume Name 
   - example : 'my_volume'
-- `replication_volume_region` (String) Target Volume Region 
-  - example : 'kr-west1'
+- `replication_volume_zone` (String) Target Volume Zone 
+  - example : 'kr-west1-a'
 - `source_volume_access_level` (String) Source Access Level 
   - example : 'ro'
 - `source_volume_id` (String) Source Volume ID 
   - example: YOUR RESOURCE'S SOURCE_VOLUME_ID
 - `source_volume_name` (String) Source Volume Name 
   - example : 'my_volume'
-- `source_volume_region` (String) Source Volume Region 
-  - example : 'kr-west1'
+- `source_volume_zone` (String) Source Volume Zone 
+  - example : 'kr-west1-a'

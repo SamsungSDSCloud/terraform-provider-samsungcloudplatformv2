@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/cachestore"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpCachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/cachestore/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/cachestore"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpCachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/cachestore/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -25,8 +26,14 @@ import (
 )
 
 var (
-	_ resource.Resource              = &cachestoreClusterResource{}
-	_ resource.ResourceWithConfigure = &cachestoreClusterResource{}
+	_ resource.Resource                = &cachestoreClusterResource{}
+	_ resource.ResourceWithConfigure   = &cachestoreClusterResource{}
+	_ resource.ResourceWithImportState = &cachestoreClusterResource{}
+)
+
+// Reusable description fragments to avoid duplicated string literals.
+const (
+	descExampleMaster = "  - example: 'MASTER' \n"
 )
 
 func NewCachestoreClusterResource() resource.Resource {
@@ -48,31 +55,41 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 		Description: "cachestore",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Identifier of the resource.\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				MarkdownDescription: "Identifier of the resource.\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
-				Description: "Allowed IP addresses list  \n" +
+				Description: databaseUtils.DescAllowedIPAddressesList +
+					"  - example: ['192.168.10.1/32']",
+				MarkdownDescription: databaseUtils.DescAllowedIPAddressesList +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("DbaasEngineVersionId"): schema.StringAttribute{
-				Description: "DBaaS engine version ID \n" +
+				Description: databaseUtils.DescDBaaSEngineVersionID +
 					"  - example: 'aef8e9ace6f54207bdf6266d4028cb74' (Redis OSS Sentinel 7.2.6)",
-				Required: true,
+				MarkdownDescription: databaseUtils.DescDBaaSEngineVersionID +
+					"  - example: 'aef8e9ace6f54207bdf6266d4028cb74' (Redis OSS Sentinel 7.2.6)",
+				Required:  true,
+				WriteOnly: true,
 			},
 			common.ToSnakeCase("HaEnabled"): schema.BoolAttribute{
-				Description: "HA availability \n" +
-					"  - example: False \n",
+				Description: databaseUtils.DescHAAvailability +
+					databaseUtils.DescExampleFalse,
+				MarkdownDescription: databaseUtils.DescHAAvailability +
+					databaseUtils.DescExampleFalse,
 				Required: true,
 			},
 			common.ToSnakeCase("NatEnabled"): schema.BoolAttribute{
-				Description: "NAT availability \n" +
-					"  - example: False \n",
+				Description: databaseUtils.DescNATAvailability +
+					databaseUtils.DescExampleFalse,
+				MarkdownDescription: databaseUtils.DescNATAvailability +
+					databaseUtils.DescExampleFalse,
 				Required: true,
 			},
 			common.ToSnakeCase("InitConfigOption"): schema.SingleNestedAttribute{
@@ -84,35 +101,52 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 						Required:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("RetentionPeriodDay"): schema.StringAttribute{
-								Description: "Backup retention period (day) \n" +
-									"  - example: 7 \n" +
-									"  - min: 7 \n" +
-									"  - max: 35 \n",
+								Description: databaseUtils.DescBackupRetentionPeriodDay +
+									databaseUtils.DescExample7 +
+									databaseUtils.DescMin7 +
+									databaseUtils.DescMax35,
+								MarkdownDescription: databaseUtils.DescBackupRetentionPeriodDay +
+									databaseUtils.DescExample7 +
+									databaseUtils.DescMin7 +
+									databaseUtils.DescMax35,
 								Optional: true,
 							},
 							common.ToSnakeCase("StartingTimeHour"): schema.StringAttribute{
-								Description: "Backup starting time (hour) \n" +
-									"  - example: 12 \n" +
-									"  - min: 00 \n" +
-									"  - max: 23 \n",
+								Description: databaseUtils.DescBackupStartingTimeHour +
+									databaseUtils.DescExample12 +
+									databaseUtils.DescMin00 +
+									databaseUtils.DescMax23,
+								MarkdownDescription: databaseUtils.DescBackupStartingTimeHour +
+									databaseUtils.DescExample12 +
+									databaseUtils.DescMin00 +
+									databaseUtils.DescMax23,
 								Optional: true,
 							},
 						},
 					},
 					common.ToSnakeCase("DatabasePort"): schema.Int32Attribute{
-						Description: "Database service port \n" +
-							"  - example: 2866 \n",
+						Description: databaseUtils.DescDatabaseServicePort +
+							databaseUtils.DescExample2866,
+						MarkdownDescription: databaseUtils.DescDatabaseServicePort +
+							databaseUtils.DescExample2866,
 						Required: true,
 					},
 					common.ToSnakeCase("DatabaseUserPassword"): schema.StringAttribute{
-						Description: "Database user password \n" +
-							"  - minLength: 8  \n" +
-							"  - maxLength: 30  \n" +
+						Description: databaseUtils.DescDatabaseUserPassword +
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
 							"  - pattern: '^(?=.*[a-zA-Z])(?=.*[`\\-[\\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\\S*[^\\w\\s]).{8,30}' (\"'$제외) \n",
-						Required: true,
+						MarkdownDescription: databaseUtils.DescDatabaseUserPassword +
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							"  - pattern: '^(?=.*[a-zA-Z])(?=.*[`\\-[\\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\\S*[^\\w\\s]).{8,30}' (\"'$제외) \n",
+						Required:  true,
+						WriteOnly: true,
 					},
 					common.ToSnakeCase("SentinelPort"): schema.Int32Attribute{
 						Description: "Sentinel port \n" +
+							"  - example: 26378 \n",
+						MarkdownDescription: "Sentinel port \n" +
 							"  - example: 26378 \n",
 						Required: true,
 					},
@@ -121,6 +155,9 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("InstanceGroups"): schema.ListNestedAttribute{
 				Description: "Instance groups",
 				Required:    true,
+				PlanModifiers: []planmodifier.List{
+					databaseUtils.InstanceGroupsPlanModifier(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("BlockStorageGroups"): schema.ListNestedAttribute{
@@ -129,29 +166,37 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									common.ToSnakeCase("Id"): schema.StringAttribute{
-										Description: "Id",
-										Computed:    true,
+										Description:         "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+										MarkdownDescription: "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+										Computed:            true,
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
-										Description: "Name",
-										Computed:    true,
+										Description:         "Block storage group name\n  - example: cluster-Disk-00",
+										MarkdownDescription: "Block storage group name\n  - example: cluster-Disk-00",
+										Computed:            true,
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
-										Description: "Role type \n" +
-											"  - example: 'OS' \n",
+										Description: databaseUtils.DescRoleType +
+											databaseUtils.DescExampleOS,
+										MarkdownDescription: databaseUtils.DescRoleType +
+											databaseUtils.DescExampleOS,
 										Required: true,
 									},
 									common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
-										Description: "Size in GB \n" +
-											"  - example: 104 \n" +
+										Description: databaseUtils.DescSizeInGB +
+											databaseUtils.DescExample104 +
 											"  - minLength: 56  \n" +
-											"  - maxLength: 5120  \n",
+											databaseUtils.DescMaxLength5120,
+										MarkdownDescription: databaseUtils.DescSizeInGB +
+											databaseUtils.DescExample104 +
+											"  - minLength: 56  \n" +
+											databaseUtils.DescMaxLength5120,
 										Required: true,
 									},
 									common.ToSnakeCase("VolumeType"): schema.StringAttribute{
-										Description: "Volume type \n" +
-											"  - example: 'SSD' \n",
-										Required: true,
+										Description:         "Volume type \n  - example: 'SSD' \n",
+										MarkdownDescription: "Volume type \n  - example: 'SSD' \n",
+										Required:            true,
 										Validators: []validator.String{
 											stringvalidator.OneOf("SSD", "SSD_KMS", "HDD", "HDD_KMS"),
 										},
@@ -160,8 +205,9 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 							},
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
+							Description:         "Instance group ID.\n  - example: ee48b333d5a84097adc079dec17ab872",
+							MarkdownDescription: "Instance group ID.\n  - example: ee48b333d5a84097adc079dec17ab872",
+							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
@@ -172,15 +218,19 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									common.ToSnakeCase("Name"): schema.StringAttribute{
-										Description: "Name",
-										Computed:    true,
+										Description:         "Cluster name\n  - example: mytest",
+										MarkdownDescription: "Cluster name\n  - example: mytest",
+										Computed:            true,
 										PlanModifiers: []planmodifier.String{
 											stringplanmodifier.UseStateForUnknown(),
 										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
-										Description: "Role type \n" +
-											"  - example: 'MASTER' \n" +
+										Description: databaseUtils.DescRoleType +
+											descExampleMaster +
+											"  - pattern: MASTER / REPLICA / SENTINEL \n",
+										MarkdownDescription: databaseUtils.DescRoleType +
+											descExampleMaster +
 											"  - pattern: MASTER / REPLICA / SENTINEL \n",
 										Required: true,
 										Validators: []validator.String{
@@ -188,17 +238,19 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 										},
 									},
 									common.ToSnakeCase("ServiceIpAddress"): schema.StringAttribute{
-										Description: "User subnet IP address",
-										Optional:    true,
-										Computed:    true,
+										Description:         "User subnet IP address\n  - example: 192.168.4.22",
+										MarkdownDescription: "User subnet IP address\n  - example: 192.168.4.22",
+										Optional:            true,
+										Computed:            true,
 										PlanModifiers: []planmodifier.String{
 											stringplanmodifier.UseStateForUnknown(),
 										},
 									},
 									common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
-										Description: "Public IP ID (Required when NatEnabled=True)",
-										Optional:    true,
-										Computed:    true,
+										Description:         "Public IP ID (Required when NatEnabled=True)",
+										MarkdownDescription: "Public IP ID (Required when NatEnabled=True)",
+										Optional:            true,
+										Computed:            true,
 										PlanModifiers: []planmodifier.String{
 											stringplanmodifier.UseStateForUnknown(),
 										},
@@ -207,8 +259,11 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 							},
 						},
 						common.ToSnakeCase("RoleType"): schema.StringAttribute{
-							Description: "Role type \n" +
-								"  - example: 'MASTER' \n" +
+							Description: databaseUtils.DescRoleType +
+								descExampleMaster +
+								"  - pattern: MASTER / MASTER_REPLICA / SENTINEL \n",
+							MarkdownDescription: databaseUtils.DescRoleType +
+								descExampleMaster +
 								"  - pattern: MASTER / MASTER_REPLICA / SENTINEL \n",
 							Required: true,
 							Validators: []validator.String{
@@ -216,78 +271,101 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 							},
 						},
 						common.ToSnakeCase("ServerTypeName"): schema.StringAttribute{
-							Description: "Server type name \n" +
-								"  - example: 'redis1v1m2' (Redis) / 'css1v1m2' (Valkey) \n",
-							Required: true,
+							Description:         "Server type name \n  - example: 'redis1v1m2' (Redis) / 'css1v1m2' (Valkey) \n",
+							MarkdownDescription: "Server type name \n  - example: 'redis1v1m2' (Redis) / 'css1v1m2' (Valkey) \n",
+							Required:            true,
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("InstanceNamePrefix"): schema.StringAttribute{
-				Description: "Instance name prefix \n" +
-					"  - example: 'test'  \n" +
-					"  - minLength: 3  \n" +
-					"  - maxLength: 13  \n" +
-					"  - pattern: ^[a-z][a-zA-Z0-9\\-]*$ \n",
-				Required: true,
+				Description: databaseUtils.DescInstanceNamePrefix +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength13 +
+					databaseUtils.DescPatternLowerAlnumDash,
+				MarkdownDescription: databaseUtils.DescInstanceNamePrefix +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength13 +
+					databaseUtils.DescPatternLowerAlnumDash,
+				Required:  true,
+				WriteOnly: true,
 			},
 			common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 				Description: "Maintenance option",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
-						Description: "Period in hours \n" +
-							"  - example: 1  \n",
-						Optional: true,
+						Description:         "Period in hours \n  - example: 1  \n",
+						MarkdownDescription: "Period in hours \n  - example: 1  \n",
+						Optional:            true,
 					},
 					common.ToSnakeCase("StartingDayOfWeek"): schema.StringAttribute{
-						Description: "Starting day of week \n" +
-							"  - example: 'MON' \n",
-						Optional: true,
+						Description:         "Starting day of week \n  - example: 'MON' \n",
+						MarkdownDescription: "Starting day of week \n  - example: 'MON' \n",
+						Optional:            true,
 					},
 					common.ToSnakeCase("StartingTime"): schema.StringAttribute{
-						Description: "Starting time \n" +
-							"  - example: '0000' \n",
-						Optional: true,
+						Description:         "Starting time \n  - example: '0000' \n",
+						MarkdownDescription: "Starting time \n  - example: '0000' \n",
+						Optional:            true,
 					},
 					common.ToSnakeCase("UseMaintenanceOption"): schema.BoolAttribute{
-						Description: "Use maintenance option \n" +
-							"  - example: False \n",
-						Optional: true,
-						Computed: true,
+						Description:         "Use maintenance option \n  - example: False \n",
+						MarkdownDescription: "Use maintenance option \n  - example: False \n",
+						Optional:            true,
+						Computed:            true,
 					},
 				},
 			},
 			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Cluster name \n" +
-					"  - example: 'test'  \n" +
-					"  - minLength: 3  \n" +
-					"  - maxLength: 20  \n" +
-					"  - pattern: ^[a-zA-Z]*$ \n",
+				Description: databaseUtils.DescClusterName +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength20 +
+					databaseUtils.DescPatternAlpha,
+				MarkdownDescription: databaseUtils.DescClusterName +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength20 +
+					databaseUtils.DescPatternAlpha,
 				Required: true,
 			},
 			common.ToSnakeCase("ReplicaCount"): schema.Int32Attribute{
-				Description: "Replica count \n" +
-					"  - example: 0  \n",
-				Required: true,
+				Description:         "Replica count \n  - example: 0  \n",
+				MarkdownDescription: "Replica count \n  - example: 0  \n",
+				Required:            true,
+				WriteOnly:           true,
 			},
 			common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-				Description: "Service state \n" +
-					"  - example : 'RUNNING' (Create,Start) / 'STOPPED' (Stop) \n",
-				Required: true,
+				Description:         "Service state \n  - example : 'RUNNING' (Create,Start) / 'STOPPED' (Stop) \n",
+				MarkdownDescription: "Service state \n  - example : 'RUNNING' (Create,Start) / 'STOPPED' (Stop) \n",
+				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("RUNNING", "STOPPED"),
 				},
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID",
-				Required:    true,
+				Description:         "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249 \n",
+				MarkdownDescription: "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249 \n",
+				Required:            true,
 			},
 			common.ToSnakeCase("Timezone"): schema.StringAttribute{
-				Description: "Timezone \n" +
-					"  - example: 'Asia/Seoul' \n",
-				Required: true,
+				Description:         "Timezone \n  - example: 'Asia/Seoul' \n",
+				MarkdownDescription: "Timezone \n  - example: 'Asia/Seoul' \n",
+				Required:            true,
+			},
+			common.ToSnakeCase("ServiceWatchLogCollection"): schema.BoolAttribute{
+				Description:         "ServiceWatchLogCollection\n  - example: false  \n",
+				MarkdownDescription: "ServiceWatchLogCollection\n  - example: false  \n",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+					databaseUtils.ImmutableBool(),
+				},
 			},
 		},
 	}
@@ -312,11 +390,20 @@ func (r *cachestoreClusterResource) Configure(_ context.Context, req resource.Co
 	r.clients = inst.Client
 }
 
+func (r *cachestoreClusterResource) nullOutWriteOnlyFields(plan *cachestore.ClusterResource) {
+	plan.DbaasEngineVersionId = types.StringNull()
+	plan.InstanceNamePrefix = types.StringNull()
+	plan.ReplicaCount = types.Int32Null()
+	if plan.InitConfigOption != nil {
+		plan.InitConfigOption.DatabaseUserPassword = types.StringNull()
+	}
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *cachestoreClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan cachestore.ClusterResource
-	diags := req.Plan.Get(ctx, &plan)
+	diags := req.Config.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -325,6 +412,8 @@ func (r *cachestoreClusterResource) Create(ctx context.Context, req resource.Cre
 	// Create new cluster
 	data, err := r.client.CreateCluster(ctx, plan)
 	if err != nil {
+		r.nullOutWriteOnlyFields(&plan)
+
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating cluster",
@@ -336,96 +425,36 @@ func (r *cachestoreClusterResource) Create(ctx context.Context, req resource.Cre
 	// cluster id 반환
 	clusterId := data.Resource.Id
 
-	// cluster 조회 func
-	getFunc := func(id string) (*scpCachestore.RedisClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	// wait for 구현
-	getData, err := databaseUtils.AsyncRequestPollingWithState(ctx, clusterId, 500, 10*time.Second,
-		"ServiceState", "RUNNING", "FAILED", getFunc)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading Cluster",
-			"Could not read Cluster, unexpected error: "+err.Error(),
-		)
-		return
-	}
-
-	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "cachestore", "cache-store", clusterId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Tag",
-			err.Error(),
-		)
-		return
-	}
-
-	if len(plan.Tags.Elements()) > 0 {
-		getTags, err := r.AsyncPollingTags(ctx, clusterId, "cachestore", "cache-store",
-			100, 3*time.Second)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Tag",
-				err.Error(),
-			)
-			return
-		}
-		tagsMap = getTags
-	}
-	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
-
-	//Metadata 처리
-	state, err := r.MapGetResponseToState(ctx, getData, plan, tagsMap)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Cluster",
-			err.Error(),
-		)
-		return
-	}
-
-	// Set state to fully populated data
-	diags = resp.State.Set(ctx, state)
+	// Save state immediately after creation to prevent orphan resources
+	plan.Id = types.StringValue(clusterId)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
 
-func (r *cachestoreClusterResource) AsyncPollingTags(ctx context.Context, clusterId string, serviceName string,
-	resourceType string, maxAttempts int, internal time.Duration) (types.Map, error) {
-	ticker := time.NewTicker(internal)
-	defer ticker.Stop()
+	// Wait for cluster to become RUNNING
+	err = waitForClusterStatus(ctx, r.client, clusterId, []string{"CREATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		r.nullOutWriteOnlyFields(&plan)
+		resp.State.Set(ctx, plan)
 
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, clusterId)
-
-		if err != nil {
-			return types.Map{}, fmt.Errorf("attempt %d/%d failed: %w",
-				attempt, maxAttempts, err)
-		}
-
-		if len(tagsMap.Elements()) > 0 {
-			return tagsMap, nil
-		}
-
-		if attempt < maxAttempts {
-			select {
-			case <-ticker.C:
-				continue
-			case <-ctx.Done():
-				return types.Map{}, fmt.Errorf("polling canceled: %w", ctx.Err())
-			}
-		}
+		resp.Diagnostics.AddError(
+			"Error waiting for Cluster",
+			"Cluster was created but failed to become RUNNING: "+err.Error(),
+		)
+		return
 	}
 
-	return types.Map{}, fmt.Errorf("max attempts reached (%d)", maxAttempts)
+	// Call Read to refresh state with actual values
+	readReq := resource.ReadRequest{State: resp.State}
+	readResp := &resource.ReadResponse{State: resp.State}
+	r.Read(ctx, readReq, readResp)
+	resp.State = readResp.State
 }
 
 func (r *cachestoreClusterResource) MapGetResponseToState(ctx context.Context,
-	resp *scpCachestore.RedisClusterDetailResponse, plan cachestore.ClusterResource, tagsMap types.Map) (cachestore.ClusterResource, error) {
+	resp *scpCachestore.RedisClusterDetailResponseV1Dot1, plan cachestore.ClusterResource, tagsMap types.Map) (cachestore.ClusterResource, error) {
 
 	var allowableIpAddresses types.Set
 	if len(resp.AllowableIpAddresses) == 0 {
@@ -438,49 +467,66 @@ func (r *cachestoreClusterResource) MapGetResponseToState(ctx context.Context,
 		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
-	var backupOption = cachestore.BackupOption{}
-	if resp.InitConfigOption.BackupOption.Get() != nil {
-		backupOption = cachestore.BackupOption{
-			RetentionPeriodDay: types.StringPointerValue(resp.InitConfigOption.BackupOption.Get().RetentionPeriodDay.Get()),
-			StartingTimeHour:   types.StringPointerValue(resp.InitConfigOption.BackupOption.Get().StartingTimeHour.Get()),
+	var initConfigOption *cachestore.InitConfigOption
+	{
+		var dbUserPassword types.String
+		if plan.InitConfigOption != nil {
+			dbUserPassword = plan.InitConfigOption.DatabaseUserPassword
+		} else {
+			dbUserPassword = types.StringNull()
 		}
-	}
 
-	var initConfigOption = cachestore.InitConfigOption{
-		BackupOption:         backupOption,
-		DatabasePort:         types.Int32PointerValue(resp.InitConfigOption.DatabasePort.Get()),
-		DatabaseUserPassword: plan.InitConfigOption.DatabaseUserPassword,
-		SentinelPort:         types.Int32PointerValue(resp.InitConfigOption.SentinelPort.Get()),
+		var backupOption = cachestore.BackupOption{}
+		if resp.InitConfigOption.BackupOption.Get() != nil {
+			backupOption = cachestore.BackupOption{
+				RetentionPeriodDay: types.StringPointerValue(resp.InitConfigOption.BackupOption.Get().RetentionPeriodDay.Get()),
+				StartingTimeHour:   types.StringPointerValue(resp.InitConfigOption.BackupOption.Get().StartingTimeHour.Get()),
+			}
+		}
+
+		initConfigOption = &cachestore.InitConfigOption{
+			InitConfigOptionBase: cachestore.InitConfigOptionBase{
+				BackupOption: backupOption,
+				DatabasePort: types.Int32PointerValue(resp.InitConfigOption.DatabasePort.Get()),
+				SentinelPort: types.Int32PointerValue(resp.InitConfigOption.SentinelPort.Get()),
+			},
+			DatabaseUserPassword: dbUserPassword,
+		}
 	}
 
 	instanceGroupsList := databaseUtils.MapInstanceGroupsList(ctx, plan.InstanceGroups, cachestore.MapInstanceGroupResponses(resp.InstanceGroups))
 
-	var maintenanceOption = cachestore.MaintenanceOption{}
-	if resp.MaintenanceOption.Get() != nil {
-		maintenanceOption = cachestore.MaintenanceOption{
+	var maintenanceOption *cachestore.MaintenanceOption
+	if resp.MaintenanceOption.IsSet() && resp.MaintenanceOption.Get() != nil {
+		maintenanceOption = &cachestore.MaintenanceOption{
 			PeriodHour:           types.StringPointerValue(resp.MaintenanceOption.Get().PeriodHour.Get()),
 			StartingDayOfWeek:    types.StringPointerValue((*string)(resp.MaintenanceOption.Get().StartingDayOfWeek.Get())),
 			StartingTime:         types.StringPointerValue(resp.MaintenanceOption.Get().StartingTime.Get()),
 			UseMaintenanceOption: types.BoolPointerValue(resp.MaintenanceOption.Get().UseMaintenanceOption),
 		}
+	} else {
+		// cluster가 failed 상태이면 API가 maintenance_option을 null로 반환하므로,
+		// 응답으로 덮어쓰지 않고 직전 plan/state 값을 유지한다.
+		maintenanceOption = plan.MaintenanceOption
 	}
 
 	return cachestore.ClusterResource{
-		Id:                   types.StringValue(resp.Id),
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: plan.DbaasEngineVersionId,
-		HaEnabled:            types.BoolPointerValue(resp.HaEnabled),
-		InitConfigOption:     initConfigOption,
-		InstanceGroups:       instanceGroupsList,
-		InstanceNamePrefix:   plan.InstanceNamePrefix,
-		MaintenanceOption:    maintenanceOption,
-		Name:                 types.StringValue(resp.Name),
-		NatEnabled:           types.BoolPointerValue(resp.NatEnabled),
-		ReplicaCount:         plan.ReplicaCount,
-		ServiceState:         types.StringValue(string(resp.ServiceState)),
-		SubnetId:             types.StringValue(resp.SubnetId),
-		Tags:                 tagsMap,
-		Timezone:             types.StringValue(resp.Timezone),
+		Id:                        types.StringValue(resp.Id),
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      plan.DbaasEngineVersionId,
+		HaEnabled:                 types.BoolPointerValue(resp.HaEnabled),
+		InitConfigOption:          initConfigOption,
+		InstanceGroups:            instanceGroupsList,
+		InstanceNamePrefix:        plan.InstanceNamePrefix,
+		MaintenanceOption:         maintenanceOption,
+		Name:                      types.StringValue(resp.Name),
+		NatEnabled:                types.BoolPointerValue(resp.NatEnabled),
+		ReplicaCount:              plan.ReplicaCount,
+		ServiceState:              types.StringValue(string(resp.ServiceState)),
+		SubnetId:                  types.StringValue(resp.SubnetId),
+		Tags:                      tagsMap,
+		Timezone:                  types.StringValue(resp.Timezone),
+		ServiceWatchLogCollection: types.BoolValue(resp.GetServiceWatchLogCollection()),
 	}, nil
 }
 
@@ -492,8 +538,12 @@ func (r *cachestoreClusterResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	data, err := r.client.GetCluster(ctx, state.Id.ValueString())
+	data, _, err := r.client.GetCluster(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Cluster",
@@ -503,7 +553,7 @@ func (r *cachestoreClusterResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "cachestore", "cache-store", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, "cachestore", "cache-store", state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -556,7 +606,7 @@ func (r *cachestoreClusterResource) Update(ctx context.Context, req resource.Upd
 	var plan cachestore.ClusterResource
 	var state cachestore.ClusterResource
 	diags := req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -574,83 +624,64 @@ func (r *cachestoreClusterResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "HaEnabled", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone"}
+	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "HaEnabled", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone", "ServiceWatchLogCollection"}
 
-	if databaseUtils.IsOverlapFields(immutableFields, changeFields) {
+	// InitConfigOption is immutable except for BackupOption: guard it only when a
+	// field other than BackupOption changed.
+	initConfigOnlyBackup := plan.InitConfigOption != nil && state.InitConfigOption != nil &&
+		databaseUtils.OnlyBackupOptionChanged(*plan.InitConfigOption, *state.InitConfigOption)
+	if !initConfigOnlyBackup {
+		immutableFields = append(immutableFields, "InitConfigOption")
+	}
+
+	// Reject changes to immutable fields, reporting only the fields actually changed.
+	if violated := databaseUtils.OverlapFields(immutableFields, changeFields); len(violated) > 0 {
 		resp.Diagnostics.AddError(
 			"Error Updating Cluster",
-			"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
+			"Immutable fields cannot be modified: "+strings.Join(violated, ", "),
 		)
 		return
 	}
 
-	// 변경 확인
+	// Dispatch each handler whose fields changed.
 	for _, h := range handlers {
-		if databaseUtils.IsOverlapFields(h.Fields, changeFields) {
-			if err := h.Handler(ctx, req, resp); err != nil {
-				resp.Diagnostics.AddError(
-					"Error Updating Cluster",
-					"Could not update cluster, unexpected error: "+err.Error(),
-				)
-				return
-			}
+		if !databaseUtils.IsOverlapFields(h.Fields, changeFields) {
+			continue
+		}
+		if err := h.Handler(ctx, req, resp); err != nil {
+			resp.Diagnostics.AddError(
+				"Error Updating Cluster",
+				"Could not update cluster, unexpected error: "+err.Error(),
+			)
+			return
 		}
 	}
 
-	data, err := r.client.GetCluster(ctx, state.Id.ValueString())
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddError(
-			"Error Reading cluster",
-			"Could not read cluster name "+state.Name.ValueString()+": "+err.Error()+"\nReason: "+detail,
-		)
-		return
-	}
-
-	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "cachestore", "cache-store", state.Id.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Tag",
-			err.Error(),
-		)
-		return
-	}
-	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
-
-	newState, _ := r.MapGetResponseToState(ctx, data, plan, tagsMap)
-
-	diags = resp.State.Set(ctx, &newState)
+	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-}
-
-func (r *cachestoreClusterResource) getStateTransitions() map[string]map[string]func(ctx context.Context, clusterId string) error {
-	transitions := make(map[string]map[string]func(ctx context.Context, clusterId string) error)
-
-	addState := func(from string, to string, callFunc func(ctx context.Context, clusterId string) error) {
-		// from map 이 구성 되지 않았을때 초기화
-		if transitions[from] == nil {
-			transitions[from] = make(map[string]func(ctx context.Context, clusterId string) error)
-		}
-		transitions[from][to] = callFunc
+	readReq := resource.ReadRequest{
+		State: resp.State,
 	}
-
-	// State Transition Map
-	addState("STOPPED", "RUNNING", r.client.StartCluster)
-	addState("RUNNING", "STOPPED", r.client.StopCluster)
-
-	return transitions
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, readReq, readResp)
+	resp.State = readResp.State
 }
 
 func (r *cachestoreClusterResource) handlerUpdateClusterState(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan cachestore.ClusterResource
 	var state cachestore.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	currentState := state.ServiceState.ValueString()
 	desiredState := plan.ServiceState.ValueString()
@@ -659,18 +690,33 @@ func (r *cachestoreClusterResource) handlerUpdateClusterState(ctx context.Contex
 		return nil
 	}
 
+	// 현재 상태가 전이 중(STOPPING/STARTING)이면 별도 명령 없이 종료 상태가 될 때까지 대기한다.
+	currentState, settleErr := databaseUtils.WaitForSettledState(ctx, currentState, plan.Id.ValueString(),
+		func(ctx context.Context, clusterId string, pendingStates, targetStates []string) error {
+			return waitForClusterStatus(ctx, r.client, clusterId, pendingStates, targetStates, true)
+		})
+	if settleErr != nil {
+		return settleErr
+	}
+
+	// 전이 대기 후 이미 목표 상태에 도달했으면 종료한다.
+	if currentState == desiredState {
+		return nil
+	}
+
 	// state에 따라 start, stop 구분
-	err := r.getStateTransitions()[currentState][desiredState](ctx, plan.Id.ValueString())
+	transition, ok := databaseUtils.GetStateTransitions(r.client)[currentState][desiredState]
+	if !ok || transition == nil {
+		return fmt.Errorf("unsupported service_state transition: %q -> %q (allowed transitions: STOPPED->RUNNING, RUNNING->STOPPED)", currentState, desiredState)
+	}
+
+	err := transition(ctx, plan.Id.ValueString())
 	if err != nil {
 		return err
 	}
 
-	getFunc := func(id string) (*scpCachestore.RedisClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-		"ServiceState", desiredState, "ERROR", getFunc)
+	pendingStates := databaseUtils.GetPendingStates(currentState)
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), pendingStates, []string{desiredState}, true)
 	if err != nil {
 		return err
 	}
@@ -681,13 +727,23 @@ func (r *cachestoreClusterResource) handlerUpdateClusterState(ctx context.Contex
 func (r *cachestoreClusterResource) handlerUpdateClusterInitConfig(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan cachestore.ClusterResource
 	var state cachestore.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	clusterId := plan.Id.ValueString()
 
-	backupState := state.InitConfigOption.BackupOption
-	backupPlan := plan.InitConfigOption.BackupOption
+	var backupState cachestore.BackupOption
+	if state.InitConfigOption != nil {
+		backupState = state.InitConfigOption.BackupOption
+	}
+	var backupPlan cachestore.BackupOption
+	if plan.InitConfigOption != nil {
+		backupPlan = plan.InitConfigOption.BackupOption
+	}
 
 	// 1. backup 최초 설정
 	if isEmpty(backupState) && !isEmpty(backupPlan) {
@@ -719,12 +775,7 @@ func (r *cachestoreClusterResource) handlerUpdateClusterInitConfig(ctx context.C
 		}
 	}
 
-	getFunc := func(id string) (*scpCachestore.RedisClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	_, err := databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-		"ServiceState", "RUNNING", "ERROR", getFunc)
+	err := waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		return err
 	}
@@ -738,8 +789,12 @@ func isEmpty(sp cachestore.BackupOption) bool {
 func (r *cachestoreClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan cachestore.ClusterResource
 	var state cachestore.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	clusterId := plan.Id.ValueString()
 
@@ -750,12 +805,7 @@ func (r *cachestoreClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx
 		return err
 	}
 
-	getFunc := func(id string) (*scpCachestore.RedisClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-		"ServiceState", "RUNNING", "FAILED", getFunc)
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		return err
 	}
@@ -766,42 +816,60 @@ func (r *cachestoreClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx
 func (r *cachestoreClusterResource) handlerUpdateInstanceGroups(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan cachestore.ClusterResource
 	var state cachestore.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
-
-	var planInstanceGroups []databaseUtils.InstanceGroup
-	plan.InstanceGroups.ElementsAs(ctx, &planInstanceGroups, false)
-
-	var stateInstanceGroups []databaseUtils.InstanceGroup
-	state.InstanceGroups.ElementsAs(ctx, &stateInstanceGroups, false)
-
-	// Build lookup maps by Id
-	stateByGroup := make(map[string]databaseUtils.InstanceGroup)
-	for _, ig := range stateInstanceGroups {
-		stateByGroup[ig.Id.ValueString()] = ig
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
 	}
 
-	for _, desiredInstanceGroup := range planInstanceGroups {
-		currentInstanceGroup, exists := stateByGroup[desiredInstanceGroup.Id.ValueString()]
-		if !exists {
+	var planIGs []databaseUtils.InstanceGroup
+	plan.InstanceGroups.ElementsAs(ctx, &planIGs, false)
+	var stateIGs []databaseUtils.InstanceGroup
+	state.InstanceGroups.ElementsAs(ctx, &stateIGs, false)
+
+	// Match instance groups to prior state by role_type rather than by list position,
+	// so reordering (or adding) a group does not misattribute a change to the group that
+	// shifted, and appending a group cannot index past stateIGs.
+	stateIGByRole := make(map[string]databaseUtils.InstanceGroup, len(stateIGs))
+	for _, sg := range stateIGs {
+		if _, exists := stateIGByRole[sg.RoleType.ValueString()]; !exists {
+			stateIGByRole[sg.RoleType.ValueString()] = sg
+		}
+	}
+
+	for i := 0; i < len(planIGs); i++ {
+		desiredInstanceGroup := planIGs[i]
+		currentInstanceGroup, matched := stateIGByRole[desiredInstanceGroup.RoleType.ValueString()]
+		if !matched {
+			// New instance group with no prior state; nothing to update in place.
 			continue
 		}
 
-		instanceGroupFields := []string{"BlockStorageGroups", "Id", "Instances", "RoleType", "ServerTypeName"}
+		instanceGroupFields := []string{"Instances", "RoleType", "ServerTypeName"}
 
 		changedFields, err := databaseUtils.GetChangedFields(desiredInstanceGroup, currentInstanceGroup, instanceGroupFields)
 		if err != nil {
 			return err
 		}
 
-		immutableFields := []string{"Id", "RoleType"}
+		var currentBS []databaseUtils.BlockStorageGroup
+		currentInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &currentBS, false)
+		var desiredBS []databaseUtils.BlockStorageGroup
+		desiredInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &desiredBS, false)
+
+		if !reflect.DeepEqual(currentBS, desiredBS) {
+			changedFields = append(changedFields, "BlockStorageGroups")
+		}
+
+		immutableFields := []string{"RoleType"}
 
 		if databaseUtils.IsOverlapFields(immutableFields, changedFields) {
-			resp.Diagnostics.AddError(
-				"Error Updating Cluster",
-				"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
-			)
-			return nil
+			return fmt.Errorf("immutable fields cannot be modified: %s", strings.Join(immutableFields, ", "))
+		}
+
+		if databaseUtils.IsOverlapFields([]string{"Instances"}, changedFields) {
+			return fmt.Errorf("operation not permitted for INSTANCE type: modifying instances is not supported")
 		}
 
 		if len(changedFields) > 0 {
@@ -815,79 +883,24 @@ func (r *cachestoreClusterResource) handlerUpdateInstanceGroups(ctx context.Cont
 
 			// BlockStorageGroups Update
 			if databaseUtils.IsOverlapFields(changedFields, []string{"BlockStorageGroups"}) {
-				// Extract BlockStorageGroups from sets
-				var currentBlockStorages []databaseUtils.BlockStorageGroup
-				for _, elem := range currentInstanceGroup.BlockStorageGroups.Elements() {
-					bs := elem.(types.Object)
-					currentBlockStorages = append(currentBlockStorages, databaseUtils.BlockStorageGroup{
-						Id:         bs.Attributes()["id"].(types.String),
-						Name:       bs.Attributes()["name"].(types.String),
-						RoleType:   bs.Attributes()["role_type"].(types.String),
-						SizeGb:     bs.Attributes()["size_gb"].(types.Int32),
-						VolumeType: bs.Attributes()["volume_type"].(types.String),
-					})
+
+				bsPlan, err := databaseUtils.PlanBlockStorageUpdate(currentBS, desiredBS)
+				if err != nil {
+					return err
 				}
-
-				var desiredBlockStorages []databaseUtils.BlockStorageGroup
-				for _, elem := range desiredInstanceGroup.BlockStorageGroups.Elements() {
-					bs := elem.(types.Object)
-					desiredBlockStorages = append(desiredBlockStorages, databaseUtils.BlockStorageGroup{
-						Id:         bs.Attributes()["id"].(types.String),
-						Name:       bs.Attributes()["name"].(types.String),
-						RoleType:   bs.Attributes()["role_type"].(types.String),
-						SizeGb:     bs.Attributes()["size_gb"].(types.Int32),
-						VolumeType: bs.Attributes()["volume_type"].(types.String),
-					})
+				if len(bsPlan.Adds) > 0 || len(bsPlan.Removed) > 0 {
+					return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: the cachestore product does not support the addition of storage, so the addition of block storage in instances is restricted")
 				}
-
-				if len(currentBlockStorages) == len(desiredBlockStorages) {
-					// Build lookup maps by Id
-					currentBsByGroup := make(map[string]databaseUtils.BlockStorageGroup)
-					for _, bs := range currentBlockStorages {
-						currentBsByGroup[bs.Id.ValueString()] = bs
-					}
-
-					for _, desiredBlockStorage := range desiredBlockStorages {
-						currentBlockStorage, exists := currentBsByGroup[desiredBlockStorage.Id.ValueString()]
-						if !exists {
-							continue
-						}
-
-						bsFields := []string{"Id", "Name", "RoleType", "SizeGb", "VolumeType"}
-						changedBsFields, err := databaseUtils.GetChangedFields(currentBlockStorage, desiredBlockStorage, bsFields)
-						if err != nil {
-							return err
-						}
-
-						immutableBsFields := []string{"RoleType", "VolumeType"}
-
-						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
-							resp.Diagnostics.AddError(
-								"Error Updating Cluster",
-								"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
-							)
-							return nil
-						}
-
-						if databaseUtils.IsOverlapFields(changedBsFields, []string{"SizeGb"}) {
-							//client
-							err := r.client.SetBlockStorageSize(ctx, currentBlockStorage.Id.ValueString(), desiredBlockStorage.SizeGb.ValueInt32())
-							if err != nil {
-								return err
-							}
-						}
+				for _, resize := range bsPlan.Resizes {
+					if err := r.client.SetBlockStorageSize(ctx, resize.Id, resize.SizeGb); err != nil {
+						return err
 					}
 				}
 
 			}
 
 			// wait for 구현
-			getFunc := func(id string) (*scpCachestore.RedisClusterDetailResponse, error) {
-				return r.client.GetCluster(ctx, id)
-			}
-
-			_, err := databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-				"ServiceState", "RUNNING", "ERROR", getFunc)
+			err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true)
 			if err != nil {
 				return err
 			}
@@ -901,11 +914,15 @@ func (r *cachestoreClusterResource) handlerUpdateInstanceGroups(ctx context.Cont
 func (r *cachestoreClusterResource) handlerUpdateTag(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan cachestore.ClusterResource
 	var state cachestore.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	// Update
-	_, err := tag.UpdateTags(r.clients, "cachestore", "cache-store", plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, "cachestore", "cache-store", plan.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
@@ -934,14 +951,8 @@ func (r *cachestoreClusterResource) Delete(ctx context.Context, req resource.Del
 		)
 		return
 	}
-
-	// cluster 조회 func
-	getFunc := func(id string) (*scpCachestore.RedisClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
 	// wait for 구현
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, clusterId, 200, 20*time.Second,
-		"ServiceState", "TERMINATED", "FAILED", getFunc)
+	err = waitForClusterStatus(ctx, r.client, clusterId, []string{"TERMINATING"}, []string{"TERMINATED"}, false)
 	if err != nil {
 		if err.Error() != "404 Not Found" {
 			resp.Diagnostics.AddError(
@@ -951,4 +962,36 @@ func (r *cachestoreClusterResource) Delete(ctx context.Context, req resource.Del
 			return
 		}
 	}
+}
+
+func (r *cachestoreClusterResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func waitForClusterStatus(ctx context.Context, csClient *cachestore.Client, id string, pendingStates []string, targetStates []string, errorOnNotFound bool) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, httpStatus, err := csClient.GetCluster(ctx, id)
+		if httpStatus == 200 {
+			currentState := string(info.ServiceState)
+			for _, s := range pendingStates {
+				if s == currentState {
+					return info, currentState, nil
+				}
+			}
+			for _, s := range targetStates {
+				if s == currentState {
+					return info, currentState, nil
+				}
+			}
+			return nil, "", fmt.Errorf("cluster with id=%s transitioned to unexpected state: %s", id, currentState)
+		} else if httpStatus == 404 {
+			if errorOnNotFound {
+				return nil, "", fmt.Errorf("cluster with id=%s not found", id)
+			}
+			return info, "TERMINATED", nil
+		} else if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.ServiceState), nil
+	}, -1, -1, -1, -1)
 }

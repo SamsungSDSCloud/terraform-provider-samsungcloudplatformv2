@@ -2,9 +2,10 @@ package virtualserver_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -35,7 +36,7 @@ func TestAccServerResourceTest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Server 생성
-				Config: testAccServerTemplate("1", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags),
+				Config: testAccServerTemplate("1", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, "kr-west1-a"),
 			},
 			{
 				// Server 수정 (name, server type, security group, boot volume size, tags)
@@ -43,9 +44,6 @@ func TestAccServerResourceTest(t *testing.T) {
 					"[]",
 					`{
 						interface_1 : {
-							subnet_id : data.samsungcloudplatformv2_vpc_subnets.subnets.subnets.0.id,
-						},
-						interface_2 : {
 							subnet_id : data.samsungcloudplatformv2_vpc_subnets.subnets.subnets.0.id,
 						},
 					}`, `{
@@ -57,7 +55,7 @@ func TestAccServerResourceTest(t *testing.T) {
 						  type = "SSD"
 						  size = 8,
 						},
-					  }`, "{}"),
+					  }`, "{}", "kr-west1-a"),
 			},
 			{
 				// Server 생성 (SSD_Provisioned)
@@ -69,7 +67,7 @@ func TestAccServerResourceTest(t *testing.T) {
 						max_throughput : 250,
 						delete_on_termination: false
 					}`,
-					extraVolumes, tags),
+					extraVolumes, tags, "kr-west1-a"),
 			},
 			{
 				// Server 수정 (QoS)
@@ -89,14 +87,50 @@ func TestAccServerResourceTest(t *testing.T) {
 						  max_throughput : 250,
 						  delete_on_termination: true
 						},
-					}`, tags),
+					}`, tags, "kr-west1-a"),
+			},
+		},
+	})
+}
+
+// multiaz: zone은 생성 후 변경할 수 없어야 한다. (server.go ModifyPlan 의 immutableFields 에 Zone 포함)
+// 생성 후 zone만 변경하면 apply 이전 plan 단계에서 immutable 에러가 발생해야 한다.
+func TestAccServerZoneImmutableTest(t *testing.T) {
+	name := "test_terraform_server_zone"
+	serverType := "s1v1m2"
+	securityGroups := "[]"
+	networks := `{
+    	interface_1 : {
+      		subnet_id : data.samsungcloudplatformv2_vpc_subnets.subnets.subnets.0.id,
+    	}
+	}`
+	bootVolume := `{
+		type = "SSD",
+		size = 104
+	}`
+	extraVolumes := `{}`
+	tags := `{}`
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"samsungcloudplatformv2": providerserver.NewProtocol6WithError(samsungcloudplatform.NewProvider("test")),
+		},
+		Steps: []resource.TestStep{
+			{
+				// Server 생성 (kr-west1-a)
+				Config: testAccServerTemplate("z", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, "kr-west1-a"),
+			},
+			{
+				// zone 변경 시도 -> immutable 에러
+				Config:      testAccServerTemplate("z", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, "kr-west1-b"),
+				ExpectError: regexp.MustCompile(`Immutable fields cannot be modified`),
 			},
 		},
 	})
 }
 
 func testAccServerTemplate(suffix string, name string, serverType string, securityGroups string, networks string,
-	bootVolume string, extraVolumes string, tags string) string {
+	bootVolume string, extraVolumes string, tags string, zone string) string {
 	return fmt.Sprintf(
 		`
 				// 표준 이미지 추출
@@ -135,5 +169,6 @@ func testAccServerTemplate(suffix string, name string, serverType string, securi
 					boot_volume     = %s
 					extra_volumes = %s
 					tags = %s
-		}`, suffix, name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags)
+                    zone = "%s"
+		}`, suffix, name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, zone)
 }

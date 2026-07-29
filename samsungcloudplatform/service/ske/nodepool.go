@@ -8,13 +8,14 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/service/ske/converter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/ske/converter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -545,8 +546,26 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 						Description:         "Volume Type",
 						MarkdownDescription: "Volume Type",
 					},
+					"preferred_ips": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Preferred IPs\n  - example: 192.168.0.0-192.168.0.255,192.168.99.0",
+						MarkdownDescription: "Preferred IPs\n  - example: 192.168.0.0-192.168.0.255,192.168.99.0",
+					},
+					"subnet_id": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
+						MarkdownDescription: "Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
+					},
+					"zone": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Availability zone\n  - example: kr-west1-a",
+						MarkdownDescription: "Availability zone\n  - example: kr-west1-a",
+					},
 				},
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "Nodepool\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_nodepool#nested-schema-for-nodepool",
 				MarkdownDescription: "Nodepool\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_nodepool#nested-schema-for-nodepool",
 			},
@@ -639,6 +658,21 @@ func (r *skeNodepoolResource) Schema(_ context.Context, _ resource.SchemaRequest
 				Required:            true,
 				Description:         "Volume Type Name\n  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned\n  - example: SSD",
 				MarkdownDescription: "Volume Type Name\n  - pattern: SSD|SSD_KMS|HDD|HDD_KMS|SSD_Provisioned\n  - example: SSD",
+			},
+			"preferred_ips": schema.StringAttribute{
+				Optional:            true,
+				Description:         "Preferred IPs\n  - example: 192.168.0.0-192.168.0.255,192.168.99.0",
+				MarkdownDescription: "Preferred IPs\n  - example: 192.168.0.0-192.168.0.255,192.168.99.0",
+			},
+			"subnet_id": schema.StringAttribute{
+				Required:            true,
+				Description:         "Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
+				MarkdownDescription: "Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
+			},
+			"zone": schema.StringAttribute{
+				Required:            true,
+				Description:         "Availability zone\n  - example: kr-west1-a",
+				MarkdownDescription: "Availability zone\n  - example: kr-west1-a",
 			},
 		},
 	}
@@ -773,6 +807,9 @@ func (r *skeNodepoolResource) Read(ctx context.Context, req resource.ReadRequest
 		state.Taints = nodepoolModel.Taints
 		state.VolumeSize = nodepoolModel.VolumeSize
 		state.VolumeTypeName = nodepoolModel.VolumeType.Name
+		state.PreferredIps = nodepoolModel.PreferredIps
+		state.SubnetId = nodepoolModel.SubnetId
+		state.Zone = nodepoolModel.Zone
 	}
 
 	// Set refreshed state
@@ -867,6 +904,19 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 				resp.Diagnostics.AddError(
 					"Error Updating Nodepool Taints",
 					"Could not update nodepool taints, unexpected error: "+err.Error()+"\nReason: "+detail,
+				)
+				return
+			}
+		}
+
+		if !state.PreferredIps.Equal(plan.PreferredIps) {
+			preferredIps := plan.PreferredIps.ValueString()
+			_, err := r.client.SetNodepoolPreferredIps(ctx, plan.Id.ValueString(), preferredIps)
+			if err != nil {
+				detail := client.GetDetailFromError(err)
+				resp.Diagnostics.AddError(
+					"Error Updating Nodepool PreferredIps",
+					"Could not update nodepool preferred ips, unexpected error: "+err.Error()+"\nReason: "+detail,
 				)
 				return
 			}

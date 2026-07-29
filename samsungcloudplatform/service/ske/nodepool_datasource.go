@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/service/ske/converter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/ske/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/ske/converter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/ske/1.5"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -344,6 +344,21 @@ func (d *skeNodepoolDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						Computed:            true,
 						Description:         "Volume Type",
 						MarkdownDescription: "Volume Type",
+					},
+					"preferred_ips": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Preferred IPs\n  - example: 192.168.0.0-192.168.0.255,192.168.99.0",
+						MarkdownDescription: "Preferred IPs\n  - example: 192.168.0.0-192.168.0.255,192.168.99.0",
+					},
+					"subnet_id": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
+						MarkdownDescription: "Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
+					},
+					"zone": schema.StringAttribute{
+						Computed:            true,
+						Description:         "Availability zone\n  - example: kr-west1-a",
+						MarkdownDescription: "Availability zone\n  - example: kr-west1-a",
 					},
 				},
 				Computed:            true,

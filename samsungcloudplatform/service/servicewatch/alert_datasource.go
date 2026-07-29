@@ -3,11 +3,12 @@ package servicewatch
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -57,11 +58,11 @@ func (d *serviceWatchAlertDataSource) Schema(_ context.Context, _ datasource.Sch
 							" - example : Alert Test\n",
 						Computed: true,
 					},
-			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Alert description.\n" +
-					" - example : Description for Alert Test\n",
-				Computed: true,
-			},
+					common.ToSnakeCase("Description"): schema.StringAttribute{
+						Description: "Alert description.\n" +
+							" - example : Description for Alert Test\n",
+						Computed: true,
+					},
 					common.ToSnakeCase("Srn"): schema.StringAttribute{
 						Description: "SDS cloud resource name of the Alert.\n" +
 							" - example : srn:dev2::1bcf39b344ac41cbaf0466ff0d2bebad:kr-west1::scp-servicewatch:alert/0ad6da92-634a-4f8c-932e-9d650599ab1e\n",
@@ -82,26 +83,26 @@ func (d *serviceWatchAlertDataSource) Schema(_ context.Context, _ datasource.Sch
 							" - example : HIGH\n",
 						Computed: true,
 					},
-			common.ToSnakeCase("NamespaceId"): schema.StringAttribute{
-				Description: "The unique identifier of the namespace.\n" +
-					" - example : 1d9d05af5c624f2cb80a45f2c911e2f4\n",
-				Computed: true,
-			},
-			common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
-				Description: "The name of the namespace.\n" +
-					" - example : Virtual Server\n",
-				Computed: true,
-			},
+					common.ToSnakeCase("NamespaceId"): schema.StringAttribute{
+						Description: "The unique identifier of the namespace.\n" +
+							" - example : 1d9d05af5c624f2cb80a45f2c911e2f4\n",
+						Computed: true,
+					},
+					common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
+						Description: "The name of the namespace.\n" +
+							" - example : Virtual Server\n",
+						Computed: true,
+					},
 					common.ToSnakeCase("MetricId"): schema.StringAttribute{
 						Description: "The unique identifier of the metric.\n" +
 							" - example : f13aab3b88c341b2bc73f8925a0e8cc5\n",
 						Computed: true,
 					},
-			common.ToSnakeCase("MetricName"): schema.StringAttribute{
-				Description: "The name of the metric.\n" +
-					" - example : CPU Usage\n",
-				Computed: true,
-			},
+					common.ToSnakeCase("MetricName"): schema.StringAttribute{
+						Description: "The name of the metric.\n" +
+							" - example : CPU Usage\n",
+						Computed: true,
+					},
 					common.ToSnakeCase("MetricUnit"): schema.StringAttribute{
 						Description: "The unit of the metric.\n" +
 							" - example : BYTE\n",
@@ -151,16 +152,16 @@ func (d *serviceWatchAlertDataSource) Schema(_ context.Context, _ datasource.Sch
 							" - example : 80.0\n",
 						Computed: true,
 					},
-			common.ToSnakeCase("UpperBound"): schema.Float32Attribute{
-				Description: "Upper bound for the Alert range operator.\n" +
-					" - example : 90.0\n",
-				Computed: true,
-			},
-			common.ToSnakeCase("LowerBound"): schema.Float32Attribute{
-				Description: "Lower bound for the Alert range operator.\n" +
-					" - example : 80.0\n",
-				Computed: true,
-			},
+					common.ToSnakeCase("UpperBound"): schema.Float32Attribute{
+						Description: "Upper bound for the Alert range operator.\n" +
+							" - example : 90.0\n",
+						Computed: true,
+					},
+					common.ToSnakeCase("LowerBound"): schema.Float32Attribute{
+						Description: "Lower bound for the Alert range operator.\n" +
+							" - example : 80.0\n",
+						Computed: true,
+					},
 					common.ToSnakeCase("Operator"): schema.StringAttribute{
 						Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE.\n" +
 							" - example : RANGE\n",
@@ -174,6 +175,11 @@ func (d *serviceWatchAlertDataSource) Schema(_ context.Context, _ datasource.Sch
 					common.ToSnakeCase("MissingDataOption"): schema.StringAttribute{
 						Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE.\n" +
 							" - example : BREACHING\n",
+						Computed: true,
+					},
+					common.ToSnakeCase("Timestamp"): schema.StringAttribute{
+						Description: "The timestamp when the alert was triggered, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
@@ -244,7 +250,7 @@ func (d *serviceWatchAlertDataSource) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	// Dimensions 변환
+	// Convert dimensions
 	var dimensions []servicewatch.Dimension
 	for _, item := range alertResp.GetDimensions() {
 		dimensions = append(dimensions, servicewatch.Dimension{
@@ -260,7 +266,7 @@ func (d *serviceWatchAlertDataSource) Read(ctx context.Context, req datasource.R
 	resp.Diagnostics.Append(diags...)
 	fmt.Printf("\nDimensions: %+v\n", dimensionList)
 
-	// convert Alert datasource model
+	// Convert Alert datasource model
 	alert := servicewatch.Alert{
 		Name:                 types.StringValue(alertResp.GetName()),
 		Description:          nullableStringTypes(alertResp.GetDescriptionOk()),
@@ -284,6 +290,7 @@ func (d *serviceWatchAlertDataSource) Read(ctx context.Context, req datasource.R
 		Operator:             types.StringValue(string(alertResp.GetOperator())),
 		ViolationCount:       types.Int32Value(alertResp.GetViolationCount()),
 		MissingDataOption:    types.StringValue(string(alertResp.GetMissingDataOption())),
+		Timestamp:            nullableTimeTypes(alertResp.GetTimestampOk()),
 		CreatedAt:            types.StringValue(alertResp.GetCreatedAt().Format(TimeFormatDisplay)),
 		ModifiedAt:           types.StringValue(alertResp.GetModifiedAt().Format(TimeFormatDisplay)),
 		CreatedBy:            types.StringValue(alertResp.GetCreatedBy()),
@@ -327,4 +334,11 @@ func nullableInt32Types(val *int32, isSet bool) types.Int32 {
 		return types.Int32Value(*val)
 	}
 	return types.Int32Null()
+}
+
+func nullableTimeTypes(val *time.Time, isSet bool) types.String {
+	if isSet && val != nil {
+		return types.StringValue(val.Format(TimeFormatDisplay))
+	}
+	return types.StringNull()
 }

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/multinodegpucluster"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/multinodegpucluster"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -202,6 +202,11 @@ func GpuNodeDataSourceSchema() schema.Schema {
 				Description:         "VPC ID\n  - example: e58348b1bc9148e5af86500fd4ef99ca",
 				MarkdownDescription: "VPC ID\n  - example: e58348b1bc9148e5af86500fd4ef99ca",
 			},
+			"zone": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Zone\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone\n  - example: kr-west1-a",
+			},
 		},
 	}
 }
@@ -247,6 +252,7 @@ func (multinodegpuclusterDS *GpunodeDataSource) Read(ctx context.Context, req da
 	state.NodePoolId = types.StringValue(data.NodePoolId)
 
 	state.VpcId = types.StringValue(data.VpcId)
+	state.Zone = types.StringValue(data.Zone)
 	state.NetworkId = types.StringValue(data.NetworkId)
 	state.PolicyIp = types.StringValue(data.PolicyIp)
 	if data.PolicyNat.IsSet() {

@@ -2,9 +2,10 @@ package epas
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/epas/1.1"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	epas "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/epas/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -96,7 +97,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []epas.InstanceGroupRequest
+	var convertedInstanceGroups []epas.RdbInstanceGroupRequest
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(context.Background(), &igVals, false)
 	for _, instanceGroup := range igVals {
@@ -111,21 +112,21 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 			})
 		}
 
-		var convertedInstance []epas.InstanceRequest
+		var convertedInstance []epas.RdbInstanceRequest
 		var instVals []database.Instance
 		instanceGroup.Instances.ElementsAs(context.Background(), &instVals, false)
 		for _, instance := range instVals {
-			convertedInstance = append(convertedInstance, epas.InstanceRequest{
-				RoleType:         epas.InstanceRoleType(instance.RoleType.ValueString()),
+			convertedInstance = append(convertedInstance, epas.RdbInstanceRequest{
+				RoleType:         epas.RdbInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *epas.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *epas.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, epas.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, epas.RdbInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           epas.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           epas.RdbInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -155,40 +156,44 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.EpasClusterCreateRequest(epas.EpasClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *epas.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		VipPublicIpId:        *epas.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
-		VirtualIpAddress:     *epas.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+	req = req.EpasClusterCreateRequestV1Dot1(epas.EpasClusterCreateRequestV1Dot1{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *epas.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		VipPublicIpId:             *epas.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
+		VirtualIpAddress:          *epas.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		ServiceWatchLogCollection: *epas.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull() && initConfigOption.BackupOption.ArchiveFrequencyMinute.IsNull()
 
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*epas.EpasClusterDetailResponseV1Dot1, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*epas.EpasClusterDetailResponseV1Dot2, int, error) {
 	req := client.sdkClient.EpasV1EpasClustersApiAPI.EpasShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {

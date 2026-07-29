@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/iam"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -67,23 +67,24 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 					"  - example : 'grp-1234567890abcdef'",
 			},
 			"group": schema.SingleNestedAttribute{
-				Computed:    true,
-				Description: "Detailed information about the group.",
+				Computed: true,
+				Description: "Detailed information about the group.\n" +
+					"  - example : {\"id\": \"grp-1234567890abcdef\", \"name\": \"MyGroup\", ...}",
 				Attributes: map[string]schema.Attribute{
 					"created_at": schema.StringAttribute{
 						Computed: true,
 						Description: "Timestamp when the group was created.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"created_by": schema.StringAttribute{
 						Computed: true,
 						Description: "User who created the group.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"creator_email": schema.StringAttribute{
 						Computed: true,
 						Description: "Email of the user who created the group.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"creator_name": schema.StringAttribute{
 						Computed: true,
@@ -106,34 +107,35 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 							"  - example : 'grp-1234567890abcdef'",
 					},
 					"members": schema.ListNestedAttribute{
-						Computed:    true,
-						Description: "List of members in the group.",
+						Computed: true,
+						Description: "List of members in the group.\n" +
+							"  - example : [{\"user_id\": \"usr-1234567890abcdef\", \"user_email\": \"member@example.com\", ...}]",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"created_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the member was added.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"created_by": schema.StringAttribute{
 									Computed: true,
 									Description: "User who added the member.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_created_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the creator was created.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"creator_email": schema.StringAttribute{
 									Computed: true,
 									Description: "Email of the creator.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_last_login_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp of the creator's last login.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"creator_name": schema.StringAttribute{
 									Computed: true,
@@ -149,7 +151,7 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 								"user_created_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the user was created.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"user_email": schema.StringAttribute{
 									Computed: true,
@@ -164,7 +166,7 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 								"user_last_login_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp of the user's last login.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"user_name": schema.StringAttribute{
 									Computed: true,
@@ -176,6 +178,8 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 					},
 					"policies": schema.ListNestedAttribute{
 						Computed: true,
+						Description: "Account ID that owns the policy.\n" +
+							"  - example : [{\"id\": \"pol-1234567890abcdef\", \"policy_name\": \"MyPolicy\", ...}]",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"account_id": schema.StringAttribute{
@@ -186,17 +190,17 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 								"created_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the policy was created.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"created_by": schema.StringAttribute{
 									Computed: true,
 									Description: "User who created the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_email": schema.StringAttribute{
 									Computed: true,
 									Description: "Email of the policy creator.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_name": schema.StringAttribute{
 									Computed: true,
@@ -226,17 +230,17 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 								"modified_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the policy was last modified.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"modified_by": schema.StringAttribute{
 									Computed: true,
 									Description: "User who last modified the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"modifier_email": schema.StringAttribute{
 									Computed: true,
 									Description: "Email of the user who last modified the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"modifier_name": schema.StringAttribute{
 									Computed: true,
@@ -259,19 +263,20 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 										"  - example : 'SYSTEM_MANAGED' | 'USER_DEFINED' | 'INLINE'",
 								},
 								"policy_versions": schema.ListNestedAttribute{
-									Computed:    true,
-									Description: "List of versions of the policy.",
+									Computed: true,
+									Description: "List of versions of the policy.\n" +
+										"  - example : [{\"id\": \"v-1234567890abcdef\", \"policy_version_name\": \"v1\", ...}]",
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"created_at": schema.StringAttribute{
 												Computed: true,
 												Description: "Timestamp when the policy version was created.\n" +
-													"  - example : '2024-01-01T00:00:00Z'",
+													TimeExample,
 											},
 											"created_by": schema.StringAttribute{
 												Computed: true,
 												Description: "User who created the policy version.\n" +
-													"  - example : 'user@example.com'",
+													UserEmailExample,
 											},
 											"id": schema.StringAttribute{
 												Computed: true,
@@ -281,20 +286,22 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 											"modified_at": schema.StringAttribute{
 												Computed: true,
 												Description: "Timestamp when the policy version was last modified.\n" +
-													"  - example : '2024-01-01T00:00:00Z'",
+													TimeExample,
 											},
 											"modified_by": schema.StringAttribute{
 												Computed: true,
 												Description: "User who last modified the policy version.\n" +
-													"  - example : 'user@example.com'",
+													UserEmailExample,
 											},
 											"policy_document": schema.SingleNestedAttribute{
-												Computed:    true,
-												Description: "The policy document containing the permission definitions.",
+												Computed: true,
+												Description: "The policy document containing the permission definitions.\n" +
+													"  - example : {\"version\": \"2012-10-17\", \"statement\": [...]}",
 												Attributes: map[string]schema.Attribute{
 													"statement": schema.ListNestedAttribute{
-														Computed:    true,
-														Description: "List of policy statements defining the permissions.",
+														Computed: true,
+														Description: "List of policy statements defining the permissions.\n" +
+															"  - example : [{\"sid\": \"Stmt1\", \"effect\": \"Allow\", \"action\": [\"iam:CreateRole\"], ...}]",
 														NestedObject: schema.NestedAttributeObject{
 															Attributes: map[string]schema.Attribute{
 																"action": schema.ListAttribute{
@@ -338,8 +345,9 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 																	Computed: true,
 																},
 																"principal": schema.SingleNestedAttribute{
-																	Computed:    true,
-																	Description: "Principal that is allowed or denied access.",
+																	Computed: true,
+																	Description: "Principal that is allowed or denied access.\n" +
+																		"  - example : {\"principal_string\": \"arn:aws:iam::123456789012:user/admin\"}",
 																	Attributes: map[string]schema.Attribute{
 																		"principal_string": schema.StringAttribute{
 																			Computed: true,
@@ -411,21 +419,20 @@ func (d *iamGroupDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 							},
 						},
 					},
-
 					"modified_at": schema.StringAttribute{
 						Computed: true,
 						Description: "Timestamp when the group was last modified.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"modified_by": schema.StringAttribute{
 						Computed: true,
 						Description: "User who last modified the group.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"modifier_email": schema.StringAttribute{
 						Computed: true,
 						Description: "Email of the user who last modified the group.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"modifier_name": schema.StringAttribute{
 						Computed: true,

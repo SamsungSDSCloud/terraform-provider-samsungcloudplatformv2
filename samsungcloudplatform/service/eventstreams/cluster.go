@@ -3,20 +3,22 @@ package eventstreams
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
-	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/eventstreams"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpEventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/eventstreams/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/eventstreams"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpEventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/eventstreams/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -24,8 +26,15 @@ import (
 )
 
 var (
-	_ resource.Resource              = &eventstreamsClusterResource{}
-	_ resource.ResourceWithConfigure = &eventstreamsClusterResource{}
+	_ resource.Resource                = &eventstreamsClusterResource{}
+	_ resource.ResourceWithConfigure   = &eventstreamsClusterResource{}
+	_ resource.ResourceWithImportState = &eventstreamsClusterResource{}
+)
+
+// Reusable description fragments to avoid duplicated string literals.
+const (
+	descExampleZookeeperBroker = "  - example: 'ZOOKEEPER_BROKER' \n"
+	descPatternLowerAsc        = "  - pattern: ^[a-z]+$ \n"
 )
 
 func NewEventstreamsClusterResource() resource.Resource {
@@ -47,86 +56,138 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 		Description: "eventstreams",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Identifier of the resource.\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				MarkdownDescription: "Identifier of the resource.\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("AkhqEnabled"): schema.BoolAttribute{
-				Description: "AHKQ Enabled",
-				Required:    true,
+				Description:         "AHKQ Enabled\n- example: false",
+				MarkdownDescription: "AHKQ Enabled\n- example: false",
+				Required:            true,
+				WriteOnly:           true,
 			},
 			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
-				Description: "Allowed IP addresses list  \n" +
+				Description: databaseUtils.DescAllowedIPAddressesList +
+					"  - example: ['192.168.10.1/32']",
+				MarkdownDescription: databaseUtils.DescAllowedIPAddressesList +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("DbaasEngineVersionId"): schema.StringAttribute{
-				Description: "DBaaS engine version ID \n" +
+				Description: databaseUtils.DescDBaaSEngineVersionID +
 					"  - example: '189299a34f464cac94a24f2d8d57afec' (Kafka 3.8.0)",
-				Required: true,
+				MarkdownDescription: databaseUtils.DescDBaaSEngineVersionID +
+					"  - example: '189299a34f464cac94a24f2d8d57afec' (Kafka 3.8.0)",
+				Required:  true,
+				WriteOnly: true,
 			},
 			common.ToSnakeCase("IsCombined"): schema.BoolAttribute{
-				Description: "ZOOKEEPER,BROKER combined (IsCombined=true), ZOOKEEPER,BROKER seperated (IsCombined=False)",
-				Required:    true,
+				Description:         "ZOOKEEPER,BROKER combined (IsCombined=true), ZOOKEEPER,BROKER seperated (IsCombined=False) \n- example: false",
+				MarkdownDescription: "ZOOKEEPER,BROKER combined (IsCombined=true), ZOOKEEPER,BROKER seperated (IsCombined=False) \n- example: false",
+				Required:            true,
 			},
 			common.ToSnakeCase("InitConfigOption"): schema.SingleNestedAttribute{
 				Description: "Init config option",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AkhqId"): schema.StringAttribute{
-						Description: "AkhqId",
-						Optional:    true,
+						Description: "Akhq ID \n" +
+							databaseUtils.DescMinLength2 +
+							databaseUtils.DescMaxLength20 +
+							descPatternLowerAsc,
+						MarkdownDescription: "Akhq ID \n" +
+							databaseUtils.DescMinLength2 +
+							databaseUtils.DescMaxLength20 +
+							descPatternLowerAsc,
+						Optional:  true,
+						WriteOnly: true,
 					},
 					common.ToSnakeCase("AkhqPassword"): schema.StringAttribute{
-						Description: "Akhq password ",
-						Optional:    true,
+						Description: "Akhq password \n" +
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							databaseUtils.DescPatternPassword,
+						MarkdownDescription: "Akhq password password \n" +
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							databaseUtils.DescPatternPassword,
+						Optional:  true,
+						WriteOnly: true,
 					},
 					common.ToSnakeCase("BrokerPort"): schema.Int32Attribute{
 						Description: "Broker port \n" +
+							"  - example: 9091 \n",
+						MarkdownDescription: "Broker port \n" +
 							"  - example: 9091 \n",
 						Required: true,
 					},
 					common.ToSnakeCase("BrokerSaslId"): schema.StringAttribute{
 						Description: "Broker Sasl ID \n" +
-							"  - minLength: 2  \n" +
-							"  - maxLength: 20  \n" +
-							"  - pattern: ^[a-z]+$ \n",
-						Required: true,
+							databaseUtils.DescMinLength2 +
+							databaseUtils.DescMaxLength20 +
+							descPatternLowerAsc,
+						MarkdownDescription: "Broker Sasl ID \n" +
+							databaseUtils.DescMinLength2 +
+							databaseUtils.DescMaxLength20 +
+							descPatternLowerAsc,
+						Required:  true,
+						WriteOnly: true,
 					},
 					common.ToSnakeCase("BrokerSaslPassword"): schema.StringAttribute{
 						Description: "Broker Sasl password \n" +
-							"  - minLength: 8  \n" +
-							"  - maxLength: 30  \n" +
-							"  - pattern: ^(?=.*[a-zA-Z])(?=.*[`\\-[\\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\\S*[^\\w\\s]).{8,30} (\"'제외) \n",
-						Required: true,
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							databaseUtils.DescPatternPassword,
+						MarkdownDescription: "Broker Sasl password \n" +
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							databaseUtils.DescPatternPassword,
+						Required:  true,
+						WriteOnly: true,
 					},
 					common.ToSnakeCase("ZookeeperPort"): schema.Int32Attribute{
 						Description: "Zookeeper port \n" +
+							"  - example: 2180 \n",
+						MarkdownDescription: "Zookeeper port \n" +
 							"  - example: 2180 \n",
 						Required: true,
 					},
 					common.ToSnakeCase("ZookeeperSaslId"): schema.StringAttribute{
 						Description: "Zookeeper Sasl ID \n" +
-							"  - minLength: 2  \n" +
-							"  - maxLength: 20  \n" +
-							"  - pattern: ^[a-z]+$ \n",
-						Required: true,
+							databaseUtils.DescMinLength2 +
+							databaseUtils.DescMaxLength20 +
+							descPatternLowerAsc,
+						MarkdownDescription: "Zookeeper Sasl ID \n" +
+							databaseUtils.DescMinLength2 +
+							databaseUtils.DescMaxLength20 +
+							descPatternLowerAsc,
+						Required:  true,
+						WriteOnly: true,
 					},
 					common.ToSnakeCase("ZookeeperSaslPassword"): schema.StringAttribute{
 						Description: "Zookeeper Sasl password \n" +
-							"  - minLength: 8  \n" +
-							"  - maxLength: 30  \n" +
-							"  - pattern: ^(?=.*[a-zA-Z])(?=.*[`\\-[\\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\\S*[^\\w\\s]).{8,30} (\"'제외) \n",
-						Required: true,
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							databaseUtils.DescPatternPassword,
+						MarkdownDescription: "Zookeeper Sasl password \n" +
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							databaseUtils.DescPatternPassword,
+						Required:  true,
+						WriteOnly: true,
 					},
 				},
 			},
 			common.ToSnakeCase("InstanceGroups"): schema.ListNestedAttribute{
 				Description: "Instance groups",
 				Required:    true,
+				PlanModifiers: []planmodifier.List{
+					databaseUtils.InstanceGroupsPlanModifier(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("BlockStorageGroups"): schema.ListNestedAttribute{
@@ -135,28 +196,38 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									common.ToSnakeCase("Id"): schema.StringAttribute{
-										Description: "Id",
-										Computed:    true,
+										Description:         "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+										MarkdownDescription: "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+										Computed:            true,
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
-										Description: "Name",
-										Computed:    true,
+										Description:         "Block storage group name\n  - example: cluster-Disk-00",
+										MarkdownDescription: "Block storage group name\n  - example: cluster-Disk-00",
+										Computed:            true,
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
-										Description: "Role type \n" +
-											"  - example: 'OS' \n",
-										Required: true,
+										Description:         "Block storage role type\n  - example: OS",
+										MarkdownDescription: "Block storage role type\n  - example: OS",
+										Required:            true,
 									},
 									common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
-										Description: "Size in GB \n" +
-											"  - example: 104 \n" +
-											"  - minLength: 16  \n" +
-											"  - maxLength: 5120  \n",
+										Description: databaseUtils.DescSizeInGB +
+											databaseUtils.DescExample104 +
+											databaseUtils.DescMinLength16 +
+											databaseUtils.DescMaxLength5120 +
+											"  - example: 104",
+										MarkdownDescription: databaseUtils.DescSizeInGB +
+											databaseUtils.DescExample104 +
+											databaseUtils.DescMinLength16 +
+											databaseUtils.DescMaxLength5120 +
+											"  - example: 104",
 										Required: true,
 									},
 									common.ToSnakeCase("VolumeType"): schema.StringAttribute{
-										Description: "Volume type \n" +
-											"  - example: 'SSD' \n",
+										Description: databaseUtils.DescVolumeType +
+											databaseUtils.DescExampleSSD,
+										MarkdownDescription: databaseUtils.DescVolumeType +
+											databaseUtils.DescExampleSSD,
 										Required: true,
 										Validators: []validator.String{
 											stringvalidator.OneOf("SSD", "SSD_KMS", "HDD", "HDD_KMS"),
@@ -166,8 +237,9 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 							},
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
+							Description:         "Instance group ID.\n  - example: ee48b333d5a84097adc079dec17ab872",
+							MarkdownDescription: "Instance group ID.\n  - example: ee48b333d5a84097adc079dec17ab872",
+							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
@@ -178,15 +250,20 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									common.ToSnakeCase("Name"): schema.StringAttribute{
-										Description: "Name",
-										Computed:    true,
+										Description:         "Instance name\n  - example: test001",
+										MarkdownDescription: "Instance name\n  - example: test001",
+										Computed:            true,
 										PlanModifiers: []planmodifier.String{
 											stringplanmodifier.UseStateForUnknown(),
+											databaseUtils.ComputedNullToUnknown(),
 										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
-										Description: "Role type \n" +
-											"  - example: 'ZOOKEEPER_BROKER' \n" +
+										Description: databaseUtils.DescRoleType +
+											descExampleZookeeperBroker +
+											"  - pattern: ZOOKEEPER_BROKER / ZOOKEEPER / BROKER / AKHQ \n",
+										MarkdownDescription: databaseUtils.DescRoleType +
+											descExampleZookeeperBroker +
 											"  - pattern: ZOOKEEPER_BROKER / ZOOKEEPER / BROKER / AKHQ \n",
 										Required: true,
 										Validators: []validator.String{
@@ -194,34 +271,34 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 										},
 									},
 									common.ToSnakeCase("ServiceIpAddress"): schema.StringAttribute{
-										Description: "User subnet IP address",
-										Optional:    true,
-										Computed:    true,
+										Description:         "User subnet IP address\n  - example: 192.168.4.22",
+										MarkdownDescription: "User subnet IP address\n  - example: 192.168.4.22",
+										Optional:            true,
+										Computed:            true,
 										PlanModifiers: []planmodifier.String{
 											stringplanmodifier.UseStateForUnknown(),
+											databaseUtils.ComputedNullToUnknown(),
 										},
 									},
 									common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
-										Description: "Public IP ID (Required when NatEnabled=True)",
-										Optional:    true,
-										Computed:    true,
+										Description:         "Public IP ID (Required when NatEnabled=True)\n  - example: 90a68b14850741598ecacd0eb190873e",
+										MarkdownDescription: "Public IP ID (Required when NatEnabled=True)\n  - example: 90a68b14850741598ecacd0eb190873e",
+										Optional:            true,
+										Computed:            true,
 										PlanModifiers: []planmodifier.String{
 											stringplanmodifier.UseStateForUnknown(),
+											databaseUtils.ComputedNullToUnknown(),
 										},
 									},
-									//common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
-									//	Description: "Public IP address",
-									//	Computed:    true,
-									//	PlanModifiers: []planmodifier.String{
-									//		stringplanmodifier.UseStateForUnknown(),
-									//	},
-									//},
 								},
 							},
 						},
 						common.ToSnakeCase("RoleType"): schema.StringAttribute{
-							Description: "Role type \n" +
-								"  - example: 'ZOOKEEPER_BROKER' \n" +
+							Description: databaseUtils.DescRoleType +
+								descExampleZookeeperBroker +
+								"  - pattern: ZOOKEEPER_BROKER (IsCombined=True) / ZOOKEEPER, BROKER (IsCombined=False) / AKHQ (optional) \n",
+							MarkdownDescription: databaseUtils.DescRoleType +
+								descExampleZookeeperBroker +
 								"  - pattern: ZOOKEEPER_BROKER (IsCombined=True) / ZOOKEEPER, BROKER (IsCombined=False) / AKHQ (optional) \n",
 							Required: true,
 							Validators: []validator.String{
@@ -229,7 +306,9 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 							},
 						},
 						common.ToSnakeCase("ServerTypeName"): schema.StringAttribute{
-							Description: "Server type name \n" +
+							Description: databaseUtils.DescServerTypeName +
+								"  - example: 'es1v2m4' \n",
+							MarkdownDescription: databaseUtils.DescServerTypeName +
 								"  - example: 'es1v2m4' \n",
 							Required: true,
 						},
@@ -237,35 +316,49 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 				},
 			},
 			common.ToSnakeCase("InstanceNamePrefix"): schema.StringAttribute{
-				Description: "Instance name prefix \n" +
-					"  - example: 'test'  \n" +
-					"  - minLength: 3  \n" +
-					"  - maxLength: 13  \n" +
-					"  - pattern: ^[a-z][a-zA-Z0-9\\-]*$ \n",
-				Required: true,
+				Description: databaseUtils.DescInstanceNamePrefix +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength13 +
+					databaseUtils.DescPatternLowerAlnumDash,
+				MarkdownDescription: databaseUtils.DescInstanceNamePrefix +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength13 +
+					databaseUtils.DescPatternLowerAlnumDash,
+				Required:  true,
+				WriteOnly: true,
 			},
 			common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 				Description: "MaintenanceOption",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
-						Description: "Period in hours \n" +
-							"  - example: 1  \n",
+						Description: databaseUtils.DescPeriodInHours +
+							databaseUtils.DescExample1,
+						MarkdownDescription: databaseUtils.DescPeriodInHours +
+							databaseUtils.DescExample1,
 						Optional: true,
 					},
 					common.ToSnakeCase("StartingDayOfWeek"): schema.StringAttribute{
-						Description: "Starting day of week \n" +
-							"  - example: 'MON' \n",
+						Description: databaseUtils.DescStartingDayOfWeek +
+							databaseUtils.DescExampleMON,
+						MarkdownDescription: databaseUtils.DescStartingDayOfWeek +
+							databaseUtils.DescExampleMON,
 						Optional: true,
 					},
 					common.ToSnakeCase("StartingTime"): schema.StringAttribute{
-						Description: "Starting time \n" +
-							"  - example: '0000' \n",
+						Description: databaseUtils.DescStartingTime +
+							databaseUtils.DescExample0000,
+						MarkdownDescription: databaseUtils.DescStartingTime +
+							databaseUtils.DescExample0000,
 						Optional: true,
 					},
 					common.ToSnakeCase("UseMaintenanceOption"): schema.BoolAttribute{
-						Description: "Use maintenance option \n" +
-							"  - example: False \n",
+						Description: databaseUtils.DescUseMaintenanceOption +
+							databaseUtils.DescExampleFalse,
+						MarkdownDescription: databaseUtils.DescUseMaintenanceOption +
+							databaseUtils.DescExampleFalse,
 						Optional: true,
 						Computed: true,
 					},
@@ -273,39 +366,54 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 			},
 			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Cluster name \n" +
-					"  - example: 'test'  \n" +
-					"  - minLength: 3  \n" +
-					"  - maxLength: 20  \n" +
-					"  - pattern: ^[a-zA-Z]*$ \n",
+				Description: databaseUtils.DescClusterName +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength20 +
+					databaseUtils.DescPatternAlpha,
+				MarkdownDescription: databaseUtils.DescClusterName +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength20 +
+					databaseUtils.DescPatternAlpha,
 				Required: true,
 			},
 			common.ToSnakeCase("NatEnabled"): schema.BoolAttribute{
-				Description: "NAT availability \n" +
-					"  - example: False \n",
+				Description: databaseUtils.DescNATAvailability +
+					databaseUtils.DescExampleFalse,
+				MarkdownDescription: databaseUtils.DescNATAvailability +
+					databaseUtils.DescExampleFalse,
 				Required: true,
 			},
 			common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-				Description: "Service state \n" +
-					"  - example : 'RUNNING' (Create,Start) / 'STOPPED' (Stop) \n",
+				Description: databaseUtils.DescServiceState +
+					databaseUtils.DescExampleRunningStopped,
+				MarkdownDescription: databaseUtils.DescServiceState +
+					databaseUtils.DescExampleRunningStopped,
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("RUNNING", "STOPPED"),
 				},
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID",
-				Required:    true,
+				Description:         "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249",
+				MarkdownDescription: "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249",
+				Required:            true,
 			},
 			common.ToSnakeCase("Timezone"): schema.StringAttribute{
-				Description: "Timezone \n" +
-					"  - example: 'Asia/Seoul' \n",
-				Required: true,
+				Description:         "Timezone\n  - example: Asia/Seoul",
+				MarkdownDescription: "Timezone\n  - example: Asia/Seoul",
+				Required:            true,
 			},
 			common.ToSnakeCase("ServiceWatchLogCollection"): schema.BoolAttribute{
-				Description: "ServiceWatchLogCollection",
-				Optional:    true,
-				Computed:    true,
+				Description:         "ServiceWatchLogCollection\n - example: false",
+				MarkdownDescription: "ServiceWatchLogCollection\n - example: false",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+					databaseUtils.ImmutableBool(),
+				},
 			},
 		},
 	}
@@ -330,11 +438,25 @@ func (r *eventstreamsClusterResource) Configure(_ context.Context, req resource.
 	r.clients = inst.Client
 }
 
+func (r *eventstreamsClusterResource) nullOutWriteOnlyFields(plan *eventstreams.ClusterResource) {
+	plan.DbaasEngineVersionId = types.StringNull()
+	plan.InstanceNamePrefix = types.StringNull()
+	plan.AkhqEnabled = types.BoolNull()
+	if plan.InitConfigOption != nil {
+		plan.InitConfigOption.AkhqId = types.StringNull()
+		plan.InitConfigOption.AkhqPassword = types.StringNull()
+		plan.InitConfigOption.BrokerSaslId = types.StringNull()
+		plan.InitConfigOption.BrokerSaslPassword = types.StringNull()
+		plan.InitConfigOption.ZookeeperSaslId = types.StringNull()
+		plan.InitConfigOption.ZookeeperSaslPassword = types.StringNull()
+	}
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *eventstreamsClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan eventstreams.ClusterResource
-	diags := req.Plan.Get(ctx, &plan)
+	diags := req.Config.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -343,6 +465,8 @@ func (r *eventstreamsClusterResource) Create(ctx context.Context, req resource.C
 	// Create new cluster
 	data, err := r.client.CreateCluster(ctx, plan)
 	if err != nil {
+		r.nullOutWriteOnlyFields(&plan)
+
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating cluster",
@@ -354,92 +478,30 @@ func (r *eventstreamsClusterResource) Create(ctx context.Context, req resource.C
 	// cluster id 반환
 	clusterId := data.Resource.Id
 
-	// cluster 조회 func
-	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	// wait for 구현
-	getData, err := databaseUtils.AsyncRequestPollingWithState(ctx, clusterId, 500, 10*time.Second,
-		"ServiceState", "RUNNING", "FAILED", getFunc)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading Cluster",
-			"Could not read Cluster, unexpected error: "+err.Error(),
-		)
-		return
-	}
-
-	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "eventstreams", "event-streams", clusterId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Tag",
-			err.Error(),
-		)
-		return
-	}
-
-	if len(plan.Tags.Elements()) > 0 {
-		getTags, err := r.AsyncPollingTags(ctx, clusterId, "eventstreams", "event-streams",
-			100, 3*time.Second)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Tag",
-				err.Error(),
-			)
-			return
-		}
-		tagsMap = getTags
-	}
-	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
-
-	//Metadata 처리
-	state, err := r.MapGetResponseToState(ctx, getData, plan, tagsMap)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Cluster",
-			err.Error(),
-		)
-		return
-	}
-
-	// Set state to fully populated data
-	diags = resp.State.Set(ctx, state)
+	// Save state immediately after creation to prevent orphan resources
+	plan.Id = types.StringValue(clusterId)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
 
-func (r *eventstreamsClusterResource) AsyncPollingTags(ctx context.Context, clusterId string, serviceName string,
-	resourceType string, maxAttempts int, internal time.Duration) (types.Map, error) {
-	ticker := time.NewTicker(internal)
-	defer ticker.Stop()
+	err = waitForClusterStatus(ctx, r.client, clusterId, []string{"CREATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		r.nullOutWriteOnlyFields(&plan)
+		resp.State.Set(ctx, plan)
 
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, clusterId)
-
-		if err != nil {
-			return types.Map{}, fmt.Errorf("attempt %d/%d failed: %w",
-				attempt, maxAttempts, err)
-		}
-
-		if len(tagsMap.Elements()) > 0 {
-			return tagsMap, nil
-		}
-
-		if attempt < maxAttempts {
-			select {
-			case <-ticker.C:
-				continue
-			case <-ctx.Done():
-				return types.Map{}, fmt.Errorf("polling canceled: %w", ctx.Err())
-			}
-		}
+		resp.Diagnostics.AddError(
+			"Error waiting for Cluster",
+			"Cluster was created but failed to become RUNNING: "+err.Error(),
+		)
+		return
 	}
 
-	return types.Map{}, fmt.Errorf("max attempts reached (%d)", maxAttempts)
+	readReq := resource.ReadRequest{State: resp.State}
+	readResp := &resource.ReadResponse{State: resp.State}
+	r.Read(ctx, readReq, readResp)
+	resp.State = readResp.State
 }
 
 func (r *eventstreamsClusterResource) MapGetResponseToState(ctx context.Context,
@@ -456,27 +518,58 @@ func (r *eventstreamsClusterResource) MapGetResponseToState(ctx context.Context,
 		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
-	var initConfigOption = eventstreams.InitConfigOption{
-		AkhqId:                plan.InitConfigOption.AkhqId,
-		AkhqPassword:          plan.InitConfigOption.AkhqPassword,
-		BrokerPort:            types.Int32PointerValue(resp.InitConfigOption.BrokerPort),
-		BrokerSaslId:          plan.InitConfigOption.BrokerSaslId,
-		BrokerSaslPassword:    plan.InitConfigOption.BrokerSaslPassword,
-		ZookeeperPort:         types.Int32PointerValue(resp.InitConfigOption.ZookeeperPort),
-		ZookeeperSaslId:       plan.InitConfigOption.ZookeeperSaslId,
-		ZookeeperSaslPassword: plan.InitConfigOption.ZookeeperSaslPassword,
+	var initConfigOption *eventstreams.InitConfigOption
+	{
+		var akhqId types.String
+		var akhqPassword types.String
+		var brokerSaslId types.String
+		var brokerSaslPassword types.String
+		var zookeeperSaslId types.String
+		var zookeeperSaslPassword types.String
+		if plan.InitConfigOption != nil {
+			akhqId = plan.InitConfigOption.AkhqId
+			akhqPassword = plan.InitConfigOption.AkhqPassword
+			brokerSaslId = plan.InitConfigOption.BrokerSaslId
+			brokerSaslPassword = plan.InitConfigOption.BrokerSaslPassword
+			zookeeperSaslId = plan.InitConfigOption.ZookeeperSaslId
+			zookeeperSaslPassword = plan.InitConfigOption.ZookeeperSaslPassword
+		} else {
+			akhqId = types.StringNull()
+			akhqPassword = types.StringNull()
+			brokerSaslId = types.StringNull()
+			brokerSaslPassword = types.StringNull()
+			zookeeperSaslId = types.StringNull()
+			zookeeperSaslPassword = types.StringNull()
+		}
+
+		initConfigOption = &eventstreams.InitConfigOption{
+			InitConfigOptionBase: eventstreams.InitConfigOptionBase{
+				BrokerPort:    types.Int32PointerValue(resp.InitConfigOption.BrokerPort),
+				ZookeeperPort: types.Int32PointerValue(resp.InitConfigOption.ZookeeperPort),
+			},
+			AkhqId:                akhqId,
+			AkhqPassword:          akhqPassword,
+			BrokerSaslId:          brokerSaslId,
+			BrokerSaslPassword:    brokerSaslPassword,
+			ZookeeperSaslId:       zookeeperSaslId,
+			ZookeeperSaslPassword: zookeeperSaslPassword,
+		}
 	}
 
 	instanceGroupsList := databaseUtils.MapInstanceGroupsList(ctx, plan.InstanceGroups, eventstreams.MapInstanceGroupResponses(resp.InstanceGroups))
 
-	var maintenanceOption = eventstreams.MaintenanceOption{}
-	if resp.MaintenanceOption.Get() != nil {
-		maintenanceOption = eventstreams.MaintenanceOption{
+	var maintenanceOption *eventstreams.MaintenanceOption
+	if resp.MaintenanceOption.IsSet() && resp.MaintenanceOption.Get() != nil {
+		maintenanceOption = &eventstreams.MaintenanceOption{
 			PeriodHour:           types.StringPointerValue(resp.MaintenanceOption.Get().PeriodHour.Get()),
 			StartingDayOfWeek:    types.StringPointerValue((*string)(resp.MaintenanceOption.Get().StartingDayOfWeek.Get())),
 			StartingTime:         types.StringPointerValue(resp.MaintenanceOption.Get().StartingTime.Get()),
 			UseMaintenanceOption: types.BoolPointerValue(resp.MaintenanceOption.Get().UseMaintenanceOption),
 		}
+	} else {
+		// cluster가 failed 상태이면 API가 maintenance_option을 null로 반환하므로,
+		// 응답으로 덮어쓰지 않고 직전 plan/state 값을 유지한다.
+		maintenanceOption = plan.MaintenanceOption
 	}
 
 	return eventstreams.ClusterResource{
@@ -487,10 +580,10 @@ func (r *eventstreamsClusterResource) MapGetResponseToState(ctx context.Context,
 		InitConfigOption:          initConfigOption,
 		InstanceGroups:            instanceGroupsList,
 		InstanceNamePrefix:        plan.InstanceNamePrefix,
-		IsCombined:                plan.IsCombined,
+		IsCombined:                types.BoolPointerValue(resp.IsCombined.Get()),
 		MaintenanceOption:         maintenanceOption,
 		Name:                      types.StringValue(resp.Name),
-		NatEnabled:                plan.NatEnabled,
+		NatEnabled:                types.BoolPointerValue(resp.NatEnabled.Get()),
 		ServiceState:              types.StringValue(string(resp.ServiceState)),
 		SubnetId:                  types.StringValue(resp.SubnetId),
 		Tags:                      tagsMap,
@@ -507,8 +600,12 @@ func (r *eventstreamsClusterResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	data, err := r.client.GetCluster(ctx, state.Id.ValueString())
+	data, _, err := r.client.GetCluster(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Cluster",
@@ -518,7 +615,7 @@ func (r *eventstreamsClusterResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "eventstreams", "event-streams", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, "eventstreams", "event-streams", state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -567,7 +664,7 @@ func (r *eventstreamsClusterResource) Update(ctx context.Context, req resource.U
 	var plan eventstreams.ClusterResource
 	var state eventstreams.ClusterResource
 	diags := req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -585,83 +682,57 @@ func (r *eventstreamsClusterResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "IsCombined", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress", "ServiceWatchLogCollection"}
+	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "IsCombined", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress", "ServiceWatchLogCollection", "InitConfigOption"}
 
-	if databaseUtils.IsOverlapFields(immutableFields, changeFields) {
+	// Reject changes to immutable fields, reporting only the fields actually changed.
+	if violated := databaseUtils.OverlapFields(immutableFields, changeFields); len(violated) > 0 {
 		resp.Diagnostics.AddError(
 			"Error Updating Cluster",
-			"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
+			"Immutable fields cannot be modified: "+strings.Join(violated, ", "),
 		)
 		return
 	}
 
-	// 변경 확인
+	// Dispatch each handler whose fields changed.
 	for _, h := range handlers {
-		if databaseUtils.IsOverlapFields(h.Fields, changeFields) {
-			if err := h.Handler(ctx, req, resp); err != nil {
-				resp.Diagnostics.AddError(
-					"Error Updating Cluster",
-					"Could not update cluster, unexpected error: "+err.Error(),
-				)
-				return
-			}
+		if !databaseUtils.IsOverlapFields(h.Fields, changeFields) {
+			continue
+		}
+		if err := h.Handler(ctx, req, resp); err != nil {
+			resp.Diagnostics.AddError(
+				"Error Updating Cluster",
+				"Could not update cluster, unexpected error: "+err.Error(),
+			)
+			return
 		}
 	}
 
-	data, err := r.client.GetCluster(ctx, state.Id.ValueString())
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddError(
-			"Error Reading cluster",
-			"Could not read cluster name "+state.Name.ValueString()+": "+err.Error()+"\nReason: "+detail,
-		)
-		return
-	}
-
-	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "eventstreams", "event-streams", state.Id.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Tag",
-			err.Error(),
-		)
-		return
-	}
-	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
-
-	newState, _ := r.MapGetResponseToState(ctx, data, plan, tagsMap)
-
-	diags = resp.State.Set(ctx, &newState)
+	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-}
-
-func (r *eventstreamsClusterResource) getStateTransitions() map[string]map[string]func(ctx context.Context, clusterId string) error {
-	transitions := make(map[string]map[string]func(ctx context.Context, clusterId string) error)
-
-	addState := func(from string, to string, callFunc func(ctx context.Context, clusterId string) error) {
-		// from map 이 구성 되지 않았을때 초기화
-		if transitions[from] == nil {
-			transitions[from] = make(map[string]func(ctx context.Context, clusterId string) error)
-		}
-		transitions[from][to] = callFunc
+	readReq := resource.ReadRequest{
+		State: resp.State,
 	}
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, readReq, readResp)
+	resp.State = readResp.State
 
-	// State Transition Map
-	addState("STOPPED", "RUNNING", r.client.StartCluster)
-	addState("RUNNING", "STOPPED", r.client.StopCluster)
-
-	return transitions
 }
 
 func (r *eventstreamsClusterResource) handlerUpdateClusterState(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan eventstreams.ClusterResource
 	var state eventstreams.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	currentState := state.ServiceState.ValueString()
 	desiredState := plan.ServiceState.ValueString()
@@ -670,30 +741,48 @@ func (r *eventstreamsClusterResource) handlerUpdateClusterState(ctx context.Cont
 		return nil
 	}
 
+	// 현재 상태가 전이 중(STOPPING/STARTING)이면 별도 명령 없이 종료 상태가 될 때까지 대기한다.
+	currentState, settleErr := databaseUtils.WaitForSettledState(ctx, currentState, plan.Id.ValueString(),
+		func(ctx context.Context, clusterId string, pendingStates, targetStates []string) error {
+			return waitForClusterStatus(ctx, r.client, clusterId, pendingStates, targetStates, true)
+		})
+	if settleErr != nil {
+		return settleErr
+	}
+
+	// 전이 대기 후 이미 목표 상태에 도달했으면 종료한다.
+	if currentState == desiredState {
+		return nil
+	}
+
 	// state에 따라 start, stop 구분
-	err := r.getStateTransitions()[currentState][desiredState](ctx, plan.Id.ValueString())
+	transition, ok := databaseUtils.GetStateTransitions(r.client)[currentState][desiredState]
+	if !ok || transition == nil {
+		return fmt.Errorf("unsupported service_state transition: %q -> %q (allowed transitions: STOPPED->RUNNING, RUNNING->STOPPED)", currentState, desiredState)
+	}
+
+	err := transition(ctx, plan.Id.ValueString())
 	if err != nil {
 		return err
 	}
 
-	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-		"ServiceState", desiredState, "ERROR", getFunc)
+	pendingStates := databaseUtils.GetPendingStates(currentState)
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), pendingStates, []string{desiredState}, true)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (r *eventstreamsClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan eventstreams.ClusterResource
 	var state eventstreams.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	clusterId := plan.Id.ValueString()
 
@@ -704,12 +793,7 @@ func (r *eventstreamsClusterResource) handlerUpdateClusterAllowableIpAddresses(c
 		return err
 	}
 
-	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-		"ServiceState", "RUNNING", "FAILED", getFunc)
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		return err
 	}
@@ -720,33 +804,52 @@ func (r *eventstreamsClusterResource) handlerUpdateClusterAllowableIpAddresses(c
 func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan eventstreams.ClusterResource
 	var state eventstreams.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	var planIGs []databaseUtils.InstanceGroup
 	plan.InstanceGroups.ElementsAs(ctx, &planIGs, false)
 	var stateIGs []databaseUtils.InstanceGroup
 	state.InstanceGroups.ElementsAs(ctx, &stateIGs, false)
 
-	for i := 0; i < len(planIGs); i++ {
-		currentInstanceGroup := stateIGs[i]
-		desiredInstanceGroup := planIGs[i]
+	stateIGByRole := make(map[string]databaseUtils.InstanceGroup, len(stateIGs))
+	for _, sg := range stateIGs {
+		if _, exists := stateIGByRole[sg.RoleType.ValueString()]; !exists {
+			stateIGByRole[sg.RoleType.ValueString()] = sg
+		}
+	}
 
-		instanceGroupFields := []string{"BlockStorageGroups", "Id", "Instances", "RoleType", "ServerTypeName"}
+	for i := 0; i < len(planIGs); i++ {
+		desiredInstanceGroup := planIGs[i]
+		currentInstanceGroup, matched := stateIGByRole[desiredInstanceGroup.RoleType.ValueString()]
+		if !matched {
+			continue
+		}
+
+		instanceGroupFields := []string{"Instances", "RoleType", "ServerTypeName"}
 
 		changedFields, err := databaseUtils.GetChangedFields(desiredInstanceGroup, currentInstanceGroup, instanceGroupFields)
 		if err != nil {
 			return err
 		}
 
-		immutableFields := []string{"Id", "RoleType"}
+		var currentBS []databaseUtils.BlockStorageGroup
+		currentInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &currentBS, false)
+		var desiredBS []databaseUtils.BlockStorageGroup
+		desiredInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &desiredBS, false)
+
+		if !reflect.DeepEqual(currentBS, desiredBS) {
+			changedFields = append(changedFields, "BlockStorageGroups")
+		}
+
+		immutableFields := []string{"RoleType"}
 
 		if databaseUtils.IsOverlapFields(immutableFields, changedFields) {
-			resp.Diagnostics.AddError(
-				"Error Updating Cluster",
-				"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
-			)
-			return nil
+			return fmt.Errorf("immutable fields cannot be modified: %s", strings.Join(immutableFields, ", "))
 		}
 
 		if len(changedFields) > 0 {
@@ -760,47 +863,18 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 
 			// BlockStorageGroups Update
 			if databaseUtils.IsOverlapFields(changedFields, []string{"BlockStorageGroups"}) {
-				var currentBS []databaseUtils.BlockStorageGroup
-				currentInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &currentBS, false)
-				var desiredBS []databaseUtils.BlockStorageGroup
-				desiredInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &desiredBS, false)
 
-				if len(currentBS) == len(desiredBS) {
-					// Resize Block Storage
-					for i := 0; i < len(currentBS); i++ {
-						currentBlockStorage := currentBS[i]
-						desiredBlockStorage := desiredBS[i]
-
-						bsFields := []string{"Id", "Name", "RoleType", "SizeGb", "VolumeType"}
-						changedBsFields, err := databaseUtils.GetChangedFields(currentBlockStorage, desiredBlockStorage, bsFields)
-						if err != nil {
-							return err
-						}
-
-						immutableBsFields := []string{"RoleType", "VolumeType"}
-
-						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
-							resp.Diagnostics.AddError(
-								"Error Updating Cluster",
-								"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
-							)
-							return nil
-						}
-
-						if databaseUtils.IsOverlapFields(changedBsFields, []string{"SizeGb"}) {
-							//client
-							err := r.client.SetBlockStorageSize(ctx, currentBlockStorage.Id.ValueString(), desiredBlockStorage.SizeGb.ValueInt32())
-							if err != nil {
-								return err
-							}
-						}
+				bsPlan, err := databaseUtils.PlanBlockStorageUpdate(currentBS, desiredBS)
+				if err != nil {
+					return err
+				}
+				if len(bsPlan.Adds) > 0 || len(bsPlan.Removed) > 0 {
+					return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: the eventstreams product does not support the addition of storage, so the addition of block storage in instances is restricted")
+				}
+				for _, resize := range bsPlan.Resizes {
+					if err := r.client.SetBlockStorageSize(ctx, resize.Id, resize.SizeGb); err != nil {
+						return err
 					}
-				} else {
-					resp.Diagnostics.AddError(
-						"Operation not permitted for BLOCK_STORAGE_GROUP type",
-						"the evnetstreams product does not support the addition of storage, so the addition of block storage in instances is restricted.",
-					)
-					return nil
 				}
 			}
 
@@ -809,11 +883,7 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 				// Kibana or DASHBOARDS
 				t := currentInstanceGroup.RoleType.ValueString()
 				if t == "KIBANA" || t == "DASHBOARDS" {
-					resp.Diagnostics.AddError(
-						"Invalid Instance Group Type",
-						fmt.Sprintf("Instance group of type '%s' does not support  adding instance", t),
-					)
-					return nil
+					return fmt.Errorf("instance group of type '%s' does not support adding instance", t)
 				}
 
 				var currentInst []databaseUtils.Instance
@@ -821,15 +891,16 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 				var desiredInst []databaseUtils.Instance
 				desiredInstanceGroup.Instances.ElementsAs(ctx, &desiredInst, false)
 
-				currentInstanceLen := len(currentInst)
-				desiredInstanceLen := len(desiredInst)
-
-				if desiredInstanceLen > currentInstanceLen {
-					instanceCount := int32(desiredInstanceLen - currentInstanceLen)
+				instancePlan := databaseUtils.PlanInstanceUpdate(currentInst, desiredInst)
+				if len(instancePlan.Removed) > 0 {
+					return fmt.Errorf("operation not permitted for INSTANCE type: removing an existing instance is not supported")
+				}
+				if len(instancePlan.Adds) > 0 {
+					instanceCount := int32(len(instancePlan.Adds))
 
 					var serviceIPAddresses []string
 
-					for _, instance := range desiredInst[currentInstanceLen:] {
+					for _, instance := range instancePlan.Adds {
 						if instance.ServiceIpAddress.IsNull() || instance.ServiceIpAddress.IsUnknown() {
 							serviceIPAddresses = []string{}
 							break
@@ -846,13 +917,7 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 				}
 			}
 
-			// wait for 구현
-			getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
-				return r.client.GetCluster(ctx, id)
-			}
-
-			_, err := databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-				"ServiceState", "RUNNING", "ERROR", getFunc)
+			err := waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true)
 			if err != nil {
 				return err
 			}
@@ -866,11 +931,15 @@ func (r *eventstreamsClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 func (r *eventstreamsClusterResource) handlerUpdateTag(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan eventstreams.ClusterResource
 	var state eventstreams.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	// Update
-	_, err := tag.UpdateTags(r.clients, "eventstreams", "event-streams", plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, "eventstreams", "event-streams", plan.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
@@ -900,21 +969,44 @@ func (r *eventstreamsClusterResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	// cluster 조회 func
-	getFunc := func(id string) (*scpEventstreams.EventStreamsClusterDetailResponseV1Dot1, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	// wait for 구현
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, clusterId, 200, 20*time.Second,
-		"ServiceState", "TERMINATED", "FAILED", getFunc)
+	err = waitForClusterStatus(ctx, r.client, clusterId, []string{"TERMINATING"}, []string{"TERMINATED"}, false)
 	if err != nil {
-		if err.Error() != "404 Not Found" {
-			resp.Diagnostics.AddError(
-				"Error reading server",
-				"Could not read server, unexpected error: "+err.Error(),
-			)
-			return
-		}
+		resp.Diagnostics.AddError(
+			"Error waiting for cluster deletion",
+			"Could not wait for cluster deletion, unexpected error: "+err.Error(),
+		)
+		return
 	}
+}
+
+func (r *eventstreamsClusterResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func waitForClusterStatus(ctx context.Context, esClient *eventstreams.Client, id string, pendingStates []string, targetStates []string, errorOnNotFound bool) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, httpStatus, err := esClient.GetCluster(ctx, id)
+		if httpStatus == 200 {
+			currentState := string(info.ServiceState)
+			for _, s := range pendingStates {
+				if s == currentState {
+					return info, currentState, nil
+				}
+			}
+			for _, s := range targetStates {
+				if s == currentState {
+					return info, currentState, nil
+				}
+			}
+			return nil, "", fmt.Errorf("cluster with id=%s transitioned to unexpected state: %s", id, currentState)
+		} else if httpStatus == 404 {
+			if errorOnNotFound {
+				return nil, "", fmt.Errorf("cluster with id=%s not found", id)
+			}
+			return info, "TERMINATED", nil
+		} else if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.ServiceState), nil
+	}, -1, -1, -1, -1)
 }

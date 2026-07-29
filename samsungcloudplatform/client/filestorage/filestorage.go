@@ -3,8 +3,8 @@ package filestorage
 import (
 	"context"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/filestorage/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/filestorage/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -21,7 +21,7 @@ func NewClient(config *scpsdk.Configuration) *Client { // client 생성 함수�
 }
 
 // FileStorage
-func (client *Client) GetVolumeList(ctx context.Context, request VolumeDataSourceIds) (*scpfilestorage.VolumeListResponse, error) {
+func (client *Client) GetVolumeList(ctx context.Context, request VolumeDataSourceIds) (*scpfilestorage.VolumeListResponseV1Dot2, error) {
 	req := client.sdkClient.FilestorageV1VolumeAPIsAPI.ListVolumes(ctx)
 	if !request.Limit.IsNull() {
 		req = req.Limit(request.Limit.ValueInt32())
@@ -39,7 +39,7 @@ func (client *Client) GetVolumeList(ctx context.Context, request VolumeDataSourc
 	return resp, err
 }
 
-func (client *Client) CreateVolume(ctx context.Context, request VolumeResource) (*scpfilestorage.VolumeCreateResponse, error) {
+func (client *Client) CreateVolume(ctx context.Context, request VolumeResource) (*scpfilestorage.VolumeCreateResponseV1Dot2, error) {
 	req := client.sdkClient.FilestorageV1VolumeAPIsAPI.CreateVolume(ctx)
 
 	if request.Id.ValueString() == "" {
@@ -56,19 +56,20 @@ func (client *Client) CreateVolume(ctx context.Context, request VolumeResource) 
 		TagsObjects = append(TagsObjects, tagObject)
 	}
 
-	req = req.VolumeCreateRequest(scpfilestorage.VolumeCreateRequest{
+	req = req.VolumeCreateRequestV1Dot2(scpfilestorage.VolumeCreateRequestV1Dot2{
 		CifsPassword: *scpfilestorage.NewNullableString(request.CifsPassword.ValueStringPointer()),
 		Name:         request.Name.ValueString(),
 		Protocol:     request.Protocol.ValueString(),
 		TypeName:     request.TypeName.ValueString(),
 		Tags:         TagsObjects,
+		Zone:         request.Zone.ValueString(),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) GetVolume(ctx context.Context, id string) (*scpfilestorage.VolumeShowResponse, error) {
+func (client *Client) GetVolume(ctx context.Context, id string) (*scpfilestorage.VolumeShowResponseV1Dot2, error) {
 	req := client.sdkClient.FilestorageV1VolumeAPIsAPI.ShowVolume(ctx, id)
 	resp, _, err := req.Execute()
 	return resp, err
@@ -169,13 +170,13 @@ func (client *Client) UpdateVolumeAccessRule(ctx context.Context, id string, req
 }
 
 // Replication
-func (client *Client) CreateReplication(ctx context.Context, request ReplicationResource) (*scpfilestorage.ReplicationCreateResponse, error) {
+func (client *Client) CreateReplication(ctx context.Context, request ReplicationResource) (*scpfilestorage.ReplicationCreateResponseV1Dot2, error) {
 	req := client.sdkClient.FilestorageV1VolumeReplicationAPIsAPI.CreateVolumeReplication(ctx)
 
-	req = req.ReplicationCreateRequest(scpfilestorage.ReplicationCreateRequest{
+	req = req.ReplicationCreateRequestV1Dot2(scpfilestorage.ReplicationCreateRequestV1Dot2{
 		CifsPassword:         *scpfilestorage.NewNullableString(request.CifsPassword.ValueStringPointer()),
 		Name:                 request.Name.ValueString(),
-		Region:               request.Region.ValueString(),
+		Zone:                 request.Zone.ValueString(),
 		ReplicationFrequency: request.ReplicationFrequency.ValueString(),
 		VolumeId:             request.VolumeId.ValueString(),
 		ReplicationType:      request.ReplicationType.ValueString(),
@@ -201,7 +202,7 @@ func (client *Client) UpdateVolumeReplication(ctx context.Context, id string, vo
 	return err
 }
 
-func (client *Client) GetVolumeReplicationList(ctx context.Context, id string) (*scpfilestorage.ReplicationListResponse, error) {
+func (client *Client) GetVolumeReplicationList(ctx context.Context, id string) (*scpfilestorage.ReplicationListResponseV1Dot2, error) {
 	req := client.sdkClient.FilestorageV1VolumeReplicationAPIsAPI.ListVolumeReplications(ctx)
 	req = req.VolumeId(id)
 
@@ -209,7 +210,7 @@ func (client *Client) GetVolumeReplicationList(ctx context.Context, id string) (
 	return resp, err
 }
 
-func (client *Client) GetVolumeReplication(ctx context.Context, replicationId, volumeId string) (*scpfilestorage.ReplicationShowResponse, error) {
+func (client *Client) GetVolumeReplication(ctx context.Context, replicationId, volumeId string) (*scpfilestorage.ReplicationShowResponseV1Dot2, error) {
 	req := client.sdkClient.FilestorageV1VolumeReplicationAPIsAPI.ShowVolumeReplication(ctx, replicationId)
 	req = req.VolumeId(volumeId)
 

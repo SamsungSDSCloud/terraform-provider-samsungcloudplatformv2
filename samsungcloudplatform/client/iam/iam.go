@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/iam/1.4"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -166,7 +166,7 @@ func (client *Client) CreateGroup(ctx context.Context, request GroupResource) (*
 	req := client.sdkClient.IamV1GroupsApiAPI.CreateGroup(ctx)
 
 	//tag
-	var TagsObject []map[string]string
+	TagsObject := []map[string]string{}
 
 	for k, v := range request.Tags.Elements() {
 		tagObject := make(map[string]string)
@@ -177,13 +177,13 @@ func (client *Client) CreateGroup(ctx context.Context, request GroupResource) (*
 	}
 
 	//policy ids
-	var policyIds []string
+	policyIds := []string{}
 	for _, policyId := range request.PolicyIds {
 		policyIds = append(policyIds, policyId.ValueString())
 	}
 
 	//user ids
-	var userIds []string
+	userIds := []string{}
 	for _, userId := range request.UserIds {
 		userIds = append(userIds, userId.ValueString())
 	}
@@ -296,7 +296,7 @@ func (client *Client) GetGroupPolicyBindings(ctx context.Context, groupId string
 func (client *Client) AddGroupPolicyBindings(ctx context.Context, groupId string, request GroupPolicyBindingsResource) (*scpsdkiam.GroupPolicyResponse, error) {
 	req := client.sdkClient.IamV1GroupsApiAPI.AddGroupPolicyBinding(ctx, groupId)
 
-	var policyIds []string
+	policyIds := []string{}
 	for _, policyId := range request.PolicyIds {
 		policyIds = append(policyIds, policyId.ValueString())
 	}
@@ -356,7 +356,7 @@ func (client *Client) CreatePolicy(ctx context.Context, request PolicyResource) 
 	req := client.sdkClient.IamV1PoliciesApiAPI.CreatePolicy(ctx)
 
 	//tag
-	var TagsObject []map[string]string
+	TagsObject := []map[string]string{}
 	for k, v := range request.Tags.Elements() {
 		tagObject := make(map[string]string)
 		tagObject["key"] = k
@@ -366,23 +366,23 @@ func (client *Client) CreatePolicy(ctx context.Context, request PolicyResource) 
 	}
 
 	//policy version
-	var statements []scpsdkiam.Statement
+	statements := []scpsdkiam.Statement{}
 	for _, _statement := range request.PolicyVersion.PolicyDocument.Statement {
 
 		// resource
-		var resources []string
+		resources := []string{}
 		for _, _resource := range _statement.Resource {
 			resources = append(resources, _resource.ValueString())
 		}
 
 		// action
-		var actions []string
+		actions := []string{}
 		for _, _action := range _statement.Action {
 			actions = append(actions, _action.ValueString())
 		}
 
 		// not action
-		var notActions []string
+		notActions := []string{}
 		for _, _notAction := range _statement.NotAction {
 			notActions = append(notActions, _notAction.ValueString())
 		}
@@ -440,23 +440,23 @@ func (client *Client) UpdatePolicy(ctx context.Context, policyId string, request
 	req := client.sdkClient.IamV1PoliciesApiAPI.SetPolicy(ctx, policyId)
 
 	//policy version
-	var statements []scpsdkiam.Statement
+	statements := []scpsdkiam.Statement{}
 	for _, _statement := range request.PolicyVersion.PolicyDocument.Statement {
 
 		// resource
-		var resources []string
+		resources := []string{}
 		for _, _resource := range _statement.Resource {
 			resources = append(resources, _resource.ValueString())
 		}
 
 		// action
-		var actions []string
+		actions := []string{}
 		for _, _action := range _statement.Action {
 			actions = append(actions, _action.ValueString())
 		}
 
 		// not action
-		var notActions []string
+		notActions := []string{}
 		for _, _notAction := range _statement.NotAction {
 			notActions = append(notActions, _notAction.ValueString())
 		}
@@ -585,7 +585,7 @@ func (client *Client) CreateRole(ctx context.Context, request RoleResource) (*sc
 	req := client.sdkClient.IamV1RolesApiAPI.CreateRole(ctx)
 
 	// tag
-	var TagsObject []map[string]string
+	TagsObject := []map[string]string{}
 
 	for k, v := range request.Tags.Elements() {
 		tagObject := make(map[string]string)
@@ -596,13 +596,13 @@ func (client *Client) CreateRole(ctx context.Context, request RoleResource) (*sc
 	}
 
 	//policy ids
-	var policyIds []string
+	policyIds := []string{}
 	for _, policyId := range request.PolicyIds {
 		policyIds = append(policyIds, policyId.ValueString())
 	}
 
 	//pricipals
-	var roleTrustPolicyPrincipals []scpsdkiam.RoleTrustPolicyPrincipal
+	roleTrustPolicyPrincipals := []scpsdkiam.RoleTrustPolicyPrincipal{}
 	for _, principal := range request.Principals {
 		roleTrustPolicyPrincipals = append(roleTrustPolicyPrincipals, scpsdkiam.RoleTrustPolicyPrincipal{
 			Type:  principal.Type.ValueString(),
@@ -611,7 +611,7 @@ func (client *Client) CreateRole(ctx context.Context, request RoleResource) (*sc
 	}
 
 	// assume role policy
-	var statements []scpsdkiam.Statement
+	statements := []scpsdkiam.Statement{}
 	var version string
 	if request.AssumeRolePolicyDocument != nil {
 		version = request.AssumeRolePolicyDocument.Version.ValueString()
@@ -619,53 +619,25 @@ func (client *Client) CreateRole(ctx context.Context, request RoleResource) (*sc
 		for _, _statement := range request.AssumeRolePolicyDocument.Statement {
 
 			// resource
-			var resources []string
+			resources := []string{}
 			for _, _resource := range _statement.Resource {
 				resources = append(resources, _resource.ValueString())
 			}
 
 			// action
-			var actions []string
+			actions := []string{}
 			for _, _action := range _statement.Action {
 				actions = append(actions, _action.ValueString())
 			}
 
 			// not action
-			var notActions []string
+			notActions := []string{}
 			for _, _notAction := range _statement.NotAction {
 				notActions = append(notActions, _notAction.ValueString())
 			}
 
 			// principal
-			var principalData interface{}
-
-			isPrincipalStringSet := !_statement.Principal.PrincipalString.IsNull()
-			isPrincipalMapSet := !_statement.Principal.PrincipalMap.IsNull()
-
-			if isPrincipalStringSet {
-				principalData = _statement.Principal.PrincipalString.ValueStringPointer()
-			} else if isPrincipalMapSet {
-				var principalMap = map[string][]string{}
-				for key, value := range _statement.Principal.PrincipalMap.Elements() {
-					listVal, ok := value.(basetypes.ListValue)
-					if !ok || listVal.IsUnknown() || listVal.IsNull() {
-						continue
-					}
-					var principalItem []string
-					for _, v := range listVal.Elements() {
-						s, ok := v.(basetypes.StringValue)
-						if !ok || s.IsUnknown() || s.IsNull() {
-							continue
-						}
-						principalItem = append(principalItem, s.ValueString())
-					}
-					principalMap[key] = principalItem
-				}
-				principalData = principalMap
-			} else {
-				principalData = nil
-			}
-
+			principalData := buildPrincipalData(_statement.Principal.PrincipalString, _statement.Principal.PrincipalMap)
 			principal := createNullablePrincipal(principalData)
 
 			// condition
@@ -719,6 +691,34 @@ func (client *Client) CreateRole(ctx context.Context, request RoleResource) (*sc
 
 	resp, _, err := req.Execute()
 	return resp, err
+}
+
+func buildPrincipalData(principalString types.String, principalMap types.Map) interface{} {
+	if !principalString.IsNull() {
+		return principalString.ValueStringPointer()
+	}
+
+	if !principalMap.IsNull() {
+		result := map[string][]string{}
+		for key, value := range principalMap.Elements() {
+			listVal, ok := value.(basetypes.ListValue)
+			if !ok || listVal.IsUnknown() || listVal.IsNull() {
+				continue
+			}
+			items := []string{}
+			for _, v := range listVal.Elements() {
+				s, ok := v.(basetypes.StringValue)
+				if !ok || s.IsUnknown() || s.IsNull() {
+					continue
+				}
+				items = append(items, s.ValueString())
+			}
+			result[key] = items
+		}
+		return result
+	}
+
+	return nil
 }
 
 func createNullablePrincipal(principalData interface{}) *scpsdkiam.NullablePrincipal {
@@ -788,7 +788,7 @@ func (client *Client) GetRolePolicyBindings(ctx context.Context, roleId string, 
 func (client *Client) AddRolePolicyBindings(ctx context.Context, roleId string, request RolePolicyBindingsResource) (*scpsdkiam.RolePolicyBindingResponse, error) {
 	req := client.sdkClient.IamV1RolesApiAPI.AddRolePolicyBindings(ctx, roleId)
 
-	var policyIds []string
+	policyIds := []string{}
 	for _, policyId := range request.PolicyIds {
 		policyIds = append(policyIds, policyId.ValueString())
 	}
@@ -849,19 +849,19 @@ func (client *Client) CreateUser(ctx context.Context, request UserResource) (*sc
 	req := client.sdkClient.IamV1AccountsApiAPI.CreateIAMUser(ctx, request.AccountId.ValueString())
 
 	//group ids
-	var groupIds []string
+	groupIds := []string{}
 	for _, groupId := range request.GroupIds {
 		groupIds = append(groupIds, groupId.ValueString())
 	}
 
 	//policy ids
-	var policyIds []string
+	policyIds := []string{}
 	for _, policyId := range request.PolicyIds {
 		policyIds = append(policyIds, policyId.ValueString())
 	}
 
 	//tag
-	var TagsObject []map[string]string
+	TagsObject := []map[string]string{}
 
 	for k, v := range request.Tags.Elements() {
 		tagObject := make(map[string]string)
@@ -932,7 +932,7 @@ func (client *Client) GetUserPolicyBindings(ctx context.Context, userId string, 
 func (client *Client) AddUserPolicyBindings(ctx context.Context, userId string, request UserPolicyBindingsResource) (*scpsdkiam.UserPolicyResponse, error) {
 	req := client.sdkClient.IamV1UsersApiAPI.AddUserPolicyBinding(ctx, userId)
 
-	var policyIds []string
+	policyIds := []string{}
 	for _, policyId := range request.PolicyIds {
 		policyIds = append(policyIds, policyId.ValueString())
 	}

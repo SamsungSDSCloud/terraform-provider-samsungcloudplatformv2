@@ -146,6 +146,8 @@ variable "color" {
  - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
  - example: YOUR RESOURCE'S MODIFIED_BY
+- `namespace_code` (String) Namespace code of the dashboard.
+ - example : kr-west1
 - `share_type` (String) Sharing type.
  - example : Private
 - `srn` (String) Service resource name.

@@ -77,5 +77,7 @@ Read-Only:
  - example : Production-Web-Servers
  - minLength: 3
  - maxLength: 512
+- `namespace_code` (String) Namespace code of the dashboard.
+ - example : kr-west1
 - `type` (String) Dashboard type.
  - example : Custom

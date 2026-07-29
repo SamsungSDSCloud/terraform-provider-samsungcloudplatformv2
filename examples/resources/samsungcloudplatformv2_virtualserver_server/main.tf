@@ -33,4 +33,6 @@ resource "samsungcloudplatformv2_virtualserver_server" "server" {
   tags = {
     "test_terraform_tag_key": "test_terraform_tag_value"
   }
+
+  zone = var.zone
 }

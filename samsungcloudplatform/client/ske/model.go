@@ -1,7 +1,7 @@
 package ske
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -228,6 +228,9 @@ type NodepoolResource struct {
 	VolumeMaxIops       types.Int32       `tfsdk:"volume_max_iops"`       // v1.4
 	VolumeMaxThroughput types.Int32       `tfsdk:"volume_max_throughput"` // v1.4
 	ScpGpuDriver        types.String      `tfsdk:"scp_gpu_driver"`        // v1.4
+	PreferredIps        types.String      `tfsdk:"preferred_ips"`         // v1.5
+	SubnetId            types.String      `tfsdk:"subnet_id"`             // v1.5
+	Zone                types.String      `tfsdk:"zone"`                  // v1.5
 	Nodepool            types.Object      `tfsdk:"nodepool"`
 }
 
@@ -260,6 +263,9 @@ type Nodepool struct {
 	LinkedResources     []LinkedResource  `tfsdk:"linked_resources"`      // v1.3
 	VolumeMaxIops       *int32            `tfsdk:"volume_max_iops"`       // v1.4
 	VolumeMaxThroughput *int32            `tfsdk:"volume_max_throughput"` // v1.4
+	PreferredIps        types.String      `tfsdk:"preferred_ips"`         // v1.5
+	SubnetId            types.String      `tfsdk:"subnet_id"`             // v1.5
+	Zone                types.String      `tfsdk:"zone"`                  // v1.5
 }
 
 func (m Nodepool) AttributeTypes() map[string]attr.Type {
@@ -348,6 +354,9 @@ func (m Nodepool) AttributeTypes() map[string]attr.Type {
 		// v1.4
 		"volume_max_iops":       types.Int32Type,
 		"volume_max_throughput": types.Int32Type,
+		"preferred_ips":         types.StringType,
+		"subnet_id":             types.StringType,
+		"zone":                  types.StringType,
 	}
 }
 

@@ -47,7 +47,8 @@ variable "access_key_limit" {
 
 ### Read-Only
 
-- `access_keys` (Attributes List) A list of access keys. (see [below for nested schema](#nestedatt--access_keys))
+- `access_keys` (Attributes List) A list of access keys.
+  - example : [{"access_key": "ak-example-access-key-id", "access_key_type": "PERMANENT", ...}] (see [below for nested schema](#nestedatt--access_keys))
 
 <a id="nestedatt--access_keys"></a>
 ### Nested Schema for `access_keys`

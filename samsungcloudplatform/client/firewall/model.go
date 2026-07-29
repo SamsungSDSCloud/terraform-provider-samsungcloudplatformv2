@@ -1,7 +1,7 @@
 package firewall
 
 import (
-	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/firewall/1.0"
+	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/firewall/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -93,9 +93,9 @@ type FirewallRuleDataSourceIds struct {
 }
 
 type FirewallRuleResource struct {
-	Id                 types.String       `tfsdk:"id"`
-	FirewallRule       types.Object       `tfsdk:"firewall_rule"`
-	FirewallId         types.String       `tfsdk:"firewall_id"`
+	Id                 types.String        `tfsdk:"id"`
+	FirewallRule       types.Object        `tfsdk:"firewall_rule"`
+	FirewallId         types.String        `tfsdk:"firewall_id"`
 	FirewallRuleCreate *FirewallRuleCreate `tfsdk:"firewall_rule_create"`
 }
 

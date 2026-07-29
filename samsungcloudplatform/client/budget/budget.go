@@ -4,10 +4,22 @@ import (
 	"context"
 	"math"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	budget "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/budget/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	budget "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/budget/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+func convertAmountToFloat64(amount types.Number) float64 {
+    if amount.IsNull() || amount.IsUnknown() {
+        return 0.0
+    }
+    bigFloat := amount.ValueBigFloat()
+    if bigFloat == nil {
+        return 0.0
+    }
+    f, _ := bigFloat.Float64()
+    return f
+}
 
 type Client struct {
 	Config    *scpsdk.Configuration
@@ -74,7 +86,7 @@ func (client *Client) CreateAccountBudget(ctx context.Context, request BudgetRes
 	}
 
 	req = req.BudgetCreateRequest(budget.BudgetCreateRequest{
-		Amount:        request.Amount.ValueInt32(),
+		Amount:        convertAmountToFloat64(request.Amount),
 		Name:          request.Name.ValueString(),
 		Notifications: *budget.NewNullableNotificationSettingNew(convertNotifications),
 		Prevention:    *budget.NewNullablePreventionSettingNew(convertPrevention),
@@ -152,7 +164,7 @@ func (client *Client) SetAccountBudget(ctx context.Context, budgetId string, req
 	}
 
 	req = req.BudgetSetRequest(budget.BudgetSetRequest{
-		Amount:        request.Amount.ValueInt32(),
+		Amount:       convertAmountToFloat64(request.Amount),
 		Name:          request.Name.ValueString(),
 		Notifications: *budget.NewNullableNotificationSettingNew(convertNotifications),
 		Prevention:    *budget.NewNullablePreventionSettingNew(convertPrevention),

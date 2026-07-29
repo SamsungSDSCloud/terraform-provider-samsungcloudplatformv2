@@ -97,6 +97,8 @@ Read-Only:
  - example : AVG
 - `threshold` (Number) Threshold for the Alert condition (except for RANGE operator).
  - example : 80.0
+- `timestamp` (String) The timestamp when the alert was triggered, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
 - `upper_bound` (Number) Upper bound for the Alert range operator.
  - example : 90.0
 - `violation_count` (Number) Violation count for the Alert condition.

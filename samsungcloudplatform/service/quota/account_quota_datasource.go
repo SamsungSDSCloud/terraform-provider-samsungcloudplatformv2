@@ -3,14 +3,15 @@ package quota
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/quota"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/quota"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -85,26 +86,27 @@ func (d *quotaAccountQuotaDataSource) Read(ctx context.Context, req datasource.R
 	accountQuotaElement := data.AccountQuota
 
 	accountQuotaModel := quota.AccountQuota{
-		AccountId:    types.StringValue(accountQuotaElement.AccountId),
-		AccountName:  types.StringValue(accountQuotaElement.AccountName),
-		Adjustable:   types.BoolValue(accountQuotaElement.Adjustable),
-		AppliedValue: common.ToNullableInt32Value(accountQuotaElement.AppliedValue.Get()),
-		Approval:     types.BoolValue(accountQuotaElement.Approval),
-		ClassValue:   types.StringValue(accountQuotaElement.ClassValue),
-		CreatedAt:    types.StringValue(accountQuotaElement.CreatedAt.Format(time.RFC3339)),
-		Description:  types.StringValue(accountQuotaElement.Description),
-		FreeRate:     types.Int32Value(accountQuotaElement.FreeRate),
-		Id:           types.StringValue(accountQuotaElement.Id),
-		InitialValue: types.Int32Value(accountQuotaElement.InitialValue),
-		ModifiedAt:   types.StringValue(accountQuotaElement.ModifiedAt.Format(time.RFC3339)),
-		QuotaItem:    types.StringValue(accountQuotaElement.QuotaItem),
-		Reduction:    types.BoolPointerValue(accountQuotaElement.Reduction),
-		Request:      types.BoolPointerValue(accountQuotaElement.Request),
-		RequestClass: types.StringValue(accountQuotaElement.RequestClass),
-		ResourceType: types.StringValue(accountQuotaElement.ResourceType),
-		Service:      types.StringValue(accountQuotaElement.Service),
-		Srn:          types.StringValue(accountQuotaElement.Srn),
-		Unit:         types.StringValue(accountQuotaElement.Unit),
+		AccountId:         types.StringValue(accountQuotaElement.AccountId),
+		AccountName:       types.StringValue(accountQuotaElement.AccountName),
+		Adjustable:        types.BoolValue(accountQuotaElement.Adjustable),
+		AppliedValue:      common.ToNullableInt32Value(accountQuotaElement.AppliedValue.Get()),
+		Approval:          types.BoolValue(accountQuotaElement.Approval),
+		ClassValue:        types.StringValue(accountQuotaElement.ClassValue),
+		CreatedAt:         types.StringValue(accountQuotaElement.CreatedAt.Format(time.RFC3339)),
+		Description:       types.StringValue(accountQuotaElement.Description),
+		FreeRate:          types.Int32Value(accountQuotaElement.FreeRate),
+		Id:                types.StringValue(accountQuotaElement.Id),
+		InitialValue:      types.Int32Value(accountQuotaElement.InitialValue),
+		ModifiedAt:        types.StringValue(accountQuotaElement.ModifiedAt.Format(time.RFC3339)),
+		QuotaItem:         types.StringValue(accountQuotaElement.QuotaItem),
+		ReclamationPeriod: common.ToNullableInt32Value(accountQuotaElement.ReclamationPeriod.Get()),
+		Reduction:         types.BoolPointerValue(accountQuotaElement.Reduction),
+		Request:           types.BoolPointerValue(accountQuotaElement.Request),
+		RequestClass:      types.StringValue(accountQuotaElement.RequestClass),
+		ResourceType:      types.StringValue(accountQuotaElement.ResourceType),
+		Service:           types.StringValue(accountQuotaElement.Service),
+		Srn:               types.StringValue(accountQuotaElement.Srn),
+		Unit:              types.StringValue(accountQuotaElement.Unit),
 	}
 
 	AccountQuotaObjectValue, _ := types.ObjectValueFrom(ctx, accountQuotaModel.AttributeTypes(), accountQuotaModel)
@@ -192,6 +194,9 @@ func AccountQuotaDataSourceSchema() schema.Schema {
 						Computed:            true,
 						Description:         "Specific quota item within the resource\n  - example: QUOTA.REQUEST.COUNT",
 						MarkdownDescription: "Specific quota item within the resource\n  - example: QUOTA.REQUEST.COUNT",
+					},
+					"reclamation_period": schema.Int64Attribute{
+						Computed: true,
 					},
 					"reduction": schema.BoolAttribute{
 						Computed:            true,

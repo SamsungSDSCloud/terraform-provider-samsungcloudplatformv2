@@ -1,7 +1,7 @@
 package budget
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -23,7 +23,7 @@ type BudgetResource struct {
 	LastUpdated   types.String  `tfsdk:"last_updated"`
 	Budget        types.Object  `tfsdk:"budget"`
 	Name          types.String  `tfsdk:"name"`
-	Amount        types.Int32   `tfsdk:"amount"`
+	Amount        types.Number   `tfsdk:"amount"`
 	StartMonth    types.String  `tfsdk:"start_month"`
 	Unit          types.String  `tfsdk:"unit"`
 	Notifications Notifications `tfsdk:"notifications"`
@@ -42,7 +42,7 @@ type BudgetDataSourceIds struct {
 }
 
 type Budget struct {
-	Amount     types.Int32  `tfsdk:"amount"`
+	Amount     types.Number  `tfsdk:"amount"`
 	CreatedAt  types.String `tfsdk:"created_at"`
 	CreatedBy  types.String `tfsdk:"created_by"`
 	BudgetId   types.String `tfsdk:"budget_id"`
@@ -57,7 +57,7 @@ type Budget struct {
 
 func (v Budget) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"amount":      types.Int32Type,
+		"amount":      types.NumberType,
 		"created_at":  types.StringType,
 		"created_by":  types.StringType,
 		"budget_id":   types.StringType,

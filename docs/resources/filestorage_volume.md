@@ -23,6 +23,7 @@ resource "samsungcloudplatformv2_filestorage_volume" "volume" {
   file_unit_recovery_enabled = var.file_unit_recovery_enabled
   tags = var.tags
   access_rules = var.access_rules
+  zone = var.zone
 }
 
 output "volume_output" {
@@ -59,10 +60,7 @@ variable "access_rules" {
     object_type = string,
     object_id   = string
   }))
-  default = [{
-    object_id   = "ENTER YOUR RESOURCE'S OBJECT_ID"
-    object_type = "VM"
-  }]
+  default = []
 }
 
 variable "tags" {
@@ -70,6 +68,11 @@ variable "tags" {
   default = {
     test_terraform = "test_terraform_value"
   }
+}
+
+variable "zone" {
+  type    = string
+  default = "kr-west1-a"
 }
 ```
 
@@ -88,13 +91,15 @@ variable "tags" {
   - pattern: `^(NFS|CIFS)$`
 - `type_name` (String) Volume Type Name 
   - example : 'HDD' 
-  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$`
+  - pattern: `^(HDD|SSD|HighPerformanceSSD)$`
+- `zone` (String) Zone 
+  - example : 'kr-west1-a'
 
 ### Optional
 
 - `access_rules` (Attributes Set) List of AccessRule (see [below for nested schema](#nestedatt--access_rules))
-- `cifs_password` (String, Sensitive) Cifs Password 
-  - example : '<YOUR_CIFS_PASSWORD>' 
+- `cifs_password` (String) Cifs Password 
+  - example: YOUR RESOURCE'S CIFS_PASSWORD
   - maxLength: 20  
   - minLength: 6  
   - pattern: `^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#&\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\d!#&\'*+,-.:;<=>?@^_`~/|]{6,20}$`
@@ -124,8 +129,6 @@ variable "tags" {
 - `purpose` (String) The designated purpose or workload type of the volume (e.g., general, backup). 
   - example : 'none'
 - `state` (String) The current lifecycle state of the volume. Valid values: creating, available, error, deleting.
-- `type_id` (String) The unique identifier of the storage tier (volume type) assigned to this volume. 
-  - example: YOUR RESOURCE'S TYPE_ID
 
 <a id="nestedatt--access_rules"></a>
 ### Nested Schema for `access_rules`

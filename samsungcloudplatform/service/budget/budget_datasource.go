@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/budget"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/budget"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -47,124 +47,124 @@ func (d *budgetBudgetDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 		Description: "Account budget.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "ID of the budget to filter by.",
+				Description:         "ID of the budget to filter by.",
 				MarkdownDescription: "ID of the budget to filter by.\n\nExample: `aaaaaa123456789abcede`",
-				Optional:    true,
+				Optional:            true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Budget name.",
+				Description:         "Budget name.",
 				MarkdownDescription: "Name of the budget to filter by.\n\nAllowed length: 20 korean character, english character, digit, space, +=,.@-_.\n\nExample: `ex_month_budget`",
-				Optional:    true,
+				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 20),
 				},
 			},
 			common.ToSnakeCase("Budget"): schema.SingleNestedAttribute{
-				Description: "Account budget details.",
+				Description:         "Account budget details.",
 				MarkdownDescription: "Details of the account budget.",
-				Computed:    true,
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("BudgetId"): schema.StringAttribute{
-						Description: "Unique ID of the budget.",
+						Description:         "Unique ID of the budget.",
 						MarkdownDescription: "The unique ID of the budget.\n\nExample: `ab1234567890abcdef`",
-						Computed:    true,
+						Computed:            true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
 						Description:         "Budget name",
-                        MarkdownDescription: "The name of the budget.\n\nExample: `ex_month_budget`",
-						Computed:    true,
+						MarkdownDescription: "The name of the budget.\n\nExample: `ex_month_budget`",
+						Computed:            true,
 					},
-					common.ToSnakeCase("Amount"): schema.Int32Attribute{
+					common.ToSnakeCase("Amount"): schema.NumberAttribute{
 						Description:         "Budget amount",
-                        MarkdownDescription: "The budget amount in the specified currency unit.\n\nExample: `1000000`",
-						Computed:    true,
+						MarkdownDescription: "The budget amount in the specified currency unit.\n\nExample: `1000000`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
 						Description:         "Budget type",
 						MarkdownDescription: "The type of the budget. Default type is  `COST`\n\nAllowed values: `COST`\n\nExample: `COST`",
-						Computed:    true,
+						Computed:            true,
 					},
 					common.ToSnakeCase("Unit"): schema.StringAttribute{
-                        Description:         "Budget management unit",
-                        MarkdownDescription: "The budget manage unit.\n\nAllowed values: `MONTHLY` | `OVERALL`\n\nExample: `MONTHLY`",
-						Computed:    true,
+						Description:         "Budget management unit",
+						MarkdownDescription: "The budget manage unit.\n\nAllowed values: `MONTHLY` | `OVERALL`\n\nExample: `MONTHLY`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("StartMonth"): schema.StringAttribute{
-                        Description:         "Budget start month",
-                        MarkdownDescription: "The month when the budget period starts.\n\nExample: `2024-01`",
-						Computed:    true,
+						Description:         "Budget start month",
+						MarkdownDescription: "The month when the budget period starts.\n\nExample: `2024-01`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-                        Description:         "Created datetime",
-                        MarkdownDescription: "The datetime when the budget was created.\n\nExample: `2024-01-15T00:00:00`",
-						Computed:    true,
+						Description:         "Created datetime",
+						MarkdownDescription: "The datetime when the budget was created.\n\nExample: `2024-01-15T00:00:00`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-                        Description:         "Created user",
-                        MarkdownDescription: "The user who created the budget.\n\nExample: `user@example.com`",
-						Computed:    true,
+						Description:         "Created user",
+						MarkdownDescription: "The user who created the budget.\n\nExample: `user@example.com`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-                        Description:         "Modified datetime",
-                        MarkdownDescription: "The datetime when the budget was last modified.\n\nExample: `2024-01-15T00:00:00`",
-						Computed:    true,
+						Description:         "Modified datetime",
+						MarkdownDescription: "The datetime when the budget was last modified.\n\nExample: `2024-01-15T00:00:00`",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-                        Description:         "Modified user",
-                        MarkdownDescription: "The user who last modified the budget.\n\nExample: `user@example.com`",
-						Computed:    true,
+						Description:         "Modified user",
+						MarkdownDescription: "The user who last modified the budget.\n\nExample: `user@example.com`",
+						Computed:            true,
 					},
 				},
 			},
 			common.ToSnakeCase("Notifications"): schema.SingleNestedAttribute{
-                Description:         "Notification settings for the budget",
-                MarkdownDescription: "Settings for budget alerts when usage exceeds defined thresholds.",
-				Computed:    true,
+				Description:         "Notification settings for the budget",
+				MarkdownDescription: "Settings for budget alerts when usage exceeds defined thresholds.",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("IsUseNotification"): schema.BoolAttribute{
-                        Description:         "Notification use state",
-                        MarkdownDescription: "Whether to enable budget notifications.\n\nAllowed values:`true`|`false`\n\nExample: `true`",
-						Optional:    true,
+						Description:         "Notification use state",
+						MarkdownDescription: "Whether to enable budget notifications.\n\nAllowed values:`true`|`false`\n\nExample: `true`",
+						Optional:            true,
 					},
 					common.ToSnakeCase("NotificationSendPeriod"): schema.StringAttribute{
-                        Description:         "Notification send period",
-                        MarkdownDescription: "When to send budget notifications.\n\nAllowed values: `FIRST` | `DAILY` | `NONE`\n\nExample: `FIRST`",
-						Optional:    true,
+						Description:         "Notification send period",
+						MarkdownDescription: "When to send budget notifications.\n\nAllowed values: `FIRST` | `DAILY` | `NONE`\n\nExample: `FIRST`",
+						Optional:            true,
 					},
 					common.ToSnakeCase("Receivers"): schema.ListAttribute{
-						ElementType: types.StringType,
-                        Description:         "List of notification recipient email addresses",
-                        MarkdownDescription: "Email addresses to receive budget notifications.\n\nExample: `[\"user@example.com\"]`",
-						Optional:    true,
+						ElementType:         types.StringType,
+						Description:         "List of notification recipient email addresses",
+						MarkdownDescription: "Email addresses to receive budget notifications.\n\nExample: `[\"user@example.com\"]`",
+						Optional:            true,
 					},
 					common.ToSnakeCase("Thresholds"): schema.ListAttribute{
-						ElementType: types.Int32Type,
-                        Description:         "List of threshold percentages for notifications",
-                        MarkdownDescription: "Percentage thresholds at which to send notifications.\n\nAllowed values: `70` | `80` | `90` | `100`\n\nExample: `[80, 100]`",
-						Optional:    true,
+						ElementType:         types.Int32Type,
+						Description:         "List of threshold percentages for notifications",
+						MarkdownDescription: "Percentage thresholds at which to send notifications.\n\nAllowed values: `70` | `80` | `90` | `100`\n\nExample: `[80, 100]`",
+						Optional:            true,
 					},
 				},
 			},
 			common.ToSnakeCase("Prevention"): schema.SingleNestedAttribute{
-                Description:         "Auto generation prevention settings for the budget",
-                MarkdownDescription: "Settings to prevent new resource generation when budget usage exceeds the threshold.",
-				Computed:    true,
+				Description:         "Auto generation prevention settings for the budget",
+				MarkdownDescription: "Settings to prevent new resource generation when budget usage exceeds the threshold.",
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("IsUsePrevention"): schema.BoolAttribute{
-                        Description:         "Auto Generation prevent use state",
-                        MarkdownDescription: "Whether to prevent new resource creation when budget threshold is exceeded.\n\nAllowed values:`true`|`false`\n\nExample: `true`",
-						Optional:    true,
+						Description:         "Auto Generation prevent use state",
+						MarkdownDescription: "Whether to prevent new resource creation when budget threshold is exceeded.\n\nAllowed values:`true`|`false`\n\nExample: `true`",
+						Optional:            true,
 					},
 					common.ToSnakeCase("Receivers"): schema.ListAttribute{
-						ElementType: types.StringType,
-                        Description:         "List of notification recipient email addresses",
-                        MarkdownDescription: "Email addresses to notify when budget prevention is triggered.\n\nExample: `[\"admin@example.com\"]`",
-						Optional:    true,
+						ElementType:         types.StringType,
+						Description:         "List of notification recipient email addresses",
+						MarkdownDescription: "Email addresses to notify when budget prevention is triggered.\n\nExample: `[\"admin@example.com\"]`",
+						Optional:            true,
 					},
 					common.ToSnakeCase("Threshold"): schema.Int32Attribute{
-                        Description:         "Prevention threshold",
-                        MarkdownDescription: "Budget threshold percentage to trigger prevention.\n\nAllowed values: One of the numbers `70` | `80` | `90` | `100`\n\nExample: `90`",
-						Optional:    true,
+						Description:         "Prevention threshold",
+						MarkdownDescription: "Budget threshold percentage to trigger prevention.\n\nAllowed values: One of the numbers `70` | `80` | `90` | `100`\n\nExample: `90`",
+						Optional:            true,
 					},
 				},
 			},
@@ -216,16 +216,16 @@ func (d *budgetBudgetDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-    if data == nil {
-        resp.Diagnostics.AddError("Error reading budget", "empty response from API")
-        return
-    }
+	if data == nil {
+		resp.Diagnostics.AddError("Error reading budget", "empty response from API")
+		return
+	}
 
-    budgetData := data.Budget
+	budgetData := data.Budget
 	budgetModel := budget.Budget{
 		BudgetId:   types.StringValue(budgetData.Id),
 		Name:       types.StringValue(budgetData.Name),
-		Amount:     convertStringToInt32(budgetData.Amount),
+		Amount:     convertStringToNumber(budgetData.Amount),
 		BudgetType: types.StringValue(budgetData.Type),
 		Unit:       types.StringValue(budgetData.Unit),
 		CreatedAt:  types.StringValue(budgetData.CreatedAt.Format(time.RFC3339)),
@@ -234,13 +234,13 @@ func (d *budgetBudgetDataSource) Read(ctx context.Context, req datasource.ReadRe
 		ModifiedBy: types.StringPointerValue(budgetData.ModifiedBy),
 		StartMonth: types.StringValue(budgetData.StartMonth), // 추가: StartMonth 매핑
 	}
-    budgetObjectValue, objDiags := types.ObjectValueFrom(ctx, budgetModel.AttributeTypes(), budgetModel)
-    if objDiags.HasError() {
-        resp.Diagnostics.Append(objDiags...)
-        return
-    }
+	budgetObjectValue, objDiags := types.ObjectValueFrom(ctx, budgetModel.AttributeTypes(), budgetModel)
+	if objDiags.HasError() {
+		resp.Diagnostics.Append(objDiags...)
+		return
+	}
 
-    state.Budget = budgetObjectValue
+	state.Budget = budgetObjectValue
 
 	notificationsData := data.Notifications
 
@@ -254,28 +254,38 @@ func (d *budgetBudgetDataSource) Read(ctx context.Context, req datasource.ReadRe
 		notificationsThresholds = append(notificationsThresholds, threshold)
 	}
 
-	var notificationReceiversListValue,d1 = types.ListValueFrom(ctx, basetypes.StringType{}, notificationsReceivers)
-    if d1.HasError() {
-        resp.Diagnostics.Append(d1...)
-        return
-    }
+	var notificationReceiversListValue, d1 = types.ListValueFrom(ctx, basetypes.StringType{}, notificationsReceivers)
+	if d1.HasError() {
+		resp.Diagnostics.Append(d1...)
+		return
+	}
 	var notificationThresholdsListValue, d2 = types.ListValueFrom(ctx, basetypes.Int32Type{}, notificationsThresholds)
-    if d2.HasError() {
-        resp.Diagnostics.Append(d2...)
-        return
+	if d2.HasError() {
+		resp.Diagnostics.Append(d2...)
+		return
+	}
+
+    var isUseNotif bool
+    if notificationsData.IsUseNotification.Get() != nil {
+        isUseNotif = *notificationsData.IsUseNotification.Get()
+    }
+    var notifPeriod string
+    if notificationsData.NotificationSendPeriod.Get() != nil {
+        notifPeriod = *notificationsData.NotificationSendPeriod.Get()
     }
 
-	notificationsModel := budget.Notifications{
-		IsUseNotification:      types.BoolValue(*notificationsData.IsUseNotification.Get()),
-		NotificationSendPeriod: types.StringValue(*notificationsData.NotificationSendPeriod.Get()),
-		Receivers:              notificationReceiversListValue,
-		Thresholds:             notificationThresholdsListValue,
-	}
-	notificationsObjectValue, d3 := types.ObjectValueFrom(ctx, notificationsModel.AttributeTypes(), notificationsModel)
-    if d3.HasError() {
-        resp.Diagnostics.Append(d3...)
-        return
+    notificationsModel := budget.Notifications{
+        IsUseNotification:      types.BoolValue(isUseNotif),
+        NotificationSendPeriod: types.StringValue(notifPeriod),
+        Receivers:              notificationReceiversListValue,
+        Thresholds:             notificationThresholdsListValue,
     }
+
+	notificationsObjectValue, d3 := types.ObjectValueFrom(ctx, notificationsModel.AttributeTypes(), notificationsModel)
+	if d3.HasError() {
+		resp.Diagnostics.Append(d3...)
+		return
+	}
 
 	state.Notifications = notificationsObjectValue
 
@@ -287,22 +297,27 @@ func (d *budgetBudgetDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	var preventionReceiversListValue, d4 = types.ListValueFrom(ctx, basetypes.StringType{}, preventionReceivers)
-    if d4.HasError() {
-        resp.Diagnostics.Append(d4...)
-        return
+	if d4.HasError() {
+		resp.Diagnostics.Append(d4...)
+		return
+	}
+
+    var isUsePrev bool
+    if preventionData.IsUsePrevention.Get() != nil {
+        isUsePrev = *preventionData.IsUsePrevention.Get()
     }
 
 	preventionModel := budget.Prevention{
-		IsUsePrevention: types.BoolValue(*preventionData.IsUsePrevention.Get()),
+		IsUsePrevention: types.BoolValue(isUsePrev),
 		Receivers:       preventionReceiversListValue,
 		Threshold:       common.ToNullableInt32Value(preventionData.Threshold.Get()),
 	}
 
 	preventionObjectValue, d5 := types.ObjectValueFrom(ctx, preventionModel.AttributeTypes(), preventionModel)
-    if d5.HasError() {
-        resp.Diagnostics.Append(d5...)
-        return
-    }
+	if d5.HasError() {
+		resp.Diagnostics.Append(d5...)
+		return
+	}
 	state.Prevention = preventionObjectValue
 
 	// Set state

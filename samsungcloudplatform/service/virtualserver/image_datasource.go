@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -239,6 +239,10 @@ func (d *virtualServerImageDataSource) Schema(_ context.Context, _ datasource.Sc
 						MarkdownDescription: "Updated at.",
 						Computed:            true,
 					},
+					common.ToSnakeCase("Zone"): schema.StringAttribute{
+						Description: "Zone",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -330,6 +334,7 @@ func (d *virtualServerImageDataSource) Read(ctx context.Context, req datasource.
 			Url:                  types.StringPointerValue(image.Url.Get()),
 			CreatedAt:            types.StringValue(image.CreatedAt),
 			UpdatedAt:            types.StringValue(image.UpdatedAt),
+			Zone:                 types.StringPointerValue(image.Zone.Get()),
 		}
 		imageObjectValue, _ := types.ObjectValueFrom(ctx, imageModel.AttributeTypes(), imageModel)
 		state.Image = imageObjectValue

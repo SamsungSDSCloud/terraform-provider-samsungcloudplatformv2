@@ -53,4 +53,9 @@ variable "server_filter_use_regex" {
   default = true
 }
 
+variable "zone" {
+  type    = string
+  default = null
+}
+
 

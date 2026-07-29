@@ -63,7 +63,8 @@ variable "policy_name" {
   - example: YOUR RESOURCE'S ID
 - `page` (Number) Page (between 0 and 10000)
   - example : 0
-- `policies` (Attributes List) A list of policy (see [below for nested schema](#nestedatt--policies))
+- `policies` (Attributes List) A list of policy
+  - example : [{"id": "pol-1234567890abcdef", "policy_name": "MyPolicy", "policy_type": "USER_DEFINED", ...}] (see [below for nested schema](#nestedatt--policies))
 - `policy_name` (String) Filter by policy name.
   - example : 'MyPolicy'
 - `policy_type` (String) Type of the policy (e.g., IDENTITY_BASED, RESOURCE_BASED).
@@ -78,7 +79,8 @@ variable "policy_name" {
 
 Optional:
 
-- `policy_versions` (Attributes List) Policy Versions (see [below for nested schema](#nestedatt--policies--policy_versions))
+- `policy_versions` (Attributes List) List of versions of the policy.
+  - example : [{"id": "v-1234567890abcdef", "policy_version_name": "v1", ...}] (see [below for nested schema](#nestedatt--policies--policy_versions))
 
 Read-Only:
 
@@ -140,7 +142,8 @@ Read-Only:
   - example : '2024-01-01T00:00:00Z'
 - `modified_by` (String) User who last modified the policy version.
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `policy_document` (Attributes) Policy Document (see [below for nested schema](#nestedatt--policies--policy_versions--policy_document))
+- `policy_document` (Attributes) The policy document containing permission definitions.
+  - example : {"version": "2012-10-17", "statement": [{"sid": "Stmt1", "effect": "Allow", ...}]} (see [below for nested schema](#nestedatt--policies--policy_versions--policy_document))
 - `policy_id` (String) Unique identifier of the policy.
   - example: YOUR RESOURCE'S POLICY_ID
 - `policy_version_name` (String) Name of the policy version.

@@ -102,6 +102,7 @@ variable "password_reuse_count" {
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
+  - example : {"env": "production", "team": "platform"}
 - `temporary_password` (Boolean) Whether the password is temporary and needs to be changed.
   - example : true
 - `user_name` (String) Unique username for the user.

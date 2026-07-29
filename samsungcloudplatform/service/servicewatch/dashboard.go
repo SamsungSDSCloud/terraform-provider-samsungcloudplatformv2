@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -65,7 +66,8 @@ func (r *serviceWatchDashboardResource) Schema(_ context.Context, _ resource.Sch
 					" - example : Production-Web-Servers\n" +
 					" - minLength: 3\n" +
 					" - maxLength: 512\n",
-				Optional: true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			}, common.ToSnakeCase("Type"): schema.StringAttribute{
 				Description: "Dashboard type.\n" +
 					" - example : Custom\n",
@@ -79,6 +81,11 @@ func (r *serviceWatchDashboardResource) Schema(_ context.Context, _ resource.Sch
 			common.ToSnakeCase("ShareType"): schema.StringAttribute{
 				Description: "Sharing type.\n" +
 					" - example : Private\n",
+				Computed: true,
+			},
+			common.ToSnakeCase("NamespaceCode"): schema.StringAttribute{
+				Description: "Namespace code of the dashboard.\n" +
+					" - example : kr-west1\n",
 				Computed: true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
@@ -104,7 +111,8 @@ func (r *serviceWatchDashboardResource) Schema(_ context.Context, _ resource.Sch
 			common.ToSnakeCase("Widgets"): schema.ListNestedAttribute{
 				Description: "List of widgets.\n" +
 					" - example : [{\"id\": \"widget-123\", \"type\": \"metric\"}]\n",
-				Optional: true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.List{listplanmodifier.RequiresReplace()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
@@ -290,9 +298,10 @@ func (r *serviceWatchDashboardResource) Create(ctx context.Context, req resource
 	plan.Srn = types.StringValue(dashboard.Srn)
 	plan.ShareType = types.StringValue(dashboard.ShareType)
 	plan.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay))
-	plan.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay))
+	plan.ModifiedAt = nullableTimeTypes(dashboard.GetModifiedAtOk())
 	plan.CreatedBy = types.StringValue(dashboard.GetCreatedBy())
-	plan.ModifiedBy = types.StringValue(dashboard.GetModifiedBy())
+	plan.ModifiedBy = nullableStringTypes(dashboard.GetModifiedByOk())
+	plan.NamespaceCode = types.StringNull()
 	plan.Widgets = widgets
 
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
@@ -348,9 +357,10 @@ func (r *serviceWatchDashboardResource) Read(ctx context.Context, req resource.R
 	state.Srn = types.StringValue(dashboard.Srn)
 	state.ShareType = types.StringValue(dashboard.ShareType)
 	state.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay))
-	state.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay))
+	state.ModifiedAt = nullableTimeTypes(dashboard.GetModifiedAtOk())
 	state.CreatedBy = types.StringValue(dashboard.GetCreatedBy())
-	state.ModifiedBy = types.StringValue(dashboard.GetModifiedBy())
+	state.ModifiedBy = nullableStringTypes(dashboard.GetModifiedByOk())
+	state.NamespaceCode = nullableStringTypes(dashboard.GetNamespaceCodeOk())
 	state.Widgets = widgets
 
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
@@ -429,9 +439,10 @@ func (r *serviceWatchDashboardResource) Update(ctx context.Context, req resource
 	state.Srn = types.StringValue(dashboard.Srn)
 	state.ShareType = types.StringValue(dashboard.ShareType)
 	state.CreatedAt = types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay))
-	state.ModifiedAt = types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay))
+	state.ModifiedAt = nullableTimeTypes(dashboard.GetModifiedAtOk())
 	state.CreatedBy = types.StringValue(dashboard.GetCreatedBy())
-	state.ModifiedBy = types.StringValue(dashboard.GetModifiedBy())
+	state.ModifiedBy = nullableStringTypes(dashboard.GetModifiedByOk())
+	state.NamespaceCode = nullableStringTypes(dashboard.GetNamespaceCodeOk())
 	state.Widgets = widgets
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 

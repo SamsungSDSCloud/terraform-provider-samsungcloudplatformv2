@@ -3,9 +3,9 @@ package vertica
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	vertica "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/vertica/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	vertica "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vertica/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -90,7 +90,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []vertica.InstanceGroupRequest
+	var convertedInstanceGroups []vertica.VerticaInstanceGroupRequest
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
@@ -105,21 +105,21 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 			})
 		}
 
-		var convertedInstance []vertica.InstanceRequest
+		var convertedInstance []vertica.VerticaInstanceRequest
 		var instVals []database.Instance
 		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
 		for _, instance := range instVals {
-			convertedInstance = append(convertedInstance, vertica.InstanceRequest{
-				RoleType:         vertica.InstanceRoleType(instance.RoleType.ValueString()),
+			convertedInstance = append(convertedInstance, vertica.VerticaInstanceRequest{
+				RoleType:         vertica.VerticaInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *vertica.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *vertica.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, vertica.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, vertica.VerticaInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           vertica.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           vertica.VerticaInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -149,38 +149,42 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.VerticaClusterCreateRequest(vertica.VerticaClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		NatEnabled:           *vertica.NewNullableBool(request.NatEnabled.ValueBoolPointer()),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *vertica.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		License:              request.License.ValueStringPointer(),
+	req = req.VerticaClusterCreateRequestV1Dot1(vertica.VerticaClusterCreateRequestV1Dot1{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		NatEnabled:                *vertica.NewNullableBool(request.NatEnabled.ValueBoolPointer()),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *vertica.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		License:                   request.License.ValueStringPointer(),
+		ServiceWatchLogCollection: *vertica.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull()
 
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*vertica.VerticaClusterDetailResponse, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*vertica.VerticaClusterDetailResponseV1Dot1, int, error) {
 	req := client.sdkClient.VerticaV1VerticaClustersApiAPI.VerticaShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {

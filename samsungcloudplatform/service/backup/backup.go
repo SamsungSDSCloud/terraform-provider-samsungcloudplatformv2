@@ -3,13 +3,13 @@ package backup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/backup"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	backuputil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/backup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/backup/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/backup"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	backuputil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/backup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/backup/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -198,7 +198,7 @@ func (r *backupBackupResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "backup", "backup", data.Resource.Id)
+	tagsMap, err := tag.GetTags(r.clients, "backup", "backup", data.Resource.Id, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Backup Tags",
@@ -224,7 +224,7 @@ func (r *backupBackupResource) Create(ctx context.Context, req resource.CreateRe
 	}
 }
 
-func (r *backupBackupResource) MapGetResponseToState(ctx context.Context, getData *scpbackup.BackupDetailResponse1Dot2, plan backup.BackupResource, tagsMap types.Map) (backup.BackupResource, error) {
+func (r *backupBackupResource) MapGetResponseToState(ctx context.Context, getData *scpbackup.BackupDetailResponse1Dot3, plan backup.BackupResource, tagsMap types.Map) (backup.BackupResource, error) {
 	getSchedules, err := r.client.GetScheduleList(ctx, getData.Id)
 	if err != nil {
 		return backup.BackupResource{}, err
@@ -283,7 +283,7 @@ func (r *backupBackupResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "backup", "backup", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, "backup", "backup", state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Backup Tags",
@@ -379,7 +379,7 @@ func (r *backupBackupResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "backup", "backup", plan.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, "backup", "backup", plan.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Backup Tags",
@@ -431,7 +431,7 @@ func (r *backupBackupResource) handlerUpdateTag(ctx context.Context, req resourc
 	var plan backup.BackupResource
 	req.Plan.Get(ctx, &plan)
 
-	_, err := tag.UpdateTags(r.clients, "backup", "backup", plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, "backup", "backup", plan.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
@@ -446,7 +446,7 @@ func (r *backupBackupResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	tag.UpdateTags(r.clients, "backup", "backup", state.Id.ValueString(), make(map[string]attr.Value))
+	tag.UpdateTags(r.clients, "backup", "backup", state.Id.ValueString(), make(map[string]attr.Value), false)
 
 	err := r.client.DeleteBackup(ctx, state.Id.ValueString())
 	if err != nil {

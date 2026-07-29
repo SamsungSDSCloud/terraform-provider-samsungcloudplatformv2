@@ -2,8 +2,8 @@ package backup
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/backup/1.2"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/backup/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"math"
 	"net/http"
@@ -84,7 +84,7 @@ func (client *Client) CreateBackup(ctx context.Context, request BackupResource) 
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.BackupCreateRequest1Dot2(scpbackup.BackupCreateRequest1Dot2{
+	req = req.BackupCreateRequest1Dot3(scpbackup.BackupCreateRequest1Dot3{
 		Name:            request.Name.ValueString(),
 		PolicyCategory:  scpbackup.BackupPolicyCategory(request.PolicyCategory.ValueString()),
 		PolicyType:      scpbackup.BackupPolicyType(request.PolicyType.ValueString()),
@@ -100,7 +100,7 @@ func (client *Client) CreateBackup(ctx context.Context, request BackupResource) 
 	return resp, err
 }
 
-func (client *Client) GetBackup(ctx context.Context, backupId string) (*scpbackup.BackupDetailResponse1Dot2, *http.Response, error) {
+func (client *Client) GetBackup(ctx context.Context, backupId string) (*scpbackup.BackupDetailResponse1Dot3, *http.Response, error) {
 	req := client.sdkClient.BackupV1BackupsApiAPI.ShowBackup(ctx, backupId)
 
 	resp, httpResponse, err := req.Execute()

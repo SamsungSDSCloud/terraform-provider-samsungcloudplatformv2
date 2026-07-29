@@ -43,4 +43,9 @@ variable "replication_policy" {
   default = "replication policy"
 }
 
+variable "zone" {
+  type    = string
+  default = "kr-west1-a"
+}
+
 

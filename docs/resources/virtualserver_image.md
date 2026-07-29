@@ -164,3 +164,4 @@ variable "instance_id" {
 - `updated_at` (String) Update timestamp.
 - `virtual_size` (Number) Virtual disk size (bytes).
 - `volumes` (String) Volume information.
+- `zone` (String) Zone

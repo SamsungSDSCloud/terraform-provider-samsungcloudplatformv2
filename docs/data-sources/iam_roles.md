@@ -74,7 +74,8 @@ variable "account_id" {
   - example : 0
 - `role_type` (String) Filter by role type (USER_DEFINED or SYSTEM_DEFINED).
   - example : 'USER_DEFINED'
-- `roles` (Attributes List) List of roles matching the filter criteria. (see [below for nested schema](#nestedatt--roles))
+- `roles` (Attributes List) List of roles matching the filter criteria.
+  - example : [{"id": "rol-1234567890abcdef", "name": "MyRole", ...}] (see [below for nested schema](#nestedatt--roles))
 - `size` (Number) Size (between 1 and 10000)
   - example : 100
 - `sort` (String) Sort order for results.
@@ -85,13 +86,15 @@ variable "account_id" {
 
 Optional:
 
-- `policies` (Attributes List) List of policies attached to the role. (see [below for nested schema](#nestedatt--roles--policies))
+- `policies` (Attributes List) List of policies attached to the role.
+  - example : [{"id": "pol-1234567890abcdef", "policy_name": "MyPolicy", "policy_type": "USER_DEFINED", ...}] (see [below for nested schema](#nestedatt--roles--policies))
 
 Read-Only:
 
 - `account_id` (String) Account ID that owns the role.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `assume_role_policy_document` (Attributes) Policy document that grants assumed role permissions. (see [below for nested schema](#nestedatt--roles--assume_role_policy_document))
+- `assume_role_policy_document` (Attributes) Policy document that grants assumed role permissions.
+  - example : {"version": "2024-07-01", "statement": [{"effect": "Allow", "principal": {"Service": ["ec2.amazonaws.com"]}, ...}]} (see [below for nested schema](#nestedatt--roles--assume_role_policy_document))
 - `created_at` (String) Timestamp when the role was created.
   - example : '2024-01-01T00:00:00Z'
 - `created_by` (String) User who created the role.
@@ -126,7 +129,8 @@ Optional:
 
 - `account_id` (String) Account ID that owns the policy.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `policy_versions` (Attributes List) List of policy versions. (see [below for nested schema](#nestedatt--roles--policies--policy_versions))
+- `policy_versions` (Attributes List) List of policy versions.
+  - example : [{"id": "v-1234567890abcdef", "policy_version_name": "v1", ...}] (see [below for nested schema](#nestedatt--roles--policies--policy_versions))
 
 Read-Only:
 
@@ -186,7 +190,8 @@ Read-Only:
   - example : '2024-01-01T00:00:00Z'
 - `modified_by` (String) User who last modified the policy version.
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `policy_document` (Attributes) The policy document containing the permission definitions. (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document))
+- `policy_document` (Attributes) The policy document containing the permission definitions.
+  - example : {"version": "2012-10-17", "statement": [{"sid": "Stmt1", "effect": "Allow", ...}]} (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document))
 - `policy_id` (String) ID of the policy this version belongs to.
   - example: YOUR RESOURCE'S POLICY_ID
 - `policy_version_name` (String) Name of the policy version.
@@ -197,7 +202,8 @@ Read-Only:
 
 Read-Only:
 
-- `statement` (Attributes List) List of policy statements defining the permissions. (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document--statement))
+- `statement` (Attributes List) List of policy statements defining the permissions.
+  - example : [{"sid": "Stmt1", "effect": "Allow", "action": ["iam:CreateRole"], "resource": ["*"]}] (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document--statement))
 - `version` (String) Policy document version.
   - example : '2024-07-01'
 
@@ -210,7 +216,8 @@ Optional:
   - example : {"aws:PrincipalTag/department": ["engineering"]}
 - `not_action` (List of String) List of actions that are not allowed by this statement.
   - example : ['iam:CreateRole']
-- `principal` (Attributes) Principal that is allowed or denied access. (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document--statement--principal))
+- `principal` (Attributes) Principal that is allowed or denied access.
+  - example : {"principal_string": "arn:aws:iam::123456789012:user/admin"} (see [below for nested schema](#nestedatt--roles--policies--policy_versions--policy_document--statement--principal))
 
 Read-Only:
 
@@ -243,7 +250,8 @@ Optional:
 
 Read-Only:
 
-- `statement` (Attributes List) List of policy statements defining the permissions. (see [below for nested schema](#nestedatt--roles--assume_role_policy_document--statement))
+- `statement` (Attributes List) List of policy statements defining the permissions.
+  - example : [{"sid": "Stmt1", "effect": "Allow", "action": ["iam:AssumeRole"], ...}] (see [below for nested schema](#nestedatt--roles--assume_role_policy_document--statement))
 - `version` (String) Policy document version.
   - example : '2024-07-01'
 
@@ -256,7 +264,8 @@ Optional:
   - example : {"aws:PrincipalTag/department": ["engineering"]}
 - `not_action` (List of String) List of actions that are not allowed by this statement.
   - example : ['iam:AssumeRole']
-- `principal` (Attributes) Principal that is allowed or denied access. (see [below for nested schema](#nestedatt--roles--assume_role_policy_document--statement--principal))
+- `principal` (Attributes) Principal that is allowed or denied access.
+  - example : {"principal_string": "arn:aws:iam::123456789012:user/admin"} (see [below for nested schema](#nestedatt--roles--assume_role_policy_document--statement--principal))
 
 Read-Only:
 

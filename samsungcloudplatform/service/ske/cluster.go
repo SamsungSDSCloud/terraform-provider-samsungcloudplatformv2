@@ -9,15 +9,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/ske/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/ske/1.5"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -291,7 +292,10 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
 					},
 				},
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "Cluster\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_cluster#nested-schema-for-cluster",
 				MarkdownDescription: "Cluster\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_cluster#nested-schema-for-cluster",
 			},
@@ -360,7 +364,7 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"security_group_id_list": schema.ListAttribute{
 				ElementType:         types.StringType,
-				Required:            true,
+				Optional:            true,
 				Description:         "Security Group ID List\n  - example: [bdfda539-bd2e-4a5c-9021-ec6d52d1ca79]",
 				MarkdownDescription: "Security Group ID List\n  - example: [bdfda539-bd2e-4a5c-9021-ec6d52d1ca79]",
 			},
@@ -768,7 +772,7 @@ func (r *skeClusterResource) syncTags(ctx context.Context, state ske.ClusterReso
 	if plan.Tags.Equal(state.Tags) {
 		return nil
 	}
-	_, err := tag.UpdateTags(r.clients, "ske", "cluster", plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, "ske", "cluster", plan.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(

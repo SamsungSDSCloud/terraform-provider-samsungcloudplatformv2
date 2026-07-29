@@ -24,4 +24,7 @@ resource "samsungcloudplatformv2_ske_nodepool" "nodepool" {
   volume_max_iops = var.volume_max_iops
   volume_max_throughput = var.volume_max_throughput
   scp_gpu_driver = var.scp_gpu_driver
+  preferred_ips = var.preferred_ips
+  subnet_id = var.subnet_id
+  zone = var.zone
 }

@@ -13,4 +13,19 @@ variable "account_quotas_filter_use_regex" {
   default = false
 }
 
+variable "account_quotas_class_value_filter_name" {
+  type    = string
+  default = "class_value"
+}
+
+variable "account_quotas_class_value_filter_values" {
+  type    = list(string)
+  default = ["kr-west1"]
+}
+
+variable "account_quotas_class_value_filter_use_regex" {
+  type    = bool
+  default = false
+}
+
 

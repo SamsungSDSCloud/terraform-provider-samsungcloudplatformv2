@@ -92,6 +92,8 @@ variable "id" {
   - example: true
 - `vpc_id` (String) VPC ID
   - example: YOUR RESOURCE'S VPC_ID
+- `zone` (String) Availability Zone
+  - example: kr-west1-a
 
 <a id="nestedatt--local_subnet_info"></a>
 ### Nested Schema for `local_subnet_info`

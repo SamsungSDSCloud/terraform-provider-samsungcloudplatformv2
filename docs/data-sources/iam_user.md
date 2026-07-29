@@ -49,7 +49,8 @@ variable "user_id" {
 
 ### Read-Only
 
-- `user` (Attributes) Detailed information about the user. (see [below for nested schema](#nestedatt--user))
+- `user` (Attributes) Detailed information about the user.
+  - example : {"id": "usr-1234567890abcdef", "name": "John Doe", "email": "user@example.com", ...} (see [below for nested schema](#nestedatt--user))
 
 <a id="nestedatt--user"></a>
 ### Nested Schema for `user`
@@ -64,11 +65,13 @@ Optional:
   - example : 'Doe'
 - `password` (String) User password (masked for security).
   - example: YOUR RESOURCE'S PASSWORD
-- `policies` (Attributes List) Policies (see [below for nested schema](#nestedatt--user--policies))
+- `policies` (Attributes List) List of policies attached to the user.
+  - example : [{"id": "pol-1234567890abcdef", "policy_name": "MyPolicy", "policy_type": "USER_DEFINED", ...}] (see [below for nested schema](#nestedatt--user--policies))
 
 Read-Only:
 
-- `access_keys` (Attributes List) Access Keys (see [below for nested schema](#nestedatt--user--access_keys))
+- `access_keys` (Attributes List) List of access keys belonging to the user.
+  - example : [{"id": "12345678-1234-1234-1234-1234567890ab", "access_key": "ak-example-access-key-id", "is_enabled": true, ...}] (see [below for nested schema](#nestedatt--user--access_keys))
 - `account_id` (String) Account ID that owns the user.
   - example: YOUR RESOURCE'S ACCOUNT_ID
 - `company_name` (String) Company name of the user.
@@ -87,7 +90,8 @@ Read-Only:
   - example : 'user@example.com'
 - `email_authenticated` (Boolean) Whether email is authenticated.
   - example : true
-- `groups` (Attributes List) Groups (see [below for nested schema](#nestedatt--user--groups))
+- `groups` (Attributes List) List of groups the user belongs to.
+  - example : [{"id": "grp-1234567890abcdef", "name": "MyGroup"}] (see [below for nested schema](#nestedatt--user--groups))
 - `id` (String) Unique identifier.
   - example: YOUR RESOURCE'S ID
 - `last_password_update_at` (String) Timestamp when the password was last updated.
@@ -118,7 +122,8 @@ Read-Only:
 
 Optional:
 
-- `policy_versions` (Attributes List) Policy Versions (see [below for nested schema](#nestedatt--user--policies--policy_versions))
+- `policy_versions` (Attributes List) List of versions of the policy.
+  - example : [{"id": "v-1234567890abcdef", "policy_version_name": "v1", ...}] (see [below for nested schema](#nestedatt--user--policies--policy_versions))
 
 Read-Only:
 

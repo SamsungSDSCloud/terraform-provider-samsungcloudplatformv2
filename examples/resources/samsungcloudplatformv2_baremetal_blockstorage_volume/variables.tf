@@ -1,3 +1,8 @@
+variable "zone" {
+  type    = string
+  default = "kr-west1-y"
+}
+
 variable "block_storage_name" {
   type    = string
   default = "terraform-bs-01"

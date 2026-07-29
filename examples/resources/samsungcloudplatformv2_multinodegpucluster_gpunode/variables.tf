@@ -58,9 +58,11 @@ variable "subnet_id" {
 variable "server_details" {
   type = list(object({
     state = string
+    zone  = string
   }))
   default = [{
     state = "RUNNING"
+    zone  = "kr-west1-a"
   }]
 }
 

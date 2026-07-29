@@ -27,7 +27,7 @@ output "firewall_connection_output" {
 
 variable "transit_gateway_id" {
   type        = string
-  description = "Transit gw firewall namdeptrai"
+  description = "Transit Gateway ID"
   default     = "ENTER YOUR RESOURCE'S TRANSIT_GATEWAY_ID"
 }
 ```

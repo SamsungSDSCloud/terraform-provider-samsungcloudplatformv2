@@ -16,4 +16,5 @@ resource "samsungcloudplatformv2_cachestore_cluster" "cluster" {
   tags                    = var.tags
   timezone                = var.timezone
   service_state           = var.service_state
+  service_watch_log_collection = var.service_watch_log_collection
 }

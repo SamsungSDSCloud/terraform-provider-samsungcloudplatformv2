@@ -2,10 +2,11 @@ package mariadb
 
 import (
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/mariadb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/mariadb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,36 +42,44 @@ func (d *mariadbEngineVersionDataSources) Schema(_ context.Context, _ datasource
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("EndOfService"): schema.BoolAttribute{
-							Description: "EndOfService",
-							Required:    true,
+							Description:         "End of Service\n  - example: false",
+							MarkdownDescription: "End of Service\n  - example: false",
+							Required:            true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Required:    true,
+							Description:         "Engine version ID\n  - example: d058dc79a86842f9b558933e9d285b9f",
+							MarkdownDescription: "Engine version ID\n  - example: d058dc79a86842f9b558933e9d285b9f",
+							Required:            true,
 						},
 						common.ToSnakeCase("MajorVersion"): schema.StringAttribute{
-							Description: "MajorVersion",
-							Optional:    true,
+							Description:         "Software major version\n  - example: 11.4",
+							MarkdownDescription: "Software major version\n  - example: 11.4",
+							Optional:            true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Required:    true,
+							Description:         "Engine version name\n  - example: MariaDB Community 11.4.10",
+							MarkdownDescription: "Engine version name\n  - example: MariaDB Community 11.4.10",
+							Required:            true,
 						},
 						common.ToSnakeCase("OsType"): schema.StringAttribute{
-							Description: "OsType",
-							Required:    true,
+							Description:         "OS type\n  - example: RHEL",
+							MarkdownDescription: "OS type\n  - example: RHEL",
+							Required:            true,
 						},
 						common.ToSnakeCase("OsVersion"): schema.StringAttribute{
-							Description: "OsVersion",
-							Optional:    true,
+							Description:         "OS version\n  - example: 8.5",
+							MarkdownDescription: "OS version\n  - example: 8.5",
+							Optional:            true,
 						},
 						common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
-							Description: "ProductImageType",
-							Required:    true,
+							Description:         "Product image type\n  - example: MariaDB Community",
+							MarkdownDescription: "Product image type\n  - example: MariaDB Community",
+							Required:            true,
 						},
 						common.ToSnakeCase("SoftwareVersion"): schema.StringAttribute{
-							Description: "SoftwareVersion",
-							Required:    true,
+							Description:         "Software version\n  - example: 11.4.10",
+							MarkdownDescription: "Software version\n  - example: 11.4.10",
+							Required:            true,
 						},
 					},
 				},

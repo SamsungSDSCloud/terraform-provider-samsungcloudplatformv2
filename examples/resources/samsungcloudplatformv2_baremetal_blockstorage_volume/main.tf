@@ -3,6 +3,7 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_baremetal_blockstorage_volume" "volume"{
+  zone = var.zone
   name = var.block_storage_name
   disk_type = var.disk_type
   size_gb = var.size_gb

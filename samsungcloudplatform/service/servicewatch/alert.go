@@ -7,18 +7,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/servicewatch/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/servicewatch/1.4"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -72,7 +74,8 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 					" - example : Alert Test\n" +
 					" - minLength: 3\n" +
 					" - maxLength: 100\n",
-				Required: true,
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(3, 100),
 				},
@@ -80,7 +83,8 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("Type"): schema.StringAttribute{
 				Description: "Alert type - METRIC_ALERT, SERVICE_ALERT, COMPOSITE_ALERT.\n" +
 					" - example : METRIC_ALERT\n",
-				Required: true,
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.OneOf(AlertTypeMetric, AlertTypeService, AlertTypeComposite),
 				},
@@ -116,7 +120,8 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
 				Description: "The name of the namespace.\n" +
 					" - example : Virtual Server\n",
-				Required: true,
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("MetricId"): schema.StringAttribute{
 				Description: "The unique identifier of the metric.\n" +
@@ -126,13 +131,15 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("MetricName"): schema.StringAttribute{
 				Description: "The name of the metric.\n" +
 					" - example : CPU Usage\n",
-				Required: true,
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("Dimensions"): schema.ListNestedAttribute{
 				Description: "List of dimensions.\n" +
 					" - example : [{\"key\": \"instance_id\", \"value\": \"i-12345678\"}]\n",
-				Optional: true,
-				Computed: true,
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.List{listplanmodifier.RequiresReplace()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Key"): schema.StringAttribute{
@@ -151,12 +158,14 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("Period"): schema.Int32Attribute{
 				Description: "Period (seconds).\n" +
 					" - example : 300\n",
-				Required: true,
+				Required:      true,
+				PlanModifiers: []planmodifier.Int32{int32planmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("Statistic"): schema.StringAttribute{
 				Description: "Statistic - SUM, AVG, MAX, MIN.\n" +
 					" - example : AVG\n",
-				Required: true,
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.OneOf(StatSum, StatAvg, StatMax, StatMin),
 				},
@@ -188,7 +197,8 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("Operator"): schema.StringAttribute{
 				Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE.\n" +
 					" - example : RANGE\n",
-				Required: true,
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.OneOf(OpEQ, OpNotEQ, OpGT, OpGTE, OpLT, OpLTE, OpRange),
 				},
@@ -202,7 +212,8 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("MissingDataOption"): schema.StringAttribute{
 				Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE.\n" +
 					" - example : BREACHING\n",
-				Required: true,
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.OneOf(MissingDataMissing, MissingDataBreaching, MissingDataNotBreaching, MissingDataIgnore),
 				},
@@ -214,6 +225,11 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
+			common.ToSnakeCase("Timestamp"): schema.StringAttribute{
+				Description: "The timestamp when the alert was triggered, in ISO 8601 format.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
+			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
 				Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
 					" - example : 2024-05-17T00:23:17Z\n",
@@ -377,7 +393,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	// 변경 사항이 없으면 state 값 셋팅
+	// Set state values if plan values are unset
 	plan.ActivatedYn = useStateIfUnset(plan.ActivatedYn, state.ActivatedYn)
 	plan.Description = useStateIfUnset(plan.Description, state.Description)
 	plan.MetricId = useStateIfUnset(plan.MetricId, state.MetricId)
@@ -385,7 +401,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 	plan.EvaluationCount = useStateIfUnset(plan.EvaluationCount, state.EvaluationCount)
 	plan.ViolationCount = useStateIfUnset(plan.ViolationCount, state.ViolationCount)
 
-	// operator 변경 시 threshold/bound 값 처리
+	// Handle threshold/bound values when operator changes
 	if !plan.Operator.Equal(state.Operator) {
 		if plan.Operator.ValueString() == "RANGE" {
 			plan.Threshold = types.Float32Null()
@@ -399,7 +415,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		plan.LowerBound = useStateIfUnset(plan.LowerBound, state.LowerBound)
 	}
 
-	// activatedYn 이 변경되면, activated Update 수행
+	// If activatedYn changes, perform activated update
 	if !plan.ActivatedYn.Equal(state.ActivatedYn) {
 		_, err := r.client.UpdateAlertActivated(ctx, plan.Id.ValueString(), plan.ActivatedYn.ValueString())
 		if err != nil {
@@ -413,7 +429,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		state.ActivatedYn = plan.ActivatedYn
 	}
 
-	// description 이 변경되면, description Update 수행
+	// If description changes, perform description update
 	if !plan.Description.Equal(state.Description) {
 		_, err := r.client.UpdateAlertDescription(ctx, plan.Id.ValueString(), plan.Description.ValueString())
 		if err != nil {
@@ -426,7 +442,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		}
 		state.Description = plan.Description
 	}
-	// metric 정보 변경 시, GetMetric 호출하여 Id 조회
+	// If metric info changes, call GetMetric to retrieve Id
 	planDimensionKeys, diags := getDimensionKeys(ctx, plan.Dimensions)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -558,7 +574,7 @@ func getDimensionKeys(ctx context.Context, dimensions types.List) ([][]string, d
 	return [][]string{keys}, nil
 }
 
-func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.AlertResource, alertResp *servicewatch2.AlertDetailResponse) (servicewatch.AlertResource, diag.Diagnostics) {
+func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.AlertResource, alertResp *servicewatch2.AlertDetailResponseV1Dot3) (servicewatch.AlertResource, diag.Diagnostics) {
 	var dimensions []servicewatch.Dimension
 	for _, dimension := range alertResp.Dimensions {
 		dimensions = append(dimensions, servicewatch.Dimension{
@@ -587,6 +603,7 @@ func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.Ale
 	state.Operator = types.StringValue(string(alertResp.GetOperator()))
 	state.ViolationCount = types.Int32Value(alertResp.GetViolationCount())
 	state.MissingDataOption = types.StringValue(string(alertResp.GetMissingDataOption()))
+	state.Timestamp = nullableTimeTypes(alertResp.GetTimestampOk())
 	state.CreatedAt = types.StringValue(alertResp.GetCreatedAt().Format(TimeFormatDisplay))
 	state.CreatedBy = types.StringValue(alertResp.GetCreatedBy())
 	state.ModifiedAt = types.StringValue(alertResp.GetModifiedAt().Format(TimeFormatDisplay))

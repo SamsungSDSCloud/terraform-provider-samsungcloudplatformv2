@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/postgresql"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/postgresql"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -40,93 +40,108 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 		Description: "Show Cluster.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "ID",
-				Optional:    true,
+				Description:         "Cluster ID\n  - example: 8443a2afe9ce47c8958aa9dd010934d9",
+				MarkdownDescription: "Cluster ID\n  - example: 8443a2afe9ce47c8958aa9dd010934d9",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Cluster"): schema.SingleNestedAttribute{
 				Description: "A detail of Cluster.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the endpoint.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						MarkdownDescription: "The identifier of the account that owns the endpoint.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
-						ElementType: types.StringType,
-						Description: "AllowableIpAddresses",
-						Computed:    true,
+						ElementType:         types.StringType,
+						Description:         "Allowed IP addresses list  \n  - example: ['192.168.10.1/32']",
+						MarkdownDescription: "Allowed IP addresses list  \n  - example: ['192.168.10.1/32']",
+						Computed:            true,
 					},
 					common.ToSnakeCase("DbaasEngine"): schema.StringAttribute{
-						Description: "DbaasEngine",
-						Computed:    true,
+						Description:         "DBaaS engine\n  - example: PostgreSQL",
+						MarkdownDescription: "DBaaS engine\n  - example: PostgreSQL",
+						Computed:            true,
 					},
 					common.ToSnakeCase("NatEnabled"): schema.BoolAttribute{
-						Description: "NatEnabled",
-						Computed:    true,
+						Description:         "NAT availability\n  - example: false",
+						MarkdownDescription: "NAT availability\n  - example: false",
+						Computed:            true,
 					},
 					common.ToSnakeCase("HaEnabled"): schema.BoolAttribute{
-						Description: "HaEnabled",
-						Computed:    true,
+						Description:         "HA availability\n  - example: false",
+						MarkdownDescription: "HA availability\n  - example: false",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description:         "Identifier of the resource.\n  - example: 8443a2afe9ce47c8958aa9dd010934d9",
+						MarkdownDescription: "Identifier of the resource.\n  - example: 8443a2afe9ce47c8958aa9dd010934d9",
+						Computed:            true,
 					},
 					common.ToSnakeCase("InitConfigOption"): schema.SingleNestedAttribute{
 						Description: "InitConfigOption.",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("AuditEnabled"): schema.BoolAttribute{
-								Description: "AuditEnabled",
-								Computed:    true,
+								Description:         "Audit Log Setting\n  - example: true",
+								MarkdownDescription: "Audit Log Setting\n  - example: true",
+								Computed:            true,
 							},
 							common.ToSnakeCase("BackupOption"): schema.SingleNestedAttribute{
 								Description: "BackupOption",
 								Computed:    true,
 								Attributes: map[string]schema.Attribute{
 									common.ToSnakeCase("ArchiveFrequencyMinute"): schema.StringAttribute{
-										Description: "ArchiveFrequencyMinute",
-										Computed:    true,
+										Description:         "Backup starting time (minute) \n  - example: 60",
+										MarkdownDescription: "Backup starting time (minute) \n  - example: 60",
+										Computed:            true,
 									},
 									common.ToSnakeCase("RetentionPeriodDay"): schema.StringAttribute{
-										Description: "RetentionPeriodDay",
-										Computed:    true,
+										Description:         "Backup retention period (day) \n  - example: 7",
+										MarkdownDescription: "Backup retention period (day) \n  - example: 7",
+										Computed:            true,
 									},
 									common.ToSnakeCase("StartingTimeHour"): schema.StringAttribute{
-										Description: "StartingTimeHour",
-										Computed:    true,
+										Description:         "Backup starting time (hour) \n  - example: 12",
+										MarkdownDescription: "Backup starting time (hour) \n  - example: 12",
+										Computed:            true,
 									},
 								},
 							},
 							common.ToSnakeCase("DatabaseEncoding"): schema.StringAttribute{
-								Description: "DatabaseEncoding",
-								Computed:    true,
+								Description:         "Database encoding\n  - example: UTF-8",
+								MarkdownDescription: "Database encoding\n  - example: UTF-8",
+								Computed:            true,
 							},
 							common.ToSnakeCase("DatabaseLocale"): schema.StringAttribute{
-								Description: "DatabaseLocale",
-								Computed:    true,
+								Description:         "Database locale\n  - example: C",
+								MarkdownDescription: "Database locale\n  - example: C",
+								Computed:            true,
 							},
 							common.ToSnakeCase("DatabaseName"): schema.StringAttribute{
-								Description: "DatabaseName",
-								Computed:    true,
+								Description:         "Database name\n  - example: mydb",
+								MarkdownDescription: "Database name\n  - example: mydb",
+								Computed:            true,
 							},
 							common.ToSnakeCase("DatabasePort"): schema.Int32Attribute{
-								Description: "DatabasePort",
-								Computed:    true,
+								Description:         "Database service port\n  - example: 2866",
+								MarkdownDescription: "Database service port\n  - example: 2866",
+								Computed:            true,
 							},
 							common.ToSnakeCase("DatabaseUserName"): schema.StringAttribute{
-								Description: "DatabaseUserName",
-								Computed:    true,
-							},
-							common.ToSnakeCase("DatabaseUserPassword"): schema.StringAttribute{
-								Description: "DatabaseUserPassword",
-								Computed:    true,
+								Description:         "Database user name\n  - example: mydb",
+								MarkdownDescription: "Database user name\n  - example: mydb",
+								Computed:            true,
 							},
 						},
 					},
 					common.ToSnakeCase("InstanceCount"): schema.Int32Attribute{
-						Description: "InstanceCount",
-						Computed:    true,
+						Description:         "Instance Count\n  - example: 1",
+						MarkdownDescription: "Instance Count\n  - example: 1",
+						Computed:            true,
 					},
 					common.ToSnakeCase("InstanceGroups"): schema.ListNestedAttribute{
 						Description: "InstanceGroups",
@@ -134,16 +149,19 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "Id",
-									Computed:    true,
+									Description:         "Instance group ID\n  - example: ee48b333d5a84097adc079dec17ab872",
+									MarkdownDescription: "Instance group ID\n  - example: ee48b333d5a84097adc079dec17ab872",
+									Computed:            true,
 								},
 								common.ToSnakeCase("RoleType"): schema.StringAttribute{
-									Description: "RoleType",
-									Computed:    true,
+									Description:         "Role type\n  - example: ACTIVE",
+									MarkdownDescription: "Role type\n  - example: ACTIVE",
+									Computed:            true,
 								},
 								common.ToSnakeCase("ServerTypeName"): schema.StringAttribute{
-									Description: "ServerTypeName",
-									Computed:    true,
+									Description:         "Server type name\n  - example: db1v2m4",
+									MarkdownDescription: "Server type name\n  - example: db1v2m4",
+									Computed:            true,
 								},
 								common.ToSnakeCase("BlockStorageGroups"): schema.ListNestedAttribute{
 									Description: "BlockStorageGroups",
@@ -151,24 +169,29 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											common.ToSnakeCase("Id"): schema.StringAttribute{
-												Description: "Id",
-												Computed:    true,
+												Description:         "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+												MarkdownDescription: "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+												Computed:            true,
 											},
 											common.ToSnakeCase("Name"): schema.StringAttribute{
-												Description: "Name",
-												Computed:    true,
+												Description:         "Block storage group name\n  - example: cluster-Disk-00",
+												MarkdownDescription: "Block storage group name\n  - example: cluster-Disk-00",
+												Computed:            true,
 											},
 											common.ToSnakeCase("RoleType"): schema.StringAttribute{
-												Description: "RoleType",
-												Computed:    true,
+												Description:         "Block storage role type\n  - example: OS",
+												MarkdownDescription: "Block storage role type\n  - example: OS",
+												Computed:            true,
 											},
 											common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
-												Description: "SizeGb",
-												Computed:    true,
+												Description:         "Size (GB)\n  - example: 104",
+												MarkdownDescription: "Size (GB)\n  - example: 104",
+												Computed:            true,
 											},
 											common.ToSnakeCase("VolumeType"): schema.StringAttribute{
-												Description: "VolumeType",
-												Computed:    true,
+												Description:         "Volume type\n  - example: SSD",
+												MarkdownDescription: "Volume type\n  - example: SSD",
+												Computed:            true,
 											},
 										},
 									},
@@ -179,20 +202,24 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											common.ToSnakeCase("Name"): schema.StringAttribute{
-												Description: "Name",
-												Computed:    true,
+												Description:         "Instance name\n  - example: test001",
+												MarkdownDescription: "Instance name\n  - example: test001",
+												Computed:            true,
 											},
 											common.ToSnakeCase("RoleType"): schema.StringAttribute{
-												Description: "RoleType",
-												Computed:    true,
+												Description:         "Role type\n  - example: ACTIVE",
+												MarkdownDescription: "Role type\n  - example: ACTIVE",
+												Computed:            true,
 											},
 											common.ToSnakeCase("ServiceIpAddress"): schema.StringAttribute{
-												Description: "ServiceIpAddress",
-												Computed:    true,
+												Description:         "User subnet IP address\n  - example: 192.168.4.22",
+												MarkdownDescription: "User subnet IP address\n  - example: 192.168.4.22",
+												Computed:            true,
 											},
 											common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
-												Description: "PublicIpId",
-												Computed:    true,
+												Description:         "Public IP ID\n  - example: 90a68b14850741598ecacd0eb190873e",
+												MarkdownDescription: "Public IP ID\n  - example: 90a68b14850741598ecacd0eb190873e",
+												Computed:            true,
 											},
 										},
 									},
@@ -201,91 +228,116 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 						},
 					},
 					common.ToSnakeCase("IsKernelPatchable"): schema.BoolAttribute{
-						Description: "IsKernelPatchable",
-						Computed:    true,
+						Description:         "Whether the kernel can be patched\n  - example: true",
+						MarkdownDescription: "Whether the kernel can be patched\n  - example: true",
+						Computed:            true,
 					},
 					common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 						Description: "MaintenanceOption",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
-								Description: "PeriodHour",
-								Computed:    true,
+								Description:         "Period in hours\n  - example: 1",
+								MarkdownDescription: "Period in hours\n  - example: 1",
+								Computed:            true,
 							},
 							common.ToSnakeCase("StartingDayOfWeek"): schema.StringAttribute{
-								Description: "StartingDayOfWeek",
-								Computed:    true,
+								Description:         "Starting day of week\n  - example: MON",
+								MarkdownDescription: "Starting day of week\n  - example: MON",
+								Computed:            true,
 							},
 							common.ToSnakeCase("StartingTime"): schema.StringAttribute{
-								Description: "StartingTime",
-								Computed:    true,
+								Description:         "Starting time\n  - example: 0000",
+								MarkdownDescription: "Starting time\n  - example: 0000",
+								Computed:            true,
 							},
 							common.ToSnakeCase("UseMaintenanceOption"): schema.BoolAttribute{
-								Description: "UseMaintenanceOption",
-								Computed:    true,
+								Description:         "Use maintenance option\n  - example: true",
+								MarkdownDescription: "Use maintenance option\n  - example: true",
+								Computed:            true,
 							},
 						},
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description:         "Cluster name\n  - example: mytest",
+						MarkdownDescription: "Cluster name\n  - example: mytest",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OriginClusterId"): schema.StringAttribute{
-						Description: "OriginClusterId",
-						Computed:    true,
+						Description:         "Origin cluster ID\n  - example: 8443a2afe9ce47c8958aa9dd010934d9",
+						MarkdownDescription: "Origin cluster ID\n  - example: 8443a2afe9ce47c8958aa9dd010934d9",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ProductType"): schema.StringAttribute{
-						Description: "ProductType",
-						Computed:    true,
+						Description:         "Product type\n  - example: PostgreSQL Community",
+						MarkdownDescription: "Product type\n  - example: PostgreSQL Community",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Replicas"): schema.SetAttribute{
-						Description: "Replicas",
-						Computed:    true,
-						ElementType: types.StringType,
+						Description:         "Replicas list IDs\n  - example: ['6bc0cecc7a21488f974602574da86071']",
+						MarkdownDescription: "Replicas list IDs\n  - example: ['6bc0cecc7a21488f974602574da86071']",
+						Computed:            true,
+						ElementType:         types.StringType,
 					},
 					common.ToSnakeCase("RoleType"): schema.StringAttribute{
-						Description: "RoleType",
-						Computed:    true,
+						Description:         "Role type\n  - example: ORIGIN",
+						MarkdownDescription: "Role type\n  - example: ORIGIN",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-						Description: "ServiceState",
-						Computed:    true,
+						Description:         "Service state\n  - example: RUNNING",
+						MarkdownDescription: "Service state\n  - example: RUNNING",
+						Computed:            true,
 					},
 					common.ToSnakeCase("SoftwareVersion"): schema.StringAttribute{
-						Description: "SoftwareVersion",
-						Computed:    true,
+						Description:         "Software version\n  - example: COMMUNITY 17.7",
+						MarkdownDescription: "Software version\n  - example: COMMUNITY 17.7",
+						Computed:            true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Computed:    true,
+						Description:         "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249",
+						MarkdownDescription: "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Timezone"): schema.StringAttribute{
-						Description: "Timezone",
-						Computed:    true,
+						Description:         "Timezone\n  - example: Asia/Seoul",
+						MarkdownDescription: "Timezone\n  - example: Asia/Seoul",
+						Computed:            true,
 					},
 					common.ToSnakeCase("VipPublicIpId"): schema.StringAttribute{
-						Description: "VipPublicIpId",
-						Computed:    true,
+						Description:         "(VIP) Public IP ID\n  - example: 88a68b14850741599ecacd0eb190999a",
+						MarkdownDescription: "(VIP) Public IP ID\n  - example: 88a68b14850741599ecacd0eb190999a",
+						Computed:            true,
 					},
 					common.ToSnakeCase("VirtualIpAddress"): schema.StringAttribute{
-						Description: "VirtualIpAddress",
-						Computed:    true,
+						Description:         "Virtual IP address\n  - example: 192.168.4.30",
+						MarkdownDescription: "Virtual IP address\n  - example: 192.168.4.30",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description:         "Created by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						MarkdownDescription: "Created by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description:         "Modified by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						MarkdownDescription: "Modified by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						Computed:            true,
+					},
+					common.ToSnakeCase("ServiceWatchLogCollection"): schema.BoolAttribute{
+						Description:         "ServiceWatchLogCollection\n - example: false",
+						MarkdownDescription: "ServiceWatchLogCollection\n - example: false",
+						Computed:            true,
 					},
 				},
 			},
@@ -320,7 +372,7 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	data, err := d.client.GetCluster(ctx, state.Id.ValueString())
+	data, _, err := d.client.GetCluster(ctx, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Cluster",
@@ -349,15 +401,14 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 		}
 	}
 
-	var initConfigOption = postgresql.InitConfigOption{
-		AuditEnabled:         types.BoolPointerValue(data.InitConfigOption.AuditEnabled),
-		BackupOption:         BackupOption,
-		DatabaseEncoding:     types.StringPointerValue(data.InitConfigOption.DatabaseEncoding.Get()),
-		DatabaseLocale:       types.StringPointerValue(data.InitConfigOption.DatabaseLocale.Get()),
-		DatabaseName:         types.StringValue(data.InitConfigOption.DatabaseName),
-		DatabasePort:         types.Int32PointerValue(data.InitConfigOption.DatabasePort.Get()),
-		DatabaseUserName:     types.StringValue(data.InitConfigOption.DatabaseUserName),
-		DatabaseUserPassword: types.StringValue(""),
+	var initConfigOption = &postgresql.InitConfigOptionBase{
+		AuditEnabled:     types.BoolPointerValue(data.InitConfigOption.AuditEnabled),
+		BackupOption:     BackupOption,
+		DatabaseEncoding: types.StringPointerValue(data.InitConfigOption.DatabaseEncoding.Get()),
+		DatabaseLocale:   types.StringPointerValue(data.InitConfigOption.DatabaseLocale.Get()),
+		DatabaseName:     types.StringValue(data.InitConfigOption.DatabaseName),
+		DatabasePort:     types.Int32PointerValue(data.InitConfigOption.DatabasePort.Get()),
+		DatabaseUserName: types.StringValue(data.InitConfigOption.DatabaseUserName),
 	}
 
 	var InstanceGroups []database.InstanceGroup
@@ -383,8 +434,10 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 			})
 		}
 
-		blockStorageGroupList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: database.BlockStorageGroup{}.AttributeTypes()}, BlockStorage)
-		instanceList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: database.Instance{}.AttributeTypes()}, Instance)
+		blockStorageGroupList, blockStorageDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: database.BlockStorageGroup{}.AttributeTypes()}, BlockStorage)
+		resp.Diagnostics.Append(blockStorageDiags...)
+		instanceList, instanceDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: database.Instance{}.AttributeTypes()}, Instance)
+		resp.Diagnostics.Append(instanceDiags...)
 
 		InstanceGroups = append(InstanceGroups, database.InstanceGroup{
 			Id:                 types.StringValue(instanceGroup.Id),
@@ -395,11 +448,14 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 		})
 	}
 
-	var MaintenanceOption = postgresql.MaintenanceOption{
-		PeriodHour:           types.StringPointerValue(data.MaintenanceOption.Get().PeriodHour.Get()),
-		StartingDayOfWeek:    types.StringPointerValue((*string)(data.MaintenanceOption.Get().StartingDayOfWeek.Get())),
-		StartingTime:         types.StringPointerValue(data.MaintenanceOption.Get().StartingTime.Get()),
-		UseMaintenanceOption: types.BoolPointerValue(data.MaintenanceOption.Get().UseMaintenanceOption),
+	var MaintenanceOption *postgresql.MaintenanceOption
+	if data.MaintenanceOption.IsSet() && data.MaintenanceOption.Get() != nil {
+		MaintenanceOption = &postgresql.MaintenanceOption{
+			PeriodHour:           types.StringPointerValue(data.MaintenanceOption.Get().PeriodHour.Get()),
+			StartingDayOfWeek:    types.StringPointerValue((*string)(data.MaintenanceOption.Get().StartingDayOfWeek.Get())),
+			StartingTime:         types.StringPointerValue(data.MaintenanceOption.Get().StartingTime.Get()),
+			UseMaintenanceOption: types.BoolPointerValue(data.MaintenanceOption.Get().UseMaintenanceOption),
+		}
 	}
 
 	var replicas types.Set
@@ -436,15 +492,15 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 		Timezone:             types.StringValue(data.Timezone),
 		VipPublicIpId:        types.StringPointerValue(data.VipPublicIpId.Get()),
 		//VipPublicIpAddress:   types.StringPointerValue(data.VipPublicIpAddress.Get()),
-		VirtualIpAddress: types.StringPointerValue(data.VirtualIpAddress.Get()),
-		CreatedAt:        types.StringValue(data.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:        types.StringValue(data.CreatedBy),
-		ModifiedAt:       types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:       types.StringValue(data.ModifiedBy),
+		VirtualIpAddress:          types.StringPointerValue(data.VirtualIpAddress.Get()),
+		CreatedAt:                 types.StringValue(data.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:                 types.StringValue(data.CreatedBy),
+		ModifiedAt:                types.StringValue(data.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:                types.StringValue(data.ModifiedBy),
+		ServiceWatchLogCollection: types.BoolValue(data.GetServiceWatchLogCollection()),
 	}
 
-	postgresqlObjectValue, _ := types.ObjectValueFrom(ctx, postgresqlState.AttributeTypes(), postgresqlState)
-	state.ClusterDetail = postgresqlObjectValue
+	state.ClusterDetail = &postgresqlState
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)

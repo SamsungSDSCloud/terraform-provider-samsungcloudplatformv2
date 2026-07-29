@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/iam"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -72,8 +72,9 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 					"  - example : 'usr-1234567890abcdef'",
 			},
 			"user": schema.SingleNestedAttribute{
-				Description: "Detailed information about the user.",
-				Computed:    true,
+				Description: "Detailed information about the user.\n" +
+					"  - example : {\"id\": \"usr-1234567890abcdef\", \"name\": \"John Doe\", \"email\": \"user@example.com\", ...}",
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"account_id": schema.StringAttribute{
 						Computed: true,
@@ -93,12 +94,12 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 					"created_at": schema.StringAttribute{
 						Computed: true,
 						Description: "Timestamp when the user was created.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"created_by": schema.StringAttribute{
 						Computed: true,
 						Description: "User who created the user.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"description": schema.StringAttribute{
 						Computed: true,
@@ -113,7 +114,7 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 					"email": schema.StringAttribute{
 						Computed: true,
 						Description: "Email address.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"email_authenticated": schema.BoolAttribute{
 						Computed: true,
@@ -135,7 +136,7 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						Computed: true,
 						Optional: true,
 						Description: "Last login timestamp.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"last_name": schema.StringAttribute{
 						Computed: true,
@@ -146,17 +147,17 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 					"last_password_update_at": schema.StringAttribute{
 						Computed: true,
 						Description: "Timestamp when the password was last updated.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"modified_at": schema.StringAttribute{
 						Computed: true,
 						Description: "Timestamp when the user was last modified.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"modified_by": schema.StringAttribute{
 						Computed: true,
 						Description: "User who last modified the user.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"name": schema.StringAttribute{
 						Computed: true,
@@ -167,8 +168,6 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						Computed: true,
 						Optional: true,
 						Description: "User password (masked for security).\n" +
-							"  - example : '********'",
-						MarkdownDescription: "User password (masked for security).\n" +
 							"  - example : '********'",
 					},
 					"password_reuse_count": schema.Int64Attribute{
@@ -182,29 +181,29 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 							"  - example : true",
 					},
 					"policies": schema.ListNestedAttribute{
-						Optional:    true,
-						Description: "Policies",
+						Optional: true,
+						Description: "List of policies attached to the user.\n" +
+							"  - example : [{\"id\": \"pol-1234567890abcdef\", \"policy_name\": \"MyPolicy\", \"policy_type\": \"USER_DEFINED\", ...}]",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"account_id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Account ID that owns the policy.\n  - example : '123456789012'",
-									MarkdownDescription: "Account ID that owns the policy.\n  - example : '123456789012'",
+									Computed:    true,
+									Description: "Account ID that owns the policy.\n  - example : '123456789012'",
 								},
 								"created_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the policy was created.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"created_by": schema.StringAttribute{
 									Computed: true,
 									Description: "User who created the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_email": schema.StringAttribute{
 									Computed: true,
 									Description: "Email of the user who created the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_name": schema.StringAttribute{
 									Computed: true,
@@ -212,75 +211,64 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 										"  - example : 'John Doe'",
 								},
 								"default_version_id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Default version ID of the policy.\n  - example : 'pol-1234567890abcdef'",
-									MarkdownDescription: "Default version ID of the policy.\n  - example : 'pol-1234567890abcdef'",
+									Computed:    true,
+									Description: "Default version ID of the policy.\n  - example : 'pol-1234567890abcdef'",
 								},
 								"description": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Description of the policy.\n  - example : 'My policy description'",
-									MarkdownDescription: "Description of the policy.\n  - example : 'My policy description'",
+									Computed:    true,
+									Description: "Description of the policy.\n  - example : 'My policy description'",
 								},
 								"domain_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Domain name associated with the policy.\n  - example : 'scp'",
-									MarkdownDescription: "Domain name associated with the policy.\n  - example : 'scp'",
+									Computed:    true,
+									Description: "Domain name associated with the policy.\n  - example : 'scp'",
 								},
 								"id": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Policy ID.\n  - example : 'pol-1234567890abcdef'",
-									MarkdownDescription: "Policy ID.\n  - example : 'pol-1234567890abcdef'",
+									Computed:    true,
+									Description: "Policy ID.\n  - example : 'pol-1234567890abcdef'",
 								},
 								"modified_at": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Timestamp when the policy was last modified.\n  - example : '2024-01-01T00:00:00Z'",
-									MarkdownDescription: "Timestamp when the policy was last modified.\n  - example : '2024-01-01T00:00:00Z'",
+									Computed:    true,
+									Description: "Timestamp when the policy was last modified.\n  - example : '2024-01-01T00:00:00Z'",
 								},
 								"modified_by": schema.StringAttribute{
-									Computed:            true,
-									Description:         "User who last modified the policy.\n  - example : 'user@example.com'",
-									MarkdownDescription: "User who last modified the policy.\n  - example : 'user@example.com'",
+									Computed:    true,
+									Description: "User who last modified the policy.\n  - example : 'user@example.com'",
 								},
 								"modifier_email": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Email of the user who last modified the policy.\n  - example : 'user@example.com'",
-									MarkdownDescription: "Email of the user who last modified the policy.\n  - example : 'user@example.com'",
+									Computed:    true,
+									Description: "Email of the user who last modified the policy.\n  - example : 'user@example.com'",
 								},
 								"modifier_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Name of the user who last modified the policy.\n  - example : 'John Doe'",
-									MarkdownDescription: "Name of the user who last modified the policy.\n  - example : 'John Doe'",
+									Computed:    true,
+									Description: "Name of the user who last modified the policy.\n  - example : 'John Doe'",
 								},
 								"policy_category": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Category of the policy.\n  - example : 'IDENTITY_BASED'",
-									MarkdownDescription: "Category of the policy.\n  - example : 'IDENTITY_BASED'",
+									Computed:    true,
+									Description: "Category of the policy.\n  - example : 'IDENTITY_BASED'",
 								},
 								"policy_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Name of the policy.\n  - example : 'MyPolicy'",
-									MarkdownDescription: "Name of the policy.\n  - example : 'MyPolicy'",
+									Computed:    true,
+									Description: "Name of the policy.\n  - example : 'MyPolicy'",
 								},
 								"policy_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Type of the policy.\n  - example : 'USER_DEFINED'",
-									MarkdownDescription: "Type of the policy.\n  - example : 'USER_DEFINED'",
+									Computed:    true,
+									Description: "Type of the policy.\n  - example : 'USER_DEFINED'",
 								},
 								"policy_versions": schema.ListNestedAttribute{
-									Optional:            true,
-									Description:         "Policy Versions",
-									MarkdownDescription: "Policy Versions",
+									Optional: true,
+									Description: "List of versions of the policy.\n" +
+										"  - example : [{\"id\": \"v-1234567890abcdef\", \"policy_version_name\": \"v1\", ...}]",
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"created_at": schema.StringAttribute{
 												Computed: true,
 												Description: "Timestamp when the policy version was created.\n" +
-													"  - example : '2024-01-01T00:00:00Z'",
+													TimeExample,
 											},
 											"created_by": schema.StringAttribute{
 												Computed: true,
 												Description: "User who created the policy version.\n" +
-													"  - example : 'user@example.com'",
+													UserEmailExample,
 											},
 											"id": schema.StringAttribute{
 												Computed: true,
@@ -290,56 +278,47 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 											"modified_at": schema.StringAttribute{
 												Computed: true,
 												Description: "Timestamp when the policy version was last modified.\n" +
-													"  - example : '2024-01-01T00:00:00Z'",
+													TimeExample,
 											},
 											"modified_by": schema.StringAttribute{
 												Computed: true,
 												Description: "User who last modified this policy version.\n" +
-													"  - example : 'user@example.com'",
+													UserEmailExample,
 											},
 											"policy_document": schema.SingleNestedAttribute{
-												Computed:            true,
-												Description:         "Policy document - JSON policy content defining permissions.\n  - example : {'Version': '2012-10-17', 'Statement': [...]}",
-												MarkdownDescription: "Policy document - JSON policy content defining permissions.\n  - example : {'Version': '2012-10-17', 'Statement': [...]}",
+												Computed:    true,
+												Description: "Policy document - JSON policy content defining permissions.\n  - example : {'Version': '2012-10-17', 'Statement': [...]}",
 												Attributes: map[string]schema.Attribute{
 													"statement": schema.ListNestedAttribute{
-														Computed:            true,
-														Description:         "Statement - list of permission statements in the policy.\n  - example : [{'Sid': 'Stmt1', 'Effect': 'Allow', 'Action': [...], 'Resource': '*'}]",
-														MarkdownDescription: "Statement - list of permission statements in the policy.\n  - example : [{'Sid': 'Stmt1', 'Effect': 'Allow', 'Action': [...], 'Resource': '*'}]",
+														Computed:    true,
+														Description: "Statement - list of permission statements in the policy.\n  - example : [{'Sid': 'Stmt1', 'Effect': 'Allow', 'Action': [...], 'Resource': '*'}]",
 														NestedObject: schema.NestedAttributeObject{
 															Attributes: map[string]schema.Attribute{
 																"action": schema.ListAttribute{
-																	Computed:            true,
-																	Description:         "Actions allowed or denied by the policy statement.\n  - example : ['iam:CreateRole']",
-																	MarkdownDescription: "Actions allowed or denied by the policy statement.\n  - example : ['iam:CreateRole']",
-																	ElementType:         types.StringType,
+																	Computed:    true,
+																	Description: "Actions allowed or denied by the policy statement.\n  - example : ['iam:CreateRole']",
+																	ElementType: types.StringType,
 																},
 																"not_action": schema.ListAttribute{
-																	Optional:            true,
-																	Description:         "Actions that are excluded from the policy statement.\n  - example : ['iam:DeleteRole']",
-																	MarkdownDescription: "Actions that are excluded from the policy statement.\n  - example : ['iam:DeleteRole']",
-																	ElementType:         types.StringType,
+																	Optional:    true,
+																	Description: "Actions that are excluded from the policy statement.\n  - example : ['iam:DeleteRole']",
+																	ElementType: types.StringType,
 																},
 																"effect": schema.StringAttribute{
-																	Computed:            true,
-																	Description:         "Effect of the policy statement (Allow or Deny).\n  - example : 'Allow'",
-																	MarkdownDescription: "Effect of the policy statement (Allow or Deny).\n  - example : 'Allow'",
+																	Computed:    true,
+																	Description: "Effect of the policy statement (Allow or Deny).\n  - example : 'Allow'",
 																},
 																"resource": schema.ListAttribute{
-																	Computed:            true,
-																	Description:         "Resources that the policy statement applies to.\n  - example : ['*']",
-																	MarkdownDescription: "Resources that the policy statement applies to.\n  - example : ['*']",
-																	ElementType:         types.StringType,
+																	Computed:    true,
+																	Description: "Resources that the policy statement applies to.\n  - example : ['*']",
+																	ElementType: types.StringType,
 																},
 																"sid": schema.StringAttribute{
-																	Computed:            true,
-																	Description:         "Statement ID (SID) - unique identifier for the policy statement.\n  - example : 'Stmt1'",
-																	MarkdownDescription: "Statement ID (SID) - unique identifier for the policy statement.\n  - example : 'Stmt1'",
+																	Computed:    true,
+																	Description: "Statement ID (SID) - unique identifier for the policy statement.\n  - example : 'Stmt1'",
 																},
 																"condition": schema.MapAttribute{
 																	Description: "Condition for the policy statement. Specifies constraints on when the policy applies.\n" +
-																		"  - example : {\"aws:PrincipalTag/department\": [\"engineering\"]}",
-																	MarkdownDescription: "Condition for the policy statement. Specifies constraints on when the policy applies.\n" +
 																		"  - example : {\"aws:PrincipalTag/department\": [\"engineering\"]}",
 																	ElementType: types.MapType{
 																		ElemType: types.ListType{
@@ -349,22 +328,17 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 																	Optional: true,
 																},
 																"principal": schema.SingleNestedAttribute{
-																	Optional:            true,
-																	Description:         "Principal - the entity (user, group, or service) that the policy statement applies to.\n  - example : {'Service': ['ec2.amazonaws.com']}",
-																	MarkdownDescription: "Principal - the entity (user, group, or service) that the policy statement applies to.\n  - example : {'Service': ['ec2.amazonaws.com']}",
+																	Optional:    true,
+																	Description: "Principal - the entity (user, group, or service) that the policy statement applies to.\n  - example : {'Service': ['ec2.amazonaws.com']}",
 																	Attributes: map[string]schema.Attribute{
 																		"principal_string": schema.StringAttribute{
 																			Optional: true,
 																			Description: "Principal as a string. Specifies the IAM user, role, or account that the policy applies to.\n" +
 																				"  - example : 'arn:aws:iam::123456789012:user/admin'",
-																			MarkdownDescription: "Principal as a string. Specifies the IAM user, role, or account that the policy applies to.\n" +
-																				"  - example : 'arn:aws:iam::123456789012:user/admin'",
 																		},
 																		"principal_map": schema.MapAttribute{
 																			Optional: true,
 																			Description: "Principal as a map. Specifies multiple principals using key-value pairs.\n" +
-																				"  - example : {\"AWS\": [\"arn:aws:iam::123456789012:root\"]}",
-																			MarkdownDescription: "Principal as a map. Specifies multiple principals using key-value pairs.\n" +
 																				"  - example : {\"AWS\": [\"arn:aws:iam::123456789012:root\"]}",
 																			ElementType: types.ListType{
 																				ElemType: types.StringType,
@@ -383,32 +357,27 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 												},
 											},
 											"policy_id": schema.StringAttribute{
-												Computed:            true,
-												Description:         "ID of the policy.\n  - example : 'pol-1234567890abcdef'",
-												MarkdownDescription: "ID of the policy.\n  - example : 'pol-1234567890abcdef'",
+												Computed:    true,
+												Description: "ID of the policy.\n  - example : 'pol-1234567890abcdef'",
 											},
 											"policy_version_name": schema.StringAttribute{
-												Computed:            true,
-												Description:         "Name of the policy version.\n  - example : 'POLICY_VERSION_1'",
-												MarkdownDescription: "Name of the policy version.\n  - example : 'POLICY_VERSION_1'",
+												Computed:    true,
+												Description: "Name of the policy version.\n  - example : 'POLICY_VERSION_1'",
 											},
 										},
 									},
 								},
 								"resource_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Type of resource.\n  - example : 'policy'",
-									MarkdownDescription: "Type of resource.\n  - example : 'policy'",
+									Computed:    true,
+									Description: "Type of resource.\n  - example : 'policy'",
 								},
 								"service_name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Name of the service.\n  - example : 'Identity Access Management'",
-									MarkdownDescription: "Name of the service.\n  - example : 'Identity Access Management'",
+									Computed:    true,
+									Description: "Name of the service.\n  - example : 'Identity Access Management'",
 								},
 								"service_type": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Type of service.\n  - example : 'iam'",
-									MarkdownDescription: "Type of service.\n  - example : 'iam'",
+									Computed:    true,
+									Description: "Type of service.\n  - example : 'iam'",
 								},
 								"srn": schema.StringAttribute{
 									Computed: true,
@@ -449,9 +418,9 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 							"  - example : '+09:00'",
 					},
 					"access_keys": schema.ListNestedAttribute{
-						Computed:            true,
-						Description:         "Access Keys",
-						MarkdownDescription: "Access Keys",
+						Computed: true,
+						Description: "List of access keys belonging to the user.\n" +
+							"  - example : [{\"id\": \"12345678-1234-1234-1234-1234567890ab\", \"access_key\": \"ak-example-access-key-id\", \"is_enabled\": true, ...}]",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"access_key": schema.StringAttribute{
@@ -462,7 +431,7 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 								"created_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the access key was created.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"expiration_timestamp": schema.StringAttribute{
 									Computed: true,
@@ -483,9 +452,9 @@ func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						},
 					},
 					"groups": schema.ListNestedAttribute{
-						Computed:            true,
-						Description:         "Groups",
-						MarkdownDescription: "Groups",
+						Computed: true,
+						Description: "List of groups the user belongs to.\n" +
+							"  - example : [{\"id\": \"grp-1234567890abcdef\", \"name\": \"MyGroup\"}]",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{

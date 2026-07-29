@@ -6,29 +6,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	gslb "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/gslb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpgslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/gslb/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	gslb "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/gslb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpgslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/gslb/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 const reasonPrefix = "\nReason: "
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &gslbGslbResource{}
-	_ resource.ResourceWithConfigure = &gslbGslbResource{}
+	_ resource.Resource                = &gslbGslbResource{}
+	_ resource.ResourceWithConfigure   = &gslbGslbResource{}
 	_ resource.ResourceWithImportState = &gslbGslbResource{}
 )
 
@@ -262,11 +262,11 @@ func (r *gslbGslbResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 								Optional: true,
 							},
 							common.ToSnakeCase("Protocol"): schema.StringAttribute{
-								Description: "The protocol used for health checks (e.g., ICMP, TCP, HTTP, HTTPS).\n" +
+								Description: "The protocol used for health checks (e.g., ICMP, TCP, HTTP, HTTPS, NONE).\n" +
 									"  - example : TCP",
 								Required: true,
 								Validators: []validator.String{
-									stringvalidator.OneOf("ICMP", "TCP", "HTTP", "HTTPS"),
+									stringvalidator.OneOf("ICMP", "TCP", "HTTP", "HTTPS", "NONE"),
 								},
 							},
 							common.ToSnakeCase("ReceiveString"): schema.StringAttribute{
@@ -384,7 +384,7 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	plan.Id = types.StringValue(data.Gslb.Id)
-	data, err = r.client.GetGslb(ctx, data.Gslb.Id)
+	details, err := r.client.GetGslb(ctx, data.Gslb.Id)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -394,7 +394,7 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	if data == nil || data.Gslb.Id == "" {
+	if details == nil || details.Gslb.Id == "" {
 		resp.Diagnostics.AddError(
 			"Error reading Gslb",
 			"Gslb response is nil or empty",
@@ -402,7 +402,7 @@ func (r *gslbGslbResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	gslbModel := convertResponseToGslb(data)
+	gslbModel := convertResponseToGslb(details)
 
 	gslbObjectValue, diags := types.ObjectValueFrom(ctx, gslbModel.AttributeTypes(), gslbModel)
 	resp.Diagnostics.Append(diags...)
@@ -461,7 +461,9 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	state.GslbCreate.Name = types.StringValue(data.Gslb.Name)
-	state.GslbCreate.Algorithm = types.StringValue(data.Gslb.Algorithm)
+	// The API may return algorithm/protocol in lowercase while the schema only
+	// accepts uppercase values; normalize to uppercase to avoid phantom diffs.
+	state.GslbCreate.Algorithm = types.StringValue(strings.ToUpper(data.Gslb.Algorithm))
 	state.GslbCreate.Description = virtualserverutil.ToNullableStringValue(data.Gslb.Description.Get())
 	state.GslbCreate.EnvUsage = types.StringValue(data.Gslb.EnvUsage)
 
@@ -471,9 +473,9 @@ func (r *gslbGslbResource) Read(ctx context.Context, req resource.ReadRequest, r
 		state.GslbCreate.HealthCheck = &gslb.HealthCheckCreate{
 			HealthCheckInterval:     types.Int32Value(healthCheckFromData.GetHealthCheckInterval()),
 			HealthCheckProbeTimeout: types.Int32Value(healthCheckFromData.GetHealthCheckProbeTimeout()),
-			HealthCheckUserId:       types.StringValue(healthCheckFromData.GetHealthCheckUserId()),
-			HealthCheckUserPassword: types.StringValue(healthCheckFromData.GetHealthCheckUserPassword()),
-			Protocol:                types.StringValue(healthCheckFromData.Protocol),
+			HealthCheckUserId:       emptyAsNullString(healthCheckFromData.GetHealthCheckUserId()),
+			HealthCheckUserPassword: emptyAsNullString(healthCheckFromData.GetHealthCheckUserPassword()),
+			Protocol:                types.StringValue(strings.ToUpper(healthCheckFromData.Protocol)),
 			ReceiveString:           types.StringValue(healthCheckFromData.GetReceiveString()),
 			SendString:              types.StringValue(healthCheckFromData.GetSendString()),
 			ServicePort:             types.Int32Value(healthCheckFromData.GetServicePort()),
@@ -518,14 +520,6 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	if gslbResourceChanged(oldState, state) && gslbHealthCheckChanged(oldState, state) {
-		resp.Diagnostics.AddError(
-			"Error updating Gslb",
-			"Could not change GSLB resources and health checks at the same time",
-		)
-		return
-	}
-
 	// Update existing order
 	if gslbChanged(oldState, state) {
 		_, err := r.client.UpdateGslb(ctx, state.Id.ValueString(), state)
@@ -551,6 +545,15 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 		}
 	}
 
+	updateErr := waitForGslbStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"ACTIVE"})
+	if updateErr != nil {
+		resp.Diagnostics.AddError(
+			"Error updating Gslb",
+			"Error updating for Gslb to become active: "+updateErr.Error(),
+		)
+		return
+	}
+
 	if gslbHealthCheckChanged(oldState, state) {
 		_, err := r.client.UpdateGslbHealthCheck(ctx, state.Id.ValueString(), state)
 		if err != nil {
@@ -563,7 +566,7 @@ func (r *gslbGslbResource) Update(ctx context.Context, req resource.UpdateReques
 		}
 	}
 
-	updateErr := waitForGslbStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"ACTIVE"})
+	updateErr = waitForGslbStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"ACTIVE"})
 	if updateErr != nil {
 		resp.Diagnostics.AddError(
 			"Error updating Gslb",
@@ -635,6 +638,15 @@ func (r *gslbGslbResource) Delete(ctx context.Context, req resource.DeleteReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// emptyAsNullString maps an empty API string to null so that optional
+// attributes the user omitted do not produce phantom diffs on refresh.
+func emptyAsNullString(s string) types.String {
+	if s == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(s)
 }
 
 func convertResponseToGslb(data *scpgslb.GslbShowResponse) gslb.GslbDetail {
@@ -741,19 +753,19 @@ func gslbHealthCheckChanged(oldState gslb.GslbResource, newState gslb.GslbResour
 	if oldHealthCheck.HealthCheckProbeTimeout != newHealthCheck.HealthCheckProbeTimeout {
 		return true
 	}
-	if oldHealthCheck.HealthCheckUserId != newHealthCheck.HealthCheckUserId {
+	if normalizeTypesString(oldHealthCheck.HealthCheckUserId) != normalizeTypesString(newHealthCheck.HealthCheckUserId) {
 		return true
 	}
-	if oldHealthCheck.HealthCheckUserPassword != newHealthCheck.HealthCheckUserPassword {
+	if normalizeTypesString(oldHealthCheck.HealthCheckUserPassword) != normalizeTypesString(newHealthCheck.HealthCheckUserPassword) {
 		return true
 	}
-	if oldHealthCheck.Protocol != newHealthCheck.Protocol {
+	if strings.ToLower(normalizeTypesString(oldHealthCheck.Protocol)) != strings.ToLower(normalizeTypesString(newHealthCheck.Protocol)) {
 		return true
 	}
-	if oldHealthCheck.ReceiveString != newHealthCheck.ReceiveString {
+	if normalizeTypesString(oldHealthCheck.ReceiveString) != normalizeTypesString(newHealthCheck.ReceiveString) {
 		return true
 	}
-	if oldHealthCheck.SendString != newHealthCheck.SendString {
+	if normalizeTypesString(oldHealthCheck.SendString) != normalizeTypesString(newHealthCheck.SendString) {
 		return true
 	}
 	if oldHealthCheck.ServicePort != newHealthCheck.ServicePort {
@@ -764,6 +776,13 @@ func gslbHealthCheckChanged(oldState gslb.GslbResource, newState gslb.GslbResour
 	}
 
 	return false
+}
+
+func normalizeTypesString(s types.String) string {
+	if s.IsNull() || s.ValueString() == "" {
+		return ""
+	}
+	return s.ValueString()
 }
 
 func waitForGslbStatus(ctx context.Context, gslbClient *gslb.Client, id string, pendingStates []string, targetStates []string) error {
@@ -778,5 +797,5 @@ func waitForGslbStatus(ctx context.Context, gslbClient *gslb.Client, id string, 
 
 // ImportState imports an existing resource into Terraform state using its ID.
 func (r *gslbGslbResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-   resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

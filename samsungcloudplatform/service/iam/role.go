@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpiam1d0 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/iam/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpiam1d0 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -94,7 +94,12 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					},
 				},
 			},
-			"tags": tag.ResourceSchema(),
+			"tags": func() schema.MapAttribute {
+				tagAttr := tag.ResourceSchema()
+				tagAttr.Description = tagAttr.Description + "\n" +
+					"  - example : {\"env\": \"production\", \"team\": \"platform\"}"
+				return tagAttr
+			}(),
 			"assume_role_policy_document": schema.SingleNestedAttribute{
 				Optional: true,
 				Description: "Policy document that grants an entity permission to assume the role.\n" +
@@ -189,12 +194,12 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					"created_by": schema.StringAttribute{
 						Computed: true,
 						Description: "User who created the role.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"creator_email": schema.StringAttribute{
 						Computed: true,
 						Description: "Email of the user who created the role.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"creator_name": schema.StringAttribute{
 						Computed: true,
@@ -231,12 +236,12 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					"modified_by": schema.StringAttribute{
 						Computed: true,
 						Description: "User who last modified the role.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"modifier_email": schema.StringAttribute{
 						Computed: true,
 						Description: "Email of the user who last modified the role.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"modifier_name": schema.StringAttribute{
 						Computed: true,
@@ -345,12 +350,12 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 								"created_by": schema.StringAttribute{
 									Computed: true,
 									Description: "User who created the role.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_email": schema.StringAttribute{
 									Computed: true,
 									Description: "Email of the user who created the role.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_name": schema.StringAttribute{
 									Computed: true,
@@ -385,12 +390,12 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 								"modified_by": schema.StringAttribute{
 									Computed: true,
 									Description: "User who last modified the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"modifier_email": schema.StringAttribute{
 									Computed: true,
 									Description: "Email of the user who last modified the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"modifier_name": schema.StringAttribute{
 									Computed: true,
@@ -426,7 +431,7 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 											"created_by": schema.StringAttribute{
 												Computed: true,
 												Description: "User who created the policy version.\n" +
-													"  - example : 'user@example.com'",
+													UserEmailExample,
 											},
 											"id": schema.StringAttribute{
 												Computed: true,
@@ -441,7 +446,7 @@ func (r *iamRoleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 											"modified_by": schema.StringAttribute{
 												Computed: true,
 												Description: "User who last modified the policy version.\n" +
-													"  - example : 'user@example.com'",
+													UserEmailExample,
 											},
 											"policy_document": schema.SingleNestedAttribute{
 												Computed: true,

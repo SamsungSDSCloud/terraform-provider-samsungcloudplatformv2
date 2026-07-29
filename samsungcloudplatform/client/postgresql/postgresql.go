@@ -3,9 +3,9 @@ package postgresql
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	postgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/postgresql/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	postgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/postgresql/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -97,7 +97,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []postgresql.InstanceGroupRequest
+	var convertedInstanceGroups []postgresql.RdbInstanceGroupRequest
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
@@ -112,21 +112,21 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 			})
 		}
 
-		var convertedInstance []postgresql.InstanceRequest
+		var convertedInstance []postgresql.RdbInstanceRequest
 		var instVals []database.Instance
 		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
 		for _, instance := range instVals {
-			convertedInstance = append(convertedInstance, postgresql.InstanceRequest{
-				RoleType:         postgresql.InstanceRoleType(instance.RoleType.ValueString()),
+			convertedInstance = append(convertedInstance, postgresql.RdbInstanceRequest{
+				RoleType:         postgresql.RdbInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *postgresql.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *postgresql.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, postgresql.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, postgresql.RdbInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           postgresql.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           postgresql.RdbInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -156,40 +156,44 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.PostgresqlClusterCreateRequest(postgresql.PostgresqlClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *postgresql.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		VipPublicIpId:        *postgresql.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
-		VirtualIpAddress:     *postgresql.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+	req = req.PostgresqlClusterCreateRequestV1Dot1(postgresql.PostgresqlClusterCreateRequestV1Dot1{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *postgresql.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		VipPublicIpId:             *postgresql.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
+		VirtualIpAddress:          *postgresql.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		ServiceWatchLogCollection: *postgresql.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull() && initConfigOption.BackupOption.ArchiveFrequencyMinute.IsNull()
 
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*postgresql.PostgresqlClusterDetailResponseV1Dot1, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*postgresql.PostgresqlClusterDetailResponseV1Dot2, int, error) {
 	req := client.sdkClient.PostgresqlV1PostgresqlClustersApiAPI.PostgresqlShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {

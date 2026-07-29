@@ -6,14 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/importstate"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/importstate"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -74,7 +76,12 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Description: "Password for the user.\n" +
 					"  - example : 'ExamplePassword123!'",
 			},
-			"tags": tag.ResourceSchema(),
+			"tags": func() schema.MapAttribute {
+				tagAttr := tag.ResourceSchema()
+				tagAttr.Description = tagAttr.Description + "\n" +
+					"  - example : {\"env\": \"production\", \"team\": \"platform\"}"
+				return tagAttr
+			}(),
 			"temporary_password": schema.BoolAttribute{
 				Optional: true,
 				Description: "Whether the password is temporary and needs to be changed.\n" +
@@ -118,16 +125,19 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						Optional: true,
 						Description: "URL to access the console.\n" +
 							"  - example : 'https://console.example.com'",
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"created_at": schema.StringAttribute{
 						Computed: true,
 						Description: "Timestamp when the user was created.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"created_by": schema.StringAttribute{
 						Computed: true,
 						Description: "User who created the user.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"description": schema.StringAttribute{
 						Computed: true,
@@ -142,7 +152,7 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					"email": schema.StringAttribute{
 						Computed: true,
 						Description: "Email address.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"email_authenticated": schema.BoolAttribute{
 						Computed: true,
@@ -164,7 +174,7 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						Computed: true,
 						Optional: true,
 						Description: "Timestamp when the user last logged in.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"last_name": schema.StringAttribute{
 						Computed: true,
@@ -175,17 +185,17 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					"last_password_update_at": schema.StringAttribute{
 						Computed: true,
 						Description: "Timestamp when the password was last updated.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"modified_at": schema.StringAttribute{
 						Computed: true,
 						Description: "Timestamp when the user was last modified.\n" +
-							"  - example : '2024-01-01T00:00:00Z'",
+							TimeExample,
 					},
 					"modified_by": schema.StringAttribute{
 						Computed: true,
 						Description: "User who last modified the user.\n" +
-							"  - example : 'user@example.com'",
+							UserEmailExample,
 					},
 					"name": schema.StringAttribute{
 						Computed: true,
@@ -222,12 +232,12 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 								"created_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the policy was created.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"created_by": schema.StringAttribute{
 									Computed: true,
 									Description: "User who created the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"creator_email": schema.StringAttribute{
 									Computed: true,
@@ -262,12 +272,12 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 								"modified_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the policy was last modified.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"modified_by": schema.StringAttribute{
 									Computed: true,
 									Description: "User who last modified the policy.\n" +
-										"  - example : 'user@example.com'",
+										UserEmailExample,
 								},
 								"modifier_email": schema.StringAttribute{
 									Computed: true,
@@ -303,12 +313,12 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 											"created_at": schema.StringAttribute{
 												Computed: true,
 												Description: "Timestamp when the policy version was created.\n" +
-													"  - example : '2024-01-01T00:00:00Z'",
+													TimeExample,
 											},
 											"created_by": schema.StringAttribute{
 												Computed: true,
 												Description: "User who created the policy version.\n" +
-													"  - example : 'user@example.com'",
+													UserEmailExample,
 											},
 											"id": schema.StringAttribute{
 												Computed: true,
@@ -318,12 +328,12 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 											"modified_at": schema.StringAttribute{
 												Computed: true,
 												Description: "Timestamp when the policy version was last modified.\n" +
-													"  - example : '2024-01-01T00:00:00Z'",
+													TimeExample,
 											},
 											"modified_by": schema.StringAttribute{
 												Computed: true,
 												Description: "User who last modified the policy version.\n" +
-													"  - example : 'user@example.com'",
+													UserEmailExample,
 											},
 											"policy_document": schema.SingleNestedAttribute{
 												Computed: true,
@@ -482,7 +492,7 @@ func (r *iamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 								"created_at": schema.StringAttribute{
 									Computed: true,
 									Description: "Timestamp when the access key was created.\n" +
-										"  - example : '2024-01-01T00:00:00Z'",
+										TimeExample,
 								},
 								"expiration_timestamp": schema.StringAttribute{
 									Computed: true,

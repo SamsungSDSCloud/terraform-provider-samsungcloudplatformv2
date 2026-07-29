@@ -82,7 +82,8 @@ variable "policy_type" {
   - example : 'USER_DEFINED'
 - `role_id` (String) Role ID to filter policy bindings.
   - example: YOUR RESOURCE'S ROLE_ID
-- `role_policy_bindings` (Attributes List) A list of Role Policies (see [below for nested schema](#nestedatt--role_policy_bindings))
+- `role_policy_bindings` (Attributes List) A list of Role Policies
+  - example : [{"id": "pol-1234567890abcdef", "policy_name": "MyPolicy", "policy_type": "USER_DEFINED", ...}] (see [below for nested schema](#nestedatt--role_policy_bindings))
 - `size` (Number) Size (between 1 and 10000)
   - example : 100
 - `sort` (String) Sort order for results.
@@ -93,7 +94,8 @@ variable "policy_type" {
 
 Optional:
 
-- `policy_versions` (Attributes List) List of policy versions. (see [below for nested schema](#nestedatt--role_policy_bindings--policy_versions))
+- `policy_versions` (Attributes List) List of policy versions.
+  - example : [{"id": "v-1234567890abcdef", "policy_version_name": "v1", ...}] (see [below for nested schema](#nestedatt--role_policy_bindings--policy_versions))
 
 Read-Only:
 
@@ -155,7 +157,8 @@ Read-Only:
   - example : '2024-01-01T00:00:00Z'
 - `modified_by` (String) User who last modified the policy version.
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `policy_document` (Attributes) The policy document containing the permission definitions. (see [below for nested schema](#nestedatt--role_policy_bindings--policy_versions--policy_document))
+- `policy_document` (Attributes) The policy document containing the permission definitions.
+  - example : {"version": "2012-10-17", "statement": [{"sid": "Stmt1", "effect": "Allow", ...}]} (see [below for nested schema](#nestedatt--role_policy_bindings--policy_versions--policy_document))
 - `policy_id` (String) ID of the policy this version belongs to.
   - example: YOUR RESOURCE'S POLICY_ID
 - `policy_version_name` (String) Name of the policy version.
@@ -180,7 +183,8 @@ Optional:
   - example : {"aws:PrincipalTag/department": ["engineering"]}
 - `not_action` (List of String) List of actions that are not allowed or denied by this statement.
   - example : ['iam:DeleteRole']
-- `principal` (Attributes) Principal that is allowed or denied access. (see [below for nested schema](#nestedatt--role_policy_bindings--policy_versions--policy_document--statement--principal))
+- `principal` (Attributes) Principal that is allowed or denied access.
+  - example : {"principal_string": "arn:aws:iam::123456789012:user/admin"} (see [below for nested schema](#nestedatt--role_policy_bindings--policy_versions--policy_document--statement--principal))
 
 Read-Only:
 

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_configinspection_diagnosis Data Source - samsungcloudplatformv2"
 subcategory: Config inspection diagnosis
 description: |-
-  Config inspection diagnosis result detail.
+  Retrieves detailed results of a specific security diagnosis (assessment scan). This data source provides comprehensive information about security compliance findings, including passed/failed checks, remediation guidance, and detailed analysis of your cloud infrastructure's security posture.
 ---
 
 # samsungcloudplatformv2_configinspection_diagnosis (Data Source)
 
-Config inspection diagnosis result detail.
+Retrieves detailed results of a specific security diagnosis (assessment scan). This data source provides comprehensive information about security compliance findings, including passed/failed checks, remediation guidance, and detailed analysis of your cloud infrastructure's security posture.
 
 ## Example Usage
 
@@ -112,7 +112,7 @@ variable "sort" {
   - example : [{"href": "http://scp.samsungsdscloud.com/v1/notices", "rel": "self"}] (see [below for nested schema](#nestedatt--links))
 - `proceed_date` (String) Date the diagnosis was performed.
   - example : '2022-01-01 12:00:00'
-- `result_detail_list` (Attributes List) Result detail list (see [below for nested schema](#nestedatt--result_detail_list))
+- `result_detail_list` (Attributes List) Detailed list of individual security check results. Each entry contains specific findings including pass/fail status, security criteria evaluated, remediation guidance, and affected resources. This is the core output of the security assessment. (see [below for nested schema](#nestedatt--result_detail_list))
 - `total` (Number) Total number of diagnosis result items.
 - `total_count` (Number) Total number of items available across all pages.
   - example : 20

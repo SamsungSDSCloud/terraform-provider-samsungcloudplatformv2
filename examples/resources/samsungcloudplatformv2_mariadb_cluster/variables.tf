@@ -136,4 +136,9 @@ variable "tags" {
 }
 
 
+variable "service_watch_log_collection" {
+  type    = bool
+  default = false
+}
+
 

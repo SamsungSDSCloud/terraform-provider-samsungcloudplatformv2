@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -78,6 +78,11 @@ func (d *virtualServerServerDataSources) Schema(_ context.Context, _ datasource.
 				MarkdownDescription: "Auto Scaling Group ID.\n  - example: 52613bd852b04b39adcb15a8364d856d",
 				Optional:            true,
 			},
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Description:         "Zone ID.\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone ID.\n  - example: kr-west1-a",
+				Optional:            true,
+			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
 				ElementType:         types.StringType,
 				Computed:            true,
@@ -120,7 +125,7 @@ func (d *virtualServerServerDataSources) Read(ctx context.Context, req datasourc
 	}
 
 	ids, err := GetServers(d.clients, state.Name, state.Ip, state.State, state.ProductCategory, state.ProductOffering,
-		state.VpcId, state.ServerTypeId, state.AutoScalingGroupId, state.Filter)
+		state.VpcId, state.ServerTypeId, state.AutoScalingGroupId, state.Zone, state.Filter)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Servers",
@@ -140,8 +145,8 @@ func (d *virtualServerServerDataSources) Read(ctx context.Context, req datasourc
 
 func GetServers(clients *client.SCPClient, name types.String, ip types.String, state types.String,
 	productCategory types.String, productOffering types.String, vpcId types.String, serverTypeId types.String,
-	autoScalingGroupId types.String, filters []filter.Filter) ([]types.String, error) {
-	data, err := clients.VirtualServer.GetServerList(name, ip, state, productCategory, productOffering, vpcId, serverTypeId, autoScalingGroupId)
+	autoScalingGroupId types.String, zone types.String, filters []filter.Filter) ([]types.String, error) {
+	data, err := clients.VirtualServer.GetServerList(name, ip, state, productCategory, productOffering, vpcId, serverTypeId, autoScalingGroupId, zone)
 	if err != nil {
 		return nil, err
 	}

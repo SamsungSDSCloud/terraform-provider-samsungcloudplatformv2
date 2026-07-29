@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/baremetalblockstorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/baremetalblockstorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -62,6 +62,11 @@ func (r *baremetalBlockStorageVolume) Schema(ctx context.Context, request resour
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
+			},
+			common.ToSnakeCase("zone"): schema.StringAttribute{
+				Description: "zone. \n" +
+					"  - example: kr-west1-a \n",
+				Required: true,
 			},
 			common.ToSnakeCase("name"): schema.StringAttribute{
 				Description: "Volume name. \n" +
@@ -225,6 +230,10 @@ func (r *baremetalBlockStorageVolume) ModifyPlan(ctx context.Context, request re
 		response.Diagnostics.AddError("Missing QoS Configuration",
 			"When the disk type is SSD, QoS configuration is required.\n")
 	}
+	if !state.Zone.Equal(plan.Zone) {
+		response.Diagnostics.AddError("Could not change zone",
+			"Could not change zone.\nIf you want to change, create a new resource.")
+	}
 }
 
 func (r *baremetalBlockStorageVolume) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
@@ -314,6 +323,7 @@ func (r *baremetalBlockStorageVolume) Read(ctx context.Context, request resource
 	}
 	blockStorage := volumeResponse.Result
 
+	state.Zone = types.StringPointerValue(blockStorage.Zone)
 	state.Name = types.StringPointerValue(blockStorage.Name)
 	if blockStorage.DiskType != nil {
 		state.DiskType = types.StringValue(string(*blockStorage.DiskType))
@@ -374,7 +384,7 @@ func (r *baremetalBlockStorageVolume) Read(ctx context.Context, request resource
 		})
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "baremetal-blockstorage", "volume", *blockStorage.Id)
+	tagsMap, err := tag.GetTags(r.clients, "baremetal-blockstorage", "volume", *blockStorage.Id, false)
 	if err != nil {
 		response.Diagnostics.AddError("Error Reading Block Storage(BM)", err.Error())
 	}
@@ -458,7 +468,7 @@ func (r *baremetalBlockStorageVolume) Update(ctx context.Context, request resour
 	}
 
 	tagElements := plan.Tags.Elements()
-	tagsMap, err := tag.UpdateTags(r.clients, "baremetal-blockstorage", "volume", plan.Id.ValueString(), tagElements)
+	tagsMap, err := tag.UpdateTags(r.clients, "baremetal-blockstorage", "volume", plan.Id.ValueString(), tagElements, false)
 	if err != nil {
 		response.Diagnostics.AddError(
 			"Error updating tags",

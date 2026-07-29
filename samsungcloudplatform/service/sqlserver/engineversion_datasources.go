@@ -2,10 +2,11 @@ package sqlserver
 
 import (
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/sqlserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/sqlserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,42 +36,55 @@ func (d *sqlserverEngineVersionDataSources) Schema(_ context.Context, _ datasour
 	resp.Schema = schema.Schema{
 		Description: "List of Engine Versions.",
 		Attributes: map[string]schema.Attribute{
+			common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
+				Description:         "Product image type\n  - example: Microsoft SQL Server Standard",
+				MarkdownDescription: "Product image type\n  - example: Microsoft SQL Server Standard",
+				Optional:            true,
+			},
 			common.ToSnakeCase("Contents"): schema.ListNestedAttribute{
 				Description: "A detail of Engine Version.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("EndOfService"): schema.BoolAttribute{
-							Description: "EndOfService",
-							Required:    true,
+							Description:         "End of Service\n  - example: false",
+							MarkdownDescription: "End of Service\n  - example: false",
+							Required:            true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Required:    true,
+							Description:         "Engine version ID\n  - example: 3692630f08884127a7168821b5654871",
+							MarkdownDescription: "Engine version ID\n  - example: 3692630f08884127a7168821b5654871",
+							Required:            true,
 						},
 						common.ToSnakeCase("MajorVersion"): schema.StringAttribute{
-							Description: "MajorVersion",
-							Optional:    true,
+							Description:         "Software major version\n  - example: 2022 Standard ENG",
+							MarkdownDescription: "Software major version\n  - example: 2022 Standard ENG",
+							Optional:            true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Required:    true,
+							Description:         "Engine version name\n  - example: Microsoft SQL Server 2022 Standard ENG-KB5065865-x64",
+							MarkdownDescription: "Engine version name\n  - example: Microsoft SQL Server 2022 Standard ENG-KB5065865-x64",
+							Required:            true,
 						},
 						common.ToSnakeCase("OsType"): schema.StringAttribute{
-							Description: "OsType",
-							Required:    true,
+							Description:         "OS type\n  - example: WINDOWS",
+							MarkdownDescription: "OS type\n  - example: WINDOWS",
+							Required:            true,
 						},
 						common.ToSnakeCase("OsVersion"): schema.StringAttribute{
-							Description: "OsVersion",
-							Optional:    true,
+							Description:         "OS version\n  - example: 2019 Std.",
+							MarkdownDescription: "OS version\n  - example: 2019 Std.",
+							Optional:            true,
 						},
 						common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
-							Description: "ProductImageType",
-							Required:    true,
+							Description:         "Product image type\n  - example: Microsoft SQL Server Standard",
+							MarkdownDescription: "Product image type\n  - example: Microsoft SQL Server Standard",
+							Required:            true,
 						},
 						common.ToSnakeCase("SoftwareVersion"): schema.StringAttribute{
-							Description: "SoftwareVersion",
-							Required:    true,
+							Description:         "Software version\n  - example: 2022 Standard ENG-KB5065865",
+							MarkdownDescription: "Software version\n  - example: 2022 Standard ENG-KB5065865",
+							Required:            true,
 						},
 					},
 				},
@@ -106,7 +120,12 @@ func (d *sqlserverEngineVersionDataSources) Read(ctx context.Context, req dataso
 		return
 	}
 
-	data, err := d.client.GetEngineVersionList(ctx)
+	// 사용자가 product_image_type을 지정하지 않은 경우 기본값을 사용한다.
+	if state.ProductImageType.IsNull() || state.ProductImageType.ValueString() == "" {
+		state.ProductImageType = types.StringValue("Microsoft SQL Server Standard")
+	}
+
+	data, err := d.client.GetEngineVersionList(ctx, state.ProductImageType.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read EngineVersion",

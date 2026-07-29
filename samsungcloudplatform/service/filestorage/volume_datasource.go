@@ -3,13 +3,14 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/filestorage"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/filestorage"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -43,6 +44,11 @@ func VolumeDataSourceSchema() schema.Schema {
 				Computed: true,
 				Description: "Account ID \n" +
 					"  - example: 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
+			},
+			"az_type": schema.StringAttribute{
+				Computed: true,
+				Description: "Availability Zone Type \n" +
+					"  - example : 'single' \n",
 			},
 			"created_at": schema.StringAttribute{
 				Computed: true,
@@ -95,11 +101,6 @@ func VolumeDataSourceSchema() schema.Schema {
 				Description: "The current lifecycle state of the volume. Valid values: creating, available, error, deleting. \n" +
 					"  - example: 'available' \n",
 			},
-			"type_id": schema.StringAttribute{
-				Computed: true,
-				Description: "The unique identifier of the storage tier (volume type) assigned to this volume. \n" +
-					"  - example: 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
-			},
 			"type_name": schema.StringAttribute{
 				Computed: true,
 				Description: "Volume Type Name \n" +
@@ -110,6 +111,11 @@ func VolumeDataSourceSchema() schema.Schema {
 				Computed: true,
 				Description: "The current usage of the volume in GiB. \n" +
 					"  - example: 100000",
+			},
+			"zone": schema.StringAttribute{
+				Computed: true,
+				Description: "Zone \n" +
+					"  - example : 'kr-west1-a' \n",
 			},
 		},
 	}
@@ -142,18 +148,27 @@ func (d *fileStorageVolumeDataSource) Read(ctx context.Context, request datasour
 	if response.Diagnostics.HasError() {
 		return
 	}
-
+	if state.Id.IsNull() || state.Id.IsUnknown() || state.Id.ValueString() == "" {
+		response.Diagnostics.AddError("Missing Volume ID", "The volume id must be provided.")
+		return
+	}
 	volume, err := d.client.GetVolume(ctx, state.Id.ValueString())
 
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError("Error Reading Volume",
 			"Could not read Volume Id "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail)
+		return
+	}
+
+	if volume == nil {
+		return
 	}
 
 	if volume.AccountId != "" {
 		state.AccountId = types.StringValue(volume.AccountId)
 	}
+	state.AzType = types.StringPointerValue(volume.AzType.Get())
 	if !volume.CreatedAt.IsZero() {
 		state.CreatedAt = types.StringValue(volume.CreatedAt.Format(time.RFC3339))
 	}
@@ -172,11 +187,11 @@ func (d *fileStorageVolumeDataSource) Read(ctx context.Context, request datasour
 	if volume.State != "" {
 		state.State = types.StringValue(volume.State)
 	}
-	if volume.TypeId != "" {
-		state.TypeId = types.StringValue(volume.TypeId)
-	}
 	if volume.TypeName != "" {
 		state.TypeName = types.StringValue(volume.TypeName)
+	}
+	if volume.Zone != "" {
+		state.Zone = types.StringValue(volume.Zone)
 	}
 
 	state.EncryptionEnabled = types.BoolValue(volume.EncryptionEnabled)

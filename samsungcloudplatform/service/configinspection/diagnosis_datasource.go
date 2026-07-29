@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	scpci "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/configinspection"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	scpci "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/configinspection"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,7 +39,7 @@ func (d *diagnosisDataSource) Metadata(_ context.Context, req datasource.Metadat
 // Schema defines the schema for the data source
 func (d *diagnosisDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Config inspection diagnosis result detail.",
+		Description: "Retrieves detailed results of a specific security diagnosis (assessment scan). This data source provides comprehensive information about security compliance findings, including passed/failed checks, remediation guidance, and detailed analysis of your cloud infrastructure's security posture.",
 		Attributes: map[string]schema.Attribute{
 			// Input attributes
 			common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
@@ -125,7 +125,7 @@ func (d *diagnosisDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 				Computed: true,
 			},
 			common.ToSnakeCase("ResultDetailList"): schema.ListNestedAttribute{
-				Description: "Result detail list",
+				Description: "Detailed list of individual security check results. Each entry contains specific findings including pass/fail status, security criteria evaluated, remediation guidance, and affected resources. This is the core output of the security assessment.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

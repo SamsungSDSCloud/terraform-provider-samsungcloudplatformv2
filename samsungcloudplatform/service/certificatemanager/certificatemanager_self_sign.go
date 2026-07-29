@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/certificatemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/certificatemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -50,12 +50,17 @@ func (r *certificateManagerSelfSignResource) Metadata(_ context.Context, req res
 // Schema defines the schema for the data source.
 func (r *certificateManagerSelfSignResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "certificate manager",
+		Description: "Manages a self-signed SSL/TLS certificate in the Certificate Manager service. " +
+			"This resource creates a self-signed certificate by specifying certificate parameters such as Common Name (CN), " +
+			"organization, and validity period. Self-signed certificates are useful for internal testing and development purposes. " +
+			"Note: Self-signed certificates are not signed by a trusted Certificate Authority and will trigger browser warnings.",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Unique identifier of the self-signed certificate. " +
+					"Automatically generated upon successful creation. " +
+					"Use this ID to reference the certificate in other resources or data sources.",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -86,7 +91,10 @@ func (r *certificateManagerSelfSignResource) Schema(_ context.Context, _ resourc
 				Required: true,
 			},
 			common.ToSnakeCase("Recipients"): schema.ListAttribute{
-				Description: "Expired certificates Recipients",
+				Description: "List of recipients who will receive notifications about certificate expiration. " +
+					"Each recipient is a map containing user information. " +
+					"Useful for ensuring timely renewal before certificate expires. " +
+					"Format: [{'region': 'region-name', 'user_id': 'user-id', 'user_name': 'user-name'}].",
 				ElementType: types.MapType{
 					ElemType: types.StringType,
 				},

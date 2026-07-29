@@ -100,8 +100,8 @@ variable "server_details" {
     nat_enabled                        = bool
     public_ip_address_id               = string
     server_type_id                     = string
-    use_hyper_threading                = optional(bool, false)
     state                              = optional(string)
+    zone                               = string
   }))
   default = [{
     bare_metal_local_subnet_id         = "ENTER YOUR RESOURCE'S BARE_METAL_LOCAL_SUBNET_ID"
@@ -112,7 +112,7 @@ variable "server_details" {
     public_ip_address_id               = "ENTER YOUR RESOURCE'S PUBLIC_IP_ADDRESS_ID"
     server_type_id                     = "ENTER YOUR RESOURCE'S SERVER_TYPE_ID"
     state                              = "RUNNING"
-    use_hyper_threading                = true
+    zone                               = "kr-west1-a"
   }]
 }
 
@@ -219,6 +219,8 @@ Required:
   - pattern(for linux): ^[a-z][a-z0-9-]{1,26}[a-z0-9]$
 - `server_type_id` (String) Server Type ID
   - example: YOUR RESOURCE'S SERVER_TYPE_ID
+- `zone` (String) Availability Zone
+  - example: kr-west1-a
 
 Optional:
 
@@ -235,8 +237,6 @@ Optional:
 - `state` (String) Bare Metal Server state
   - example: RUNNING
   - pattern: RUNNING | STOPPED
-- `use_hyper_threading` (Boolean) Use Hyper Threading
-  - example: true
 
 Read-Only:
 

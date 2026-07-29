@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/filter"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -85,6 +85,11 @@ func (d *virtualServerServerDataSource) Schema(_ context.Context, _ datasource.S
 			common.ToSnakeCase("AutoScalingGroupId"): schema.StringAttribute{
 				Description:         "Auto Scaling Group ID.\n  - example: 52613bd852b04b39adcb15a8364d856d",
 				MarkdownDescription: "Auto Scaling Group ID.\n  - example: 52613bd852b04b39adcb15a8364d856d",
+				Optional:            true,
+			},
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Description:         "Zone ID.\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone ID.\n  - example: kr-west1-a",
 				Optional:            true,
 			},
 			common.ToSnakeCase("Server"): schema.SingleNestedAttribute{
@@ -307,6 +312,10 @@ func (d *virtualServerServerDataSource) Schema(_ context.Context, _ datasource.S
 						MarkdownDescription: "Partition number.",
 						Computed:            true,
 					},
+					common.ToSnakeCase("Zone"): schema.StringAttribute{
+						Description: "Availability Zone",
+						Computed:    true,
+					},
 				},
 			},
 		},
@@ -345,7 +354,7 @@ func (d *virtualServerServerDataSource) Read(ctx context.Context, req datasource
 	}
 
 	ids, err := GetServers(d.clients, state.Name, state.Ip, state.State, state.ProductCategory, state.ProductOffering,
-		state.VpcId, state.ServerTypeId, state.AutoScalingGroupId, state.Filter)
+		state.VpcId, state.ServerTypeId, state.AutoScalingGroupId, state.Zone, state.Filter)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Server",
@@ -373,17 +382,12 @@ func (d *virtualServerServerDataSource) Read(ctx context.Context, req datasource
 		// Addresses
 		var addresses []virtualserver.ServerAddress
 		for _, address := range server.Addresses {
-			var ipAddresses []virtualserver.ServerIpAddress
-			for _, ipAddress := range address.IpAddresses {
-				ipAddressState := virtualserver.ServerIpAddress{
-					IpAddress: types.StringValue(ipAddress.IpAddress),
-					Version:   types.Int32Value(ipAddress.Version),
-				}
-				ipAddresses = append(ipAddresses, ipAddressState)
+			ipAddressState := virtualserver.ServerIpAddress{
+				IpAddress: types.StringValue(address.IpAddress),
+				Version:   types.Int32Value(address.Version),
 			}
 			addressState := virtualserver.ServerAddress{
-				IpAddresses: ipAddresses,
-				SubnetName:  types.StringValue(address.SubnetName),
+				IpAddresses: []virtualserver.ServerIpAddress{ipAddressState},
 			}
 			addresses = append(addresses, addressState)
 		}
@@ -471,6 +475,7 @@ func (d *virtualServerServerDataSource) Read(ctx context.Context, req datasource
 			Volumes:               volumes,
 			VpcId:                 types.StringPointerValue(server.VpcId.Get()),
 			PartitionNumber:       types.Int32PointerValue(server.PartitionNumber.Get()),
+			Zone:                  types.StringValue(server.Zone),
 		}
 		serverObjectValue, _ := types.ObjectValueFrom(ctx, serverModel.AttributeTypes(), serverModel)
 		state.Server = serverObjectValue

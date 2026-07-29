@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/client/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v4/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/client"
-	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v4/library/iam/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	scpsdkiam "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/iam/1.4"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -100,9 +100,10 @@ func (d *iamUserDataSources) Schema(_ context.Context, _ datasource.SchemaReques
 				Optional: true,
 			},
 			common.ToSnakeCase("Users"): schema.ListNestedAttribute{
-				Description: "List of users matching the filter criteria.",
-				Optional:    true,
-				Computed:    true,
+				Description: "List of users matching the filter criteria.\n" +
+					"  - example : [{\"id\": \"usr-1234567890abcdef\", \"name\": \"John Doe\", \"email\": \"user@example.com\", ...}]",
+				Optional: true,
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"account_id": schema.StringAttribute{
@@ -195,8 +196,6 @@ func (d *iamUserDataSources) Schema(_ context.Context, _ datasource.SchemaReques
 							Optional: true,
 							Description: "User password (masked for security).\n" +
 								"  - example : '********'",
-							MarkdownDescription: "User password (masked for security).\n" +
-								"  - example : '********'",
 						},
 						"password_reuse_count": schema.Int64Attribute{
 							Computed: true,
@@ -209,9 +208,9 @@ func (d *iamUserDataSources) Schema(_ context.Context, _ datasource.SchemaReques
 								"  - example : true",
 						},
 						"policies": schema.ListNestedAttribute{
-							Optional:            true,
-							Description:         "Policies",
-							MarkdownDescription: "Policies",
+							Optional: true,
+							Description: "List of policies attached to the user.\n" +
+								"  - example : [{\"id\": \"pol-1234567890abcdef\", \"name\": \"MyPolicy\"}]",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"id": schema.StringAttribute{
@@ -258,9 +257,9 @@ func (d *iamUserDataSources) Schema(_ context.Context, _ datasource.SchemaReques
 								"  - example : '2024-01-01T00:00:00Z'",
 						},
 						"access_keys": schema.ListNestedAttribute{
-							Computed:            true,
-							Description:         "Access Keys",
-							MarkdownDescription: "Access Keys",
+							Computed: true,
+							Description: "List of access keys belonging to the user.\n" +
+								"  - example : [{\"id\": \"12345678-1234-1234-1234-1234567890ab\", \"access_key\": \"ak-example-access-key-id\", \"is_enabled\": true, ...}]",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"access_key": schema.StringAttribute{
@@ -292,8 +291,9 @@ func (d *iamUserDataSources) Schema(_ context.Context, _ datasource.SchemaReques
 							},
 						},
 						"groups": schema.ListNestedAttribute{
-							Computed:    true,
-							Description: "Groups",
+							Computed: true,
+							Description: "List of groups the user belongs to.\n" +
+								"  - example : [{\"id\": \"grp-1234567890abcdef\", \"name\": \"MyGroup\"}]",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"id": schema.StringAttribute{
