@@ -77,6 +77,8 @@ variable "policy_type" {
   - example : [{"id": "pol-1234567890abcdef", "policy_name": "MyPolicy", "policy_type": "USER_DEFINED", ...}] (see [below for nested schema](#nestedatt--group_policy_bindings))
 - `page` (Number) Page (between 0 and 10000)
   - example : 0
+- `policy_id` (String) ID of the policy.
+  - example: YOUR RESOURCE'S POLICY_ID
 - `policy_name` (String) Filter by policy name.
   - example : 'MyPolicy'
 - `policy_type` (String) Type of the policy (e.g., USER_DEFINED, SYSTEM_DEFINED).
@@ -85,13 +87,6 @@ variable "policy_type" {
   - example : 100
 - `sort` (String) Sort order for results.
   - example : 'created_at,desc'
-
-### Read-Only
-
-- `policy_id` (String) ID of the policy.
-  - example: YOUR RESOURCE'S POLICY_ID
-- `policy_version_name` (String) Name of the policy version.
-  - example : 'POLICY_VERSION_1'
 
 <a id="nestedatt--group_policy_bindings"></a>
 ### Nested Schema for `group_policy_bindings`

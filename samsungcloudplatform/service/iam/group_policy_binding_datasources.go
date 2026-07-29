@@ -85,12 +85,9 @@ func (d *iamGroupPolicyBindingDataSources) Schema(_ context.Context, _ datasourc
 					"  - example : 'created_at,desc'",
 			},
 			"policy_id": schema.StringAttribute{
+				Optional:    true,
 				Computed:    true,
 				Description: "ID of the policy.\n  - example : 'policy-12345678'",
-			},
-			"policy_version_name": schema.StringAttribute{
-				Computed:    true,
-				Description: "Name of the policy version.\n  - example : 'POLICY_VERSION_1'",
 			},
 			"policy_name": schema.StringAttribute{
 				Optional: true,
