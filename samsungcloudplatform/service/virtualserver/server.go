@@ -35,6 +35,24 @@ var (
 
 var osDiskDeviceNames = []string{"/dev/vda", "/dev/sda"}
 
+// import 처럼 prior state 에 맵 키가 없을 때 API 결과에 붙일 키의 접두어.
+// interface_1, interface_2 / volume_1, volume_2 ... 형태가 된다.
+const (
+	networkKeyPrefix = "interface"
+	volumeKeyPrefix  = "volume"
+)
+
+// nextGeneratedKey 는 prefix_1, prefix_2 ... 중 아직 쓰이지 않은 첫 키를 돌려준다.
+// 호출한 쪽에서 곧바로 existing 에 값을 넣어야 다음 호출이 다른 키를 받는다.
+func nextGeneratedKey[T any](prefix string, existing map[string]T) string {
+	for i := 1; ; i++ {
+		key := fmt.Sprintf("%s_%d", prefix, i)
+		if _, taken := existing[key]; !taken {
+			return key
+		}
+	}
+}
+
 func isOsDisk(device string) bool {
 	for _, name := range osDiskDeviceNames {
 		if device == name {
@@ -629,7 +647,7 @@ func (r *virtualServerServerResource) matchVolumeAttributes(
 		return false
 	}
 	if (planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
-		*unmappedVolume.Type.ValueStringPointer() != defaultVolumeTypeName {
+		unmappedVolume.Type.ValueString() != defaultVolumeTypeName {
 		return false
 	}
 
@@ -673,13 +691,16 @@ func (r *virtualServerServerResource) findMatchingVolumeKey(
 	return ""
 }
 
+// MapUnmappedExtraVolumes 는 state 키에 짝지어지지 않은 볼륨들을 속성 일치로 배치하고,
+// 끝까지 짝을 못 찾은 볼륨 목록을 돌려준다.
+// (이전에는 allMatched bool 만 돌려줘서 남은 볼륨이 그대로 유실됐다.)
 func (r *virtualServerServerResource) MapUnmappedExtraVolumes(
 	unmappedExtraVolumes []virtualserver.ServerResourceVolume,
 	extraVolumesMap map[string]virtualserver.ServerResourceVolume,
 	mappedVolumeKeys map[string]bool,
 	defaultVolumeTypeName string,
-) bool {
-	allMatched := true
+) []virtualserver.ServerResourceVolume {
+	var remaining []virtualserver.ServerResourceVolume
 
 	for _, unmappedVolume := range unmappedExtraVolumes {
 		bestKey := r.findMatchingVolumeKey(unmappedVolume, extraVolumesMap, mappedVolumeKeys, defaultVolumeTypeName)
@@ -688,11 +709,11 @@ func (r *virtualServerServerResource) MapUnmappedExtraVolumes(
 			extraVolumesMap[bestKey] = unmappedVolume
 			mappedVolumeKeys[bestKey] = true
 		} else {
-			allMatched = false
+			remaining = append(remaining, unmappedVolume)
 		}
 	}
 
-	return allMatched
+	return remaining
 }
 
 func (r *virtualServerServerResource) isBootVolumeMatched(
@@ -771,6 +792,11 @@ func (r *virtualServerServerResource) processExtraVolumes(
 ) (map[string]virtualserver.ServerResourceVolume, []virtualserver.ServerResourceVolume, map[string]bool) {
 	var extraVolumesMap map[string]virtualserver.ServerResourceVolume
 	stateExtraVolumes.ElementsAs(ctx, &extraVolumesMap, false)
+	if extraVolumesMap == nil {
+		// import 처럼 prior state 가 null 이면 ElementsAs 는 nil map 을 남긴다.
+		// 이 상태로 두면 뒤에서 키를 넣을 수 없어 extra_volumes 가 전부 유실된다.
+		extraVolumesMap = make(map[string]virtualserver.ServerResourceVolume)
+	}
 
 	extraVolumeIdKeyMap := make(map[string]string)
 	for key, volume := range extraVolumesMap {
@@ -830,9 +856,20 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 	if err != nil {
 		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
 	}
-	defaultVolumeTypeName := *defaultVolumeType.Name.Get()
+	defaultVolumeTypeName := ""
+	if name := defaultVolumeType.Name.Get(); name != nil {
+		defaultVolumeTypeName = *name
+	}
 
-	r.MapUnmappedExtraVolumes(unmappedExtraVolumes, extraVolumesMap, mappedVolumeKeys, defaultVolumeTypeName)
+	unmappedExtraVolumes = r.MapUnmappedExtraVolumes(unmappedExtraVolumes, extraVolumesMap, mappedVolumeKeys, defaultVolumeTypeName)
+
+	// 끝까지 state 키에 짝지어지지 않은 볼륨은 새 키(volume_1, volume_2 ...)로 담는다.
+	// import 이거나 콘솔에서 볼륨을 붙인 경우가 여기에 해당한다.
+	for _, volume := range unmappedExtraVolumes {
+		key := nextGeneratedKey(volumeKeyPrefix, extraVolumesMap)
+		extraVolumesMap[key] = volume
+		mappedVolumeKeys[key] = true
+	}
 
 	extraVolumeMatched := true
 	for _, volume := range extraVolumesMap {
@@ -859,12 +896,18 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 	return bootVolume, extraVolumeObject, allMatched, nil
 }
 
+// mapNetworksBySubnetAndFixedIp 는 subnet_id + fixed_ip 가 모두 일치하는 state 키에 배치하고,
+// 짝을 못 찾은 인터페이스 목록을 돌려준다.
 func (r *virtualServerServerResource) mapNetworksBySubnetAndFixedIp(
 	unmappedNetworks []virtualserver.ServerResourceNetwork,
 	networkMap map[string]virtualserver.ServerResourceNetwork,
 	mappedNetworkKeys map[string]bool,
-) {
+) []virtualserver.ServerResourceNetwork {
+	var remaining []virtualserver.ServerResourceNetwork
+
 	for _, unmappedNetwork := range unmappedNetworks {
+		matched := false
+
 		for key, planNetwork := range networkMap {
 			if mappedNetworkKeys[key] {
 				continue
@@ -876,19 +919,32 @@ func (r *virtualServerServerResource) mapNetworksBySubnetAndFixedIp(
 					unmappedNetwork.FixedIp.ValueString() == planNetwork.FixedIp.ValueString() {
 					networkMap[key] = unmappedNetwork
 					mappedNetworkKeys[key] = true
+					matched = true
 					break
 				}
 			}
 		}
+
+		if !matched {
+			remaining = append(remaining, unmappedNetwork)
+		}
 	}
+
+	return remaining
 }
 
+// mapNetworksBySubnetOnly 는 fixed_ip 를 안 적은 state 키에 subnet_id 만으로 배치하고,
+// 짝을 못 찾은 인터페이스 목록을 돌려준다.
 func (r *virtualServerServerResource) mapNetworksBySubnetOnly(
 	unmappedNetworks []virtualserver.ServerResourceNetwork,
 	networkMap map[string]virtualserver.ServerResourceNetwork,
 	mappedNetworkKeys map[string]bool,
-) {
+) []virtualserver.ServerResourceNetwork {
+	var remaining []virtualserver.ServerResourceNetwork
+
 	for _, unmappedNetwork := range unmappedNetworks {
+		matched := false
+
 		for key, planNetwork := range networkMap {
 			if mappedNetworkKeys[key] {
 				continue
@@ -899,11 +955,18 @@ func (r *virtualServerServerResource) mapNetworksBySubnetOnly(
 				if unmappedNetwork.SubnetId.ValueString() == planNetwork.SubnetId.ValueString() {
 					networkMap[key] = unmappedNetwork
 					mappedNetworkKeys[key] = true
+					matched = true
 					break
 				}
 			}
 		}
+
+		if !matched {
+			remaining = append(remaining, unmappedNetwork)
+		}
 	}
+
+	return remaining
 }
 
 func (r *virtualServerServerResource) processNetworks(
@@ -913,6 +976,11 @@ func (r *virtualServerServerResource) processNetworks(
 ) (types.Map, error) {
 	var networkMap map[string]virtualserver.ServerResourceNetwork
 	state.Networks.ElementsAs(ctx, &networkMap, false)
+	if networkMap == nil {
+		// import 처럼 prior state 가 null 이면 ElementsAs 는 nil map 을 남긴다.
+		// 이 상태로 두면 뒤에서 키를 넣을 수 없어 networks 가 전부 유실된다.
+		networkMap = make(map[string]virtualserver.ServerResourceNetwork)
+	}
 
 	var networkKeyPortMap = make(map[string]string)
 	for key, network := range networkMap {
@@ -961,8 +1029,16 @@ func (r *virtualServerServerResource) processNetworks(
 		mappedNetworkKeys[key] = true
 	}
 
-	r.mapNetworksBySubnetAndFixedIp(unmappedNetworks, networkMap, mappedNetworkKeys)
-	r.mapNetworksBySubnetOnly(unmappedNetworks, networkMap, mappedNetworkKeys)
+	unmappedNetworks = r.mapNetworksBySubnetAndFixedIp(unmappedNetworks, networkMap, mappedNetworkKeys)
+	unmappedNetworks = r.mapNetworksBySubnetOnly(unmappedNetworks, networkMap, mappedNetworkKeys)
+
+	// 끝까지 state 키에 짝지어지지 않은 인터페이스는 새 키(interface_1, interface_2 ...)로 담는다.
+	// import 이거나 콘솔에서 NIC 을 붙인 경우가 여기에 해당한다.
+	for _, network := range unmappedNetworks {
+		key := nextGeneratedKey(networkKeyPrefix, networkMap)
+		networkMap[key] = network
+		mappedNetworkKeys[key] = true
+	}
 
 	networkElemType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -982,7 +1058,13 @@ func (r *virtualServerServerResource) processNetworks(
 func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.ServerShowResponseV1Dot4) types.Map {
 	metadataMap := make(map[string]attr.Value)
 	for k, v := range resp.Metadata {
-		metadataMap[k] = types.StringValue(v.(string))
+		// v.(string) 단정은 API 가 string 이 아닌 값을 주면 panic 한다.
+		// 스키마상 Map[String] 이므로 문자열로 표현해서 담는다.
+		s, ok := v.(string)
+		if !ok {
+			s = fmt.Sprintf("%v", v)
+		}
+		metadataMap[k] = types.StringValue(s)
 	}
 	metadata, _ := types.MapValue(types.StringType, metadataMap)
 	return metadata
@@ -998,13 +1080,34 @@ func (r *virtualServerServerResource) processSecurityGroups(
 		return nil, err
 	}
 
-	securityGroups := make([]attr.Value, len(getSecurityGroups.SecurityGroups))
-	for i, stateSecurityGroup := range state.SecurityGroups.Elements() {
-		for _, securityGroup := range getSecurityGroups.SecurityGroups {
-			if stateSecurityGroup == types.StringValue(securityGroup.Id) {
-				securityGroups[i] = types.StringValue(securityGroup.Id)
-				break
-			}
+	attached := make(map[string]bool, len(getSecurityGroups.SecurityGroups))
+	for _, securityGroup := range getSecurityGroups.SecurityGroups {
+		attached[securityGroup.Id] = true
+	}
+
+	// 이전 구현은 슬라이스 길이를 API 개수로 잡고 prior state 원소 루프로만 채웠다.
+	// 그래서 state 가 API 보다 적으면(= import 는 항상 0개) 원소가 nil 로 남아
+	// ListValueMust 에서 nil pointer dereference panic 이 났다.
+	// 여기서는 state 순서를 유지하면서(순서만 바뀌는 phantom diff 방지)
+	// 붙어 있는 것만 남기고, state 에 없던 것은 뒤에 붙인다. nil 원소가 생기지 않는다.
+	securityGroups := make([]attr.Value, 0, len(getSecurityGroups.SecurityGroups))
+	included := make(map[string]bool, len(getSecurityGroups.SecurityGroups))
+
+	for _, stateSecurityGroup := range state.SecurityGroups.Elements() {
+		id, ok := stateSecurityGroup.(types.String)
+		if !ok || id.IsNull() || id.IsUnknown() {
+			continue
+		}
+		if attached[id.ValueString()] && !included[id.ValueString()] {
+			securityGroups = append(securityGroups, id)
+			included[id.ValueString()] = true
+		}
+	}
+
+	for _, securityGroup := range getSecurityGroups.SecurityGroups {
+		if !included[securityGroup.Id] {
+			securityGroups = append(securityGroups, types.StringValue(securityGroup.Id))
+			included[securityGroup.Id] = true
 		}
 	}
 
@@ -1035,6 +1138,11 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 	}
 
 	bootVolume, extraVolumeObject, _, err := r.ResolveServerVolumes(ctx, resp.Id, state.BootVolume, state.ExtraVolumes)
+	if err != nil {
+		// 이전에는 err 를 받아놓고 검사하지 않아, 볼륨 조회가 실패해도
+		// 에러 없이 빈 boot_volume / extra_volumes 가 state 에 들어갔다.
+		return virtualserver.ServerResource{}, err
+	}
 
 	return virtualserver.ServerResource{
 		Id:                    types.StringValue(resp.Id),
