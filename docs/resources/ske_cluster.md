@@ -246,7 +246,7 @@ Read-Only:
 - `volume` (Attributes) Connected File Storage
   - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f'} (see [below for nested schema](#nestedatt--cluster--volume))
 - `vpc` (Attributes) VPC of Cluster
-  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--vpc))
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f'} (see [below for nested schema](#nestedatt--cluster--vpc))
 
 <a id="nestedatt--cluster--linked_resources"></a>
 ### Nested Schema for `cluster.linked_resources`
@@ -319,5 +319,3 @@ Read-Only:
 
 - `id` (String) External Resource ID
   - example: YOUR RESOURCE'S ID
-- `name` (String) External Resource name
-  - example: sample-name

@@ -404,17 +404,12 @@ func ClusterResourceSchema() schema.Schema {
 								Description:         "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 								MarkdownDescription: "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 							},
-							"name": schema.StringAttribute{
-								Computed:            true,
-								Description:         "External Resource name\n  - example: sample-name",
-								MarkdownDescription: "External Resource name\n  - example: sample-name",
-							},
 						},
 						Computed: true,
 						Description: "VPC of Cluster\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 						MarkdownDescription: "VPC of Cluster\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 					},
 				},
 				Computed:            true,
@@ -639,6 +634,7 @@ func (r *skeClusterResource) Create(ctx context.Context, req resource.CreateRequ
 		State: resp.State,
 	}
 	r.Read(ctx, readReq, readResp)
+	resp.Diagnostics.Append(readResp.Diagnostics...)
 	resp.State = readResp.State
 }
 
@@ -857,6 +853,7 @@ func (r *skeClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		State: resp.State,
 	}
 	r.Read(ctx, readReq, readResp)
+	resp.Diagnostics.Append(readResp.Diagnostics...)
 	resp.State = readResp.State
 }
 
