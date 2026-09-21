@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -90,11 +90,6 @@ func (d *organizationDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 				Description: "Email address of the master account that manages the organization. \n" +
 					"  - example : 'admin@example.com' \n",
 			},
-			"delegation_account_id": schema.StringAttribute{
-				Computed: true,
-				Description: "Delegation Account. \n" +
-					"  - example : '124e7d6c5b4a3z2y1x0w9v8u7t6s5r' \n",
-			},
 			"root_unit_id": schema.StringAttribute{
 				Computed: true,
 				Description: "Unique identifier of the root organizational unit. \n" +
@@ -162,7 +157,6 @@ func (d *organizationDataSource) Read(ctx context.Context, req datasource.ReadRe
 	data.CreatedBy = types.StringValue(org.CreatedBy)
 	data.MasterAccountId = types.StringValue(org.MasterAccountId)
 	data.MasterAccountEmail = types.StringValue(org.MasterAccountEmail)
-	data.DelegationAccountId = types.StringPointerValue(org.DelegationAccountId.Get())
 	data.RootUnitId = types.StringValue(org.RootUnitId)
 	data.Srn = types.StringValue(org.Srn)
 	data.UseScpYn = types.BoolValue(org.UseScpYn)

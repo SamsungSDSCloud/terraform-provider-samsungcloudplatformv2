@@ -57,6 +57,8 @@ Read-Only:
   - example: YOUR RESOURCE'S CREATED_BY
 - `dbaas_engine` (String) DBaaS engine
   - example: MariaDB
+- `dbaas_engine_version_name` (String) DBaaS engine version name
+  - example: MariaDB 10.11.8
 - `ha_enabled` (Boolean) HA availability
   - example: false
 - `id` (String) Identifier of the resource.
@@ -78,6 +80,8 @@ Read-Only:
   - example: false
 - `origin_cluster_id` (String) Origin cluster ID
   - example: YOUR RESOURCE'S ORIGIN_CLUSTER_ID
+- `product_image_type` (String) Product image type
+  - example: MariaDB
 - `product_type` (String) Product type
   - example: MariaDB
 - `replicas` (Set of String) Replicas list IDs
@@ -94,6 +98,8 @@ Read-Only:
   - example: YOUR RESOURCE'S SUBNET_ID
 - `timezone` (String) Timezone
   - example: Asia/Seoul
+- `vip_public_ip_address` (String) (VIP) Public IP address
+  - example: 10.10.10.10
 - `vip_public_ip_id` (String) (VIP) Public IP ID
   - example: YOUR RESOURCE'S VIP_PUBLIC_IP_ID
 - `virtual_ip_address` (String) Virtual IP address
@@ -115,6 +121,8 @@ Read-Only:
   - example: 2866
 - `database_user_name` (String) Database user name
   - example: mydb
+- `origin_region` (String) Origin region of the source cluster (set for restored/replica clusters)
+  - example: kr-west1
 
 <a id="nestedatt--cluster--init_config_option--backup_option"></a>
 ### Nested Schema for `cluster.init_config_option.backup_option`

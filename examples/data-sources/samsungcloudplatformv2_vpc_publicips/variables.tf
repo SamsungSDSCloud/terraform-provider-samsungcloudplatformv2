@@ -58,5 +58,10 @@ variable "type" {
   default     = null
 }
 
+variable "zone" {
+  type        = list(string)
+  description = "Filter by availability zone. Multiple values can be specified (e.g., [\"kr-west1-a\", \"kr-west1-b\"])"
+  default     = ["kr-west1-a", "kr-west1-b"]
+}
 
 

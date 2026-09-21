@@ -3,15 +3,21 @@ package vpcv1d2
 import (
 	"context"
 
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vpc/1.2"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.2"
 )
 
 func (client *Client) CreatePort(ctx context.Context, request PortResource) (*vpc.PortShowResponseV1Dot2, error) {
 	req := client.sdkClient.VpcV1PortsApiAPI.CreatePort(ctx)
 
-	sgIDs := make([]string, 0, len(request.SecurityGroups))
-	for _, sg := range request.SecurityGroups {
-		sgIDs = append(sgIDs, sg.Id.ValueString())
+	sgIDs := make([]string, 0)
+	var sgs []SecurityGroup
+	if !request.SecurityGroups.IsNull() && !request.SecurityGroups.IsUnknown() {
+		diags := request.SecurityGroups.ElementsAs(ctx, &sgs, false)
+		if !diags.HasError() {
+			for _, sg := range sgs {
+				sgIDs = append(sgIDs, sg.Id.ValueString())
+			}
+		}
 	}
 
 	tags := convertToTags(request.Tags.Elements())
@@ -39,9 +45,15 @@ func (client *Client) GetPort(ctx context.Context, portId string) (*vpc.PortShow
 func (client *Client) UpdatePort(ctx context.Context, vpcId string, request PortResource) (*vpc.PortShowResponseV1Dot2, error) {
 	req := client.sdkClient.VpcV1PortsApiAPI.SetPort(ctx, vpcId)
 
-	sgIDs := make([]string, 0, len(request.SecurityGroups))
-	for _, sg := range request.SecurityGroups {
-		sgIDs = append(sgIDs, sg.Id.ValueString())
+	sgIDs := make([]string, 0)
+	var sgs []SecurityGroup
+	if !request.SecurityGroups.IsNull() && !request.SecurityGroups.IsUnknown() {
+		diags := request.SecurityGroups.ElementsAs(ctx, &sgs, false)
+		if !diags.HasError() {
+			for _, sg := range sgs {
+				sgIDs = append(sgIDs, sg.Id.ValueString())
+			}
+		}
 	}
 
 	req = req.PortSetRequest(vpc.PortSetRequest{

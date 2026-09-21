@@ -16,29 +16,14 @@ type InstanceGroup struct {
 
 func (m InstanceGroup) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":                 types.StringType,
-		"role_type":          types.StringType,
-		"server_type_name":   types.StringType,
+		"id":               types.StringType,
+		"role_type":        types.StringType,
+		"server_type_name": types.StringType,
 		"block_storage_groups": types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"id":          types.StringType,
-					"name":        types.StringType,
-					"role_type":   types.StringType,
-					"size_gb":     types.Int32Type,
-					"volume_type": types.StringType,
-				},
-			},
+			ElemType: types.ObjectType{AttrTypes: BlockStorageGroup{}.AttributeTypes()},
 		},
 		"instances": types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"name":               types.StringType,
-					"role_type":          types.StringType,
-					"service_ip_address": types.StringType,
-					"public_ip_id":       types.StringType,
-				},
-			},
+			ElemType: types.ObjectType{AttrTypes: Instance{}.AttributeTypes()},
 		},
 	}
 }

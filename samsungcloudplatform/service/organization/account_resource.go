@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -64,31 +64,30 @@ func (r *accountResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"login_id": schema.StringAttribute{
 				Description: "Login ID of the account. \n" +
 					"  - example : 'log-archive@samsung.com' \n",
-				Optional: true,
-				Computed: true,
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description: "Account Name. \n" +
 					"  - example : 'score-account' \n",
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 			"organization_id": schema.StringAttribute{
 				Description: "Unique identifier of the organization. \n" +
 					"  - example : 'o-x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5' \n",
-				Optional: true,
-				Computed: true,
+				Required: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"role_name": schema.StringAttribute{
 				Description: "Name of the role created in the account. \n" +
 					"  - example : 'OrganizationAccountAccessRole' \n",
-				Optional: true,
-				Computed: true,
+				Required: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"parent_unit_id": schema.StringAttribute{
@@ -263,9 +262,6 @@ func (r *accountResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	orgId := state.OrganizationId.ValueString()
-	if orgId == "" {
-		orgId = "default"
-	}
 
 	data, err := r.client.GetAccount(ctx, accountId, orgId, nil)
 	if err != nil {
@@ -364,9 +360,6 @@ func (r *accountResource) Delete(ctx context.Context, req resource.DeleteRequest
 		}
 
 		if len(ids) > 0 {
-			if orgId == "" {
-				orgId = "default"
-			}
 			_, err := r.client.RemoveAccounts(ctx, ids, orgId)
 			if err != nil {
 				detail := client.GetDetailFromError(err)

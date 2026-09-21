@@ -42,6 +42,28 @@ type RoutingRule struct {
 	TgwConnectionVpcName    types.String `tfsdk:"tgw_connection_vpc_name"`
 }
 
+func (m RoutingRule) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"account_id":                types.StringType,
+		"description":               types.StringType,
+		"destination_cidr":          types.StringType,
+		"destination_resource_id":   types.StringType,
+		"destination_resource_name": types.StringType,
+		"destination_type":          types.StringType,
+		"id":                        types.StringType,
+		"source_resource_id":        types.StringType,
+		"source_resource_name":      types.StringType,
+		"source_type":               types.StringType,
+		"state":                     types.StringType,
+		"tgw_connection_vpc_id":     types.StringType,
+		"tgw_connection_vpc_name":   types.StringType,
+		"created_at":                types.StringType,
+		"created_by":                types.StringType,
+		"modified_at":               types.StringType,
+		"modified_by":               types.StringType,
+	}
+}
+
 type TransitGatewayRuleResource struct {
 	// Input
 	TransitGatewayId   types.String `tfsdk:"transit_gateway_id"`

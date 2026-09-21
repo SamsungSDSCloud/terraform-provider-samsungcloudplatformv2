@@ -1,7 +1,7 @@
 package vpcv1d2
 
 import (
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vpc/1.2"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

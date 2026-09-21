@@ -31,7 +31,11 @@ variable "sort" {
 variable "state" {
   type    = string
   default = null
+}
 
+variable "zone" {
+  type    = string
+  default = "kr-west1-b"
 }
 
 

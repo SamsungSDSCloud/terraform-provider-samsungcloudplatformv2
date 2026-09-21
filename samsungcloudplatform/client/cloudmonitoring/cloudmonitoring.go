@@ -2,8 +2,8 @@ package cloudmonitoring
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpcloudmonitoring "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/cloudmonitoring"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpcloudmonitoring "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/cloudmonitoring"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

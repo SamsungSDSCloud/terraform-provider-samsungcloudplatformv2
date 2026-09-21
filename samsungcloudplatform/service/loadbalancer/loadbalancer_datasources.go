@@ -3,15 +3,16 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -28,7 +29,7 @@ func NewLoadbalancerLoadbalancerDataSources() datasource.DataSource {
 // loadbalancerLoadbalancerDataSources is the data source implementation.
 type loadbalancerLoadbalancerDataSources struct {
 	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
+	client  *loadbalancerv1d4.Client
 	clients *client.SCPClient
 }
 
@@ -165,6 +166,14 @@ func (d *loadbalancerLoadbalancerDataSources) Schema(_ context.Context, _ dataso
 								"  - example : 46c681018e33453085ca7c8db54e0076\n",
 							Computed: true,
 						},
+						common.ToSnakeCase("Zones"): schema.ListAttribute{
+							ElementType: types.StringType,
+							Description: "The list of availability zones where the subnet is located.\n" +
+								"  - example : [\"zone-1\", \"zone-2\"]",
+							MarkdownDescription: "The list of availability zones where the subnet is located.\n" +
+								"  - example : [\"zone-1\", \"zone-2\"]",
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -190,13 +199,13 @@ func (d *loadbalancerLoadbalancerDataSources) Configure(_ context.Context, req d
 		return
 	}
 
-	d.client = inst.Client.LoadBalancer
+	d.client = inst.Client.LoadBalancerV1d4
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *loadbalancerLoadbalancerDataSources) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state loadbalancer.LoadbalancerDataSource
+	var state loadbalancerv1d4.LoadbalancerDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -215,7 +224,7 @@ func (d *loadbalancerLoadbalancerDataSources) Read(ctx context.Context, req data
 
 	// Map response body to model
 	for _, loadbalancerElement := range data.Loadbalancers {
-		loadbalancerState := loadbalancer.Loadbalancer{
+		loadbalancerState := loadbalancerv1d4.Loadbalancer{
 			Id:               types.StringValue(loadbalancerElement.Id),
 			Name:             virtualserverutil.ToNullableStringValue(loadbalancerElement.Name.Get()),
 			ServiceIp:        virtualserverutil.ToNullableStringValue(loadbalancerElement.ServiceIp.Get()),
@@ -231,6 +240,7 @@ func (d *loadbalancerLoadbalancerDataSources) Read(ctx context.Context, req data
 			CreatedBy:        types.StringValue(loadbalancerElement.CreatedBy),
 			ModifiedAt:       types.StringValue(loadbalancerElement.ModifiedAt.Format(time.RFC3339)),
 			ModifiedBy:       types.StringValue(loadbalancerElement.ModifiedBy),
+			Zones:            convertList(loadbalancerElement.Zones),
 		}
 
 		state.Loadbalancers = append(state.Loadbalancers, loadbalancerState)

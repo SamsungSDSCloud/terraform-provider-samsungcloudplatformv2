@@ -2,10 +2,11 @@ package ske
 
 import (
 	"context"
+	"fmt"
 	"io"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/ske/1.5"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/ske/1.6"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -24,7 +25,7 @@ func NewClient(config *scpsdk.Configuration) *Client {
 
 //------------ Cluster -------------------//
 
-func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSourceIds) (*scpske.ClusterListResponse, error) {
+func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSourceIds) (*scpske.ClusterListResponseV1Dot6, error) {
 	req := client.sdkClient.SkeV1ClustersApiAPI.ListClusters(ctx)
 	if request.Size != nil {
 		req = req.Size(*request.Size)
@@ -35,9 +36,21 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 	req = req.Sort(request.Sort.ValueString())
 	req = req.Name(request.Name.ValueString())
 	req = req.SubnetId(request.SubnetId.ValueString())
-	//todo: will do later
-	//req = req.Status(request.Status)
-	//req = req.KubernetesVersion(request.KubernetesVersion.ValueString())
+	if len(request.Status) > 0 {
+		statuses := make([]*string, len(request.Status))
+		for i, s := range request.Status {
+			v := s.ValueString()
+			statuses[i] = &v
+		}
+		req = req.Status(scpske.Status{ArrayOfPtrString: &statuses})
+	}
+	if len(request.KubernetesVersion) > 0 {
+		versions := make([]string, len(request.KubernetesVersion))
+		for i, v := range request.KubernetesVersion {
+			versions[i] = v.ValueString()
+		}
+		req = req.KubernetesVersion(scpske.KubernetesVersion{ArrayOfString: &versions})
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -47,23 +60,30 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	req := client.sdkClient.SkeV1ClustersApiAPI.CreateCluster(ctx)
 
 	securityGroupIdList := []string{}
-	for _, securityGroupId := range request.SecurityGroupIdList {
-		securityGroupIdList = append(securityGroupIdList, securityGroupId.ValueString())
+	for _, securityGroupId := range stringListToSlice(request.SecurityGroupIdList) {
+		securityGroupIdList = append(securityGroupIdList, securityGroupId)
+	}
+
+	additionalSubnetIdList := []string{}
+	for _, additionalSubnetId := range stringListToSlice(request.AdditionalSubnetIdList) {
+		additionalSubnetIdList = append(additionalSubnetIdList, additionalSubnetId)
 	}
 
 	tags := convertTags(request.Tags.Elements())
 
-	req = req.ClusterCreateRequestV1Dot5(scpske.ClusterCreateRequestV1Dot5{
+	req = req.ClusterCreateRequestV1Dot6(scpske.ClusterCreateRequestV1Dot6{
 		Name:                                  request.Name.ValueString(),
 		KubernetesVersion:                     request.KubernetesVersion.ValueString(),
 		VpcId:                                 request.VpcId.ValueString(),
-		SubnetId:                              request.SubnetId.ValueString(),
-		VolumeId:                              request.VolumeId.ValueString(),
-		CloudLoggingEnabled:                   request.CloudLoggingEnabled.ValueBool(),
+		DefaultSubnetId:                       request.DefaultSubnetId.ValueString(),
+		AdditionalSubnetIdList:                additionalSubnetIdList,
+		NfsVolumeId:                           *scpske.NewNullableString(request.NfsVolumeId.ValueStringPointer()),
+		DeletionProtectionEnabled:             request.DeletionProtectionEnabled.ValueBoolPointer(),
+		LinkedResources:                       convertLinkedResources(LinkedResourcesFromList(ctx, request.LinkedResources)),
 		SecurityGroupIdList:                   securityGroupIdList,
-		PrivateEndpointAccessControlResources: convertPrivateEndpointAccessControlResources(request.PrivateEndpointAccessControlResources),
+		PrivateEndpointAccessControlResources: convertPrivateEndpointAccessControlResources(privateEndpointAccessControlResourcesFromList(ctx, request.PrivateEndpointAccessControlResources)),
 		PublicEndpointAccessControlIp:         *scpske.NewNullableString(request.PublicEndpointAccessControlIp.ValueStringPointer()),
-		ServiceWatchLoggingEnabled:            request.ServiceWatchLoggingEnabled.ValueBool(), // v1.1
+		ServiceWatchLoggingEnabled:            request.ServiceWatchLoggingEnabled.ValueBool(),
 		Tags:                                  tags,
 	})
 
@@ -78,7 +98,7 @@ func (client *Client) DeleteCluster(ctx context.Context, clusterId string) (*scp
 	return resp, err
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*scpske.ClusterShowResponseV1Dot5, int, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*scpske.ClusterShowResponseV1Dot6, int, error) {
 	req := client.sdkClient.SkeV1ClustersApiAPI.ShowCluster(ctx, clusterId)
 
 	resp, httpResponse, err := req.Execute()
@@ -86,17 +106,6 @@ func (client *Client) GetCluster(ctx context.Context, clusterId string) (*scpske
 		return nil, 0, err
 	}
 	return resp, httpResponse.StatusCode, err
-}
-
-func (client *Client) UpdateClusterLogging(ctx context.Context, clusterId string, request ClusterResource) (*scpske.ClusterSetResponse, error) {
-	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterLogging(ctx, clusterId)
-
-	req = req.ClusterLoggingSetRequest(scpske.ClusterLoggingSetRequest{
-		CloudLoggingEnabled: request.CloudLoggingEnabled.ValueBool(),
-	})
-
-	resp, _, err := req.Execute()
-	return resp, err
 }
 
 func (client *Client) UpgradeCluster(ctx context.Context, clusterId string, request ClusterResource) (*scpske.ClusterSetResponse, error) {
@@ -114,8 +123,8 @@ func (client *Client) UpdateClusterSecurityGroups(ctx context.Context, clusterId
 	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterSecurityGroups(ctx, clusterId)
 
 	securityGroupIdList := []string{}
-	for _, securityGroupId := range request.SecurityGroupIdList {
-		securityGroupIdList = append(securityGroupIdList, securityGroupId.ValueString())
+	for _, securityGroupId := range stringListToSlice(request.SecurityGroupIdList) {
+		securityGroupIdList = append(securityGroupIdList, securityGroupId)
 	}
 
 	req = req.ClusterSecurityGroupsSetRequest(scpske.ClusterSecurityGroupsSetRequest{
@@ -130,7 +139,7 @@ func (client *Client) UpdatePrivateEndpointAccessControlResources(ctx context.Co
 	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterPrivateAccessControl(ctx, clusterId)
 
 	req = req.ClusterPrivateAccessControlSetRequest(scpske.ClusterPrivateAccessControlSetRequest{
-		PrivateEndpointAccessControlResources: convertPrivateEndpointAccessControlResources(request.PrivateEndpointAccessControlResources),
+		PrivateEndpointAccessControlResources: convertPrivateEndpointAccessControlResources(privateEndpointAccessControlResourcesFromList(ctx, request.PrivateEndpointAccessControlResources)),
 	})
 
 	resp, _, err := req.Execute()
@@ -205,7 +214,7 @@ func (client *Client) GetKubernetesVersionList(ctx context.Context) (*scpske.Kub
 
 //------------ Nodepool -------------------//
 
-func (client *Client) GetNodePoolList(ctx context.Context, request NodepoolDataSources) (*scpske.NodepoolListResponseV1Dot4, error) {
+func (client *Client) GetNodePoolList(ctx context.Context, request NodepoolDataSources) (*scpske.NodepoolListResponseV1Dot6, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.ListNodepools(ctx, request.ClusterId.ValueString())
 
 	resp, _, err := req.Execute()
@@ -322,7 +331,7 @@ func (client *Client) GetNodepool(ctx context.Context, nodepoolId string) (*scps
 	return resp, httpResponse.StatusCode, err
 }
 
-func (client *Client) CheckNodepoolList(ctx context.Context, clusterId string) (*scpske.NodepoolListResponseV1Dot4, error) {
+func (client *Client) CheckNodepoolList(ctx context.Context, clusterId string) (*scpske.NodepoolListResponseV1Dot6, error) {
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.ListNodepools(ctx, clusterId)
 
 	resp, _, err := req.Execute()
@@ -335,6 +344,20 @@ func (client *Client) GetNodepoolNodeList(ctx context.Context, request Nodepooln
 	req := client.sdkClient.SkeV1NodepoolsApiAPI.ListNodepoolNodes(ctx, request.NodepoolId.ValueString())
 
 	resp, _, err := req.Execute()
+	return resp, err
+}
+
+//------------ Cluster Linked Resources (v1.6) -------------------//
+
+func (client *Client) UpdateClusterLinkedResources(ctx context.Context, clusterId string, linkedResources []LinkedResource) (*scpske.ClusterSetResponse, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterLinkedResources(ctx, clusterId)
+
+	req = req.ClusterLinkedResourcesSetRequest(scpske.ClusterLinkedResourcesSetRequest{
+		LinkedResources: convertLinkedResources(linkedResources),
+	})
+
+	resp, _, err := req.Execute()
+
 	return resp, err
 }
 
@@ -421,9 +444,64 @@ func convertLinkedResources(linkedResources []LinkedResource) []scpske.LinkedRes
 	return result
 }
 
+// LinkedResourcesFromList extracts []LinkedResource from a types.List (handles null/unknown).
+func LinkedResourcesFromList(ctx context.Context, list types.List) []LinkedResource {
+	if list.IsNull() || list.IsUnknown() {
+		return nil
+	}
+	var result []LinkedResource
+	_ = list.ElementsAs(ctx, &result, false)
+	return result
+}
+
+// privateEndpointAccessControlResourcesFromList extracts []PrivateEndpointAccessControlResource from a types.List (handles null/unknown).
+func privateEndpointAccessControlResourcesFromList(ctx context.Context, list types.List) []PrivateEndpointAccessControlResource {
+	if list.IsNull() || list.IsUnknown() {
+		return nil
+	}
+	var result []PrivateEndpointAccessControlResource
+	_ = list.ElementsAs(ctx, &result, false)
+	return result
+}
+
+// stringListToSlice extracts []string from a types.List of strings (handles null/unknown).
+func stringListToSlice(list types.List) []string {
+	if list.IsNull() || list.IsUnknown() {
+		return nil
+	}
+	var result []string
+	_ = list.ElementsAs(context.Background(), &result, false)
+	return result
+}
+
+func (client *Client) SetClusterNfsVolume(ctx context.Context, clusterId string, nfsVolumeId string) (*scpske.ClusterSetResponse, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterNfsVolume(ctx, clusterId)
+	req = req.ClusterNfsVolumeSetRequest(scpske.ClusterNfsVolumeSetRequest{
+		NfsVolumeId: *scpske.NewNullableString(&nfsVolumeId),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) UnsetClusterNfsVolume(ctx context.Context, clusterId string) (*scpske.ClusterSetResponse, int, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterNfsVolume(ctx, clusterId)
+	nullNfs := scpske.NewNullableString(nil)
+	req = req.ClusterNfsVolumeSetRequest(scpske.ClusterNfsVolumeSetRequest{
+		NfsVolumeId: *nullNfs,
+	})
+
+	resp, httpResp, err := req.Execute()
+	httpStatus := 0
+	if httpResp != nil {
+		httpStatus = httpResp.StatusCode
+	}
+	return resp, httpStatus, err
+}
+
 //------------ Nodepool Image -------------------//
 
-func (client *Client) GetNodepoolImageList(ctx context.Context, request NodepoolImageDataSources) (*scpske.NodepoolImageListResponseV1Dot4, error) {
+func (client *Client) GetNodepoolImageList(ctx context.Context, request NodepoolImageDataSources) (*scpske.NodepoolImageListResponseV1Dot6, error) {
 	req := client.sdkClient.SkeV1ImagesAPIAPI.ListImages(ctx)
 	req = req.ScpOriginalImageType(request.ScpOriginalImageType.ValueString())
 	req = req.Size(request.Size.ValueInt32())
@@ -445,4 +523,77 @@ func (client *Client) SetNodepoolPreferredIps(ctx context.Context, nodepoolId st
 
 	resp, _, err := req.Execute()
 	return resp, err
+}
+
+//------------ Deletion Protection -------------------//
+
+func (client *Client) GetClusterDeletionProtection(ctx context.Context, clusterId string) (bool, int, error) {
+	data, httpStatus, err := client.GetCluster(ctx, clusterId)
+	if err != nil {
+		return false, httpStatus, fmt.Errorf("failed to get cluster %s: %w", clusterId, err)
+	}
+
+	return data.Cluster.DeletionProtectionEnabled, httpStatus, nil
+}
+
+//------------ V1.6 Cluster Update Methods -------------------//
+
+func (client *Client) UpdateClusterSubnets(ctx context.Context, clusterId string, request ClusterResource) (*scpske.ClusterSetResponse, error) {
+	additionalSubnetIdList := []string{}
+	for _, id := range stringListToSlice(request.AdditionalSubnetIdList) {
+		additionalSubnetIdList = append(additionalSubnetIdList, id)
+	}
+
+	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterSubnets(ctx, clusterId)
+	req = req.ClusterSubnetsSetRequest(scpske.ClusterSubnetsSetRequest{
+		AdditionalSubnetIdList: additionalSubnetIdList,
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) SetClusterSubnets(ctx context.Context, clusterId string, additionalSubnetIdList []string) (*scpske.ClusterSetResponse, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterSubnets(ctx, clusterId)
+	req = req.ClusterSubnetsSetRequest(scpske.ClusterSubnetsSetRequest{
+		AdditionalSubnetIdList: additionalSubnetIdList,
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) GetClusterSubnets(ctx context.Context, clusterId string) ([]string, int, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.ShowCluster(ctx, clusterId)
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	if resp == nil {
+		return nil, httpResponse.StatusCode, err
+	}
+	return resp.Cluster.AdditionalSubnetIdList, httpResponse.StatusCode, err
+}
+
+func (client *Client) UpdateClusterNfsVolume(ctx context.Context, clusterId string, request ClusterResource) (*scpske.ClusterSetResponse, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterNfsVolume(ctx, clusterId)
+	req = req.ClusterNfsVolumeSetRequest(scpske.ClusterNfsVolumeSetRequest{
+		NfsVolumeId: *scpske.NewNullableString(request.NfsVolumeId.ValueStringPointer()),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) UpdateClusterDeletionProtection(ctx context.Context, clusterId string, request ClusterResource) (*scpske.ClusterSetResponse, int, error) {
+	req := client.sdkClient.SkeV1ClustersApiAPI.SetClusterDeletionProtection(ctx, clusterId)
+	req = req.ClusterDeletionProtectionSetRequest(scpske.ClusterDeletionProtectionSetRequest{
+		DeletionProtectionEnabled: request.DeletionProtectionEnabled.ValueBool(),
+	})
+
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }

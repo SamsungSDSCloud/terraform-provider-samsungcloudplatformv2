@@ -6,18 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/loadbalancer/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -208,7 +209,7 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Configure(_ context.Contex
 }
 
 func (r *loadbalancerLoadbalancerPublicNatIpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("loadbalancer_id"), req, resp)
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -255,9 +256,8 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Read(ctx context.Context, 
 		return
 	}
 
-	// SDK does not have a ShowLoadbalancerPublicNatIp endpoint.
-	// We check if the loadbalancer still exists; if not, remove from state.
-	_, err := r.client.GetLoadbalancer(ctx, state.LoadbalancerId.ValueString())
+	// Call ShowLoadbalancerPublicNatIp to refresh NAT IP details.
+	data, err := r.client.GetLoadbalancerPublicNatIp(ctx, state.LoadbalancerId.ValueString())
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			resp.State.RemoveResource(ctx)
@@ -267,7 +267,31 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Read(ctx context.Context, 
 		return
 	}
 
-	// Cannot refresh NAT IP details without a Show endpoint, keep existing state.
+	// Merge Show response with existing state.
+	// Show API returns only 3 fields (ExternalIpAddress, PublicipId, State).
+	// Other fields are preserved from existing state to avoid data loss.
+	var existingDetail loadbalancer.LoadbalancerPublicNatIpDetail
+	if !state.LoadbalancerPublicNatIp.IsNull() {
+		diags := state.LoadbalancerPublicNatIp.As(ctx, &existingDetail, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	refreshedDetail := readLoadbalancerNatModel(data, existingDetail)
+	staticNatObjectValue, diags := types.ObjectValueFrom(ctx, refreshedDetail.AttributeTypes(), refreshedDetail)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	state.LoadbalancerPublicNatIp = staticNatObjectValue
+
+	diags = resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (r *loadbalancerLoadbalancerPublicNatIpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -297,6 +321,17 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Delete(ctx context.Context
 		)
 		return
 	}
+
+	// Wait for the Public NAT IP to be fully deleted (404 = success)
+	refreshFn := r.getPublicNatIpRefreshFunc(ctx, state.LoadbalancerId.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting LB Public NAT",
+			"Error waiting for LB Public NAT to become deleted: "+err.Error(),
+		)
+		return
+	}
 }
 
 func createLoadbalancerNatModel(data *scploadbalancer.StaticNatCreateResponse) loadbalancer.LoadbalancerPublicNatIpDetail {
@@ -322,5 +357,45 @@ func createLoadbalancerNatModel(data *scploadbalancer.StaticNatCreateResponse) l
 		SubnetId:          virtualserverutil.ToNullableStringValue(lbStaticNat.SubnetId.Get()),
 		Type:              virtualserverutil.ToNullableStringValue(lbStaticNat.Type.Get()),
 		VpcId:             virtualserverutil.ToNullableStringValue(lbStaticNat.VpcId.Get()),
+	}
+}
+
+// readLoadbalancerNatModel maps the Show API response (StaticNat — 3 fields) to the provider model,
+// merging with existing state to preserve fields not returned by the Show API.
+func readLoadbalancerNatModel(data *scploadbalancer.LoadbalancerStaticNatResponse, existing loadbalancer.LoadbalancerPublicNatIpDetail) loadbalancer.LoadbalancerPublicNatIpDetail {
+	staticNat := data.StaticNat
+	return loadbalancer.LoadbalancerPublicNatIpDetail{
+		// Fields from Show API (refreshed)
+		ExternalIpAddress: types.StringValue(staticNat.ExternalIpAddress),
+		PublicipId:        virtualserverutil.ToNullableStringValue(staticNat.PublicipId.Get()),
+		State:             types.StringValue(staticNat.State),
+		// Fields preserved from existing state (not available from Show API)
+		AccountId:         existing.AccountId,
+		ActionType:        existing.ActionType,
+		CreatedAt:         existing.CreatedAt,
+		CreatedBy:         existing.CreatedBy,
+		Description:       existing.Description,
+		Id:                existing.Id,
+		InternalIpAddress: existing.InternalIpAddress,
+		ModifiedAt:        existing.ModifiedAt,
+		ModifiedBy:        existing.ModifiedBy,
+		Name:              existing.Name,
+		OwnerId:           existing.OwnerId,
+		OwnerName:         existing.OwnerName,
+		OwnerType:         existing.OwnerType,
+		ServiceIpPortId:   existing.ServiceIpPortId,
+		SubnetId:          existing.SubnetId,
+		Type:              existing.Type,
+		VpcId:             existing.VpcId,
+	}
+}
+
+func (r *loadbalancerLoadbalancerPublicNatIpResource) getPublicNatIpRefreshFunc(ctx context.Context, loadbalancerId string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		data, err := r.client.GetLoadbalancerPublicNatIp(ctx, loadbalancerId)
+		if err != nil {
+			return nil, "", err
+		}
+		return data, data.StaticNat.State, nil
 	}
 }

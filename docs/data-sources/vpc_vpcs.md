@@ -23,11 +23,18 @@ data "samsungcloudplatformv2_vpc_vpcs" "vpcs" {
   size  = var.size
   sort  = var.sort
   state = var.state
+  zone  = var.zone
 }
 
 
 output "vpcs" {
-  value = data.samsungcloudplatformv2_vpc_vpcs.vpcs
+  value = {
+    count: data.samsungcloudplatformv2_vpc_vpcs.vpcs.total_count
+    page: data.samsungcloudplatformv2_vpc_vpcs.vpcs.page
+    size: data.samsungcloudplatformv2_vpc_vpcs.vpcs.size
+    sort: data.samsungcloudplatformv2_vpc_vpcs.vpcs.sort
+    vpcs: data.samsungcloudplatformv2_vpc_vpcs.vpcs.vpcs
+  }
 }
 
 variable "cidr" {
@@ -63,7 +70,11 @@ variable "sort" {
 variable "state" {
   type    = string
   default = null
+}
 
+variable "zone" {
+  type    = string
+  default = "kr-west1-b"
 }
 ```
 
@@ -87,6 +98,8 @@ variable "state" {
 - `state` (String) The current lifecycle state of the vpc.
   - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
   - exmaple : ACTIVE
+- `zone` (String) The availability zone of the vpc.
+  - example : kr-1
 
 ### Read-Only
 
@@ -125,6 +138,10 @@ Read-Only:
 - `state` (String) The current lifecycle state of the vpc.
   - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
   - exmaple : ACTIVE
+- `zone_type` (String) The zone type of the vpc.
+  - example: GLOBAL
+- `zones` (List of String) The list of availability zones associated with the vpc.
+  - example: ["kr-1","kr-2"]
 
 <a id="nestedatt--vpcs--cidrs"></a>
 ### Nested Schema for `vpcs.cidrs`

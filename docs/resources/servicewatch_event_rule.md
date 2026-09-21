@@ -20,6 +20,7 @@ resource "samsungcloudplatformv2_servicewatch_event_rule" "event_rule" {
   event_ids = var.event_ids
   name    = var.event_rule_name
   recipient_ids = var.recipient_ids
+  recipient_type = var.recipient_type
   service_id = var.service_id
   resource_type_id = var.resource_type_id
   srn_list = var.srn_list
@@ -44,6 +45,11 @@ variable "event_rule_name" {
 variable "recipient_ids" {
   type    = list(string)
   default = []
+}
+
+variable "recipient_type" {
+  type    = string
+  default = "USER"
 }
 
 variable "service_id" {
@@ -96,8 +102,10 @@ variable "tags" {
  - example : Event rule 1
 - `none_attributes` (List of String) List of attributes to assign to None.
  - example : ["attribute1", "attribute2"]
-- `recipient_ids` (List of String) Notification recipient IDs.
+- `recipient_ids` (List of String) Notification recipient IDs. All of them share the recipient_type.
  - example: YOUR RESOURCE'S RECIPIENT_IDS
+- `recipient_type` (String) The type of every recipient in recipient_ids - USER, GROUP.
+ - example : USER
 - `resource_type_id` (String) The unique identifier of the resource type.
  - example: YOUR RESOURCE'S RESOURCE_TYPE_ID
 - `srn_list` (List of String) List of SDS cloud Resource Names.

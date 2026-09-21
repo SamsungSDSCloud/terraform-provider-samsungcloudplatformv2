@@ -3,11 +3,11 @@ package cachestore
 import (
 	"context"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	cachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/cachestore/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	cachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/cachestore/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
 )
 
 type Client struct {
@@ -46,10 +46,17 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-// productImageType이 비어있지 않으면 해당 product image type으로 필터링하여 조회한다.
-func (client *Client) GetEngineVersionList(ctx context.Context, productImageType string) (*cachestore.EngineListResponse, error) {
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*cachestore.EngineListResponse, error) {
 	req := client.sdkClient.CachestoreV1CacheStoreMasterDataApiAPI.CachestoreListEngineVersions(ctx)
-	req = req.ProductImageType(cachestore.ProductImageType(productImageType))
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(cachestore.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -105,7 +112,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		for _, bsElem := range ig.BlockStorageGroups.Elements() {
 			bsObj := bsElem.(types.Object)
 			convertedBlockStorage = append(convertedBlockStorage, cachestore.RedisBlockStorageGroupRequest{
-				RoleType:   cachestore.BlockStorageGroupRoleType(bsObj.Attributes()["role_type"].(types.String).ValueString()),
+				RoleType:   cachestore.OsDataBlockStorageGroupRoleType(bsObj.Attributes()["role_type"].(types.String).ValueString()),
 				SizeGb:     bsObj.Attributes()["size_gb"].(types.Int32).ValueInt32(),
 				VolumeType: cachestore.VolumeType(bsObj.Attributes()["volume_type"].(types.String).ValueString()).Ptr(),
 			})
@@ -226,6 +233,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, startingT
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.CachestoreV1CacheStoreBackupApiAPI.CachestoreUnsetBackup(ctx, clusterId)
 
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(cachestore.OtpSessionIdRequest{
+		SessionId: *cachestore.NewNullableString(nil),
+	})
+
 	_, _, err := req.Execute()
 	return err
 }
@@ -288,9 +300,9 @@ func MapInstanceGroupResponses(sdkResp []cachestore.RedisInstanceGroupResponse) 
 
 			instances[j] = database.InstanceResponse{
 				Name:             it.Name,
+				PublicIpId:       pubIP,
 				RoleType:         string(it.RoleType),
 				ServiceIpAddress: serviceIP,
-				PublicIpId:       pubIP,
 			}
 		}
 
@@ -304,4 +316,12 @@ func MapInstanceGroupResponses(sdkResp []cachestore.RedisInstanceGroupResponse) 
 	}
 
 	return result
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*cachestore.InstanceDetailResponse, error) {
+	req := client.sdkClient.CachestoreV1CacheStoreInstancesApiAPI.CachestoreShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
 }

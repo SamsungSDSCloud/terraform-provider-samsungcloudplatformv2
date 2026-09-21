@@ -3,7 +3,7 @@ package organization
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/organization/1.2"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/organization/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -33,66 +33,62 @@ type OrganizationListDataSource struct {
 
 // OrganizationSummaryItem represents a single organization in the list
 type OrganizationSummaryItem struct {
-	Id                  types.String `tfsdk:"id"`
-	Name                types.String `tfsdk:"name"`
-	CreatedAt           types.String `tfsdk:"created_at"`
-	CreatedBy           types.String `tfsdk:"created_by"`
-	ModifiedAt          types.String `tfsdk:"modified_at"`
-	ModifiedBy          types.String `tfsdk:"modified_by"`
-	MasterAccountId     types.String `tfsdk:"master_account_id"`
-	DelegationAccountId types.String `tfsdk:"delegation_account_id"`
-	RootUnitId          types.String `tfsdk:"root_unit_id"`
-	UseScpYn            types.Bool   `tfsdk:"use_scp_yn"`
+	Id              types.String `tfsdk:"id"`
+	Name            types.String `tfsdk:"name"`
+	CreatedAt       types.String `tfsdk:"created_at"`
+	CreatedBy       types.String `tfsdk:"created_by"`
+	ModifiedAt      types.String `tfsdk:"modified_at"`
+	ModifiedBy      types.String `tfsdk:"modified_by"`
+	MasterAccountId types.String `tfsdk:"master_account_id"`
+	RootUnitId      types.String `tfsdk:"root_unit_id"`
+	UseScpYn        types.Bool   `tfsdk:"use_scp_yn"`
 }
 
 func (o OrganizationSummaryItem) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":                    basetypes.StringType{},
-		"name":                  basetypes.StringType{},
-		"created_at":            basetypes.StringType{},
-		"created_by":            basetypes.StringType{},
-		"modified_at":           basetypes.StringType{},
-		"modified_by":           basetypes.StringType{},
-		"master_account_id":     basetypes.StringType{},
-		"delegation_account_id": basetypes.StringType{},
-		"root_unit_id":          basetypes.StringType{},
-		"use_scp_yn":            basetypes.BoolType{},
+		"id":                basetypes.StringType{},
+		"name":              basetypes.StringType{},
+		"created_at":        basetypes.StringType{},
+		"created_by":        basetypes.StringType{},
+		"modified_at":       basetypes.StringType{},
+		"modified_by":       basetypes.StringType{},
+		"master_account_id": basetypes.StringType{},
+		"root_unit_id":      basetypes.StringType{},
+		"use_scp_yn":        basetypes.BoolType{},
 	}
 }
 
 type OrganizationResource struct {
-	Id                  types.String `tfsdk:"id"`
-	Name                types.String `tfsdk:"name"`
-	DelegationAccountId types.String `tfsdk:"delegation_account_id"`
-	UseScpYn            types.Bool   `tfsdk:"use_scp_yn"`
-	CreatedAt           types.String `tfsdk:"created_at"`
-	CreatedBy           types.String `tfsdk:"created_by"`
-	CreatorName         types.String `tfsdk:"creator_name"`
-	ModifiedAt          types.String `tfsdk:"modified_at"`
-	ModifiedBy          types.String `tfsdk:"modified_by"`
-	ModifierName        types.String `tfsdk:"modifier_name"`
-	MasterAccountId     types.String `tfsdk:"master_account_id"`
-	MasterAccountEmail  types.String `tfsdk:"master_account_email"`
-	RootUnitId          types.String `tfsdk:"root_unit_id"`
-	Srn                 types.String `tfsdk:"srn"`
+	Id                 types.String `tfsdk:"id"`
+	Name               types.String `tfsdk:"name"`
+	UseScpYn           types.Bool   `tfsdk:"use_scp_yn"`
+	CreatedAt          types.String `tfsdk:"created_at"`
+	CreatedBy          types.String `tfsdk:"created_by"`
+	CreatorName        types.String `tfsdk:"creator_name"`
+	ModifiedAt         types.String `tfsdk:"modified_at"`
+	ModifiedBy         types.String `tfsdk:"modified_by"`
+	ModifierName       types.String `tfsdk:"modifier_name"`
+	MasterAccountId    types.String `tfsdk:"master_account_id"`
+	MasterAccountEmail types.String `tfsdk:"master_account_email"`
+	RootUnitId         types.String `tfsdk:"root_unit_id"`
+	Srn                types.String `tfsdk:"srn"`
 }
 
 func (o OrganizationResource) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":                    basetypes.StringType{},
-		"name":                  basetypes.StringType{},
-		"created_at":            basetypes.StringType{},
-		"created_by":            basetypes.StringType{},
-		"creator_name":          basetypes.StringType{},
-		"modified_at":           basetypes.StringType{},
-		"modified_by":           basetypes.StringType{},
-		"modifier_name":         basetypes.StringType{},
-		"master_account_id":     basetypes.StringType{},
-		"master_account_email":  basetypes.StringType{},
-		"delegation_account_id": basetypes.StringType{},
-		"root_unit_id":          basetypes.StringType{},
-		"srn":                   basetypes.StringType{},
-		"use_scp_yn":            basetypes.BoolType{},
+		"id":                   basetypes.StringType{},
+		"name":                 basetypes.StringType{},
+		"created_at":           basetypes.StringType{},
+		"created_by":           basetypes.StringType{},
+		"creator_name":         basetypes.StringType{},
+		"modified_at":          basetypes.StringType{},
+		"modified_by":          basetypes.StringType{},
+		"modifier_name":        basetypes.StringType{},
+		"master_account_id":    basetypes.StringType{},
+		"master_account_email": basetypes.StringType{},
+		"root_unit_id":         basetypes.StringType{},
+		"srn":                  basetypes.StringType{},
+		"use_scp_yn":           basetypes.BoolType{},
 	}
 }
 
@@ -842,6 +838,78 @@ func (o DelegationPolicyResource) ToSdkType() (*organization.DelegationPolicyCre
 }
 
 // =====================
+// Delegation Account Types
+// =====================
+
+// DelegationAccountResource - resource model for delegation account
+type DelegationAccountResource struct {
+	AccountId         types.String `tfsdk:"account_id"`
+	OrganizationId    types.String `tfsdk:"organization_id"`
+	ServiceType       types.String `tfsdk:"service_type"`
+	DelegationAccount types.Object `tfsdk:"delegation_account"`
+}
+
+func (o DelegationAccountResource) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"account_id":      basetypes.StringType{},
+		"organization_id": basetypes.StringType{},
+		"service_type":    basetypes.StringType{},
+		"created_at":      basetypes.StringType{},
+		"created_by":      basetypes.StringType{},
+		"id":              basetypes.StringType{},
+	}
+}
+
+// DelegationAccountValue - output value for delegation account
+type DelegationAccountValue struct {
+	AccountId      types.String `tfsdk:"account_id"`
+	CreatedAt      types.String `tfsdk:"created_at"`
+	CreatedBy      types.String `tfsdk:"created_by"`
+	Id             types.String `tfsdk:"id"`
+	OrganizationId types.String `tfsdk:"organization_id"`
+	ServiceType    types.String `tfsdk:"service_type"`
+}
+
+func (o DelegationAccountValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"account_id":      basetypes.StringType{},
+		"created_at":      basetypes.StringType{},
+		"created_by":      basetypes.StringType{},
+		"id":              basetypes.StringType{},
+		"organization_id": basetypes.StringType{},
+		"service_type":    basetypes.StringType{},
+	}
+}
+
+// DelegationAccountDataSource - data source model for delegation accounts
+type DelegationAccountsDataSource struct {
+	OrganizationId     types.String `tfsdk:"organization_id"`
+	ServiceType        types.String `tfsdk:"service_type"`
+	AccountId          types.String `tfsdk:"account_id"`
+	Size               types.Int64  `tfsdk:"size"`
+	Page               types.Int64  `tfsdk:"page"`
+	Sort               types.String `tfsdk:"sort"`
+	TotalCount         types.Int64  `tfsdk:"total_count"`
+	SortResult         types.List   `tfsdk:"sort_result"`
+	DelegationAccounts types.List   `tfsdk:"delegation_accounts"`
+}
+
+func (o DelegationAccountsDataSource) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":                  basetypes.StringType{},
+		"organization_id":     basetypes.StringType{},
+		"service_type":        basetypes.StringType{},
+		"account_id":          basetypes.StringType{},
+		"size":                basetypes.Int64Type{},
+		"page":                basetypes.Int64Type{},
+		"sort":                basetypes.StringType{},
+		"total_count":         basetypes.Int64Type{},
+		"sort_result":         types.ListType{ElemType: types.StringType},
+		"delegation_accounts": types.ListType{ElemType: types.ObjectType{AttrTypes: DelegationAccountValue{}.AttributeTypes(ctx)}},
+	}
+}
+
+// =====================
 // Service Control Policy Types
 // =====================
 
@@ -923,7 +991,7 @@ func (o ServiceControlPolicyValue) AttributeTypes(ctx context.Context) map[strin
 }
 
 type ServiceControlPolicyResource struct {
-	PolicyId       types.String `tfsdk:"policy_id"`
+	PolicyId       types.String `tfsdk:"id"`
 	OrganizationId types.String `tfsdk:"organization_id"`
 	Name           types.String `tfsdk:"name"`
 	Description    types.String `tfsdk:"description"`
@@ -964,7 +1032,7 @@ func (o ServiceControlPolicyResource) AttributeTypes(ctx context.Context) map[st
 
 // ServiceControlPolicyDataSource - data source model for service control policy
 type ServiceControlPolicyDataSource struct {
-	PolicyId       types.String `tfsdk:"policy_id"`
+	PolicyId       types.String `tfsdk:"id"`
 	OrganizationId types.String `tfsdk:"organization_id"`
 	Name           types.String `tfsdk:"name"`
 	Description    types.String `tfsdk:"description"`
@@ -1065,6 +1133,206 @@ func (o ServiceControlPolicyListValue) AttributeTypes(ctx context.Context) map[s
 		"modified_at":     basetypes.StringType{},
 		"modified_by":     basetypes.StringType{},
 		"modifier_name":   basetypes.StringType{},
+	}
+}
+
+// =====================
+// Policy Binding Types (OrganizationV1AssignmentsAPIsAPI)
+// =====================
+
+// PolicyBindingResource - resource model for attaching/detaching control policies to a target
+type PolicyBindingResource struct {
+	Entity         types.String `tfsdk:"entity"`
+	OrganizationId types.String `tfsdk:"organization_id"`
+	TargetIds      types.Set    `tfsdk:"target_ids"`
+	PolicyIds      types.Set    `tfsdk:"policy_ids"`
+	SuccessIds     types.List   `tfsdk:"success_ids"`
+	FailedIds      types.List   `tfsdk:"failed_ids"`
+}
+
+func (o PolicyBindingResource) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":              basetypes.StringType{},
+		"organization_id": basetypes.StringType{},
+		"target_id":       basetypes.StringType{},
+		"policy_ids": types.SetType{
+			ElemType: types.StringType,
+		},
+	}
+}
+
+// PoliciesForTargetDataSource - data source model for listing policies assigned to a target
+type PoliciesForTargetDataSource struct {
+	Id             types.String `tfsdk:"id"`
+	TargetId       types.String `tfsdk:"target_id"`
+	OrganizationId types.String `tfsdk:"organization_id"`
+	PolicyCategory types.String `tfsdk:"policy_category"`
+	Name           types.String `tfsdk:"name"`
+	Size           types.Int64  `tfsdk:"size"`
+	Page           types.Int64  `tfsdk:"page"`
+	Sort           types.String `tfsdk:"sort"`
+	TotalCount     types.Int64  `tfsdk:"total_count"`
+	SortResult     types.List   `tfsdk:"sort_result"`
+	Policies       types.List   `tfsdk:"policies"`
+}
+
+func (o PoliciesForTargetDataSource) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":              basetypes.StringType{},
+		"target_id":       basetypes.StringType{},
+		"organization_id": basetypes.StringType{},
+		"policy_category": basetypes.StringType{},
+		"name":            basetypes.StringType{},
+		"size":            basetypes.Int64Type{},
+		"page":            basetypes.Int64Type{},
+		"sort":            basetypes.StringType{},
+		"total_count":     basetypes.Int64Type{},
+		"sort_result":     types.ListType{ElemType: types.StringType},
+		"policies": types.ListType{
+			ElemType: types.ObjectType{AttrTypes: PoliciesForTargetValue{}.AttributeTypes(ctx)},
+		},
+	}
+}
+
+// PoliciesForTargetValue - output value for a single policy assigned to a target (matches SDK PoliciesForTargetSummary)
+type PoliciesForTargetValue struct {
+	Id         types.String `tfsdk:"id"`
+	PolicyName types.String `tfsdk:"policy_name"`
+	PolicyType types.String `tfsdk:"policy_type"`
+	Source     types.String `tfsdk:"source"`
+	CreatedAt  types.String `tfsdk:"created_at"`
+	CreatedBy  types.String `tfsdk:"created_by"`
+	ModifiedAt types.String `tfsdk:"modified_at"`
+	ModifiedBy types.String `tfsdk:"modified_by"`
+	LinkTypes  types.Map    `tfsdk:"link_types"`
+}
+
+func (o PoliciesForTargetValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":          basetypes.StringType{},
+		"policy_name": basetypes.StringType{},
+		"policy_type": basetypes.StringType{},
+		"source":      basetypes.StringType{},
+		"created_at":  basetypes.StringType{},
+		"created_by":  basetypes.StringType{},
+		"modified_at": basetypes.StringType{},
+		"modified_by": basetypes.StringType{},
+		"link_types": types.MapType{
+			ElemType: types.ListType{
+				ElemType: types.ObjectType{AttrTypes: PolicyLinkInfoValue{}.AttributeTypes(ctx)},
+			},
+		},
+	}
+}
+
+// PolicyLinkInfoValue - output value for a linked target of a policy (matches SDK PolicyLinkInfo)
+type PolicyLinkInfoValue struct {
+	TargetId   types.String `tfsdk:"target_id"`
+	TargetName types.String `tfsdk:"target_name"`
+	TargetType types.String `tfsdk:"target_type"`
+}
+
+func (o PolicyLinkInfoValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"target_id":   basetypes.StringType{},
+		"target_name": basetypes.StringType{},
+		"target_type": basetypes.StringType{},
+	}
+}
+
+// TargetsForPolicyDataSource - data source model for listing targets assigned to a policy
+type TargetsForPolicyDataSource struct {
+	PolicyId       types.String `tfsdk:"policy_id"`
+	TargetType     types.String `tfsdk:"target_type"`
+	OrganizationId types.String `tfsdk:"organization_id"`
+	PolicyCategory types.String `tfsdk:"policy_category"`
+	Name           types.String `tfsdk:"name"`
+	Size           types.Int64  `tfsdk:"size"`
+	Page           types.Int64  `tfsdk:"page"`
+	Sort           types.String `tfsdk:"sort"`
+	TotalCount     types.Int64  `tfsdk:"total_count"`
+	SortResult     types.List   `tfsdk:"sort_result"`
+	Targets        types.List   `tfsdk:"targets"`
+}
+
+func (o TargetsForPolicyDataSource) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"policy_id":       basetypes.StringType{},
+		"target_type":     basetypes.StringType{},
+		"organization_id": basetypes.StringType{},
+		"policy_category": basetypes.StringType{},
+		"name":            basetypes.StringType{},
+		"size":            basetypes.Int64Type{},
+		"page":            basetypes.Int64Type{},
+		"sort":            basetypes.StringType{},
+		"total_count":     basetypes.Int64Type{},
+		"sort_result":     types.ListType{ElemType: types.StringType},
+		"targets": types.ListType{
+			ElemType: types.ObjectType{AttrTypes: TargetsForPolicyValue{}.AttributeTypes(ctx)},
+		},
+	}
+}
+
+// TargetsForPolicyValue - output value for a single target assigned to a policy (matches SDK TargetsForPolicySummary)
+type TargetsForPolicyValue struct {
+	Id              types.String `tfsdk:"id"`
+	TargetName      types.String `tfsdk:"target_name"`
+	CreatedAt       types.String `tfsdk:"created_at"`
+	CreatedBy       types.String `tfsdk:"created_by"`
+	ModifiedAt      types.String `tfsdk:"modified_at"`
+	ModifiedBy      types.String `tfsdk:"modified_by"`
+	ControlPolicies types.List   `tfsdk:"control_policies"`
+}
+
+func (o TargetsForPolicyValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":          basetypes.StringType{},
+		"target_name": basetypes.StringType{},
+		"created_at":  basetypes.StringType{},
+		"created_by":  basetypes.StringType{},
+		"modified_at": basetypes.StringType{},
+		"modified_by": basetypes.StringType{},
+		"control_policies": types.ListType{
+			ElemType: types.ObjectType{AttrTypes: ConnectedPolicyValue{}.AttributeTypes(ctx)},
+		},
+	}
+}
+
+// ConnectedPolicyValue - output value for a policy connected to a target (matches SDK ConnectedPolicySummary)
+type ConnectedPolicyValue struct {
+	PolicyId   types.String `tfsdk:"policy_id"`
+	PolicyName types.String `tfsdk:"policy_name"`
+}
+
+func (o ConnectedPolicyValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"policy_id":   basetypes.StringType{},
+		"policy_name": basetypes.StringType{},
+	}
+}
+
+type PolicyBindingRemoveResource struct {
+	Entity         types.String `tfsdk:"entity"`
+	OrganizationId types.String `tfsdk:"organization_id"`
+	PolicyIds      types.Set    `tfsdk:"policy_ids"`
+	TargetIds      types.Set    `tfsdk:"target_ids"`
+	SuccessIds     types.List   `tfsdk:"success_ids"`
+	FailedIds      types.List   `tfsdk:"failed_ids"`
+}
+
+type FailedBindingValue struct {
+	FailedId     types.String `tfsdk:"failed_id"`
+	ErrorCode    types.String `tfsdk:"error_code"`
+	FailedCaused types.String `tfsdk:"failed_caused"`
+	Response     types.String `tfsdk:"response"`
+}
+
+func (o FailedBindingValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"failed_id":     basetypes.StringType{},
+		"error_code":    basetypes.StringType{},
+		"failed_caused": basetypes.StringType{},
+		"response":      basetypes.StringType{},
 	}
 }
 

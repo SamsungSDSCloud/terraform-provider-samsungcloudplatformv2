@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/multinodegpucluster"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	multinodegpuclustersdk1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/multinodegpucluster/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/multinodegpucluster"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	multinodegpuclustersdk1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/multinodegpucluster/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -345,7 +345,7 @@ func GpuNodeResourceSchema(ctx context.Context) schema.Schema {
 							Validators: []validator.String{
 								stringvalidator.OneOf(common.RunningState, common.StoppedState),
 							},
-                        	PlanModifiers: []planmodifier.String{
+							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
@@ -614,6 +614,32 @@ func (multinodegpuclusterRS *GpunodeResource) Update(ctx context.Context, req re
 		}
 	}
 
+	// When lock(delete_protection) is enabled, the backend rejects start/stop,
+	// so the order is handled differently depending on the direction.
+	//   - unlock(true->false): unlock here first, then perform start/stop
+	//   - lock(false->true): perform start/stop first, then set lock at the end (handled below)
+	lockChanged := !state.LockEnabled.Equal(plan.LockEnabled)
+	wantLock := plan.LockEnabled.ValueBool()
+
+	var allNodeIds []string
+	for _, sd := range planServerDetails {
+		allNodeIds = append(allNodeIds, sd.Id.ValueString())
+	}
+
+	if lockChanged && !wantLock {
+		for _, id := range allNodeIds {
+			_, err := multinodegpuclusterRS.client.UnlockGpuNode(ctx, id)
+			if err != nil {
+				detail := client.GetDetailFromError(err)
+				resp.Diagnostics.AddError(
+					"Error Unlocking GPU Node",
+					"Could not unlock GPU Node("+id+"), unexpected error: "+err.Error()+ERROR_EXPLAIN+detail,
+				)
+				return
+			}
+		}
+	}
+
 	if len(stopIds) != 0 {
 		err := multinodegpuclusterRS.client.StopGpuNodes(ctx, stopIds)
 		if err != nil {
@@ -659,6 +685,23 @@ func (multinodegpuclusterRS *GpunodeResource) Update(ctx context.Context, req re
 				"Could not start GPU Node, unexpected error: "+err.Error()+ERROR_EXPLAIN+detail,
 			)
 			return
+		}
+	}
+
+	// lock(false->true): set it only after all start/stop operations complete.
+	// (Setting lock first would cause the start/stop above to be blocked by the backend.)
+	// lock/unlock are synchronous APIs (HTTP 200), so no separate polling is needed.
+	if lockChanged && wantLock {
+		for _, id := range allNodeIds {
+			_, err := multinodegpuclusterRS.client.LockGpuNode(ctx, id)
+			if err != nil {
+				detail := client.GetDetailFromError(err)
+				resp.Diagnostics.AddError(
+					"Error Locking GPU Node",
+					"Could not lock GPU Node("+id+"), unexpected error: "+err.Error()+ERROR_EXPLAIN+detail,
+				)
+				return
+			}
 		}
 	}
 
@@ -876,11 +919,6 @@ func (multinodegpuclusterRS *GpunodeResource) ModifyPlan(ctx context.Context, re
 	if !state.VpcId.Equal(plan.VpcId) {
 		resp.Diagnostics.AddError("Could not change vpc_id",
 			"Could not change vpc_id.\nIf you want to change, create a new resource.")
-	}
-
-	if !state.LockEnabled.Equal(plan.LockEnabled) {
-		resp.Diagnostics.AddError("Could not change lock_enabled",
-			"Could not change lock_enabled.\nIf you want to change, create a new resource")
 	}
 
 	if !state.InitScript.Equal(plan.InitScript) {

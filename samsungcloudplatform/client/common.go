@@ -4,13 +4,65 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"slices"
 	"strings"
 	"time"
+
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+)
+
+const (
+	StateCreating = "CREATING"
+	StateActive   = "ACTIVE"
+	StateEditing  = "EDITING"
+	StateDeleting = "DELETING"
+	StateDeleted  = "DELETED"
+	StateError    = "ERROR"
 )
 
 const DefaultTimeout time.Duration = 120 * time.Minute
+
+const DefaultWaiterTimeout time.Duration = 30 * time.Minute
+
+// WaiterFunc is a lifecycle-specific waiter that receives a refresh function.
+type WaiterFunc func(context.Context, retry.StateRefreshFunc) error
+
+// WaiterFuncWithStates is a waiter that accepts custom pending and target states.
+type WaiterFuncWithStates func(context.Context, []string, []string, retry.StateRefreshFunc) error
+
+// WaitForResource waits for pendingStates → targetStates with default timeout.
+// If StateDeleted is in targetStates, 404 errors are automatically mapped to StateDeleted.
+func WaitForResource(ctx context.Context, pendingStates []string, targetStates []string, refreshFunc retry.StateRefreshFunc) error {
+	// Wrap to catch 404 errors when waiting for deletion
+	if slices.Contains(targetStates, StateDeleted) {
+		originalRefresh := refreshFunc
+		refreshFunc = func() (interface{}, string, error) {
+			result, state, err := originalRefresh()
+			if err != nil && strings.HasPrefix(err.Error(), "404") {
+				return struct{}{}, StateDeleted, nil
+			}
+			return result, state, err
+		}
+	}
+	return WaitForStatus(ctx, nil, pendingStates, targetStates, refreshFunc, DefaultWaiterTimeout, -1, -1, -1)
+}
+
+
+// WaitForResourceCreated waits for CREATING → ACTIVE.
+func WaitForResourceCreated(ctx context.Context, refreshFunc retry.StateRefreshFunc) error {
+	return WaitForResource(ctx, []string{StateCreating}, []string{StateActive}, refreshFunc)
+}
+
+// WaitForResourceUpdated waits for EDITING → ACTIVE.
+func WaitForResourceUpdated(ctx context.Context, refreshFunc retry.StateRefreshFunc) error {
+	return WaitForResource(ctx, []string{StateEditing}, []string{StateActive}, refreshFunc)
+}
+
+// WaitForResourceDeleted waits for DELETING → gone (404).
+func WaitForResourceDeleted(ctx context.Context, refreshFunc retry.StateRefreshFunc) error {
+	return WaitForResource(ctx, []string{StateDeleting}, []string{StateDeleted}, refreshFunc)
+}
 
 type Instance struct {
 	Client *SCPClient

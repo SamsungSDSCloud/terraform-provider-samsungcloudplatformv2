@@ -6,10 +6,17 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+const (
+	// testAccZone: 테스트가 서버를 만드는 기본 zone.
+	testAccZone = "kr-west1-a"
+	// testAccZoneOther: zone 이 immutable 인지 확인할 때 쓰는 다른 zone.
+	testAccZoneOther = "kr-west1-b"
 )
 
 func TestAccServerResourceTest(t *testing.T) {
@@ -37,7 +44,7 @@ func TestAccServerResourceTest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Server 생성
-				Config: testAccServerTemplate("1", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, "kr-west1-a"),
+				Config: testAccServerTemplate("1", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, testAccZone),
 			},
 			{
 				// Server 수정 (name, server type, security group, boot volume size, tags)
@@ -56,7 +63,7 @@ func TestAccServerResourceTest(t *testing.T) {
 						  type = "SSD"
 						  size = 8,
 						},
-					  }`, "{}", "kr-west1-a"),
+					  }`, "{}", testAccZone),
 			},
 			{
 				// Server 생성 (SSD_Provisioned)
@@ -68,7 +75,7 @@ func TestAccServerResourceTest(t *testing.T) {
 						max_throughput : 250,
 						delete_on_termination: false
 					}`,
-					extraVolumes, tags, "kr-west1-a"),
+					extraVolumes, tags, testAccZone),
 			},
 			{
 				// Server 수정 (QoS)
@@ -88,7 +95,7 @@ func TestAccServerResourceTest(t *testing.T) {
 						  max_throughput : 250,
 						  delete_on_termination: true
 						},
-					}`, tags, "kr-west1-a"),
+					}`, tags, testAccZone),
 			},
 		},
 	})
@@ -126,11 +133,11 @@ func TestAccServerImportTest(t *testing.T) {
 			{
 				// 1) 기본 형태 (NIC 1개, SG 없음, extra volume 없음)
 				Config: testAccServerTemplate("imp", "test_terraform_server_import", "s1v1m2",
-					"[]", networks, bootVolume, `{}`, tags, "kr-west1-a"),
+					"[]", networks, bootVolume, `{}`, tags, testAccZone),
 			},
 			{
 				// 2) import (기본 형태)
-				Config:                  testAccServerTemplate("imp", "test_terraform_server_import", "s1v1m2", "[]", networks, bootVolume, `{}`, tags, "kr-west1-a"),
+				Config:                  testAccServerTemplate("imp", "test_terraform_server_import", "s1v1m2", "[]", networks, bootVolume, `{}`, tags, testAccZone),
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -146,7 +153,7 @@ func TestAccServerImportTest(t *testing.T) {
 						  type = "SSD"
 						  size = 8,
 						},
-					}`, tags, "kr-west1-a"),
+					}`, tags, testAccZone),
 			},
 			{
 				// 4) import (security group + extra volume 포함)
@@ -158,7 +165,7 @@ func TestAccServerImportTest(t *testing.T) {
 						  type = "SSD"
 						  size = 8,
 						},
-					}`, tags, "kr-west1-a"),
+					}`, tags, testAccZone),
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -174,7 +181,7 @@ func TestAccServerImportTest(t *testing.T) {
 						  type = "SSD"
 						  size = 8,
 						},
-					}`, tags, "kr-west1-a"),
+					}`, tags, testAccZone),
 				PlanOnly: true,
 			},
 		},
@@ -226,15 +233,15 @@ func TestAccServerNetworkAddNicTest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// NIC 1개로 생성
-				Config: testAccServerTemplate("nic", name, serverType, securityGroups, oneNic, bootVolume, `{}`, `{}`, "kr-west1-a"),
+				Config: testAccServerTemplate("nic", name, serverType, securityGroups, oneNic, bootVolume, `{}`, `{}`, testAccZone),
 			},
 			{
 				// interface_2 추가 (fixed_ip 명시) — 이것만 바꾼다
-				Config: testAccServerTemplate("nic", name, serverType, securityGroups, twoNics, bootVolume, `{}`, `{}`, "kr-west1-a"),
+				Config: testAccServerTemplate("nic", name, serverType, securityGroups, twoNics, bootVolume, `{}`, `{}`, testAccZone),
 			},
 			{
 				// NIC 2개 상태로 import 해도 networks 가 그대로 복원되어야 한다
-				Config:                  testAccServerTemplate("nic", name, serverType, securityGroups, twoNics, bootVolume, `{}`, `{}`, "kr-west1-a"),
+				Config:                  testAccServerTemplate("nic", name, serverType, securityGroups, twoNics, bootVolume, `{}`, `{}`, testAccZone),
 				ResourceName:            "samsungcloudplatformv2_virtualserver_server.server_nic",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -269,11 +276,11 @@ func TestAccServerZoneImmutableTest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Server 생성 (kr-west1-a)
-				Config: testAccServerTemplate("z", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, "kr-west1-a"),
+				Config: testAccServerTemplate("z", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, testAccZone),
 			},
 			{
 				// zone 변경 시도 -> immutable 에러
-				Config:      testAccServerTemplate("z", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, "kr-west1-b"),
+				Config:      testAccServerTemplate("z", name, serverType, securityGroups, networks, bootVolume, extraVolumes, tags, testAccZoneOther),
 				ExpectError: regexp.MustCompile(`Immutable fields cannot be modified`),
 			},
 		},

@@ -1,6 +1,7 @@
 category:
   organization: Organization
   organization_organizations: Organization
+  organization_membership: Organization
 
   organization_unit: Organization Unit
   organization_units: Organization Unit
@@ -22,3 +23,9 @@ category:
 
   organization_service_control_policies: Organization Service Control Policy
   organization_service_control_policy: Organization Service Control Policy
+  organization_policy_binding: Organization Service Control Policy
+  organization_policies_for_target: Organization Service Control Policy
+  organization_targets_for_policy: Organization Service Control Policy
+
+  organization_delegation_account: Organization Delegation Account
+  organization_delegation_accounts: Organization Delegation Account

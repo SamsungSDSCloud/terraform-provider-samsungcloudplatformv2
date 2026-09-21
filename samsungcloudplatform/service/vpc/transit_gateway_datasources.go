@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -116,6 +117,26 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
+			common.ToSnakeCase("UplinkZoneState"): schema.StringAttribute{
+				Description: "The current state of the uplink zone.\n" +
+					"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR\n" +
+					"  - example : ACTIVE",
+				MarkdownDescription: "The current state of the uplink zone.\n" +
+					"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR, EDITING\n" +
+					"  - example : ACTIVE",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"ATTACHING",
+						"ACTIVE",
+						"DETACHING",
+						"DELETED",
+						"INACTIVE",
+						"ERROR",
+						"EDITING",
+					),
+				},
+				Optional: true,
+			},
 			common.ToSnakeCase("Tgws"): schema.ListNestedAttribute{
 				Description: "A list of tgw.",
 				Computed:    true,
@@ -187,6 +208,22 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 								"  - example : false",
 							Computed: true,
 						},
+						common.ToSnakeCase("UplinkActiveZone"): schema.StringAttribute{
+							Description: "The active zone for the uplink.\n" +
+								"  - example : zone-1",
+							Computed: true,
+						},
+						common.ToSnakeCase("UplinkStandbyZone"): schema.StringAttribute{
+							Description: "The standby zone for the uplink.\n" +
+								"  - example : zone-2",
+							Computed: true,
+						},
+						common.ToSnakeCase("UplinkZoneState"): schema.StringAttribute{
+							Description: "The current state of the uplink zone.\n" +
+								"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR, EDITING\n" +
+								"  - example : ACTIVE",
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -215,7 +252,7 @@ func (d *tgwDataSources) Configure(_ context.Context, req datasource.ConfigureRe
 		return
 	}
 
-	d.client = inst.Client.VpcV1Dot2
+	d.client = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 
@@ -239,7 +276,7 @@ func (d *tgwDataSources) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	// Map response body to model
 	for _, d := range data.TransitGateways {
-		tgwState := vpc.MapToTgw(d)
+		tgwState := vpc.MapToTgwV2(d)
 		state.Tgws = append(state.Tgws, tgwState)
 	}
 

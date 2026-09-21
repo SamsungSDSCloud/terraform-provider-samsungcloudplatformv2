@@ -3,9 +3,8 @@ package budget
 import (
 	"context"
 	"math"
-
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	budget "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/budget/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	budget "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/budget/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -21,6 +20,14 @@ func convertAmountToFloat64(amount types.Number) float64 {
     return f
 }
 
+// float64 → budget.Amount 변환
+func convertToBudgetAmount(value float64) budget.Amount {
+    f32 := float32(value)
+    return budget.Amount{
+        Float32: &f32,
+    }
+}
+
 type Client struct {
 	Config    *scpsdk.Configuration
 	sdkClient *budget.APIClient
@@ -33,7 +40,7 @@ func NewClient(config *scpsdk.Configuration) *Client {
 	}
 }
 
-func (client *Client) CreateAccountBudget(ctx context.Context, request BudgetResource) (*budget.BudgetAccountShowResponse, error) {
+func (client *Client) CreateAccountBudget(ctx context.Context, request BudgetResource) (*budget.BudgetAccountShowResponseV1dot1, error) {
 	req := client.sdkClient.BudgetV1AccountBudgetsAPIsAPI.CreateAccountBudget(ctx)
 
 	var convertReceivers []string
@@ -86,7 +93,7 @@ func (client *Client) CreateAccountBudget(ctx context.Context, request BudgetRes
 	}
 
 	req = req.BudgetCreateRequest(budget.BudgetCreateRequest{
-		Amount:        convertAmountToFloat64(request.Amount),
+		Amount:        convertToBudgetAmount(convertAmountToFloat64(request.Amount)),
 		Name:          request.Name.ValueString(),
 		Notifications: *budget.NewNullableNotificationSettingNew(convertNotifications),
 		Prevention:    *budget.NewNullablePreventionSettingNew(convertPrevention),
@@ -100,18 +107,18 @@ func (client *Client) CreateAccountBudget(ctx context.Context, request BudgetRes
 
 func (client *Client) DeleteAccountBudget(ctx context.Context, budgetId string) error {
 	req := client.sdkClient.BudgetV1AccountBudgetsAPIsAPI.DeleteAccountBudget(ctx, budgetId)
-	_, _, err := req.Execute()
+	_, err := req.Execute()
 	return err
 }
 
-func (client *Client) GetAccountBudgetList(ctx context.Context) (*budget.BudgetAccountPageResponse, error) {
+func (client *Client) GetAccountBudgetList(ctx context.Context) (*budget.BudgetAccountPageResponseV1dot1, error) {
 	req := client.sdkClient.BudgetV1AccountBudgetsAPIsAPI.ListAccountBudgets(ctx)
 	req = req.Size(math.MaxInt32)
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) SetAccountBudget(ctx context.Context, budgetId string, request BudgetResource) (*budget.BudgetAccountShowResponse, error) {
+func (client *Client) SetAccountBudget(ctx context.Context, budgetId string, request BudgetResource) (*budget.BudgetAccountShowResponseV1dot1, error) {
 	req := client.sdkClient.BudgetV1AccountBudgetsAPIsAPI.SetAccountBudget(ctx, budgetId)
 
 	var convertReceivers []string
@@ -164,7 +171,7 @@ func (client *Client) SetAccountBudget(ctx context.Context, budgetId string, req
 	}
 
 	req = req.BudgetSetRequest(budget.BudgetSetRequest{
-		Amount:       convertAmountToFloat64(request.Amount),
+		Amount:       convertToBudgetAmount(convertAmountToFloat64(request.Amount)),
 		Name:          request.Name.ValueString(),
 		Notifications: *budget.NewNullableNotificationSettingNew(convertNotifications),
 		Prevention:    *budget.NewNullablePreventionSettingNew(convertPrevention),
@@ -176,7 +183,7 @@ func (client *Client) SetAccountBudget(ctx context.Context, budgetId string, req
 	return resp, err
 }
 
-func (client *Client) GetAccountBudget(ctx context.Context, budgetId string) (*budget.BudgetAccountShowResponse, error) {
+func (client *Client) GetAccountBudget(ctx context.Context, budgetId string) (*budget.BudgetAccountShowResponseV1dot1, error) {
 	req := client.sdkClient.BudgetV1AccountBudgetsAPIsAPI.ShowAccountBudget(ctx, budgetId)
 	resp, _, err := req.Execute()
 	return resp, err

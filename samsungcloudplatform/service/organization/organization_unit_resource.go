@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -193,10 +193,6 @@ func (r *organizationUnitResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	orgId := plan.OrganizationId.ValueString()
-	if orgId == "" {
-		orgId = "default"
-	}
-	plan.OrganizationId = types.StringValue(orgId)
 
 	data, err := r.client.CreateOrganizationUnit(ctx, plan)
 	if err != nil {
@@ -311,11 +307,6 @@ func (r *organizationUnitResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	orgUnitId := orgUnitIdVal.(types.String).ValueString()
 
-	orgId := state.OrganizationId.ValueString()
-	if orgId == "" {
-		orgId = "default"
-	}
-
 	data, err := r.client.GetOrganizationUnit(ctx, orgUnitId, "")
 	if err != nil {
 		if !strings.Contains(err.Error(), "404") {
@@ -385,9 +376,6 @@ func (r *organizationUnitResource) Update(ctx context.Context, req resource.Upda
 
 	orgUnitId := state.OrganizationUnit.Attributes()["id"].(types.String).ValueString()
 	orgId := plan.OrganizationId.ValueString()
-	if orgId == "" {
-		orgId = "default"
-	}
 
 	_, err := r.client.UpdateOrganizationUnit(ctx, orgUnitId, plan)
 	if err != nil {
@@ -456,9 +444,7 @@ func (r *organizationUnitResource) Delete(ctx context.Context, req resource.Dele
 
 	orgUnitId := state.OrganizationUnit.Attributes()["id"].(types.String).ValueString()
 	orgId := state.OrganizationId.ValueString()
-	if orgId == "" {
-		orgId = "default"
-	}
+
 	_, err := r.client.DeleteOrganizationUnit(ctx, orgUnitId, orgId)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
@@ -482,7 +468,7 @@ func (r *organizationUnitResource) ImportState(ctx context.Context, req resource
 
 	orgUnitId := parts[0]
 	orgId := ""
-	if len(parts) > 2 {
+	if len(parts) > 1 {
 		orgId = parts[1]
 	}
 

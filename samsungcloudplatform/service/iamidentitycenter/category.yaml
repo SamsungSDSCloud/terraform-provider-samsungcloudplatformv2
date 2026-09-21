@@ -1,0 +1,16 @@
+category:
+  iam_identity_center_account_assignment: Account Assignment
+  iam_identity_center_account_assignments: Account Assignment
+  iam_identity_center_group: Group
+  iam_identity_center_group_member: Group
+  iam_identity_center_groups: Group
+  iam_identity_center_instance: Instance
+  iam_identity_center_instances: Instance
+  iam_identity_center_permission_set: Permission Set
+  iam_identity_center_permission_set_custom_policy: Permission Set
+  iam_identity_center_permission_set_managed_policy: Permission Set
+  iam_identity_center_permission_set_inline_policy: Permission Set
+  iam_identity_center_permission_set_policy: Permission Set
+  iam_identity_center_permission_sets: Permission Set
+  iam_identity_center_user: User
+  iam_identity_center_users: User

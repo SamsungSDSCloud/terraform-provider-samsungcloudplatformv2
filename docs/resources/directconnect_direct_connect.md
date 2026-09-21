@@ -20,8 +20,12 @@ resource "samsungcloudplatformv2_directconnect_direct_connect" "directconnect" {
   vpc_id = var.dcon_vpc_id
   bandwidth = var.dcon_bandwidth
   description = var.dcon_description
+  uplink_active_zone = var.dcon_uplink_active_zone
+  uplink_standby_zone = var.dcon_uplink_standby_zone
+  firewall_enabled = var.dcon_firewall_enabled
+  firewall_loggable = var.dcon_firewall_loggable
+  tags = var.tags
 }
-
 
 output "directconnect_output" {
   value = samsungcloudplatformv2_directconnect_direct_connect.directconnect
@@ -30,7 +34,7 @@ output "directconnect_output" {
 
 variable "dcon_name" {
   type    = string
-  default = "testdcon"
+  default = "bactest2"
 }
 
 variable "dcon_vpc_id" {
@@ -46,6 +50,33 @@ variable "dcon_bandwidth" {
 variable "dcon_description" {
   type    = string
   default = "description test"
+}
+
+variable "dcon_uplink_active_zone" {
+  type    = string
+  default = "kr-west1-a"
+}
+
+variable "dcon_uplink_standby_zone" {
+  type    = string
+  default = "kr-west1-y"
+}
+
+variable "dcon_firewall_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "dcon_firewall_loggable" {
+  type    = bool
+  default = false
+}
+
+variable "tags" {
+  type = map(string)
+  default = {
+    test_terraform_tag_key = "test_terraform_tag_value"
+  }
 }
 ```
 
@@ -74,6 +105,10 @@ variable "dcon_description" {
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
+- `uplink_active_zone` (String) Uplink Active Zone
+  - example : kr-west1-b
+- `uplink_standby_zone` (String) Uplink Standby Zone
+  - example : kr-west1-b
 
 ### Read-Only
 
@@ -110,6 +145,10 @@ Read-Only:
   - example : directConnectName
 - `state` (String) The current lifecycle state of the direct connect. 
   - example : CREATING | ACTIVE | EDITING | DELETING | ERROR
+- `uplink_active_zone` (String) Uplink Active Zone
+  - example : kr-west1-b
+- `uplink_standby_zone` (String) Uplink Standby Zone
+  - example : kr-west1-b
 - `vpc_id` (String) The identifier of the VPC that the direct connect belongs to.
 - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) The name of the VPC that the direct connect belongs to.

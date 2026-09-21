@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/postgresql"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/postgresql"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -64,6 +64,11 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 					common.ToSnakeCase("DbaasEngine"): schema.StringAttribute{
 						Description:         "DBaaS engine\n  - example: PostgreSQL",
 						MarkdownDescription: "DBaaS engine\n  - example: PostgreSQL",
+						Computed:            true,
+					},
+					common.ToSnakeCase("DbaasEngineVersionName"): schema.StringAttribute{
+						Description:         "DBaaS engine version name\n  - example: PostgreSQL 16.4",
+						MarkdownDescription: "DBaaS engine version name\n  - example: PostgreSQL 16.4",
 						Computed:            true,
 					},
 					common.ToSnakeCase("NatEnabled"): schema.BoolAttribute{
@@ -134,6 +139,11 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 							common.ToSnakeCase("DatabaseUserName"): schema.StringAttribute{
 								Description:         "Database user name\n  - example: mydb",
 								MarkdownDescription: "Database user name\n  - example: mydb",
+								Computed:            true,
+							},
+							common.ToSnakeCase("OriginRegion"): schema.StringAttribute{
+								Description:         "Origin region of the source cluster (set for restored/replica clusters)\n  - example: kr-west1",
+								MarkdownDescription: "Origin region of the source cluster (set for restored/replica clusters)\n  - example: kr-west1",
 								Computed:            true,
 							},
 						},
@@ -268,6 +278,11 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 						MarkdownDescription: "Origin cluster ID\n  - example: 8443a2afe9ce47c8958aa9dd010934d9",
 						Computed:            true,
 					},
+					common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
+						Description:         "Product image type\n  - example: PostgreSQL Community",
+						MarkdownDescription: "Product image type\n  - example: PostgreSQL Community",
+						Computed:            true,
+					},
 					common.ToSnakeCase("ProductType"): schema.StringAttribute{
 						Description:         "Product type\n  - example: PostgreSQL Community",
 						MarkdownDescription: "Product type\n  - example: PostgreSQL Community",
@@ -302,6 +317,11 @@ func (d *postgresqlClusterDataSource) Schema(_ context.Context, _ datasource.Sch
 					common.ToSnakeCase("Timezone"): schema.StringAttribute{
 						Description:         "Timezone\n  - example: Asia/Seoul",
 						MarkdownDescription: "Timezone\n  - example: Asia/Seoul",
+						Computed:            true,
+					},
+					common.ToSnakeCase("VipPublicIpAddress"): schema.StringAttribute{
+						Description:         "(VIP) Public IP address\n  - example: 10.10.10.10",
+						MarkdownDescription: "(VIP) Public IP address\n  - example: 10.10.10.10",
 						Computed:            true,
 					},
 					common.ToSnakeCase("VipPublicIpId"): schema.StringAttribute{
@@ -409,6 +429,7 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 		DatabaseName:     types.StringValue(data.InitConfigOption.DatabaseName),
 		DatabasePort:     types.Int32PointerValue(data.InitConfigOption.DatabasePort.Get()),
 		DatabaseUserName: types.StringValue(data.InitConfigOption.DatabaseUserName),
+		OriginRegion:     types.StringPointerValue(data.InitConfigOption.OriginRegion.Get()),
 	}
 
 	var InstanceGroups []database.InstanceGroup
@@ -470,28 +491,27 @@ func (d *postgresqlClusterDataSource) Read(ctx context.Context, req datasource.R
 	}
 
 	var postgresqlState = postgresql.ClusterDetail{
-		AccountId:            types.StringValue(data.AccountId),
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngine:          types.StringValue(data.DbaasEngine),
-		NatEnabled:           types.BoolPointerValue(data.NatEnabled),
-		HaEnabled:            types.BoolPointerValue(data.HaEnabled),
-		Id:                   types.StringValue(data.Id),
-		InitConfigOption:     initConfigOption,
-		InstanceCount:        types.Int32PointerValue(data.InstanceCount),
-		InstanceGroups:       InstanceGroups,
-		IsKernelPatchable:    types.BoolValue(data.IsKernelPatchable),
-		MaintenanceOption:    MaintenanceOption,
-		Name:                 types.StringValue(data.Name),
-		OriginClusterId:      types.StringPointerValue(data.OriginClusterId.Get()),
-		ProductType:          types.StringValue(string(data.ProductType)),
-		Replicas:             replicas,
-		RoleType:             types.StringPointerValue((*string)(data.RoleType.Get())),
-		ServiceState:         types.StringValue(string(data.ServiceState)),
-		SoftwareVersion:      types.StringValue(data.SoftwareVersion),
-		SubnetId:             types.StringValue(data.SubnetId),
-		Timezone:             types.StringValue(data.Timezone),
-		VipPublicIpId:        types.StringPointerValue(data.VipPublicIpId.Get()),
-		//VipPublicIpAddress:   types.StringPointerValue(data.VipPublicIpAddress.Get()),
+		AccountId:                 types.StringValue(data.AccountId),
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngine:               types.StringValue(data.DbaasEngine),
+		NatEnabled:                types.BoolPointerValue(data.NatEnabled),
+		HaEnabled:                 types.BoolPointerValue(data.HaEnabled),
+		Id:                        types.StringValue(data.Id),
+		InitConfigOption:          initConfigOption,
+		InstanceCount:             types.Int32PointerValue(data.InstanceCount),
+		InstanceGroups:            InstanceGroups,
+		IsKernelPatchable:         types.BoolValue(data.IsKernelPatchable),
+		MaintenanceOption:         MaintenanceOption,
+		Name:                      types.StringValue(data.Name),
+		OriginClusterId:           types.StringPointerValue(data.OriginClusterId.Get()),
+		ProductType:               types.StringValue(string(data.ProductType)),
+		Replicas:                  replicas,
+		RoleType:                  types.StringPointerValue((*string)(data.RoleType.Get())),
+		ServiceState:              types.StringValue(string(data.ServiceState)),
+		SoftwareVersion:           types.StringValue(data.SoftwareVersion),
+		SubnetId:                  types.StringValue(data.SubnetId),
+		Timezone:                  types.StringValue(data.Timezone),
+		VipPublicIpId:             types.StringPointerValue(data.VipPublicIpId.Get()),
 		VirtualIpAddress:          types.StringPointerValue(data.VirtualIpAddress.Get()),
 		CreatedAt:                 types.StringValue(data.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:                 types.StringValue(data.CreatedBy),

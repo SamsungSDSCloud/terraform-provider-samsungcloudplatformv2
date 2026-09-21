@@ -16,8 +16,12 @@ List of Engine Versions.
 
 ### Optional
 
-- `product_image_type` (String) Product image type
-  - example: Redis OSS Sentinel
+- `eos_included` (Boolean) Whether to include end-of-service versions
+  - example: false
+- `id` (String) Engine version ID to filter by
+  - example: YOUR RESOURCE'S ID
+- `product_image_type` (String) Product image type. Omit to return every image type.
+  - example: Redis OSS Sentinel / Valkey Sentinel
 
 ### Read-Only
 

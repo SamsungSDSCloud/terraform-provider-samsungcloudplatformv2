@@ -3,9 +3,9 @@ package mariadb
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	mariadb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/mariadb/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	mariadb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/mariadb/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -47,9 +47,28 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*mariadb.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*mariadb.EngineListResponse, error) {
 	req := client.sdkClient.MariadbV1MariadbMasterDataApiAPI.MariadbListEngineVersions(ctx)
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(mariadb.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*mariadb.InstanceDetailResponse, error) {
+	req := client.sdkClient.MariadbV1MariadbInstancesApiAPI.MariadbShowInstance(ctx, clusterId, instanceName)
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -94,36 +113,36 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []mariadb.InstanceGroupRequest
+	var convertedInstanceGroups []mariadb.RdbInstanceGroupRequest
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
-		var convertedBlockStorage []mariadb.BlockStorageGroupRequest
+		var convertedBlockStorage []mariadb.RdbBlockStorageGroupRequest
 		var bsVals []database.BlockStorageGroup
 		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
 		for _, blockStorage := range bsVals {
-			convertedBlockStorage = append(convertedBlockStorage, mariadb.BlockStorageGroupRequest{
+			convertedBlockStorage = append(convertedBlockStorage, mariadb.RdbBlockStorageGroupRequest{
 				RoleType:   mariadb.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: mariadb.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
 		}
 
-		var convertedInstance []mariadb.InstanceRequest
+		var convertedInstance []mariadb.RdbInstanceRequest
 		var instVals []database.Instance
 		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
 		for _, instance := range instVals {
-			convertedInstance = append(convertedInstance, mariadb.InstanceRequest{
-				RoleType:         mariadb.InstanceRoleType(instance.RoleType.ValueString()),
+			convertedInstance = append(convertedInstance, mariadb.RdbInstanceRequest{
+				RoleType:         mariadb.RdbInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *mariadb.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *mariadb.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, mariadb.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, mariadb.RdbInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           mariadb.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           mariadb.RdbInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -162,6 +181,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		InstanceGroups:            convertedInstanceGroups,
 		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
 		Name:                      request.Name.ValueString(),
+		OriginClusterId:           *mariadb.NewNullableString(request.OriginClusterId.ValueStringPointer()),
 		SubnetId:                  request.SubnetId.ValueString(),
 		Timezone:                  request.Timezone.ValueString(),
 		MaintenanceOption:         *mariadb.NewNullableMaintenanceOption(convertedMaintenanceOption),
@@ -229,7 +249,7 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
 	req := client.sdkClient.MariadbV1MariadbInstancesApiAPI.MariadbAddBlockStorages(ctx, instanceGroupId)
 	reqState := &mariadb.AddBlockStoragesRequest{
-		RoleType:   mariadb.BlockStorageGroupRoleType(roleType),
+		RoleType:   mariadb.ExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: mariadb.VolumeType(volumeType).Ptr(),
 	}
@@ -268,9 +288,9 @@ func MapInstanceGroupResponses(sdkResp []mariadb.InstanceGroupResponse) []databa
 
 			instances[j] = database.InstanceResponse{
 				Name:             it.Name,
+				PublicIpId:       pubIP,
 				RoleType:         string(it.RoleType),
 				ServiceIpAddress: serviceIP,
-				PublicIpId:       pubIP,
 			}
 		}
 
@@ -301,6 +321,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, archiveFr
 
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.MariadbV1MariadbBackupApiAPI.MariadbUnsetBackup(ctx, clusterId)
+
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(mariadb.OtpSessionIdRequest{
+		SessionId: *mariadb.NewNullableString(nil),
+	})
 
 	_, _, err := req.Execute()
 	return err

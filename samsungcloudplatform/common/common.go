@@ -9,6 +9,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -241,6 +242,14 @@ func ToNullableInt32Value(v *int32) types.Int32 {
 		return types.Int32Null()
 	}
 	return types.Int32Value(*v)
+}
+
+func ParseInt32(s string) int32 {
+	if s == "" {
+		return 0
+	}
+	v, _ := strconv.ParseInt(s, 10, 32)
+	return int32(v)
 }
 
 func CreateTlsConfig() (*tls.Config, error) {

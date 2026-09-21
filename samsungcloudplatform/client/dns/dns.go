@@ -2,8 +2,8 @@ package dns
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/dns/1.3"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/dns/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -125,7 +125,7 @@ func (client *Client) DeletePrivateDns(ctx context.Context, privateDnsId string)
 }
 
 func (client *Client) GetPublicDomainNameList(ctx context.Context, request PublicDomainNameDataSource) (*dns.PublicDomainListResponse, error) {
-	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.ListPublicDomains(ctx)
+	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.ListPublicDomainNames(ctx)
 
 	if !request.Size.IsNull() {
 		req = req.Size(request.Size.ValueInt32())
@@ -148,13 +148,13 @@ func (client *Client) GetPublicDomainNameList(ctx context.Context, request Publi
 }
 
 func (client *Client) GetPublicDomainName(ctx context.Context, publicDomainId string) (*dns.PublicDomainDetailResponse, error) {
-	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.GetPublicDomainDetail(ctx, publicDomainId)
+	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.ShowPublicDomainName(ctx, publicDomainId)
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err
 }
 
-func (client *Client) CreatePublicDomainName(ctx context.Context, request PublicDomainNameResource) (*dns.CreatePublicDomainResponse, error) {
-	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.CreatePublicDomain(ctx) // 호출을 위한 구조체를 반환 받는다.
+func (client *Client) CreatePublicDomainName(ctx context.Context, request PublicDomainNameResource) (*dns.PublicDomainCreateResponse, error) {
+	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.CreatePublicDomainName(ctx) // 호출을 위한 구조체를 반환 받는다.
 
 	var publicDomainNameTags []dns.Tag
 
@@ -167,12 +167,12 @@ func (client *Client) CreatePublicDomainName(ctx context.Context, request Public
 		publicDomainNameTags = append(publicDomainNameTags, tagObject)
 	}
 
-	publicDomainNameElement := dns.CreatePublicDomainRequest{
+	publicDomainNameElement := dns.PublicDomainCreateRequest{
 		AddressType:             request.PublicDomainNameCreate.AddressType.ValueString(),
 		AutoExtension:           *dns.NewNullableBool(request.PublicDomainNameCreate.AutoExtension.ValueBoolPointer()),
 		Description:             *dns.NewNullableString(request.PublicDomainNameCreate.Description.ValueStringPointer()),
-		DomesticFirstAddressEn:  *dns.NewNullableString(request.PublicDomainNameCreate.DomesticFirstAddressEn.ValueStringPointer()),
-		DomesticFirstAddressKo:  *dns.NewNullableString(request.PublicDomainNameCreate.DomesticFirstAddressKo.ValueStringPointer()),
+		DomesticFirstAddressEn:  request.PublicDomainNameCreate.DomesticFirstAddressEn.ValueString(),
+		DomesticFirstAddressKo:  request.PublicDomainNameCreate.DomesticFirstAddressKo.ValueString(),
 		DomesticSecondAddressEn: *dns.NewNullableString(request.PublicDomainNameCreate.DomesticSecondAddressEn.ValueStringPointer()),
 		DomesticSecondAddressKo: request.PublicDomainNameCreate.DomesticSecondAddressKo.ValueString(),
 		Name:                    request.PublicDomainNameCreate.Name.ValueString(),
@@ -187,14 +187,14 @@ func (client *Client) CreatePublicDomainName(ctx context.Context, request Public
 		Tags:                    publicDomainNameTags,
 	}
 
-	req = req.CreatePublicDomainRequest(publicDomainNameElement)
+	req = req.PublicDomainCreateRequest(publicDomainNameElement)
 
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err
 }
 
 func (client *Client) UpdatePublicDomainName(ctx context.Context, publicDomainNameId string, request PublicDomainNameResource) (*dns.PublicDomainPartialUpdateResponse, error) {
-	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.PutPublicDomain(ctx, publicDomainNameId)
+	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.SetPublicDomainName(ctx, publicDomainNameId)
 
 	publicDomainNameSet := request.PublicDomainNameCreate
 
@@ -207,12 +207,12 @@ func (client *Client) UpdatePublicDomainName(ctx context.Context, publicDomainNa
 	return resp, err
 }
 
-func (client *Client) UpdatePublicDomainNameInfomation(ctx context.Context, publicDomainNameId string, request PublicDomainNameResource) (*dns.PubblicDomainWhoisInfoUpdateResponse, error) {
-	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.UpdateWhoisInfoPublicDomain(ctx, publicDomainNameId)
+func (client *Client) UpdatePublicDomainNameInfomation(ctx context.Context, publicDomainNameId string, request PublicDomainNameResource) (*dns.PublicDomainWhoisInfoUpdateResponse, error) {
+	req := client.sdkClient.DnsV1PublicDomainNameApiAPI.SetPublicDomainNameWhoisInfo(ctx, publicDomainNameId)
 
 	publicDomainNameSet := request.PublicDomainNameCreate
 
-	req = req.PubblicDomainWhoisInfoUpdateRequest(dns.PubblicDomainWhoisInfoUpdateRequest{
+	req = req.PublicDomainWhoisInfoUpdateRequest(dns.PublicDomainWhoisInfoUpdateRequest{
 		AddressType:             publicDomainNameSet.AddressType.ValueString(),
 		DomesticFirstAddressEn:  publicDomainNameSet.DomesticFirstAddressEn.ValueString(),
 		DomesticFirstAddressKo:  publicDomainNameSet.DomesticFirstAddressKo.ValueString(),
@@ -311,7 +311,7 @@ func (client *Client) DeleteHostedZone(ctx context.Context, hostedZoneId string)
 }
 
 func (client *Client) GetRecordList(ctx context.Context, request RecordDataSource) (*dns.RecordListResponse, error) {
-	req := client.sdkClient.DnsV1RecordsApiAPI.ListRecords(ctx, request.HostedZoneId.ValueString())
+	req := client.sdkClient.DnsV1RecordsApiAPI.ListHostedZoneRecords(ctx, request.HostedZoneId.ValueString())
 
 	if !request.Limit.IsNull() {
 		req = req.Limit(request.Limit.ValueInt32())
@@ -352,13 +352,13 @@ func (client *Client) GetRecordList(ctx context.Context, request RecordDataSourc
 }
 
 func (client *Client) GetRecord(ctx context.Context, hostedZoneId string, recordId string) (*dns.RecordShowResponse, error) {
-	req := client.sdkClient.DnsV1RecordsApiAPI.ShowRecord(ctx, hostedZoneId, recordId)
+	req := client.sdkClient.DnsV1RecordsApiAPI.ShowHostedZoneRecord(ctx, hostedZoneId, recordId)
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err
 }
 
 func (client *Client) CreateRecord(ctx context.Context, hostedZoneId string, request RecordResource) (*dns.RecordCreateResponse, error) {
-	req := client.sdkClient.DnsV1RecordsApiAPI.CreateRecord(ctx, hostedZoneId) // 호출을 위한 구조체를 반환 받는다.
+	req := client.sdkClient.DnsV1RecordsApiAPI.CreateHostedZoneRecord(ctx, hostedZoneId) // 호출을 위한 구조체를 반환 받는다.
 
 	records := make([]interface{}, len(request.RecordCreate.Records))
 	for i, r := range request.RecordCreate.Records {
@@ -370,7 +370,7 @@ func (client *Client) CreateRecord(ctx context.Context, hostedZoneId string, req
 		Name:        request.RecordCreate.Name.ValueString(),
 		Records:     records,
 		Ttl:         *dns.NewNullableInt32(request.RecordCreate.Ttl.ValueInt32Pointer()),
-		Type:        request.RecordCreate.Type.ValueString(),
+		Type:        dns.RecordType(request.RecordCreate.Type.ValueString()),
 	}
 
 	req = req.RecordCreateRequest(recordElement)
@@ -380,7 +380,7 @@ func (client *Client) CreateRecord(ctx context.Context, hostedZoneId string, req
 }
 
 func (client *Client) UpdateRecord(ctx context.Context, hostedZoneId string, recordId string, request RecordResource) (*dns.RecordSetResponse, error) {
-	req := client.sdkClient.DnsV1RecordsApiAPI.SetRecord(ctx, hostedZoneId, recordId)
+	req := client.sdkClient.DnsV1RecordsApiAPI.SetHostedZoneRecord(ctx, hostedZoneId, recordId)
 
 	recordSet := request.RecordCreate
 
@@ -390,8 +390,9 @@ func (client *Client) UpdateRecord(ctx context.Context, hostedZoneId string, rec
 	}
 
 	req = req.RecordSetRequest(dns.RecordSetRequest{
-		Records: records,
-		Ttl:     *dns.NewNullableInt32(recordSet.Ttl.ValueInt32Pointer()),
+		Description: *dns.NewNullableString(recordSet.Description.ValueStringPointer()),
+		Records:     records,
+		Ttl:         *dns.NewNullableInt32(recordSet.Ttl.ValueInt32Pointer()),
 	})
 
 	resp, _, err := req.Execute()
@@ -399,7 +400,7 @@ func (client *Client) UpdateRecord(ctx context.Context, hostedZoneId string, rec
 }
 
 func (client *Client) DeleteRecord(ctx context.Context, hostedZoneId string, recordId string) (*dns.RecordCreateResponse, error) {
-	req := client.sdkClient.DnsV1RecordsApiAPI.DeleteRecord(ctx, hostedZoneId, recordId)
+	req := client.sdkClient.DnsV1RecordsApiAPI.DeleteHostedZoneRecord(ctx, hostedZoneId, recordId)
 
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err

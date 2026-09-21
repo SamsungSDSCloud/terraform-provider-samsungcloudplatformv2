@@ -6,18 +6,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -25,6 +25,7 @@ var (
 	_ resource.Resource                = &vpcPeeringResource{}
 	_ resource.ResourceWithConfigure   = &vpcPeeringResource{}
 	_ resource.ResourceWithImportState = &vpcPeeringResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcPeeringResource{}
 )
 
 // NewVpcVpcPeeringResource is a helper function to simplify the provider implementation.
@@ -37,6 +38,104 @@ type vpcPeeringResource struct {
 	config  *scpsdk.Configuration
 	client  *vpcv1.Client
 	clients *client.SCPClient
+}
+
+func (r *vpcPeeringResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpcv1.VpcPeeringResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpcv1.VpcPeeringResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fields that cannot be updated via the API — check each for changes
+	type fieldCheck struct {
+		name    string
+		changed bool
+	}
+	checks := []fieldCheck{
+		{"approver_vpc_account_id", !plan.ApproverVpcAccountId.Equal(state.ApproverVpcAccountId)},
+		{"name", !plan.Name.Equal(state.Name)},
+		{"approver_vpc_id", !plan.ApproverVpcId.Equal(state.ApproverVpcId)},
+		{"requester_vpc_id", !plan.RequesterVpcId.Equal(state.RequesterVpcId)},
+	}
+
+	for _, f := range checks {
+		if f.changed {
+			resp.Diagnostics.AddError(
+				"Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual resource. To change %s, recreate the resource.", f.name, f.name),
+			)
+		}
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Reconstruct vpc_peering: merge stable fields from state, leave rest as unknown.
+	// This prevents id, account_type, approver_vpc_id, requester_vpc_id, etc. from showing as (known after apply).
+	if !state.VpcPeering.IsNull() && !state.VpcPeering.IsUnknown() {
+		var statePv vpcv1.VpcPeering
+		resp.Diagnostics.Append(state.VpcPeering.As(ctx, &statePv, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Only mark modified_at/modified_by as unknown when name or description actually changes
+		changed := !plan.Description.Equal(state.Description)
+
+		modelVpcPeering := vpcv1.VpcPeering{
+			Id:                       statePv.Id,
+			AccountType:              statePv.AccountType,
+			ApproverVpcAccountId:     statePv.ApproverVpcAccountId,
+			ApproverVpcId:            statePv.ApproverVpcId,
+			ApproverVpcName:          statePv.ApproverVpcName,
+			RequesterVpcAccountId:    statePv.RequesterVpcAccountId,
+			RequesterVpcId:           statePv.RequesterVpcId,
+			RequesterVpcName:         statePv.RequesterVpcName,
+			DeleteRequesterAccountId: statePv.DeleteRequesterAccountId,
+			CreatedAt:                statePv.CreatedAt,
+			CreatedBy:                statePv.CreatedBy,
+			State:                    statePv.State,
+			Name:                     statePv.Name,
+			Description:              plan.Description,
+		}
+
+		if changed {
+			modelVpcPeering.ModifiedAt = types.StringUnknown()
+			modelVpcPeering.ModifiedBy = types.StringUnknown()
+		} else {
+			modelVpcPeering.ModifiedAt = statePv.ModifiedAt
+			modelVpcPeering.ModifiedBy = statePv.ModifiedBy
+		}
+
+		mergedObj, diags := types.ObjectValueFrom(ctx, modelVpcPeering.AttributeTypes(), modelVpcPeering)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		plan.VpcPeering = mergedObj
+		resp.Plan.Set(ctx, plan)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
 }
 
 // Metadata returns the data source type name.
@@ -91,8 +190,9 @@ func (r *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					"  - maxLength : 50",
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString(""),
-			},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				}},
 			common.ToSnakeCase("VpcPeering"): schema.SingleNestedAttribute{
 				Description: "VPC‑to‑VPC peering",
 				Computed:    true,
@@ -253,6 +353,11 @@ func (r *vpcPeeringResource) Create(ctx context.Context, req resource.CreateRequ
 	plan.Id = types.StringValue(vpcPeering.Id)
 	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
 	plan.VpcPeering = vpcObjectValue
+	plan.Description = vpcPeeringModel.Description
+	plan.ApproverVpcAccountId = vpcPeeringModel.ApproverVpcAccountId
+	plan.Name = vpcPeeringModel.Name
+	plan.ApproverVpcId = vpcPeeringModel.ApproverVpcId
+	plan.RequesterVpcId = vpcPeeringModel.RequesterVpcId
 
 	diags = resp.State.Set(ctx, plan)
 
@@ -329,6 +434,11 @@ func (r *vpcPeeringResource) Read(ctx context.Context, req resource.ReadRequest,
 	resp.Diagnostics.Append(diags...)
 
 	state.VpcPeering = vpcObjectValue
+	state.Description = vpcPeeringModel.Description
+	state.ApproverVpcAccountId = vpcPeeringModel.ApproverVpcAccountId
+	state.Name = vpcPeeringModel.Name
+	state.ApproverVpcId = vpcPeeringModel.ApproverVpcId
+	state.RequesterVpcId = vpcPeeringModel.RequesterVpcId
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -394,6 +504,11 @@ func (r *vpcPeeringResource) Update(ctx context.Context, req resource.UpdateRequ
 	resp.Diagnostics.Append(diags...)
 
 	state.VpcPeering = vpcObjectValue
+	state.Description = vpcPeeringModel.Description
+	state.ApproverVpcAccountId = vpcPeeringModel.ApproverVpcAccountId
+	state.Name = vpcPeeringModel.Name
+	state.ApproverVpcId = vpcPeeringModel.ApproverVpcId
+	state.RequesterVpcId = vpcPeeringModel.RequesterVpcId
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)

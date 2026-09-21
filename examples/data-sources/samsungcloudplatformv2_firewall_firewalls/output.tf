@@ -1,3 +1,3 @@
-output "ids" {
-  value = data.samsungcloudplatformv2_firewall_firewalls.ids.ids
+output "firewalls" {
+  value = data.samsungcloudplatformv2_firewall_firewalls.firewalls
 }

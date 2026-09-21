@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -24,6 +24,7 @@ var (
 	_ resource.Resource                = &vpcTgwResource{}
 	_ resource.ResourceWithConfigure   = &vpcTgwResource{}
 	_ resource.ResourceWithImportState = &vpcTgwResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcTgwResource{}
 )
 
 // NewVpcTgwResource is a helper function to simplify the provider implementation.
@@ -33,7 +34,7 @@ func NewVpcTgwResource() resource.Resource {
 
 type vpcTgwResource struct {
 	config  *scpsdk.Configuration
-	client  *vpc.Client
+	client  *vpcv1d3.Client
 	clients *client.SCPClient
 }
 
@@ -71,7 +72,9 @@ func (r *vpcTgwResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 					"  - maxLength : 50",
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("Tgw"): schema.SingleNestedAttribute{
 				Description: "Tgw",
@@ -145,6 +148,22 @@ func (r *vpcTgwResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 							"  - example : false",
 						Computed: true,
 					},
+					common.ToSnakeCase("UplinkActiveZone"): schema.StringAttribute{
+						Description: "The active availability zone for the uplink connection.\n" +
+							"  - example : apigw-kr-1",
+						Computed: true,
+					},
+					common.ToSnakeCase("UplinkStandbyZone"): schema.StringAttribute{
+						Description: "The standby availability zone for the uplink connection.\n" +
+							"  - example : apigw-kr-2",
+						Computed: true,
+					},
+					common.ToSnakeCase("UplinkZoneState"): schema.StringAttribute{
+						Description: "The current state of the uplink zone.\n" +
+							"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR\n" +
+							"  - example : ACTIVE",
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -169,7 +188,7 @@ func (r *vpcTgwResource) Configure(_ context.Context, req resource.ConfigureRequ
 		return
 	}
 
-	r.client = inst.Client.VpcV1Dot2
+	r.client = inst.Client.VpcV1Dot3
 	r.clients = inst.Client
 }
 
@@ -177,7 +196,7 @@ func (r *vpcTgwResource) Configure(_ context.Context, req resource.ConfigureRequ
 func (r *vpcTgwResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 
 	// Retrieve values from plan
-	var plan vpc.TgwResource
+	var plan vpcv1d3.TgwResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -197,6 +216,12 @@ func (r *vpcTgwResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	tgw := data.TransitGateway
 	plan.Id = types.StringValue(tgw.Id)
+	desc := tgw.Description.Get()
+	if desc != nil {
+		plan.Description = types.StringValue(*desc)
+	} else {
+		plan.Description = types.StringValue("")
+	}
 	diags = resp.State.Set(ctx, plan)
 
 	err = waitForTgwtStatus(ctx, r.client, tgw.Id, []string{}, []string{"ACTIVE"})
@@ -223,7 +248,7 @@ func (r *vpcTgwResource) Create(ctx context.Context, req resource.CreateRequest,
 func (r *vpcTgwResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
 
-	var state vpc.TgwResource
+	var state vpcv1d3.TgwResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -247,9 +272,11 @@ func (r *vpcTgwResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	transitGateway := data.TransitGateway
 
-	tgwModel := vpc.MapToTgw(transitGateway)
+	tgwModel := vpcv1d3.MapToTgw(transitGateway)
 	tgwObjectValue, diags := types.ObjectValueFrom(ctx, tgwModel.AttributeTypes(), tgwModel)
+	state.Name = tgwModel.Name
 	state.Tgw = tgwObjectValue
+	state.Description = tgwModel.Description
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -263,7 +290,7 @@ func (r *vpcTgwResource) Read(ctx context.Context, req resource.ReadRequest, res
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpcTgwResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state vpc.TgwResource
+	var state vpcv1d3.TgwResource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -293,9 +320,10 @@ func (r *vpcTgwResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	tgwElem := data.TransitGateway
 
-	tgwModel := vpc.MapToTgw(tgwElem)
+	tgwModel := vpcv1d3.MapToTgw(tgwElem)
 	vpcObjectValue, diags := types.ObjectValueFrom(ctx, tgwModel.AttributeTypes(), tgwModel)
 	state.Tgw = vpcObjectValue
+	state.Description = tgwModel.Description
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -308,7 +336,7 @@ func (r *vpcTgwResource) Update(ctx context.Context, req resource.UpdateRequest,
 func (r *vpcTgwResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
 
-	var state vpc.TgwResource
+	var state vpcv1d3.TgwResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -336,7 +364,7 @@ func (r *vpcTgwResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 }
 
-func waitForTgwtStatus(ctx context.Context, vpcClient *vpc.Client, id string, pendingStates []string, targetStates []string) error {
+func waitForTgwtStatus(ctx context.Context, vpcClient *vpcv1d3.Client, id string, pendingStates []string, targetStates []string) error {
 	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
 		info, err := vpcClient.GetTransitGatewayInfo(ctx, id)
 		if err != nil {
@@ -344,4 +372,97 @@ func waitForTgwtStatus(ctx context.Context, vpcClient *vpc.Client, id string, pe
 		}
 		return info, string(info.TransitGateway.State), nil
 	}, -1, -1, -1, -1)
+}
+
+func (r *vpcTgwResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpcv1d3.TgwResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpcv1d3.TgwResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fields that cannot be updated via the API — check each for changes
+	type fieldCheck struct {
+		name    string
+		changed bool
+	}
+	checks := []fieldCheck{
+		{"name", !plan.Name.Equal(state.Name)},
+		{"tags", !plan.Tags.Equal(state.Tags)},
+	}
+
+	for _, f := range checks {
+		if f.changed {
+			resp.Diagnostics.AddError(
+				"Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual resource. To change %s, recreate the resource.", f.name, f.name),
+			)
+		}
+	}
+
+	// Reconstruct tgw: merge stable fields from state, leave rest as unknown.
+	// This prevents id, account_id, created_at, created_by from showing as (known after apply).
+	if !state.Tgw.IsNull() && !state.Tgw.IsUnknown() {
+		var stateTgw vpcv1d3.Tgw
+		resp.Diagnostics.Append(state.Tgw.As(ctx, &stateTgw, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Only mark modified_at/modified_by as unknown when description actually changes
+		descriptionChanged := !plan.Description.Equal(state.Description)
+
+		mergedTgw := vpcv1d3.Tgw{
+			Id:                      stateTgw.Id,
+			AccountId:               stateTgw.AccountId,
+			Bandwidth:               stateTgw.Bandwidth,
+			CreatedAt:               stateTgw.CreatedAt,
+			CreatedBy:               stateTgw.CreatedBy,
+			FirewallConnectionState: stateTgw.FirewallConnectionState,
+			FirewallIds:             stateTgw.FirewallIds,
+			Name:                    stateTgw.Name,
+			State:                   stateTgw.State,
+			UplinkEnabled:           stateTgw.UplinkEnabled,
+			UplinkActiveZone:        stateTgw.UplinkActiveZone,
+			UplinkStandbyZone:       stateTgw.UplinkStandbyZone,
+			UplinkZoneState:         stateTgw.UplinkZoneState,
+			Description:             plan.Description,
+		}
+
+		if descriptionChanged {
+			mergedTgw.ModifiedAt = types.StringUnknown()
+			mergedTgw.ModifiedBy = types.StringUnknown()
+		} else {
+			mergedTgw.ModifiedAt = stateTgw.ModifiedAt
+			mergedTgw.ModifiedBy = stateTgw.ModifiedBy
+		}
+
+		mergedObj, diags := types.ObjectValueFrom(ctx, mergedTgw.AttributeTypes(), mergedTgw)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		plan.Tgw = mergedObj
+		resp.Plan.Set(ctx, plan)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
 }

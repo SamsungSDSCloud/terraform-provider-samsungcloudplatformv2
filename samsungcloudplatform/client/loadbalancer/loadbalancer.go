@@ -2,9 +2,10 @@ package loadbalancer
 
 import (
 	"context"
+	"fmt"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/loadbalancer/1.3"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	loadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -140,6 +141,12 @@ func (client *Client) DeleteLoadbalancerPublicNatIp(ctx context.Context, loadbal
 
 	_, err := req.Execute()
 	return err
+}
+
+func (client *Client) GetLoadbalancerPublicNatIp(ctx context.Context, loadbalancerId string) (*loadbalancer.LoadbalancerStaticNatResponse, error) {
+	req := client.sdkClient.LoadbalancerV1LoadbalancersApiAPI.ShowLoadbalancerPublicNatIp(ctx, loadbalancerId)
+	resp, _, err := req.Execute()
+	return resp, err
 }
 
 func (client *Client) CreateLoadbalancerPrivateNatIp(ctx context.Context, request LoadbalancerPrivateNatIpResource) (*loadbalancer.PrivateStaticNatCreateResponse, error) {
@@ -331,6 +338,39 @@ func (client *Client) UpdateLbMember(ctx context.Context, lbServerGroupId string
 			MemberState:  *loadbalancer.NewNullableStatusType((*loadbalancer.StatusType)(request.LbMemberSet.MemberState.ValueStringPointer())),
 		},
 	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+// UpdateLbMemberPartial sends only the fields that differ between plan and state.
+func (client *Client) UpdateLbMemberPartial(ctx context.Context, lbServerGroupId string, memberId string, planCreate *LbMemberCreate, stateMember *loadbalancer.Member) (*loadbalancer.MemberShowResponse, error) {
+	if stateMember == nil {
+		return nil, fmt.Errorf("cannot perform partial update: current member state is nil")
+	}
+
+	memberSet := loadbalancer.NewMemberSetWithDefaults()
+
+	// Compare MemberPort — only set if changed
+	if planCreate != nil && !planCreate.MemberPort.IsNull() && planCreate.MemberPort.ValueInt32() != stateMember.MemberPort {
+		v := planCreate.MemberPort.ValueInt32()
+		memberSet.MemberPort.Set(&v)
+	}
+
+	// Compare MemberWeight — only set if changed
+	if planCreate != nil && !planCreate.MemberWeight.IsNull() && planCreate.MemberWeight.ValueInt32() != stateMember.MemberWeight {
+		v := planCreate.MemberWeight.ValueInt32()
+		memberSet.MemberWeight.Set(&v)
+	}
+
+	// Compare MemberState — only set if changed
+	if planCreate != nil && !planCreate.MemberState.IsNull() && planCreate.MemberState.ValueString() != stateMember.MemberState {
+		v := loadbalancer.StatusType(planCreate.MemberState.ValueString())
+		memberSet.MemberState.Set(&v)
+	}
+
+	req := client.sdkClient.LoadbalancerV1MemberApiAPI.SetLbServerGroupMember(ctx, lbServerGroupId, memberId)
+	req = req.MemberSetRequest(loadbalancer.MemberSetRequest{Member: *memberSet})
 
 	resp, _, err := req.Execute()
 	return resp, err

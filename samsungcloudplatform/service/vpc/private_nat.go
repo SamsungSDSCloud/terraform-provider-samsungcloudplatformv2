@@ -6,16 +6,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -23,6 +25,7 @@ var (
 	_ resource.Resource                = &vpcPrivateNatResource{}
 	_ resource.ResourceWithConfigure   = &vpcPrivateNatResource{}
 	_ resource.ResourceWithImportState = &vpcPrivateNatResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcPrivateNatResource{}
 )
 
 // NewVpcPrivateNatResource is a helper function to simplify the provider implementation.
@@ -57,7 +60,9 @@ func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. \n" +
 					"  - example : PrivateNat Description",
 				Optional: true,
-				Default:  stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Computed: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
@@ -82,6 +87,9 @@ func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "The unique identifier of the private NAT. \n" +
 					"  - example : 12f56e27070248a6a240a497e43fbe18",
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("PrivateNat"): schema.SingleNestedAttribute{
 				Description: "Private NAT details",
@@ -225,6 +233,7 @@ func (r *vpcPrivateNatResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 	plan.PrivateNat = privateNatObjectValue
+	plan.Description = privateNatModel.Description
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -309,7 +318,7 @@ func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadReque
 	}
 	state.PrivateNat = privateNatObjectValue
 	// Set refreshed state
-	state.Description = types.StringPointerValue(privateNat.Description.Get())
+	state.Description = privateNatModel.Description
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -377,6 +386,7 @@ func (r *vpcPrivateNatResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 	plan.PrivateNat = privateNatObjectValue
+	plan.Description = privateNatModel.Description
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -406,7 +416,7 @@ func (r *vpcPrivateNatResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	err = waitForPrivateNatStatus(ctx, r.client1d2, state.Id.ValueString(), []string{}, []string{"DELETED"})
+	err = waitForPrivateNatStatus(ctx, r.client1d2, state.Id.ValueString(), []string{"DELETING"}, []string{"DELETED"})
 	if err != nil && !strings.Contains(err.Error(), "404") {
 		resp.Diagnostics.AddError(
 			"Error deleting Private NAT",
@@ -422,6 +432,10 @@ func waitForPrivateNatStatus(ctx context.Context, vpcClient *vpcv1d2.Client, id 
 		if err != nil {
 			return nil, "", err
 		}
+		// API response normally with state ERROR
+		if string(info.PrivateNat.State) == "ERROR" {
+			return nil, "", fmt.Errorf("private NAT %s entered ERROR state", id)
+		}
 		return info, string(info.PrivateNat.State), nil
 	}, -1, -1, -1, -1)
 }
@@ -429,4 +443,100 @@ func waitForPrivateNatStatus(ctx context.Context, vpcClient *vpcv1d2.Client, id 
 // ImportState imports an existing Private NAT into Terraform state.
 func (r *vpcPrivateNatResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
+}
+
+func (r *vpcPrivateNatResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpcv1d2.PrivateNatResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpcv1d2.PrivateNatResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fields that cannot be updated via the API — check each for changes
+	type fieldCheck struct {
+		name    string
+		changed bool
+	}
+	checks := []fieldCheck{
+		{"name", !plan.Name.Equal(state.Name)},
+		{"cidr", !plan.Cidr.Equal(state.Cidr)},
+		{"service_resource_id", !plan.ServiceResourceId.Equal(state.ServiceResourceId)},
+		{"service_type", !plan.ServiceType.Equal(state.ServiceType)},
+		{"tags", !plan.Tags.Equal(state.Tags)},
+	}
+
+	for _, f := range checks {
+		if f.changed {
+			resp.Diagnostics.AddError(
+				"Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual resource. To change %s, recreate the resource.", f.name, f.name),
+			)
+		}
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Reconstruct private_nat: merge stable fields from state, leave rest as unknown.
+	// This prevents id, account_id, created_at, created_by from showing as (known after apply).
+	if !state.PrivateNat.IsNull() && !state.PrivateNat.IsUnknown() {
+		var statePn vpcv1d2.PrivateNat
+		resp.Diagnostics.Append(state.PrivateNat.As(ctx, &statePn, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Only mark modified_at/modified_by as unknown when description actually change
+		descriptionChanged := !plan.Description.Equal(state.Description)
+
+		mergedPn := vpcv1d2.PrivateNat{
+			Id:                  statePn.Id,
+			AccountId:           statePn.AccountId,
+			CreatedAt:           statePn.CreatedAt,
+			CreatedBy:           statePn.CreatedBy,
+			Cidr:                statePn.Cidr,
+			ServiceResourceId:   statePn.ServiceResourceId,
+			ServiceResourceName: statePn.ServiceResourceName,
+			ServiceType:         statePn.ServiceType,
+			State:               statePn.State,
+			Name:                statePn.Name,
+			Description:         plan.Description,
+		}
+
+		if descriptionChanged {
+			mergedPn.ModifiedAt = types.StringUnknown()
+			mergedPn.ModifiedBy = types.StringUnknown()
+		} else {
+			mergedPn.ModifiedAt = statePn.ModifiedAt
+			mergedPn.ModifiedBy = statePn.ModifiedBy
+		}
+
+		mergedObj, diags := types.ObjectValueFrom(ctx, mergedPn.AttributeTypes(), mergedPn)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		plan.PrivateNat = mergedObj
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
 }

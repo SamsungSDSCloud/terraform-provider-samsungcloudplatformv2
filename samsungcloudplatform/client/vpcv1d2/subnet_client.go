@@ -3,7 +3,7 @@ package vpcv1d2
 import (
 	"context"
 
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vpc/1.2"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.2"
 )
 
 //------------ Subnet -------------------//

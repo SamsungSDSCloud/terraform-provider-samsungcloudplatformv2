@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/firewall/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	firewall "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/firewallv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/firewall/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -71,11 +71,6 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 							"  - example: 0e2b4ece64944d7d8a72983e945b867b",
 						Computed: true,
 					},
-					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "The name of the resource.\n" +
-							"  - example: 0e2b4ece64944d7d8a72983e945b867b",
-						Computed: true,
-					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
 						Description: "The identifier of the firewall associated with the resource.\n" +
 							"  - example: 68db67f78abd405da98a6056a8ee42af",
@@ -86,21 +81,11 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 							"  - example: 100",
 						Computed: true,
 					},
-					common.ToSnakeCase("SourceInterface"): schema.StringAttribute{
-						Description: "The source interface the rule applies to.\n" +
-							"  - example: L2FW-DGW2800up",
-						Computed: true,
-					},
 					common.ToSnakeCase("SourceAddress"): schema.ListAttribute{
 						Description: "The source IP addresses the rule applies to.\n" +
 							"  - example: [10.10.10.0/24, 10.10.11.0/24]",
 						Computed:    true,
 						ElementType: types.StringType,
-					},
-					common.ToSnakeCase("DestinationInterface"): schema.StringAttribute{
-						Description: "The destination interface the rule applies to.\n" +
-							"  - example: L2FW-DGW2800dn",
-						Computed: true,
 					},
 					common.ToSnakeCase("DestinationAddress"): schema.ListAttribute{
 						Description: "The destination address the rule applies to.\n" +
@@ -134,11 +119,6 @@ func (r *firewallFirewallRuleResource) Schema(_ context.Context, _ resource.Sche
 					common.ToSnakeCase("Direction"): schema.StringAttribute{
 						Description: "The direction of the traffic the rule applies to.\n" +
 							"  - example: INBOUND",
-						Computed: true,
-					},
-					common.ToSnakeCase("VendorRuleId"): schema.StringAttribute{
-						Description: "The firewall device's unique identifier for the rule.\n" +
-							"  - example: 20",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
@@ -290,7 +270,7 @@ func (r *firewallFirewallRuleResource) Configure(_ context.Context, req resource
 		return
 	}
 
-	r.client = inst.Client.Firewall
+	r.client = inst.Client.FirewallV1d2
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -373,7 +353,7 @@ func (r *firewallFirewallRuleResource) Read(ctx context.Context, req resource.Re
 		resp.Diagnostics.AddError("Error processing firewall rule", "Received nil response from API")
 		return
 	}
-	firewallRuleModel := createFirewallRuleModel(data)
+	firewallRuleModel := createFirewallRuleModelv1D1(data)
 
 	firewallRuleObjectValue, objDiags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
 	resp.Diagnostics.Append(objDiags...)
@@ -385,10 +365,12 @@ func (r *firewallFirewallRuleResource) Read(ctx context.Context, req resource.Re
 	// Save order fields from previous state before overwriting
 	oldOrderRuleId := types.StringNull()
 	oldOrderDirection := types.StringNull()
+
 	if state.FirewallRuleCreate != nil {
 		oldOrderRuleId = state.FirewallRuleCreate.OrderRuleId
 		oldOrderDirection = state.FirewallRuleCreate.OrderDirection
 	}
+
 	state.FirewallRuleCreate = &firewall.FirewallRuleCreate{
 		SourceAddress:      data.FirewallRule.SourceAddress,
 		DestinationAddress: data.FirewallRule.DestinationAddress,
@@ -410,7 +392,7 @@ func (r *firewallFirewallRuleResource) Read(ctx context.Context, req resource.Re
 }
 
 func (r *firewallFirewallRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// Retrieve values from plan
+	//Retrieve values from plan
 	var state firewall.FirewallRuleResource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -456,7 +438,8 @@ func (r *firewallFirewallRuleResource) Update(ctx context.Context, req resource.
 		resp.Diagnostics.AddError("Error processing firewall rule", "Received nil response from API")
 		return
 	}
-	firewallRuleModel := createFirewallRuleModel(data)
+
+	firewallRuleModel := createFirewallRuleModelv1D1(data)
 
 	firewallRuleObjectValue, objDiags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
 	resp.Diagnostics.Append(objDiags...)
@@ -475,7 +458,7 @@ func (r *firewallFirewallRuleResource) Update(ctx context.Context, req resource.
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *firewallFirewallRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// Retrieve values from state
+	//Retrieve values from state
 	var state firewall.FirewallRuleResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -484,7 +467,7 @@ func (r *firewallFirewallRuleResource) Delete(ctx context.Context, req resource.
 	}
 
 	// Delete existing firewall rule
-	err := r.client.DeleteFirewallRule(ctx, state.Id.ValueString())
+	_, err := r.client.DeleteFirewallRule(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -514,7 +497,7 @@ func waitForFirewallRuleStatus(ctx context.Context, firewallClient *firewall.Cli
 	return err
 }
 
-func createFirewallRuleModel(data *scpfirewall.FirewallRuleShowResponse) firewall.FirewallRule {
+func createFirewallRuleModel(data *scpfirewall.FirewallRuleShowResponseV1Dot2) firewall.FirewallRule {
 	fwRule := data.FirewallRule
 	sourceAddresses := make([]string, 0, len(fwRule.SourceAddress))
 	for _, address := range fwRule.SourceAddress {
@@ -533,24 +516,57 @@ func createFirewallRuleModel(data *scpfirewall.FirewallRuleShowResponse) firewal
 	}
 
 	return firewall.FirewallRule{
-		Id:                   types.StringValue(fwRule.Id),
-		Name:                 types.StringPointerValue(fwRule.Name.Get()),
-		FirewallId:           types.StringValue(fwRule.FirewallId),
-		Sequence:             types.Int32Value(fwRule.Sequence),
-		SourceInterface:      types.StringValue(fwRule.SourceInterface),
-		SourceAddress:        sourceAddresses,
-		DestinationInterface: types.StringValue(fwRule.DestinationInterface),
-		DestinationAddress:   destinationAddresses,
-		Service:              services,
-		Action:               types.StringValue(string(fwRule.Action)),
-		Direction:            types.StringValue(string(fwRule.Direction)),
-		VendorRuleId:         types.StringValue(fwRule.VendorRuleId),
-		Description:          types.StringPointerValue(fwRule.Description.Get()),
-		State:                types.StringValue(string(fwRule.State)),
-		Status:               types.StringValue(string(fwRule.Status)),
-		CreatedAt:            types.StringValue(fwRule.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:            types.StringValue(fwRule.CreatedBy),
-		ModifiedAt:           types.StringValue(fwRule.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:           types.StringValue(fwRule.ModifiedBy),
+		Id:                 types.StringValue(fwRule.Id),
+		FirewallId:         types.StringValue(fwRule.FirewallId),
+		Sequence:           types.Int32Value(fwRule.Sequence),
+		SourceAddress:      sourceAddresses,
+		DestinationAddress: destinationAddresses,
+		Service:            services,
+		Action:             types.StringValue(string(fwRule.Action)),
+		Direction:          types.StringValue(string(fwRule.Direction)),
+		Description:        types.StringPointerValue(fwRule.Description.Get()),
+		State:              types.StringValue(string(fwRule.State)),
+		Status:             types.StringValue(string(fwRule.Status)),
+		CreatedAt:          types.StringValue(fwRule.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:          types.StringValue(fwRule.CreatedBy),
+		ModifiedAt:         types.StringValue(fwRule.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:         types.StringValue(fwRule.ModifiedBy),
+	}
+}
+
+func createFirewallRuleModelv1D1(data *scpfirewall.FirewallRuleShowResponseV1Dot1) firewall.FirewallRule {
+	fwRule := data.FirewallRule
+	sourceAddresses := make([]string, 0, len(fwRule.SourceAddress))
+	for _, address := range fwRule.SourceAddress {
+		sourceAddresses = append(sourceAddresses, address)
+	}
+	destinationAddresses := make([]string, 0, len(fwRule.DestinationAddress))
+	for _, address := range fwRule.DestinationAddress {
+		destinationAddresses = append(destinationAddresses, address)
+	}
+	services := make([]firewall.FirewallPort, 0, len(fwRule.Service))
+	for _, service := range fwRule.Service {
+		services = append(services, firewall.FirewallPort{
+			ServiceType:  types.StringValue(string(service.ServiceType)),
+			ServiceValue: types.StringPointerValue(service.ServiceValue),
+		})
+	}
+
+	return firewall.FirewallRule{
+		Id:                 types.StringValue(fwRule.Id),
+		FirewallId:         types.StringValue(fwRule.FirewallId),
+		Sequence:           types.Int32Value(fwRule.Sequence),
+		SourceAddress:      sourceAddresses,
+		DestinationAddress: destinationAddresses,
+		Service:            services,
+		Action:             types.StringValue(string(fwRule.Action)),
+		Direction:          types.StringValue(string(fwRule.Direction)),
+		Description:        types.StringPointerValue(fwRule.Description.Get()),
+		State:              types.StringValue(string(fwRule.State)),
+		Status:             types.StringValue(string(fwRule.Status)),
+		CreatedAt:          types.StringValue(fwRule.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:          types.StringValue(fwRule.CreatedBy),
+		ModifiedAt:         types.StringValue(fwRule.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:         types.StringValue(fwRule.ModifiedBy),
 	}
 }

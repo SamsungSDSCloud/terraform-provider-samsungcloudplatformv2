@@ -57,6 +57,8 @@ Read-Only:
   - example: YOUR RESOURCE'S CREATED_BY
 - `dbaas_engine` (String) DBaaS engine
   - example: EPAS
+- `dbaas_engine_version_name` (String) DBaaS engine version name
+  - example: EPAS 17.7
 - `ha_enabled` (Boolean) HA availability
   - example: false
 - `id` (String) Identifier of the resource.
@@ -78,6 +80,8 @@ Read-Only:
   - example: false
 - `origin_cluster_id` (String) Origin cluster ID
   - example: YOUR RESOURCE'S ORIGIN_CLUSTER_ID
+- `product_image_type` (String) Product image type
+  - example: EPAS
 - `product_type` (String) Product type
   - example: EPAS
 - `replicas` (Set of String) Replicas list IDs
@@ -117,6 +121,8 @@ Read-Only:
   - example: 2866
 - `database_user_name` (String) Database user name
   - example: mydb
+- `origin_region` (String) Origin region of the source cluster (set for restored/replica clusters)
+  - example: kr-west1
 
 <a id="nestedatt--cluster--init_config_option--backup_option"></a>
 ### Nested Schema for `cluster.init_config_option.backup_option`

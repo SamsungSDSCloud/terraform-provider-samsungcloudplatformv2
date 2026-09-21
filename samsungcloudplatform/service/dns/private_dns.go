@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/dns"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/dns/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpdns "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/dns/1.4"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -295,7 +295,7 @@ func (r *dnsPrivateDnsResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	// Get refreshed order value from Gslb
+	// Get refreshed order value from PrivateDns
 	data, err := r.client.GetPrivateDns(ctx, state.Id.ValueString())
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
@@ -401,7 +401,7 @@ func (r *dnsPrivateDnsResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	// Delete existing Gslb
+	// Delete existing Private Dns
 	err := r.client.DeletePrivateDns(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)

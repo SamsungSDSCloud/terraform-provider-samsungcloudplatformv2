@@ -3,7 +3,7 @@ output "organizations" {
   value       = data.samsungcloudplatformv2_organization_organizations.orgs.organizations
 }
 
-output "total_count" {
+output "count" {
   description = "Total count"
   value       = data.samsungcloudplatformv2_organization_organizations.orgs.total_count
 }

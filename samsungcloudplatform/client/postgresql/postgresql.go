@@ -3,9 +3,9 @@ package postgresql
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	postgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/postgresql/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	postgresql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/postgresql/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -48,14 +48,33 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*postgresql.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*postgresql.EngineListResponse, error) {
 	req := client.sdkClient.PostgresqlV1PostgresqlMasterDataApiAPI.PostgresqlListEngineVersions(ctx)
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(postgresql.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
 // create (ctx, clusterResource) - (asyncResponse)
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*postgresql.InstanceDetailResponse, error) {
+	req := client.sdkClient.PostgresqlV1PostgresqlInstancesApiAPI.PostgresqlShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*postgresql.AsyncResponse, error) {
 	req := client.sdkClient.PostgresqlV1PostgresqlClustersApiAPI.PostgresqlCreateCluster(ctx)
 
@@ -101,11 +120,11 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
-		var convertedBlockStorage []postgresql.BlockStorageGroupRequest
+		var convertedBlockStorage []postgresql.RdbBlockStorageGroupRequest
 		var bsVals []database.BlockStorageGroup
 		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
 		for _, blockStorage := range bsVals {
-			convertedBlockStorage = append(convertedBlockStorage, postgresql.BlockStorageGroupRequest{
+			convertedBlockStorage = append(convertedBlockStorage, postgresql.RdbBlockStorageGroupRequest{
 				RoleType:   postgresql.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: postgresql.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
@@ -156,7 +175,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.PostgresqlClusterCreateRequestV1Dot1(postgresql.PostgresqlClusterCreateRequestV1Dot1{
+	req = req.PostgresqlClusterCreateRequestV1Dot2(postgresql.PostgresqlClusterCreateRequestV1Dot2{
 		AllowableIpAddresses:      allowableIpAddresses,
 		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
 		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
@@ -165,6 +184,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		InstanceGroups:            convertedInstanceGroups,
 		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
 		Name:                      request.Name.ValueString(),
+		OriginClusterId:           *postgresql.NewNullableString(request.OriginClusterId.ValueStringPointer()),
 		SubnetId:                  request.SubnetId.ValueString(),
 		Timezone:                  request.Timezone.ValueString(),
 		MaintenanceOption:         *postgresql.NewNullableMaintenanceOption(convertedMaintenanceOption),
@@ -230,6 +250,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, archiveFr
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.PostgresqlV1PostgresqlBackupApiAPI.PostgresqlUnsetBackup(ctx, clusterId)
 
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(postgresql.OtpSessionIdRequest{
+		SessionId: *postgresql.NewNullableString(nil),
+	})
+
 	_, _, err := req.Execute()
 	return err
 }
@@ -265,7 +290,7 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
 	req := client.sdkClient.PostgresqlV1PostgresqlInstancesApiAPI.PostgresqlAddBlockStorages(ctx, instanceGroupId)
 	reqState := &postgresql.AddBlockStoragesRequest{
-		RoleType:   postgresql.BlockStorageGroupRoleType(roleType),
+		RoleType:   postgresql.ExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: postgresql.VolumeType(volumeType).Ptr(),
 	}
@@ -304,9 +329,9 @@ func MapInstanceGroupResponses(sdkResp []postgresql.InstanceGroupResponse) []dat
 
 			instances[j] = database.InstanceResponse{
 				Name:             it.Name,
+				PublicIpId:       pubIP,
 				RoleType:         string(it.RoleType),
 				ServiceIpAddress: serviceIP,
-				PublicIpId:       pubIP,
 			}
 		}
 

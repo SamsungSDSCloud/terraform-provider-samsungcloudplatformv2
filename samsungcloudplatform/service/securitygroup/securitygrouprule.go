@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/securitygroup" // securitygroup client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/securitygroupv1d1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -34,9 +35,10 @@ func NewSecurityGroupRuleResource() resource.Resource {
 
 // securityGroupResource is the data source implementation.
 type securityGroupRuleResource struct {
-	config  *scpsdk.Configuration
-	client  *securitygroup.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *securitygroup.Client
+	clientv1d1 *securitygroupv1d1.Client
+	clients    *client.SCPClient
 }
 
 func (r *securityGroupRuleResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
@@ -101,6 +103,11 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Description: "The remote IP address range the rule applies to in CIDR notation.\n" +
 					"  - example: 10.0.0.0/24\n" +
 					"  - valid: IPv4 CIDR",
+				Optional: true,
+			},
+			common.ToSnakeCase("RemoteAddressGroupId"): schema.StringAttribute{
+				Description: "Remote Address Group ID.\n" +
+					"  - example: 4b18494930bf4c5dbb97a9eb2ef68fe1\n",
 				Optional: true,
 			},
 			common.ToSnakeCase("RemoteGroupId"): schema.StringAttribute{
@@ -172,6 +179,16 @@ func (r *securityGroupRuleResource) Schema(_ context.Context, _ resource.SchemaR
 							"  - example: sg-db-prod",
 						Computed: true,
 					},
+					common.ToSnakeCase("RemoteAddressGroupId"): schema.StringAttribute{
+						Description: "Remote Address Group ID.\n" +
+							"  - example: 4b18494930bf4c5dbb97a9eb2ef68fe1\n",
+						Optional: true,
+					},
+					common.ToSnakeCase("RemoteAddressGroupName"): schema.StringAttribute{
+						Description: "Remote Address Group Name.\n" +
+							"  - example: RemoteAddressGroupName\n",
+						Optional: true,
+					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "A brief explanation or note about this resource.\n" +
 							"  - example: Security group for web tier",
@@ -226,13 +243,14 @@ func (r *securityGroupRuleResource) Configure(_ context.Context, req resource.Co
 		return
 	}
 	r.client = inst.Client.SecurityGroup
+	r.clientv1d1 = inst.Client.SecurityGroupV1d1
 	r.clients = inst.Client
 }
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *securityGroupRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan securitygroup.SecurityGroupRuleResource
+	var plan securitygroupv1d1.SecurityGroupRuleResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -240,7 +258,7 @@ func (r *securityGroupRuleResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Create new security group rule
-	data, err := r.client.CreateSecurityGroupRule(ctx, plan)
+	data, err := r.clientv1d1.CreateSecurityGroupRule(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -263,22 +281,24 @@ func (r *securityGroupRuleResource) Create(ctx context.Context, req resource.Cre
 	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(data.SecurityGroupRule.Id)
 
-	sgrModel := securitygroup.SecurityGroupRule{
-		Id:              types.StringValue(securityGroupRule.Id),
-		SecurityGroupId: types.StringValue(securityGroupRule.SecurityGroupId),
-		Ethertype:       types.StringPointerValue(securityGroupRule.Ethertype.Get()),
-		Protocol:        types.StringPointerValue(securityGroupRule.Protocol.Get()),
-		PortRangeMin:    types.Int32PointerValue(securityGroupRule.PortRangeMin.Get()),
-		PortRangeMax:    types.Int32PointerValue(securityGroupRule.PortRangeMax.Get()),
-		RemoteIpPrefix:  types.StringPointerValue(securityGroupRule.RemoteIpPrefix.Get()),
-		RemoteGroupId:   types.StringPointerValue(securityGroupRule.RemoteGroupId.Get()),
-		RemoteGroupName: types.StringPointerValue(securityGroupRule.RemoteGroupName.Get()),
-		Description:     types.StringPointerValue(securityGroupRule.Description.Get()),
-		Direction:       types.StringValue(string(securityGroupRule.Direction)),
-		CreatedAt:       types.StringValue(securityGroupRule.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:       types.StringValue(securityGroupRule.CreatedBy),
-		ModifiedAt:      types.StringValue(securityGroupRule.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:      types.StringValue(securityGroupRule.ModifiedBy),
+	sgrModel := securitygroupv1d1.SecurityGroupRule{
+		Id:                     types.StringValue(securityGroupRule.Id),
+		SecurityGroupId:        types.StringValue(securityGroupRule.SecurityGroupId),
+		Ethertype:              types.StringPointerValue(securityGroupRule.Ethertype.Get()),
+		Protocol:               types.StringPointerValue(securityGroupRule.Protocol.Get()),
+		PortRangeMin:           types.Int32PointerValue(securityGroupRule.PortRangeMin.Get()),
+		PortRangeMax:           types.Int32PointerValue(securityGroupRule.PortRangeMax.Get()),
+		RemoteIpPrefix:         types.StringPointerValue(securityGroupRule.RemoteIpPrefix.Get()),
+		RemoteGroupId:          types.StringPointerValue(securityGroupRule.RemoteGroupId.Get()),
+		RemoteGroupName:        types.StringPointerValue(securityGroupRule.RemoteGroupName.Get()),
+		RemoteAddressGroupId:   types.StringPointerValue(securityGroupRule.RemoteAddressGroupId.Get()),
+		RemoteAddressGroupName: types.StringPointerValue(securityGroupRule.RemoteAddressGroupName.Get()),
+		Description:            types.StringPointerValue(securityGroupRule.Description.Get()),
+		Direction:              types.StringValue(string(securityGroupRule.Direction)),
+		CreatedAt:              types.StringValue(securityGroupRule.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:              types.StringValue(securityGroupRule.CreatedBy),
+		ModifiedAt:             types.StringValue(securityGroupRule.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:             types.StringValue(securityGroupRule.ModifiedBy),
 	}
 
 	sgrObjectValue, d := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
@@ -298,7 +318,7 @@ func (r *securityGroupRuleResource) Create(ctx context.Context, req resource.Cre
 
 func (r *securityGroupRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state securitygroup.SecurityGroupRuleResource
+	var state securitygroupv1d1.SecurityGroupRuleResource
 	diags := req.State.Get(ctx, &state) // resource 블록에 작성된 configuration data 를 읽어온다.
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -306,7 +326,7 @@ func (r *securityGroupRuleResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	// Get refreshed value from security group rule
-	data, err := r.client.GetSecurityGroupRule(ctx, state.Id.ValueString()) // client 를 호출한다.
+	data, err := r.clientv1d1.GetSecurityGroupRule(ctx, state.Id.ValueString()) // client 를 호출한다.
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			resp.State.RemoveResource(ctx)
@@ -329,22 +349,24 @@ func (r *securityGroupRuleResource) Read(ctx context.Context, req resource.ReadR
 	}
 	securityGroupRule := data.SecurityGroupRule
 
-	sgrModel := securitygroup.SecurityGroupRule{
-		Id:              types.StringValue(securityGroupRule.Id),
-		SecurityGroupId: types.StringValue(securityGroupRule.SecurityGroupId),
-		Ethertype:       types.StringPointerValue(securityGroupRule.Ethertype.Get()),
-		Protocol:        types.StringPointerValue(securityGroupRule.Protocol.Get()),
-		PortRangeMin:    types.Int32PointerValue(securityGroupRule.PortRangeMin.Get()),
-		PortRangeMax:    types.Int32PointerValue(securityGroupRule.PortRangeMax.Get()),
-		RemoteIpPrefix:  types.StringPointerValue(securityGroupRule.RemoteIpPrefix.Get()),
-		RemoteGroupId:   types.StringPointerValue(securityGroupRule.RemoteGroupId.Get()),
-		RemoteGroupName: types.StringPointerValue(securityGroupRule.RemoteGroupName.Get()),
-		Description:     types.StringPointerValue(securityGroupRule.Description.Get()),
-		Direction:       types.StringValue(string(securityGroupRule.Direction)),
-		CreatedAt:       types.StringValue(securityGroupRule.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:       types.StringValue(securityGroupRule.CreatedBy),
-		ModifiedAt:      types.StringValue(securityGroupRule.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:      types.StringValue(securityGroupRule.ModifiedBy),
+	sgrModel := securitygroupv1d1.SecurityGroupRule{
+		Id:                     types.StringValue(securityGroupRule.Id),
+		SecurityGroupId:        types.StringValue(securityGroupRule.SecurityGroupId),
+		Ethertype:              types.StringPointerValue(securityGroupRule.Ethertype.Get()),
+		Protocol:               types.StringPointerValue(securityGroupRule.Protocol.Get()),
+		PortRangeMin:           types.Int32PointerValue(securityGroupRule.PortRangeMin.Get()),
+		PortRangeMax:           types.Int32PointerValue(securityGroupRule.PortRangeMax.Get()),
+		RemoteIpPrefix:         types.StringPointerValue(securityGroupRule.RemoteIpPrefix.Get()),
+		RemoteGroupId:          types.StringPointerValue(securityGroupRule.RemoteGroupId.Get()),
+		RemoteGroupName:        types.StringPointerValue(securityGroupRule.RemoteGroupName.Get()),
+		RemoteAddressGroupId:   types.StringPointerValue(securityGroupRule.RemoteAddressGroupId.Get()),
+		RemoteAddressGroupName: types.StringPointerValue(securityGroupRule.RemoteAddressGroupName.Get()),
+		Description:            types.StringPointerValue(securityGroupRule.Description.Get()),
+		Direction:              types.StringValue(string(securityGroupRule.Direction)),
+		CreatedAt:              types.StringValue(securityGroupRule.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:              types.StringValue(securityGroupRule.CreatedBy),
+		ModifiedAt:             types.StringValue(securityGroupRule.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:             types.StringValue(securityGroupRule.ModifiedBy),
 	}
 	sgrObjectValue, d := types.ObjectValueFrom(ctx, sgrModel.AttributeTypes(), sgrModel)
 	resp.Diagnostics.Append(d...)
@@ -358,6 +380,7 @@ func (r *securityGroupRuleResource) Read(ctx context.Context, req resource.ReadR
 	state.PortRangeMax = types.Int32PointerValue(securityGroupRule.PortRangeMax.Get())
 	state.RemoteIpPrefix = types.StringPointerValue(securityGroupRule.RemoteIpPrefix.Get())
 	state.RemoteGroupId = types.StringPointerValue(securityGroupRule.RemoteGroupId.Get())
+	state.RemoteAddressGroupId = types.StringPointerValue(securityGroupRule.RemoteAddressGroupId.Get())
 	state.Description = types.StringPointerValue(securityGroupRule.Description.Get())
 	state.Direction = types.StringValue(string(securityGroupRule.Direction))
 	state.SecurityGroupRule = sgrObjectValue
@@ -372,7 +395,7 @@ func (r *securityGroupRuleResource) Read(ctx context.Context, req resource.ReadR
 
 func (r *securityGroupRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state securitygroup.SecurityGroupRuleResource
+	var state securitygroupv1d1.SecurityGroupRuleResource
 	diags := req.State.Get(ctx, &state) // resource 블록에 작성된 configuration data 를 읽어온다.
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

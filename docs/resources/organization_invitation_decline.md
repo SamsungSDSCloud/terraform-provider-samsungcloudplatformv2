@@ -15,14 +15,7 @@ Invitation Decline - Use a separate provider alias with target account credentia
 provider "samsungcloudplatformv2" {
 }
 
-provider "samsungcloudplatformv2" {
-  alias      = "target_account"
-  access_key = var.target_access_key
-  secret_key = var.target_secret_key
-}
-
 resource "samsungcloudplatformv2_organization_invitation_decline" "decline" {
-  provider = samsungcloudplatformv2.target_account
   id       = var.invitation_id
 }
 
@@ -34,18 +27,7 @@ output "invitation" {
 variable "invitation_id" {
   description = "Invitation ID to decline"
   type        = string
-}
-
-variable "target_access_key" {
-  description = "Target account access key"
-  type        = string
-  sensitive   = true
-}
-
-variable "target_secret_key" {
-  description = "Target account secret key"
-  type        = string
-  sensitive   = true
+  default     = "ENTER YOUR RESOURCE'S INVITATION_ID"
 }
 ```
 

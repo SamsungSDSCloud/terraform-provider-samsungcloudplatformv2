@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -100,10 +100,10 @@ func (d *vpcSubnetDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 			common.ToSnakeCase("State"): schema.StringAttribute{
 				Description: "The current lifecycle state of the subnet." +
 					"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
-                    "  - example : ACTIVE",
+					"  - example : ACTIVE",
 				MarkdownDescription: "The current lifecycle state of the subnet." +
 					"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
-                    "  - example : ACTIVE",
+					"  - example : ACTIVE",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"CREATING",
@@ -111,6 +111,35 @@ func (d *vpcSubnetDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 						"DELETING",
 						"DELETED",
 						"ERROR",
+					),
+				},
+				Optional: true,
+			},
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Description: "The zone of the subnet.\n" +
+					"  - example : kr-west1-a",
+				MarkdownDescription: "The zone of the subnet.\n" +
+					"  - example : kr-west1-a",
+				Optional: true,
+			},
+			common.ToSnakeCase("PrimarySubnetId"): schema.StringAttribute{
+				Description: "The primary subnet id of the subnet.\n" +
+					"  - example : abce42b96f3540d68fca43324b1503aa",
+				MarkdownDescription: "The primary subnet id of the subnet.\n" +
+					"  - example : abce42b96f3540d68fca43324b1503aa",
+				Optional: true,
+			},
+			common.ToSnakeCase("Category"): schema.StringAttribute{
+				Description: "The current lifecycle category of the subnet." +
+					"  - enum: [\"PRIMARY\",\"SECONDARY\"]\n" +
+					"  - example : PRIMARY",
+				MarkdownDescription: "The current lifecycle category of the subnet." +
+					"  - enum: [\"PRIMARY\",\"SECONDARY\"]\n" +
+					"  - example : PRIMARY",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"PRIMARY",
+						"SECONDARY",
 					),
 				},
 				Optional: true,
@@ -194,19 +223,36 @@ func (d *vpcSubnetDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 							Computed: true,
 							Description: "The current lifecycle state of the subnet." +
 								"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
-                                "  - example : ACTIVE",
+								"  - example : ACTIVE",
 							MarkdownDescription: "The current lifecycle state of the subnet." +
 								"  - enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\"]\n" +
-                                "  - example : ACTIVE",
+								"  - example : ACTIVE",
 						},
 						common.ToSnakeCase("type"): schema.StringAttribute{
 							Computed: true,
 							Description: "The type of the subnet.\n" +
-								"  - enum: [\"GENERAL\",\"LOCAL\",\"VPC_ENDPOINT\"]\n" +
-                                "  - example : GENERAL",
+								"  - enum: [\"LOCAL\", \"PUBLIC\", \"PRIVATE\",\"VPC_ENDPOINT\"]\n" +
+								"  - example : PUBLIC",
 							MarkdownDescription: "The type of the subnet.\n" +
-								"  - enum: [\"GENERAL\",\"LOCAL\",\"VPC_ENDPOINT\"]\n" +
-                                "  - example : GENERAL",
+								"  - enum: [\"LOCAL\", \"PUBLIC\", \"PRIVATE\",\"VPC_ENDPOINT\"]\n" +
+								"  - example : GENERAL",
+						},
+						common.ToSnakeCase("category"): schema.StringAttribute{
+							Computed: true,
+							Description: "The category of the subnet.\n" +
+								"  - enum: [\"Primary\",\"Secondary\"]\n" +
+								"  - example : Primary",
+							MarkdownDescription: "The category of the subnet.\n" +
+								"  - enum: [\"Primary\",\"Secondary\"]\n" +
+								"  - example : Primary",
+						},
+						common.ToSnakeCase("zones"): schema.ListAttribute{
+							ElementType: types.StringType,
+							Description: "The list of availability zones where the subnet is located.\n" +
+								"  - example : [\"zone-1\", \"zone-2\"]",
+							MarkdownDescription: "The list of availability zones where the subnet is located.\n" +
+								"  - example : [\"zone-1\", \"zone-2\"]",
+							Computed: true,
 						},
 						common.ToSnakeCase("vpc_id"): schema.StringAttribute{
 							Computed: true,
@@ -235,9 +281,9 @@ func (d *vpcSubnetDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 			common.ToSnakeCase("Type"): schema.ListAttribute{
 				ElementType: types.StringType,
 				Description: "The type of the subnet.\n" +
-					"  - example : [\"LOCAL\", \"GENERAL\", \"VPC_ENDPOINT\"]",
+					"  - example : [\"LOCAL\", \"PUBLIC\", \"PRIVATE\",\"VPC_ENDPOINT\"]",
 				MarkdownDescription: "Type \n" +
-					"  - example : [\"LOCAL\", \"GENERAL\", \"VPC_ENDPOINT\"]",
+					"  - example : [\"LOCAL\", \"PUBLIC\", \"PRIVATE\", \"VPC_ENDPOINT\"]",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
@@ -276,7 +322,7 @@ func (d *vpcSubnetDataSource) Configure(_ context.Context, req datasource.Config
 		return
 	}
 
-	d.client = inst.Client.VpcV1Dot2
+	d.client = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 
@@ -316,7 +362,14 @@ func (d *vpcSubnetDataSource) Read(ctx context.Context, req datasource.ReadReque
 			CreatedBy:        types.StringValue(subnet.CreatedBy),
 			ModifiedAt:       types.StringValue(subnet.ModifiedAt.Format(time.RFC3339)),
 			ModifiedBy:       types.StringValue(subnet.ModifiedBy),
+			Category:         types.StringValue(string(subnet.Category)),
 		}
+		zones, diag := types.ListValueFrom(ctx, types.StringType, subnet.Zones)
+		resp.Diagnostics.Append(diag...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		subnetState.Zones = zones
 
 		state.Subnets = append(state.Subnets, subnetState)
 	}

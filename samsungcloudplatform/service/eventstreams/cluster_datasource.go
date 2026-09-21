@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/eventstreams"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/eventstreams"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -64,6 +64,11 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 					common.ToSnakeCase("DbaasEngine"): schema.StringAttribute{
 						Description:         "DBaaS engine\n  - example: Kafka",
 						MarkdownDescription: "DBaaS engine\n  - example: Kafka",
+						Computed:            true,
+					},
+					common.ToSnakeCase("DbaasEngineVersionName"): schema.StringAttribute{
+						Description:         "DBaaS engine version name\n  - example: Event Streams 3.9.2",
+						MarkdownDescription: "DBaaS engine version name\n  - example: Event Streams 3.9.2",
 						Computed:            true,
 					},
 					common.ToSnakeCase("IsCombined"): schema.BoolAttribute{
@@ -217,9 +222,19 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 						MarkdownDescription: "NAT availability\n  - example: false",
 						Computed:            true,
 					},
+					common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
+						Description:         "Product image type\n  - example: Event Streams",
+						MarkdownDescription: "Product image type\n  - example: Event Streams",
+						Computed:            true,
+					},
 					common.ToSnakeCase("ProductType"): schema.StringAttribute{
 						Description:         "Product type\n  - example: Event Streams",
 						MarkdownDescription: "Product type\n  - example: Event Streams",
+						Computed:            true,
+					},
+					common.ToSnakeCase("RoleType"): schema.StringAttribute{
+						Description:         "Role type\n  - example: ACTIVE / RESTORE / DR_REPLICA / DR_SECONDARY",
+						MarkdownDescription: "Role type\n  - example: ACTIVE / RESTORE / DR_REPLICA / DR_SECONDARY",
 						Computed:            true,
 					},
 					common.ToSnakeCase("ServiceState"): schema.StringAttribute{
@@ -385,6 +400,7 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 		Name:                      types.StringValue(data.Name),
 		NatEnabled:                types.BoolPointerValue(data.NatEnabled.Get()),
 		ProductType:               types.StringValue(string(data.ProductType)),
+		RoleType:                  types.StringPointerValue((*string)(data.RoleType.Get())),
 		ServiceState:              types.StringValue(string(data.ServiceState)),
 		SoftwareVersion:           types.StringValue(data.SoftwareVersion),
 		SubnetId:                  types.StringValue(data.SubnetId),

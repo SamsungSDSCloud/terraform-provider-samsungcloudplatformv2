@@ -32,6 +32,7 @@ type VolumeResource struct {
 	CreatedAt               types.String            `tfsdk:"created_at"`
 	Id                      types.String            `tfsdk:"id"`
 	Name                    types.String            `tfsdk:"name"`
+	NameUuid                types.String            `tfsdk:"name_uuid"`
 	State                   types.String            `tfsdk:"state"`
 	Zone					types.String			`tfsdk:"zone"`
 	Tags                    types.Map               `tfsdk:"tags"`

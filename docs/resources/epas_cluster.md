@@ -221,6 +221,8 @@ variable "service_watch_log_collection" {
 
 ### Optional
 
+- `origin_cluster_id` (String) Origin cluster ID to create this cluster from (restore/replica)
+  - example: YOUR RESOURCE'S ORIGIN_CLUSTER_ID
 - `service_watch_log_collection` (Boolean) ServiceWatchLogCollection
  - example: false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
@@ -264,6 +266,11 @@ Required:
   - minLength: 8  
   - maxLength: 30  
   - pattern: ^(?=.*[a-zA-Z])(?=.*[`\-[\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\S*[^\w\s]).{8,30} ("'제외)
+
+Read-Only:
+
+- `origin_region` (String) Origin region of the source cluster (set for restored/replica clusters)
+  - example: kr-west1
 
 <a id="nestedatt--init_config_option--backup_option"></a>
 ### Nested Schema for `init_config_option.backup_option`

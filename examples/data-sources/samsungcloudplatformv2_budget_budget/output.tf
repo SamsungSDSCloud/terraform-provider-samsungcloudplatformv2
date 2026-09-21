@@ -1,3 +1,3 @@
-output "account_quota" {
+output "budget" {
   value = data.samsungcloudplatformv2_budget_budget.budget
 }

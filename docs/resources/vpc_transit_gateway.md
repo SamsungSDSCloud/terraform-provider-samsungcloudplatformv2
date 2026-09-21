@@ -101,5 +101,12 @@ Read-Only:
 - `state` (String) The current lifecycle state of the transit gateway.
   - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING 
   - example : CREATING
+- `uplink_active_zone` (String) The active availability zone for the uplink connection.
+  - example : apigw-kr-1
 - `uplink_enabled` (Boolean) Whether the uplink is enabled.
   - example : false
+- `uplink_standby_zone` (String) The standby availability zone for the uplink connection.
+  - example : apigw-kr-2
+- `uplink_zone_state` (String) The current state of the uplink zone.
+  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR
+  - example : ACTIVE

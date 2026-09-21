@@ -24,7 +24,10 @@ data "samsungcloudplatformv2_loadbalancer_lb_members" "lbmembers" {
 
 
 output "lbMembers" {
-  value = data.samsungcloudplatformv2_loadbalancer_lb_members.lbmembers
+	value = {
+		count: data.samsungcloudplatformv2_loadbalancer_lb_members.lbmembers.total_count
+		lbmembers: data.samsungcloudplatformv2_loadbalancer_lb_members.lbmembers
+	}
 }
 
 variable "name" {
@@ -91,6 +94,7 @@ variable "member_port" {
 ### Read-Only
 
 - `lb_members` (Attributes List) List of LB Members. (see [below for nested schema](#nestedatt--lb_members))
+- `total_count` (Number) The total number of LB Members returned.
 
 <a id="nestedatt--lb_members"></a>
 ### Nested Schema for `lb_members`
@@ -141,3 +145,5 @@ Read-Only:
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
+- `object_az` (String) The availability zone of the member.
+  - example : zone-1

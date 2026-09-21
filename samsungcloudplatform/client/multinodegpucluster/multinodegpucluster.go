@@ -6,8 +6,8 @@ import (
 	"math"
 	"net/http"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	multinodegpuclustersdk1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/multinodegpucluster/1.3"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	multinodegpuclustersdk1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/multinodegpucluster/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -180,9 +180,126 @@ func (client *Client) CreateGpuNode(ctx context.Context, request GpuNodeResource
 	return resp, err
 }
 
+func (client *Client) AssignGpuNodePublicNatIp(ctx context.Context, gpuNodeId string, publicIpAddressId string) (*multinodegpuclustersdk1d3.GpuNodeActionResponse, error) {
+	req := client.sdkClient.MultinodegpuclusterV1GpuNodeSimpleTaskAPIsAPI.AssignGpuNodePublicNatIp(ctx, gpuNodeId)
+	req = req.GpuNodeAssignPublicNatIpRequest(multinodegpuclustersdk1d3.GpuNodeAssignPublicNatIpRequest{
+		PublicIpAddressId: publicIpAddressId,
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) ReleaseGpuNodePublicNatIp(ctx context.Context, gpuNodeId string) (*multinodegpuclustersdk1d3.GpuNodeActionResponse, error) {
+	req := client.sdkClient.MultinodegpuclusterV1GpuNodeSimpleTaskAPIsAPI.ReleaseGpuNodePublicNatIp(ctx, gpuNodeId)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) LockGpuNode(ctx context.Context, gpuNodeId string) (*multinodegpuclustersdk1d3.GpuNodeActionResponse, error) {
+	req := client.sdkClient.MultinodegpuclusterV1GpuNodeSimpleTaskAPIsAPI.LockGpuNode(ctx, gpuNodeId)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) UnlockGpuNode(ctx context.Context, gpuNodeId string) (*multinodegpuclustersdk1d3.GpuNodeActionResponse, error) {
+	req := client.sdkClient.MultinodegpuclusterV1GpuNodeSimpleTaskAPIsAPI.UnlockGpuNode(ctx, gpuNodeId)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 func (client *Client) GetImageList(ctx context.Context, regionId string) (*multinodegpuclustersdk1d3.GpuNodeImageListResponse, error) {
 	req := client.sdkClient.MultinodegpuclusterV1GpuNodeImageAPIsAPI.ListGpuNodeImages(ctx)
 	req = req.RegionId(regionId)
 	resp, _, err := req.Execute()
 	return resp, err
+}
+
+func (client *Client) GetProductList(ctx context.Context, productType string, imageId string) (*multinodegpuclustersdk1d3.GpuNodeProductListResponse, error) {
+	req := client.sdkClient.MultinodegpuclusterV1GpuNodeProductAPIsAPI.ListGpuNodeProducts(ctx)
+
+	if productType != "" {
+		req = req.Type_(productType)
+	}
+	if imageId != "" {
+		req = req.ImageId(imageId)
+	}
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) GetClusterFabricList(ctx context.Context, clusterFabricName types.String, state types.String, nodePoolId types.String) (*multinodegpuclustersdk1d3.ClusterFabricListResponse, error) {
+
+	req := client.sdkClient.MultinodegpuclusterV1ClusterFabricsAPIsAPI.ListClusterFabrics(ctx)
+	req = req.Size(math.MaxInt32)
+
+	if !clusterFabricName.IsNull() {
+		req = req.ClusterFabricName(clusterFabricName.ValueString())
+	}
+	if !state.IsNull() {
+		req = req.State(state.ValueString())
+	}
+	if !nodePoolId.IsNull() {
+		req = req.NodePoolId(nodePoolId.ValueString())
+	}
+
+	req = req.Sort("cluster_name:asc")
+
+	resp, _, err := req.Execute()
+
+	return resp, err
+
+}
+
+func (client *Client) GetClusterFabric(ctx context.Context, clusterFabricId string) (*multinodegpuclustersdk1d3.ClusterFabricShowResponse, *http.Response, error) {
+
+	req := client.sdkClient.MultinodegpuclusterV1ClusterFabricsAPIsAPI.ShowClusterFabric(ctx, clusterFabricId)
+
+	resp, httpResponse, err := req.Execute()
+
+	return resp, httpResponse, err
+
+}
+
+func (client *Client) ModifyClusterFabricMembers(ctx context.Context, beforeClusterFabricId string, afterClusterFabricId string, gpuNodeIdList []string) (*multinodegpuclustersdk1d3.AsyncResponse, error) {
+
+	req := client.sdkClient.MultinodegpuclusterV1ClusterFabricsAPIsAPI.ModifyClusterFabricMembers(ctx)
+
+	req = req.ClusterFabricMemberModifyRequestBody(multinodegpuclustersdk1d3.ClusterFabricMemberModifyRequestBody{
+		AfterClusterFabricId:  afterClusterFabricId,
+		BeforeClusterFabricId: beforeClusterFabricId,
+		GpuNodeIdList:         gpuNodeIdList,
+	})
+
+	resp, _, err := req.Execute()
+
+	return resp, err
+
+}
+
+func (client *Client) GetNodePoolList(ctx context.Context, subnetId types.String, clusterFabricId types.String, nodePoolId types.String, zone types.String) (*multinodegpuclustersdk1d3.NodePoolListResponse, error) {
+
+	req := client.sdkClient.MultinodegpuclusterV1NodePoolsAPIsAPI.ListNodePools(ctx)
+
+	if !subnetId.IsNull() {
+		req = req.SubnetId(subnetId.ValueString())
+	}
+	if !clusterFabricId.IsNull() {
+		req = req.ClusterFabricId(clusterFabricId.ValueString())
+	}
+	if !nodePoolId.IsNull() {
+		req = req.NodePoolId(nodePoolId.ValueString())
+	}
+	if !zone.IsNull() {
+		req = req.Zone(zone.ValueString())
+	}
+
+	resp, _, err := req.Execute()
+
+	return resp, err
+
 }

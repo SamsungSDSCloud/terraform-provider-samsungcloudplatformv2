@@ -1,3 +1,9 @@
 category:
   multinodegpucluster_gpunode: Multi-node GPU Cluster
   multinodegpucluster_gpunodes: Multi-node GPU Cluster
+  multinodegpucluster_gpunode_images: Multi-node GPU Cluster
+  multinodegpucluster_gpunode_products: Multi-node GPU Cluster
+  multinodegpucluster_cluster_fabric: Multi-node GPU Cluster
+  multinodegpucluster_cluster_fabrics: Multi-node GPU Cluster
+  multinodegpucluster_node_pools: Multi-node GPU Cluster
+  multinodegpucluster_cluster_fabric_member: Multi-node GPU Cluster

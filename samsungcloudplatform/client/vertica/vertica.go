@@ -3,9 +3,9 @@ package vertica
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	vertica "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vertica/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	vertica "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vertica/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -45,8 +45,19 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*vertica.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*vertica.EngineListResponse, error) {
 	req := client.sdkClient.VerticaV1VerticaMasterDataApiAPI.VerticaListEngineVersions(ctx)
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(vertica.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -94,12 +105,12 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
-		var convertedBlockStorage []vertica.BlockStorageGroupRequest
+		var convertedBlockStorage []vertica.VerticaBlockStorageGroupRequest
 		var bsVals []database.BlockStorageGroup
 		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
 		for _, blockStorage := range bsVals {
-			convertedBlockStorage = append(convertedBlockStorage, vertica.BlockStorageGroupRequest{
-				RoleType:   vertica.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
+			convertedBlockStorage = append(convertedBlockStorage, vertica.VerticaBlockStorageGroupRequest{
+				RoleType:   vertica.OsDataBlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: vertica.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
@@ -220,6 +231,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, startingT
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.VerticaV1VerticaBackupApiAPI.VerticaUnsetBackup(ctx, clusterId)
 
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(vertica.OtpSessionIdRequest{
+		SessionId: *vertica.NewNullableString(nil),
+	})
+
 	_, _, err := req.Execute()
 	return err
 }
@@ -255,7 +271,7 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
 	req := client.sdkClient.VerticaV1VerticaInstancesApiAPI.VerticaAddBlockStorages(ctx, instanceGroupId)
 	reqState := &vertica.AddBlockStoragesRequest{
-		RoleType:   vertica.BlockStorageGroupRoleType(roleType),
+		RoleType:   vertica.ExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: vertica.VolumeType(volumeType).Ptr(),
 	}
@@ -294,9 +310,9 @@ func MapInstanceGroupResponses(sdkResp []vertica.InstanceGroupResponse) []databa
 
 			instances[j] = database.InstanceResponse{
 				Name:             it.Name,
+				PublicIpId:       pubIP,
 				RoleType:         string(it.RoleType),
 				ServiceIpAddress: serviceIP,
-				PublicIpId:       pubIP,
 			}
 		}
 
@@ -310,4 +326,12 @@ func MapInstanceGroupResponses(sdkResp []vertica.InstanceGroupResponse) []databa
 	}
 
 	return result
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*vertica.InstanceDetailResponse, error) {
+	req := client.sdkClient.VerticaV1VerticaInstancesApiAPI.VerticaShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
 }

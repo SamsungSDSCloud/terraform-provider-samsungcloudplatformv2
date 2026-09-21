@@ -3,9 +3,9 @@ package mysql
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	mysql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/mysql/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	mysql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/mysql/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -47,9 +47,28 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*mysql.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*mysql.EngineListResponse, error) {
 	req := client.sdkClient.MysqlV1MysqlMasterDataApiAPI.MysqlListEngineVersions(ctx)
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(mysql.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*mysql.InstanceDetailResponse, error) {
+	req := client.sdkClient.MysqlV1MysqlInstancesApiAPI.MysqlShowInstance(ctx, clusterId, instanceName)
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -94,36 +113,36 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []mysql.InstanceGroupRequest
+	var convertedInstanceGroups []mysql.RdbInstanceGroupRequest
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
-		var convertedBlockStorage []mysql.BlockStorageGroupRequest
+		var convertedBlockStorage []mysql.RdbBlockStorageGroupRequest
 		var bsVals []database.BlockStorageGroup
 		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
 		for _, blockStorage := range bsVals {
-			convertedBlockStorage = append(convertedBlockStorage, mysql.BlockStorageGroupRequest{
+			convertedBlockStorage = append(convertedBlockStorage, mysql.RdbBlockStorageGroupRequest{
 				RoleType:   mysql.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: mysql.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
 		}
 
-		var convertedInstance []mysql.InstanceRequest
+		var convertedInstance []mysql.RdbInstanceRequest
 		var instVals []database.Instance
 		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
 		for _, instance := range instVals {
-			convertedInstance = append(convertedInstance, mysql.InstanceRequest{
-				RoleType:         mysql.InstanceRoleType(instance.RoleType.ValueString()),
+			convertedInstance = append(convertedInstance, mysql.RdbInstanceRequest{
+				RoleType:         mysql.RdbInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *mysql.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *mysql.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, mysql.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, mysql.RdbInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           mysql.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           mysql.RdbInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -162,6 +181,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		InstanceGroups:            convertedInstanceGroups,
 		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
 		Name:                      request.Name.ValueString(),
+		OriginClusterId:           *mysql.NewNullableString(request.OriginClusterId.ValueStringPointer()),
 		SubnetId:                  request.SubnetId.ValueString(),
 		Timezone:                  request.Timezone.ValueString(),
 		MaintenanceOption:         *mysql.NewNullableMaintenanceOption(convertedMaintenanceOption),
@@ -229,7 +249,7 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
 	req := client.sdkClient.MysqlV1MysqlInstancesApiAPI.MysqlAddBlockStorages(ctx, instanceGroupId)
 	reqState := &mysql.AddBlockStoragesRequest{
-		RoleType:   mysql.BlockStorageGroupRoleType(roleType),
+		RoleType:   mysql.ExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: mysql.VolumeType(volumeType).Ptr(),
 	}
@@ -268,9 +288,9 @@ func MapInstanceGroupResponses(sdkResp []mysql.InstanceGroupResponse) []database
 
 			instances[j] = database.InstanceResponse{
 				Name:             it.Name,
+				PublicIpId:       pubIP,
 				RoleType:         string(it.RoleType),
 				ServiceIpAddress: serviceIP,
-				PublicIpId:       pubIP,
 			}
 		}
 
@@ -301,6 +321,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, archiveFr
 
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.MysqlV1MysqlBackupApiAPI.MysqlUnsetBackup(ctx, clusterId)
+
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(mysql.OtpSessionIdRequest{
+		SessionId: *mysql.NewNullableString(nil),
+	})
 
 	_, _, err := req.Execute()
 	return err

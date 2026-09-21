@@ -2,9 +2,11 @@ package filestorage
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/filestorage/1.2"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/filestorage/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -223,4 +225,16 @@ func (client *Client) DeleteVolumeReplication(ctx context.Context, id string, re
 
 	_, err := req.Execute()
 	return err
+}
+
+func BuildAccessRuleResourceID(fileStorageId, objectType, objectId string) string {
+	return fmt.Sprintf("%s:%s:%s", fileStorageId, objectType, objectId)
+}
+
+func ParseAccessRuleResourceID(id string) (string, string, string, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("unexpected import id format: %s", id)
+	}
+	return parts[0], parts[1], parts[2], nil
 }

@@ -51,13 +51,48 @@ type VolumeResource struct {
 	TypeName                types.String         `tfsdk:"type_name"`
 	Usage                   types.Int64          `tfsdk:"usage"`
 	Tags                    types.Map            `tfsdk:"tags"`
-	AccessRules             []AccessRuleResource `tfsdk:"access_rules"`
 	Zone                    types.String         `tfsdk:"zone"`
 }
 
 type AccessRuleResource struct {
 	ObjectId   types.String `tfsdk:"object_id"`
 	ObjectType types.String `tfsdk:"object_type"`
+}
+
+// 신규 (standalone resource용)
+type FileStorageAccessRuleResource struct {
+	Id            types.String `tfsdk:"id"`
+	FileStorageId types.String `tfsdk:"file_storage_id"`
+	ObjectId      types.String `tfsdk:"object_id"`
+	ObjectType    types.String `tfsdk:"object_type"`
+}
+
+// 신규 (data source - 전체 목록 조회용)
+type FileStorageAccessRulesDataSource struct {
+	FileStorageId types.String         `tfsdk:"file_storage_id"`
+	AccessRules   []AccessRuleResource `tfsdk:"access_rules"`
+}
+
+// VolumeModelV0 is the v0 state model for StateUpgrader (access_rules included).
+type VolumeModelV0 struct {
+	AccountId               types.String         `tfsdk:"account_id"`
+	CifsPassword            types.String         `tfsdk:"cifs_password"`
+	CreatedAt               types.String         `tfsdk:"created_at"`
+	EncryptionEnabled       types.Bool           `tfsdk:"encryption_enabled"`
+	EndpointPath            types.String         `tfsdk:"endpoint_path"`
+	FileUnitRecoveryEnabled types.Bool           `tfsdk:"file_unit_recovery_enabled"`
+	Id                      types.String         `tfsdk:"id"`
+	Name                    types.String         `tfsdk:"name"`
+	NameUuid                types.String         `tfsdk:"name_uuid"`
+	Path                    types.String         `tfsdk:"path"`
+	Protocol                types.String         `tfsdk:"protocol"`
+	Purpose                 types.String         `tfsdk:"purpose"`
+	State                   types.String         `tfsdk:"state"`
+	TypeName                types.String         `tfsdk:"type_name"`
+	Usage                   types.Int64          `tfsdk:"usage"`
+	Tags                    types.Map            `tfsdk:"tags"`
+	AccessRules             []AccessRuleResource `tfsdk:"access_rules"`
+	Zone                    types.String         `tfsdk:"zone"`
 }
 
 // -------------------- SnapshotSchedule -------------------- //

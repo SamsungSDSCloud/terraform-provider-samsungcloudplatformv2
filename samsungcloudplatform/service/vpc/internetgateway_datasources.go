@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,9 +28,10 @@ func NewVpcInternetGatewayDataSource() datasource.DataSource {
 
 // vpcInternetGatewayDataSource is the data source implementation.
 type vpcInternetGatewayDataSource struct {
-	config  *scpsdk.Configuration
-	client  *vpcv1d2.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *vpcv1d2.Client
+	clientv1d3 *vpcv1d3.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -146,6 +148,11 @@ func (d *vpcInternetGatewayDataSource) Schema(_ context.Context, _ datasource.Sc
 								"  - example : 2024-05-17T00:23:17Z",
 							Computed: true,
 						},
+						common.ToSnakeCase("MultiZoneEnabled"): schema.BoolAttribute{
+							Description: "Whether MultiAZ is enabled for the internet gateway.(MultiAZ 사용여부)\n" +
+								"  - example : true",
+							Computed: true,
+						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
 							Description: "The user id that created the resource.\n" +
 								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
@@ -203,12 +210,13 @@ func (d *vpcInternetGatewayDataSource) Configure(_ context.Context, req datasour
 	}
 
 	d.client = inst.Client.VpcV1Dot2
+	d.clientv1d3 = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *vpcInternetGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpcv1d2.InternetGatewayDataSource
+	var state vpcv1d3.InternetGatewayDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -216,7 +224,7 @@ func (d *vpcInternetGatewayDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	data, err := d.client.ListInternetGateways(ctx, state)
+	data, err := d.clientv1d3.ListInternetGateways(ctx, state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -228,21 +236,22 @@ func (d *vpcInternetGatewayDataSource) Read(ctx context.Context, req datasource.
 
 	// Map response body to model
 	for _, igw := range data.InternetGateways {
-		igwState := vpcv1d2.InternetGateway{
-			Id:          types.StringValue(igw.Id),
-			Name:        types.StringValue(igw.Name),
-			AccountId:   types.StringValue(igw.AccountId),
-			Type:        types.StringValue(string(igw.Type)),
-			Description: types.StringPointerValue(igw.Description.Get()),
-			VpcId:       types.StringValue(igw.VpcId),
-			VpcName:     types.StringValue(igw.VpcName),
-			Loggable:    types.BoolValue(igw.GetLoggable()),
-			FirewallId:  types.StringValue(igw.GetFirewallId()),
-			CreatedAt:   types.StringValue(igw.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:   types.StringValue(igw.CreatedBy),
-			ModifiedAt:  types.StringValue(igw.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:  types.StringValue(igw.ModifiedBy),
-			State:       types.StringValue(string(igw.State)),
+		igwState := vpcv1d3.InternetGateway{
+			Id:               types.StringValue(igw.Id),
+			Name:             types.StringValue(igw.Name),
+			AccountId:        types.StringValue(igw.AccountId),
+			Type:             types.StringValue(string(igw.Type)),
+			Description:      types.StringPointerValue(igw.Description.Get()),
+			VpcId:            types.StringValue(igw.VpcId),
+			VpcName:          types.StringValue(igw.VpcName),
+			Loggable:         types.BoolValue(igw.GetLoggable()),
+			FirewallId:       types.StringValue(igw.GetFirewallId()),
+			MultiZoneEnabled: types.BoolValue(igw.GetMultiZoneEnabled()),
+			CreatedAt:        types.StringValue(igw.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:        types.StringValue(igw.CreatedBy),
+			ModifiedAt:       types.StringValue(igw.ModifiedAt.Format(time.RFC3339)),
+			ModifiedBy:       types.StringValue(igw.ModifiedBy),
+			State:            types.StringValue(string(igw.State)),
 		}
 
 		state.InternetGateways = append(state.InternetGateways, igwState)

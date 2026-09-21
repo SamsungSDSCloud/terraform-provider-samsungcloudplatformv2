@@ -156,7 +156,7 @@ variable "instance_name_prefix" {
 
 variable "name" {
   type    = string
-  default = "sqlserverTd"
+  default = "sqlserverb"
 }
 
 variable "subnet_id" {
@@ -270,7 +270,6 @@ variable "service_watch_log_collection" {
 
 Required:
 
-- `ad_config` (Attributes) AdConfig (see [below for nested schema](#nestedatt--init_config_option--ad_config))
 - `ad_enabled` (Boolean) AdEnabled
   - example: false
 - `audit_enabled` (Boolean) Audit Log Setting
@@ -298,29 +297,14 @@ Required:
 - `license` (String) License
   - example: license
 
+Optional:
+
+- `ad_config` (Attributes) AdConfig (see [below for nested schema](#nestedatt--init_config_option--ad_config))
+
 Read-Only:
 
 - `origin_region` (String) Origin Region
  -example: kr-west1
-
-<a id="nestedatt--init_config_option--ad_config"></a>
-### Nested Schema for `init_config_option.ad_config`
-
-Optional:
-
-- `ad_dns_servers` (Set of String) AD DNS Servers
-  - example: 192.168.10.10
-- `ad_domain_name` (String) AD Domain Name
-  - example: test
-- `ad_netbios_name` (String) AD NetBIOS Name
-  - example: test
-- `ad_user_id` (String) AD User ID
-  - example: YOUR RESOURCE'S AD_USER_ID
-- `ad_user_password` (String) AD User Password 
-  - example: YOUR RESOURCE'S AD_USER_PASSWORD
-- `failover_cluster_name` (String) Failover Cluster Name
-  - example: testcluster
-
 
 <a id="nestedatt--init_config_option--backup_option"></a>
 ### Nested Schema for `init_config_option.backup_option`
@@ -355,6 +339,25 @@ Required:
   - pattern: ^[a-zA-Z][a-zA-Z0-9]*$
 - `drive_letter` (String) Drive Letter
   - example: C
+
+
+<a id="nestedatt--init_config_option--ad_config"></a>
+### Nested Schema for `init_config_option.ad_config`
+
+Optional:
+
+- `ad_dns_servers` (Set of String) AD DNS Servers
+  - example: 192.168.10.10
+- `ad_domain_name` (String) AD Domain Name
+  - example: test
+- `ad_netbios_name` (String) AD NetBIOS Name
+  - example: test
+- `ad_user_id` (String) AD User ID
+  - example: YOUR RESOURCE'S AD_USER_ID
+- `ad_user_password` (String) AD User Password 
+  - example: YOUR RESOURCE'S AD_USER_PASSWORD
+- `failover_cluster_name` (String) Failover Cluster Name
+  - example: testcluster
 
 
 

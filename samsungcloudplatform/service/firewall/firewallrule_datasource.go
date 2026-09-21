@@ -3,14 +3,14 @@ package firewall
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/firewallv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -46,22 +46,12 @@ func (d *firewallFirewallRuleDataSource) Schema(_ context.Context, _ datasource.
 					"  - example: 0e2b4ece64944d7d8a72983e945b867b",
 				Required: true,
 			},
-			common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-				Description: "The identifier of the firewall associated with the resource.\n" +
-					"  - example: 68db67f78abd405da98a6056a8ee42af",
-				Required: true,
-			},
 			common.ToSnakeCase("FirewallRule"): schema.SingleNestedAttribute{
 				Description: "Firewall Rule.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
 						Description: "The unique identifier of the resource.\n" +
-							"  - example: 0e2b4ece64944d7d8a72983e945b867b",
-						Computed: true,
-					},
-					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "The name of the resource.\n" +
 							"  - example: 0e2b4ece64944d7d8a72983e945b867b",
 						Computed: true,
 					},
@@ -75,21 +65,11 @@ func (d *firewallFirewallRuleDataSource) Schema(_ context.Context, _ datasource.
 							"  - example: 100",
 						Computed: true,
 					},
-					common.ToSnakeCase("SourceInterface"): schema.StringAttribute{
-						Description: "The source interface the rule applies to.\n" +
-							"  - example: L2FW-DGW2800up",
-						Computed: true,
-					},
 					common.ToSnakeCase("SourceAddress"): schema.ListAttribute{
 						Description: "The source IP addresses the rule applies to.\n" +
 							"  - example: [10.10.10.0/24, 10.10.11.0/24]",
 						Computed:    true,
 						ElementType: types.StringType,
-					},
-					common.ToSnakeCase("DestinationInterface"): schema.StringAttribute{
-						Description: "The destination interface the rule applies to.\n" +
-							"  - example: L2FW-DGW2800dn",
-						Computed: true,
 					},
 					common.ToSnakeCase("DestinationAddress"): schema.ListAttribute{
 						Description: "The destination address the rule applies to.\n" +
@@ -123,11 +103,6 @@ func (d *firewallFirewallRuleDataSource) Schema(_ context.Context, _ datasource.
 					common.ToSnakeCase("Direction"): schema.StringAttribute{
 						Description: "The direction of the traffic the rule applies to.\n" +
 							"  - example: INBOUND",
-						Computed: true,
-					},
-					common.ToSnakeCase("VendorRuleId"): schema.StringAttribute{
-						Description: "The firewall device's unique identifier for the rule.\n" +
-							"  - example: 20",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
@@ -190,7 +165,7 @@ func (d *firewallFirewallRuleDataSource) Configure(_ context.Context, req dataso
 		return
 	}
 
-	d.client = inst.Client.Firewall
+	d.client = inst.Client.FirewallV1d2
 	d.clients = inst.Client
 }
 
@@ -204,89 +179,24 @@ func (d *firewallFirewallRuleDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 
-	var defaultSize types.Int32
-	var defaultPage types.Int32
-	var defaultSort types.String
-	var defaultSrcIp types.String
-	var defaultDstIp types.String
-	var defaultDescription types.String
-	var defaultState types.List
-	var defaultStatus types.String
-	var defaultFetchAll types.Bool
-
-	ids, err := GetFirewallRuleList(d.clients, defaultPage, defaultSize, defaultSort, state.FirewallId,
-		defaultSrcIp, defaultDstIp, defaultDescription, defaultState, defaultStatus, defaultFetchAll)
+	dataResp, err := d.clients.FirewallV1d2.GetFirewallRule(state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read firewall rule",
 			err.Error(),
 		)
+		return
 	}
 
-	if len(ids) > 0 {
-		exist := false
-		for _, v := range ids {
-			if v == state.Id {
-				exist = true
-				break
-			}
-		}
+	firewallRuleModel := createFirewallRuleModelv1D1(dataResp)
 
-		if exist {
-			data, err := d.client.GetFirewallRule(state.Id.ValueString()) // client 를 호출한다.
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				resp.Diagnostics.AddError(
-					"Error Reading Firewall Rule",
-					"Could not read Firewall Rule ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
-				)
-				return
-			}
-
-			firewallRuleElement := data.FirewallRule
-
-			sourceAddresses := make([]string, 0, len(firewallRuleElement.SourceAddress))
-			for _, address := range firewallRuleElement.SourceAddress {
-				sourceAddresses = append(sourceAddresses, address)
-			}
-			destinationAddresses := make([]string, 0, len(firewallRuleElement.DestinationAddress))
-			for _, address := range firewallRuleElement.DestinationAddress {
-				destinationAddresses = append(destinationAddresses, address)
-			}
-			services := make([]firewall.FirewallPort, 0, len(firewallRuleElement.Service))
-			for _, service := range firewallRuleElement.Service {
-				services = append(services, firewall.FirewallPort{
-					ServiceType:  types.StringValue(string(service.ServiceType)),
-					ServiceValue: types.StringValue(*service.ServiceValue),
-				})
-			}
-
-			firewallRuleModel := firewall.FirewallRule{
-				Id:                   types.StringValue(firewallRuleElement.Id),
-				Name:                 types.StringPointerValue(firewallRuleElement.Name.Get()),
-				FirewallId:           types.StringValue(firewallRuleElement.FirewallId),
-				Sequence:             types.Int32Value(firewallRuleElement.Sequence),
-				SourceInterface:      types.StringValue(firewallRuleElement.SourceInterface),
-				SourceAddress:        sourceAddresses,
-				DestinationInterface: types.StringValue(firewallRuleElement.DestinationInterface),
-				DestinationAddress:   destinationAddresses,
-				Service:              services,
-				Action:               types.StringValue(string(firewallRuleElement.Action)),
-				Direction:            types.StringValue(string(firewallRuleElement.Direction)),
-				VendorRuleId:         types.StringValue(firewallRuleElement.VendorRuleId),
-				Description:          types.StringPointerValue(firewallRuleElement.Description.Get()),
-				State:                types.StringValue(string(firewallRuleElement.State)),
-				Status:               types.StringValue(string(firewallRuleElement.Status)),
-				CreatedAt:            types.StringValue(firewallRuleElement.CreatedAt.Format(time.RFC3339)),
-				CreatedBy:            types.StringValue(firewallRuleElement.CreatedBy),
-				ModifiedAt:           types.StringValue(firewallRuleElement.ModifiedAt.Format(time.RFC3339)),
-				ModifiedBy:           types.StringValue(firewallRuleElement.ModifiedBy),
-			}
-
-			firewallRuleObjectValue, _ := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
-			state.FirewallRule = firewallRuleObjectValue
-		}
+	firewallRuleObjectValue, objDiags := types.ObjectValueFrom(ctx, firewallRuleModel.AttributeTypes(), firewallRuleModel)
+	resp.Diagnostics.Append(objDiags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+
+	state.FirewallRule = firewallRuleObjectValue
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)

@@ -23,6 +23,7 @@ data "samsungcloudplatformv2_vpc_transit_gateways" "vpctransitgateway" {
   sort                      = var.sort
   page                      = var.page
   state                     = var.state
+  uplink_zone_state         = var.uplink_zone_state
 }
 
 
@@ -65,6 +66,11 @@ variable "sort" {
   default = "created_at:desc"
 }
 
+variable "uplink_zone_state" {
+  type    = string
+  default = "ACTIVE"
+}
+
 variable "state" {
   type    = string
   default = "ACTIVE"
@@ -92,6 +98,9 @@ variable "state" {
 - `state` (String) The current lifecycle state of the transit gateway. 
   - enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]
   - example:ACTIVE
+- `uplink_zone_state` (String) The current state of the uplink zone.
+  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR, EDITING
+  - example : ACTIVE
 
 ### Read-Only
 
@@ -129,5 +138,12 @@ Read-Only:
 - `state` (String) The current lifecycle state of the transit gateway. 
   - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING
   - example:ACTIVE
+- `uplink_active_zone` (String) The active zone for the uplink.
+  - example : zone-1
 - `uplink_enabled` (Boolean) Whether the uplink is enabled.
   - example : false
+- `uplink_standby_zone` (String) The standby zone for the uplink.
+  - example : zone-2
+- `uplink_zone_state` (String) The current state of the uplink zone.
+  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR, EDITING
+  - example : ACTIVE

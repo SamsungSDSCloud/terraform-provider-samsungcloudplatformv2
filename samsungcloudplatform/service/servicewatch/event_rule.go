@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/servicewatch/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/servicewatch/1.5"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -87,8 +87,16 @@ func (r *serviceWatchEventRuleResource) Schema(_ context.Context, _ resource.Sch
 			common.ToSnakeCase("RecipientIds"): schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				Description: "Notification recipient IDs.\n" +
+				Description: "Notification recipient IDs. All of them share the recipient_type.\n" +
 					" - example : [\"user-abc\", \"user-def\"]\n",
+			},
+			common.ToSnakeCase("RecipientType"): schema.StringAttribute{
+				Optional: true,
+				Description: "The type of every recipient in recipient_ids - USER, GROUP.\n" +
+					" - example : USER\n",
+				Validators: []validator.String{
+					stringvalidator.OneOf(RecipientTypeUser, RecipientTypeGroup),
+				},
 			},
 			common.ToSnakeCase("ResourceTypeId"): schema.StringAttribute{
 				Optional: true,

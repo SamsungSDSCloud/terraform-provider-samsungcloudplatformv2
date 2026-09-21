@@ -3,9 +3,9 @@ package searchengine
 import (
 	"context"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	searchengine "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/searchengine/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	searchengine "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/searchengine/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -45,9 +45,19 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context, productImageType string) (*searchengine.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*searchengine.EngineListResponse, error) {
 	req := client.sdkClient.SearchengineV1SearchEngineMasterDataApiAPI.SearchengineListEngineVersions(ctx)
-	req = req.ProductImageType(searchengine.ProductImageType(productImageType))
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(searchengine.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -108,12 +118,12 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
-		var convertedBlockStorage []searchengine.BlockStorageGroupRequest
+		var convertedBlockStorage []searchengine.SearchEngineBlockStorageGroupRequest
 		var bsVals []database.BlockStorageGroup
 		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
 		for _, blockStorage := range bsVals {
-			convertedBlockStorage = append(convertedBlockStorage, searchengine.BlockStorageGroupRequest{
-				RoleType:   searchengine.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
+			convertedBlockStorage = append(convertedBlockStorage, searchengine.SearchEngineBlockStorageGroupRequest{
+				RoleType:   searchengine.OsDataBackupBlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: searchengine.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
@@ -235,6 +245,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, startingT
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.SearchengineV1SearchEngineBackupApiAPI.SearchengineUnsetBackup(ctx, clusterId)
 
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(searchengine.OtpSessionIdRequest{
+		SessionId: *searchengine.NewNullableString(nil),
+	})
+
 	_, _, err := req.Execute()
 	return err
 }
@@ -270,7 +285,7 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
 	req := client.sdkClient.SearchengineV1SearchEngineInstancesApiAPI.SearchengineAddBlockStorages(ctx, instanceGroupId)
 	reqState := &searchengine.AddBlockStoragesRequest{
-		RoleType:   searchengine.BlockStorageGroupRoleType(roleType),
+		RoleType:   searchengine.ExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: searchengine.VolumeType(volumeType).Ptr(),
 	}
@@ -309,9 +324,9 @@ func MapInstanceGroupResponses(sdkResp []searchengine.InstanceGroupResponse) []d
 
 			instances[j] = database.InstanceResponse{
 				Name:             it.Name,
+				PublicIpId:       pubIP,
 				RoleType:         string(it.RoleType),
 				ServiceIpAddress: serviceIP,
-				PublicIpId:       pubIP,
 			}
 		}
 
@@ -336,4 +351,12 @@ func (client *Client) AddInstances(ctx context.Context, clusterId string, instan
 	req = req.SearchEngineClusterAddInstancesRequest(*reqState)
 	_, _, err := req.Execute()
 	return err
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*searchengine.InstanceDetailResponse, error) {
+	req := client.sdkClient.SearchengineV1SearchEngineInstancesApiAPI.SearchengineShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
 }

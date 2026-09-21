@@ -1,0 +1,14 @@
+variable "instance_id" {
+  type        = string
+  description = "The ID of the Identity Center Instance"
+  default     = "ENTER YOUR RESOURCE'S INSTANCE_ID"
+}
+
+variable "permission_set_id" {
+  type        = string
+  description = "The ID of the IAM Identity Center Permission Set"
+  default     = "ENTER YOUR RESOURCE'S PERMISSION_SET_ID"
+}
+
+
+

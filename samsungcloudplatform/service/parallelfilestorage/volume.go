@@ -3,14 +3,15 @@ package parallelfilestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/parallelfilestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpparallelfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/parallelfilestorage/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/parallelfilestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpparallelfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/parallelfilestorage/1.1"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -19,14 +20,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"regexp"
+	"strings"
 	"time"
 )
 
 const reasonPrefix = "\nReason: "
 
 var (
-	_ resource.Resource              = &parallelFileStorageVolumeResource{}
-	_ resource.ResourceWithConfigure = &parallelFileStorageVolumeResource{}
+	_ resource.Resource              =   &parallelFileStorageVolumeResource{}
+	_ resource.ResourceWithConfigure =   &parallelFileStorageVolumeResource{}
+	_ resource.ResourceWithImportState = &parallelFileStorageVolumeResource{}
 )
 
 func NewParallelFileStorageVolumeResource() resource.Resource {
@@ -86,6 +89,16 @@ func VolumeResourceSchema() schema.Schema {
 					"  - pattern: `^[a-z]([a-z0-9_]){2,20}$` \n",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]([a-z0-9_]){2,20}$"), "Enter 3~21 char.(lower case, numbers, _) starting with lower case."),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"name_uuid": schema.StringAttribute{
+				Computed:    true,
+				Description: "Actual Volume Name on the server (may include a unique suffix appended by the server).",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"zone": schema.StringAttribute{
@@ -332,16 +345,18 @@ func (r *parallelFileStorageVolumeResource) Update(ctx context.Context, request 
 		}
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "parallel-filestorage", "volume", state.Id.ValueString(), false)
+	tagElements := plan.Tags.Elements()
+	tagsMap, err := tag.UpdateTags(r.clients, "parallel-filestorage", "volume", plan.Id.ValueString(), tagElements, false)
 	if err != nil {
 		response.Diagnostics.AddError(
-			"Error Reading Tag",
+			"Error Updating Tag",
 			err.Error(),
 		)
 		return
 	}
+	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
 
-	newState, err := r.MapGetResponseToState(ctx, data, state, tagsMap)
+	newState, err := r.MapGetResponseToState(ctx, data, plan, tagsMap)
 	diags = response.State.Set(ctx, newState)
 	response.Diagnostics.Append(diags...)
 
@@ -415,7 +430,7 @@ func (r *parallelFileStorageVolumeResource) MapGetResponseToState(ctx context.Co
 		return parallelfilestorage.VolumeResource{}, err
 	}
 
-	var accessRules []parallelfilestorage.AccessRuleResource
+	accessRules := []parallelfilestorage.AccessRuleResource{}
 	if len(getAccessRule.AccessRules) == 0 && state.AccessRules != nil {
 		accessRules = []parallelfilestorage.AccessRuleResource{}
 	} else {
@@ -432,6 +447,7 @@ func (r *parallelFileStorageVolumeResource) MapGetResponseToState(ctx context.Co
 		CreatedAt:   types.StringValue(resp.CreatedAt.Format(time.RFC3339)),
 		Id:          types.StringValue(resp.Id),
 		Name:        types.StringValue(state.Name.ValueString()),
+		NameUuid:    types.StringValue(resp.Name),
 		State:       types.StringValue(resp.State),
 		Zone:        types.StringValue(resp.Zone),
 		CapacityTb:  types.Int32Value(resp.CapacityTb),
@@ -451,4 +467,17 @@ func waitForVolumeStatus(ctx context.Context, parallelFilestorageClient *paralle
 		return info, info.State, nil
 	}, -1, -1, -1, -1)
 	return showResponse, err
+}
+
+func (r *parallelFileStorageVolumeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, ",")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			"Import ID must be in the format: <id>,<name>",
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), parts[1])...)
 }

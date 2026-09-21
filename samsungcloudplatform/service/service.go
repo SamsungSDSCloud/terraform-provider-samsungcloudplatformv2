@@ -1,43 +1,46 @@
 package service
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/backup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/baremetal"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/baremetalblockstorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/budget"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/cachestore"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/certificatemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/cloudmonitoring"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/configinspection"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/directconnect"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/dns"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/epas"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/eventstreams"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/gslb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/iam"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/parallelfilestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/loggingaudit"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/mariadb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/multinodegpucluster"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/mysql"
-	network_logging "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/network-logging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/organization"
-	billing "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/plannedcompute"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/postgresql"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/quota"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/searchengine"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/securitygroup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/sqlserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/vertica"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/service/vpn"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/backup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/baremetalblockstorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/budget"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/cachestore"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/certificatemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/cloudcontrol"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/cloudmonitoring"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/configinspection"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/directconnect"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/dns"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/epas"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/eventstreams"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/firewall"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/gslb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/iam"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/iamidentitycenter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/loggingaudit"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/mariadb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/multinodegpucluster"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/mysql"
+	network_logging "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/network-logging"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/organization"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/parallelfilestorage"
+	billing "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/plannedcompute"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/postgresql"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/quota"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/scr"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/searchengine"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/securitygroup"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/sqlserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/vertica"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/vpn"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -55,6 +58,17 @@ var ResourceConstructors = []func() resource.Resource{
 	iam.NewIamUserResource,
 	iam.NewIamUserPolicyBindingsResource,
 
+	// IAM Identity Center
+	iamidentitycenter.NewIamIdentityCenterInstanceResource,
+	iamidentitycenter.NewIamIdentityCenterGroupResource,
+	iamidentitycenter.NewIamIdentityCenterGroupMemberResource,
+	iamidentitycenter.NewIamIdentityCenterPermissionSetCustomPolicyResource,
+	iamidentitycenter.NewIamIdentityCenterPermissionSetManagedPolicyResource,
+	iamidentitycenter.NewIamIdentityCenterPermissionSetInlinePolicyResource,
+	iamidentitycenter.NewIamIdentityCenterUserResource,
+	iamidentitycenter.NewIamIdentityCenterPermissionSetResource,
+	iamidentitycenter.NewIamIdentityCenterAccountAssignmentResource,
+
 	// Organization
 	organization.NewOrganizationResource,
 	organization.NewOrganizationUnitResource,
@@ -66,11 +80,24 @@ var ResourceConstructors = []func() resource.Resource{
 	organization.NewInvitationDeclineResource,
 	organization.NewInvitationCancelResource,
 	organization.NewDelegationPolicyResource,
+	organization.NewDelegationAccountResource,
 	organization.NewServiceControlPolicyResource,
+	organization.NewPolicyBindingResource,
+	organization.NewOrganizationMembershipResource,
+
+	// CloudControl
+	cloudcontrol.NewLandingZoneResource,
+	cloudcontrol.NewAccountFactoryResource,
+	cloudcontrol.NewBaselineAssignmentResource,
+	cloudcontrol.NewGuardrailBindingResource,
 
 	resourcemanager.NewResourceManagerResourceGroupResource,
 	ske.NewSkeClusterResource,
 	ske.NewSkeNodepoolResource,
+	ske.NewSkeClusterDeletionProtectionResource,
+	ske.NewSkeClusterSubnetsResource,
+	ske.NewSkeClusterNfsVolumeResource,
+	ske.NewSkeClusterLinkedResourcesResource,
 	vpc.NewVpcVpcResource,
 	vpc.NewVpcSubnetResource,
 	vpc.NewVpcPublicipResource,
@@ -100,8 +127,10 @@ var ResourceConstructors = []func() resource.Resource{
 	directconnect.NewDirectConnectRoutingRuleResource,
 	securitygroup.NewSecurityGroupResource,
 	securitygroup.NewSecurityGroupRuleResource,
+	securitygroup.NewAddressGroupResource,
 
 	firewall.NewFirewallFirewallRuleResource,
+	firewall.NewFirewallResource,
 	billing.NewBillingPlannedComputeResource,
 
 	// Compute
@@ -118,6 +147,7 @@ var ResourceConstructors = []func() resource.Resource{
 
 	// Storage
 	filestorage.NewFileStorageVolumeResource,
+	filestorage.NewFileStorageAccessRuleResource,
 	filestorage.NewFileStorageSnapshotScheduleResource,
 	filestorage.NewFileStorageReplicationResource,
 
@@ -174,12 +204,18 @@ var ResourceConstructors = []func() resource.Resource{
 
 	// Multi-node GPU Cluster
 	multinodegpucluster.NewGpunodeResource,
+	multinodegpucluster.NewGpunodePublicNatIpResource,
+	multinodegpucluster.NewClusterFabricMemberResource,
 	//servicewatch
 	servicewatch.NewServiceWatchDashboardResource,
 	servicewatch.NewServiceWatchLogGroupResource,
 	servicewatch.NewServiceWatchLogStreamResource,
 	servicewatch.NewServiceWatchAlertResource,
 	servicewatch.NewServiceWatchEventRuleResource,
+	// Scr
+	scr.NewScrContainerRegistryResource,
+	scr.NewScrRepositoryResource,
+	scr.NewScrImageResource,
 }
 
 var DataSourceConstructors = []func() datasource.DataSource{
@@ -198,6 +234,20 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	iam.NewIamUserDataSources,
 	iam.NewIamUserPolicyBindingDataSources,
 
+	// IAM Identity Center
+	iamidentitycenter.NewIamIdentityCenterInstanceDataSource,
+	iamidentitycenter.NewIamIdentityCenterInstancesDataSources,
+	iamidentitycenter.NewIamIdentityCenterGroupDataSource,
+	iamidentitycenter.NewIamIdentityCenterGroupMemberDataSource,
+	iamidentitycenter.NewIamIdentityCenterGroupsDataSources,
+	iamidentitycenter.NewIamIdentityCenterPermissionSetDataSource,
+	iamidentitycenter.NewIamIdentityCenterPermissionSetPoliciesDataSource,
+	iamidentitycenter.NewIamIdentityCenterPermissionSetsDataSources,
+	iamidentitycenter.NewIamIdentityCenterUserDataSource,
+	iamidentitycenter.NewIamIdentityCenterUsersDataSources,
+	iamidentitycenter.NewIamIdentityCenterAccountAssignmentDataSource,
+	iamidentitycenter.NewIamIdentityCenterAccountAssignmentsDataSources,
+
 	// Organization
 	organization.NewOrganizationDataSource,
 	organization.NewOrganizationDataSources,
@@ -209,8 +259,19 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	organization.NewAccountInvitationsDataSource,
 	organization.NewOrganizationInvitationsDataSource,
 	organization.NewDelegationPolicyDataSource,
+	organization.NewDelegationAccountsDataSource,
 	organization.NewServiceControlPolicyDataSource,
 	organization.NewServiceControlPoliciesDataSource,
+	organization.NewPoliciesForTargetDataSource,
+	organization.NewTargetsForPolicyDataSource,
+
+	// CloudControl
+	cloudcontrol.NewLandingZoneDataSource,
+	cloudcontrol.NewBaselineAssignmentDataSource,
+	cloudcontrol.NewGuardrailDataSource,
+	cloudcontrol.NewGuardrailListDataSource,
+	cloudcontrol.NewGuardrailBindingDataSources,
+	cloudcontrol.NewGuardrailBindingTargetsDataSources,
 
 	resourcemanager.NewResourceManagerTagDataSource,
 	resourcemanager.NewResourceManagerResourceTagDataSource,
@@ -227,6 +288,7 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	ske.NewSkeNodepoolDataSources,
 	ske.NewSkeNodepoolnodeDataSources,
 	ske.NewSkeNodepoolImageDataSources,
+	ske.NewSkeClusterDeletionProtectionDataSource,
 
 	vpc.NewVpcVpcDataSource,
 	vpc.NewVpcSubnetDataSource,
@@ -263,6 +325,9 @@ var DataSourceConstructors = []func() datasource.DataSource{
 
 	securitygroup.NewSecurityGroupDataSources,
 	securitygroup.NewSecurityGroupRuleDataSources,
+	securitygroup.NewAddressGroupDataSource,
+	securitygroup.NewAddressGroupDataSources,
+	securitygroup.NewAddressGroupCidrDataSources,
 
 	firewall.NewFirewallFirewallDataSource,
 	firewall.NewFirewallFirewallDataSources,
@@ -291,6 +356,7 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	filestorage.NewFileStorageVolumeDataSource,
 	filestorage.NewFileStorageReplicationDataSource,
 	filestorage.NewFileStorageReplicationDataSources,
+	filestorage.NewFileStorageAccessRulesDataSources,
 
 	parallelfilestorage.NewParallelFileStorageVolumeDataSource,
 	parallelfilestorage.NewParallelFileStorageVolumeDataSources,
@@ -398,6 +464,11 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	// Multi-node GPU Cluster
 	multinodegpucluster.NewGpunodeDataSource,
 	multinodegpucluster.NewGpunodeDataSources,
+	multinodegpucluster.NewGpunodeImageDataSources,
+	multinodegpucluster.NewGpunodeProductDataSources,
+	multinodegpucluster.NewClusterFabricDataSource,
+	multinodegpucluster.NewClusterFabricDataSources,
+	multinodegpucluster.NewNodePoolDataSources,
 
 	// servicewatch
 	servicewatch.NewServiceWatchDashboardDataSources,
@@ -407,6 +478,19 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	servicewatch.NewServiceWatchLogStreamDataSource,
 	servicewatch.NewServiceWatchAlertDataSource,
 	servicewatch.NewServiceWatchEventRuleDataSource,
+
+	// scr
+	scr.NewScrContainerRegistryDataSource,
+	scr.NewScrContainerRegistryDataSources,
+	scr.NewScrImageDataSource,
+	scr.NewScrImageDataSources,
+	scr.NewScrRepositoryDataSource,
+	scr.NewScrRepositoryDataSources,
+	scr.NewScrTagDataSource,
+	scr.NewScrTagsDataSource,
+	scr.NewScrTagPackagesDataSource,
+	scr.NewScrTagSecretsDataSource,
+	scr.NewScrTagVulnerabilitiesDataSource,
 }
 
 var EphemeralResourceConstructors = []func() ephemeral.EphemeralResource{}

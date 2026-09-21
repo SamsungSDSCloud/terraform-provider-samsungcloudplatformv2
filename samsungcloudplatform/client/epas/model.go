@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
 )
 
 const ServiceType = "scp-epas"
@@ -39,6 +39,7 @@ type ClusterResource struct {
 	InstanceNamePrefix        types.String       `tfsdk:"instance_name_prefix"`
 	MaintenanceOption         *MaintenanceOption `tfsdk:"maintenance_option"`
 	Name                      types.String       `tfsdk:"name"`
+	OriginClusterId           types.String       `tfsdk:"origin_cluster_id"`
 	ServiceState              types.String       `tfsdk:"service_state"`
 	SubnetId                  types.String       `tfsdk:"subnet_id"`
 	Tags                      types.Map          `tfsdk:"tags"`
@@ -75,6 +76,7 @@ type InitConfigOptionBase struct {
 	DatabaseName     types.String `tfsdk:"database_name"`
 	DatabasePort     types.Int32  `tfsdk:"database_port"`
 	DatabaseUserName types.String `tfsdk:"database_user_name"`
+	OriginRegion     types.String `tfsdk:"origin_region"`
 }
 
 // InitConfigOption extends the base with the write-only field (database_user_password)
@@ -98,34 +100,33 @@ type MaintenanceOption struct {
 }
 
 type ClusterDetail struct {
-	AccountId            types.String             `tfsdk:"account_id"`
-	AllowableIpAddresses types.Set                `tfsdk:"allowable_ip_addresses"`
-	DbaasEngine          types.String             `tfsdk:"dbaas_engine"`
-	NatEnabled           types.Bool               `tfsdk:"nat_enabled"`
-	HaEnabled            types.Bool               `tfsdk:"ha_enabled"`
-	Id                   types.String             `tfsdk:"id"`
-	InitConfigOption     *InitConfigOptionBase    `tfsdk:"init_config_option"`
-	InstanceCount        types.Int32              `tfsdk:"instance_count"`
-	InstanceGroups       []database.InstanceGroup `tfsdk:"instance_groups"`
-	IsKernelPatchable    types.Bool               `tfsdk:"is_kernel_patchable"`
-	MaintenanceOption    *MaintenanceOption       `tfsdk:"maintenance_option"`
-	Name                 types.String             `tfsdk:"name"`
-	OriginClusterId      types.String             `tfsdk:"origin_cluster_id"`
-	ProductType          types.String             `tfsdk:"product_type"`
-	Replicas             types.Set                `tfsdk:"replicas"`
-	RoleType             types.String             `tfsdk:"role_type"`
-	ServiceState         types.String             `tfsdk:"service_state"`
-	SoftwareVersion      types.String             `tfsdk:"software_version"`
-	SubnetId             types.String             `tfsdk:"subnet_id"`
-	Timezone             types.String             `tfsdk:"timezone"`
-	VipPublicIpId        types.String             `tfsdk:"vip_public_ip_id"`
-	//VipPublicIpAddress   types.String      `tfsdk:"vip_public_ip_address"`
-	VirtualIpAddress          types.String `tfsdk:"virtual_ip_address"`
-	CreatedAt                 types.String `tfsdk:"created_at"`
-	CreatedBy                 types.String `tfsdk:"created_by"`
-	ModifiedAt                types.String `tfsdk:"modified_at"`
-	ModifiedBy                types.String `tfsdk:"modified_by"`
-	ServiceWatchLogCollection types.Bool   `tfsdk:"service_watch_log_collection"`
+	AccountId                 types.String             `tfsdk:"account_id"`
+	AllowableIpAddresses      types.Set                `tfsdk:"allowable_ip_addresses"`
+	DbaasEngine               types.String             `tfsdk:"dbaas_engine"`
+	NatEnabled                types.Bool               `tfsdk:"nat_enabled"`
+	HaEnabled                 types.Bool               `tfsdk:"ha_enabled"`
+	Id                        types.String             `tfsdk:"id"`
+	InitConfigOption          *InitConfigOptionBase    `tfsdk:"init_config_option"`
+	InstanceCount             types.Int32              `tfsdk:"instance_count"`
+	InstanceGroups            []database.InstanceGroup `tfsdk:"instance_groups"`
+	IsKernelPatchable         types.Bool               `tfsdk:"is_kernel_patchable"`
+	MaintenanceOption         *MaintenanceOption       `tfsdk:"maintenance_option"`
+	Name                      types.String             `tfsdk:"name"`
+	OriginClusterId           types.String             `tfsdk:"origin_cluster_id"`
+	ProductType               types.String             `tfsdk:"product_type"`
+	Replicas                  types.Set                `tfsdk:"replicas"`
+	RoleType                  types.String             `tfsdk:"role_type"`
+	ServiceState              types.String             `tfsdk:"service_state"`
+	SoftwareVersion           types.String             `tfsdk:"software_version"`
+	SubnetId                  types.String             `tfsdk:"subnet_id"`
+	Timezone                  types.String             `tfsdk:"timezone"`
+	VipPublicIpId             types.String             `tfsdk:"vip_public_ip_id"`
+	VirtualIpAddress          types.String             `tfsdk:"virtual_ip_address"`
+	CreatedAt                 types.String             `tfsdk:"created_at"`
+	CreatedBy                 types.String             `tfsdk:"created_by"`
+	ModifiedAt                types.String             `tfsdk:"modified_at"`
+	ModifiedBy                types.String             `tfsdk:"modified_by"`
+	ServiceWatchLogCollection types.Bool               `tfsdk:"service_watch_log_collection"`
 }
 
 // -------------------- Handler -------------------- //
@@ -138,7 +139,10 @@ type UpdateHandler struct {
 // --------------- Engine Version ------------ //
 
 type EngineVersionDataSource struct {
-	Contents []EngineVersion `tfsdk:"contents"`
+	Contents         []EngineVersion `tfsdk:"contents"`
+	Id               types.String    `tfsdk:"id"`
+	ProductImageType types.String    `tfsdk:"product_image_type"`
+	EosIncluded      types.Bool      `tfsdk:"eos_included"`
 }
 
 type EngineVersion struct {

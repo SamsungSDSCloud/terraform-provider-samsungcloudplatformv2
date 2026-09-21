@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/directconnect"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpdirectconnect "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/direct-connect/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/directconnect"
+	directconnectv1d2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/directconnectv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpdirectconnect "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/direct-connect/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -34,9 +35,10 @@ func NewDirectConnectDirectConnectResource() resource.Resource {
 
 // directConnectDirectConnectResource is the data source implementation.
 type directConnectDirectConnectResource struct {
-	config  *scpsdk.Configuration
-	client  *directconnect.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *directconnect.Client
+	clientv1d2 *directconnectv1d2.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -69,6 +71,24 @@ func (r *directConnectDirectConnectResource) Schema(_ context.Context, _ resourc
 					"  - maxLength : 50\n" +
 					"  - minLength : 1",
 				Optional: true,
+			},
+			common.ToSnakeCase("UplinkActiveZone"): schema.StringAttribute{
+				Description: "Uplink Active Zone\n" +
+					"  - example : kr-west1-b",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			common.ToSnakeCase("UplinkStandbyZone"): schema.StringAttribute{
+				Description: "Uplink Standby Zone\n" +
+					"  - example : kr-west1-b",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("FirewallEnabled"): schema.BoolAttribute{
 				Description: "Whether the firewall is enabled for the direct connect.(firewall Enable : true, firewall Diable : false)\n" +
@@ -124,6 +144,15 @@ func (r *directConnectDirectConnectResource) Schema(_ context.Context, _ resourc
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
 						Description: "The name of the VPC that the direct connect belongs to.\n" +
 							"  - example : vpc-prod-01",
+						Computed: true,
+					},
+					common.ToSnakeCase("UplinkActiveZone"): schema.StringAttribute{
+						Description: "Uplink Active Zone\n" +
+							"  - example : kr-west1-b",
+						Computed: true,
+					}, common.ToSnakeCase("UplinkStandbyZone"): schema.StringAttribute{
+						Description: "Uplink Standby Zone\n" +
+							"  - example : kr-west1-b",
 						Computed: true,
 					},
 					common.ToSnakeCase("Bandwidth"): schema.Int32Attribute{
@@ -186,13 +215,14 @@ func (r *directConnectDirectConnectResource) Configure(_ context.Context, req re
 	}
 
 	r.client = inst.Client.DirectConnect
+	r.clientv1d2 = inst.Client.DirectConnectV1d2
 	r.clients = inst.Client
 }
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *directConnectDirectConnectResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan directconnect.DirectConnectResource
+	var plan directconnectv1d2.DirectConnectResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -200,7 +230,7 @@ func (r *directConnectDirectConnectResource) Create(ctx context.Context, req res
 	}
 
 	// Create new direct connect
-	data, err := r.client.CreateDirectConnect(ctx, plan)
+	data, err := r.clientv1d2.CreateDirectConnect(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -260,7 +290,7 @@ func (r *directConnectDirectConnectResource) ImportState(ctx context.Context, re
 // Read refreshes the Terraform state with the latest data.
 func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state directconnect.DirectConnectResource
+	var state directconnectv1d2.DirectConnectResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -268,7 +298,7 @@ func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resou
 	}
 
 	// Get refreshed order value from direct connect
-	data, err := r.client.GetDirectConnect(ctx, state.Id.ValueString())
+	data, err := r.clientv1d2.GetDirectConnect(ctx, state.Id.ValueString())
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			resp.State.RemoveResource(ctx)
@@ -295,6 +325,8 @@ func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resou
 	state.Description = types.StringPointerValue(data.DirectConnect.Description.Get())
 	state.Bandwidth = types.Int32Value(data.DirectConnect.Bandwidth)
 	state.VpcId = types.StringValue(data.DirectConnect.VpcId)
+	state.UplinkActiveZone = types.StringPointerValue(data.DirectConnect.UplinkActiveZone.Get())
+	state.UplinkStandbyZone = types.StringPointerValue(data.DirectConnect.UplinkStandbyZone.Get())
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -307,7 +339,7 @@ func (r *directConnectDirectConnectResource) Read(ctx context.Context, req resou
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *directConnectDirectConnectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state directconnect.DirectConnectResource
+	var state directconnectv1d2.DirectConnectResource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -315,7 +347,7 @@ func (r *directConnectDirectConnectResource) Update(ctx context.Context, req res
 	}
 
 	// Update existing order
-	_, err := r.client.UpdateDirectConnect(ctx, state.Id.ValueString(), state)
+	_, err := r.clientv1d2.UpdateDirectConnect(ctx, state.Id.ValueString(), state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -326,7 +358,7 @@ func (r *directConnectDirectConnectResource) Update(ctx context.Context, req res
 	}
 
 	// Fetch updated items from GetDirectConnect as UpdateDirectConnect items are not populated.
-	data, err := r.client.GetDirectConnect(ctx, state.Id.ValueString())
+	data, err := r.clientv1d2.GetDirectConnect(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -354,7 +386,7 @@ func (r *directConnectDirectConnectResource) Update(ctx context.Context, req res
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *directConnectDirectConnectResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state directconnect.DirectConnectResource
+	var state directconnectv1d2.DirectConnectResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -382,22 +414,24 @@ func (r *directConnectDirectConnectResource) Delete(ctx context.Context, req res
 	}
 }
 
-func createDirectConnectModel(data *scpdirectconnect.DirectConnectShowResponse) directconnect.DirectConnect {
+func createDirectConnectModel(data *scpdirectconnect.DirectConnectShowResponseV1Dot2) directconnectv1d2.DirectConnect {
 	dcon := data.DirectConnect
-	return directconnect.DirectConnect{
-		Id:          types.StringValue(dcon.Id),
-		Name:        types.StringValue(dcon.Name),
-		AccountId:   types.StringValue(dcon.AccountId),
-		Description: types.StringPointerValue(dcon.Description.Get()),
-		VpcId:       types.StringValue(dcon.VpcId),
-		VpcName:     types.StringValue(dcon.VpcName),
-		Bandwidth:   types.Int32Value(dcon.Bandwidth),
-		FirewallId:  types.StringPointerValue(dcon.FirewallId.Get()),
-		CreatedAt:   types.StringValue(dcon.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:   types.StringValue(dcon.CreatedBy),
-		ModifiedAt:  types.StringValue(dcon.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:  types.StringValue(dcon.ModifiedBy),
-		State:       types.StringValue(string(dcon.State)),
+	return directconnectv1d2.DirectConnect{
+		Id:                types.StringValue(dcon.Id),
+		Name:              types.StringValue(dcon.Name),
+		AccountId:         types.StringValue(dcon.AccountId),
+		Description:       types.StringPointerValue(dcon.Description.Get()),
+		UplinkActiveZone:  types.StringPointerValue(dcon.UplinkActiveZone.Get()),
+		UplinkStandbyZone: types.StringPointerValue(dcon.UplinkStandbyZone.Get()),
+		VpcId:             types.StringValue(dcon.VpcId),
+		VpcName:           types.StringValue(dcon.VpcName),
+		Bandwidth:         types.Int32Value(dcon.Bandwidth),
+		FirewallId:        types.StringPointerValue(dcon.FirewallId.Get()),
+		CreatedAt:         types.StringValue(dcon.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:         types.StringValue(dcon.CreatedBy),
+		ModifiedAt:        types.StringValue(dcon.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:        types.StringValue(dcon.ModifiedBy),
+		State:             types.StringValue(string(dcon.State)),
 	}
 }
 

@@ -8,13 +8,13 @@ import (
 
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/baremetal"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/loadbalancer/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/baremetal"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -362,18 +362,19 @@ func (r *loadbalancerLbMemberResource) Create(ctx context.Context, req resource.
 	}
 	plan.LbMember = lbMemberOjbectValue
 
-	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
+	refreshFn := r.getLbMemberRefreshFunc(ctx, plan.LbServerGroupId.ValueString(), member.Id)
+	err = client.WaitForResourceCreated(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating lb member",
+			"Error waiting for lb member to become active: "+err.Error(),
+		)
 		return
 	}
 
-	err = waitForMemberStatus(ctx, r.client, member.LbServerGroupId, member.Id, []string{}, []string{"ACTIVE"})
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating lb server group member",
-			"Error waiting for lb server group member to become active: "+err.Error(),
-		)
+	// Set state to fully populated data
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -386,7 +387,6 @@ func (r *loadbalancerLbMemberResource) Create(ctx context.Context, req resource.
 	r.Read(ctx, readReq, readResp)
 
 	resp.State = readResp.State
-	//}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -444,6 +444,20 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 	}
 	state.LbMember = lbMemberOjbectValue
 
+	// Reconcile lb_member_create input block with API response to detect drift
+	// Only populate if nil (e.g., after import) — preserve user config values otherwise
+	if state.LbMemberCreate == nil {
+		state.LbMemberCreate = &loadbalancer.LbMemberCreate{
+			Name:         types.StringValue(lbMember.Name),
+			MemberIp:     types.StringValue(lbMember.MemberIp),
+			MemberPort:   types.Int32Value(lbMember.MemberPort),
+			ObjectType:   types.StringValue(string(lbMember.ObjectType)),
+			ObjectId:     virtualserverutil.ToNullableStringValue(lbMember.ObjectId.Get()),
+			MemberWeight: types.Int32Value(lbMember.MemberWeight),
+			MemberState:  types.StringValue(lbMember.MemberState),
+		}
+	}
+
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -455,20 +469,32 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *loadbalancerLbMemberResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state loadbalancer.LbMemberResource
-	diags := req.Plan.Get(ctx, &state)
+	var plan loadbalancer.LbMemberResource
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Update existing order
-	data, err := r.client.UpdateLbMember(ctx, state.LbServerGroupId.ValueString(), state.Id.ValueString(), state)
+	// Get current member from API to compare with plan
+	currentData, err := r.client.GetLbMember(ctx, plan.LbServerGroupId.ValueString(), plan.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Lb Server Group Member",
-			"Could not create Lb Server Group Member, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error reading Lb Member",
+			"Could not read Lb Member, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+	currentMember := currentData.Member.Get()
+
+	// Compare plan vs current state — only send fields that changed
+	data, err := r.client.UpdateLbMemberPartial(ctx, plan.LbServerGroupId.ValueString(), plan.Id.ValueString(), plan.LbMemberSet, currentMember)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error updating Lb Member",
+			"Could not updating Lb Member, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
@@ -480,19 +506,21 @@ func (r *loadbalancerLbMemberResource) Update(ctx context.Context, req resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	state.LbMember = lbMemberObjectValue
+	plan.Id = types.StringValue(data.Member.Get().Id)
+	plan.LbMember = lbMemberObjectValue
+	// plan.LbMemberSet (user config) — leave as-is from plan
 
-	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err = waitForMemberStatus(ctx, r.client, data.Member.Get().LbServerGroupId, data.Member.Get().Id, []string{}, []string{"ACTIVE"})
+	refreshFn := r.getLbMemberRefreshFunc(ctx, plan.LbServerGroupId.ValueString(), plan.Id.ValueString())
+	err = client.WaitForResourceUpdated(ctx, refreshFn)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating lb server group member",
-			"Error waiting for lb server group member to become active: "+err.Error(),
+			"Error Updating LbMember",
+			"Error waiting for LbMember to become ACTIVE: "+err.Error(),
 		)
 		return
 	}
@@ -528,6 +556,26 @@ func (r *loadbalancerLbMemberResource) Delete(ctx context.Context, req resource.
 		)
 		return
 	}
+
+	refreshFn := r.getLbMemberRefreshFunc(ctx, state.LbServerGroupId.ValueString(), state.Id.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting LbMember",
+			"Error waiting for LbMember to become deleted: "+err.Error(),
+		)
+		return
+	}
+
+	readReq := resource.ReadRequest{
+		State: resp.State,
+	}
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, readReq, readResp)
+
+	resp.State = readResp.State
 }
 
 func createLbMemberModel(data scploadbalancer.Member) loadbalancer.LbMemberDetail {
@@ -572,12 +620,12 @@ func updateLbMemberModel(data *scploadbalancer.MemberShowResponse) loadbalancer.
 	}
 }
 
-func waitForMemberStatus(ctx context.Context, loadbalancerClient *loadbalancer.Client, lbServerGroupId string, id string, pendingStates []string, targetStates []string) error {
-	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
-		info, err := loadbalancerClient.GetLbMember(ctx, lbServerGroupId, id)
+func (r *loadbalancerLbMemberResource) getLbMemberRefreshFunc(ctx context.Context, lbServerGroupId string, id string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		data, err := r.client.GetLbMember(ctx, lbServerGroupId, id)
 		if err != nil {
 			return nil, "", err
 		}
-		return info, string(info.GetMember().State), nil
-	}, -1, -1, -1, -1)
+		return data, string(data.Member.Get().State), nil
+	}
 }

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/budget"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/budget"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -92,6 +92,11 @@ func (d *budgetBudgetDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 					common.ToSnakeCase("StartMonth"): schema.StringAttribute{
 						Description:         "Budget start month",
 						MarkdownDescription: "The month when the budget period starts.\n\nExample: `2024-01`",
+						Computed:            true,
+					},
+					common.ToSnakeCase("is_cost_linked"): schema.BoolAttribute{
+						Description:         "Cost Navigator linked state",
+						MarkdownDescription: "The state of cost navigator linkage setting.\n\nExample: `true`",
 						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
@@ -222,6 +227,13 @@ func (d *budgetBudgetDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	budgetData := data.Budget
+
+    // IsCostLinked 변환
+    isCostLinked := types.BoolNull()
+    if budgetData.IsCostLinked.Get() != nil {
+        isCostLinked = types.BoolValue(*budgetData.IsCostLinked.Get())
+    }
+
 	budgetModel := budget.Budget{
 		BudgetId:   types.StringValue(budgetData.Id),
 		Name:       types.StringValue(budgetData.Name),
@@ -233,6 +245,7 @@ func (d *budgetBudgetDataSource) Read(ctx context.Context, req datasource.ReadRe
 		ModifiedAt: types.StringValue(budgetData.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy: types.StringPointerValue(budgetData.ModifiedBy),
 		StartMonth: types.StringValue(budgetData.StartMonth), // 추가: StartMonth 매핑
+		IsCostLinked: isCostLinked, // 변환된 값 사용
 	}
 	budgetObjectValue, objDiags := types.ObjectValueFrom(ctx, budgetModel.AttributeTypes(), budgetModel)
 	if objDiags.HasError() {

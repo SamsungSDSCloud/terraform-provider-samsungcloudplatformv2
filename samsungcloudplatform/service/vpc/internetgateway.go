@@ -6,19 +6,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vpc/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.1"
+	scpvpcv1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -26,6 +28,7 @@ var (
 	_ resource.Resource                = &vpcInternetGatewayResource{}
 	_ resource.ResourceWithConfigure   = &vpcInternetGatewayResource{}
 	_ resource.ResourceWithImportState = &vpcInternetGatewayResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcInternetGatewayResource{}
 )
 
 // NewVpcInternetGatewayResource is a helper function to simplify the provider implementation.
@@ -35,9 +38,10 @@ func NewVpcInternetGatewayResource() resource.Resource {
 
 // vpcInternetGatewayResource is the data source implementation.
 type vpcInternetGatewayResource struct {
-	config  *scpsdk.Configuration
-	client  *vpc.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *vpc.Client
+	clientv1d3 *vpcv1d3.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -70,7 +74,9 @@ func (r *vpcInternetGatewayResource) Schema(_ context.Context, _ resource.Schema
 					"  - maxLength : 50",
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("Loggable"): schema.BoolAttribute{
 				Description: "Whether logging is enabled for the NAT.(NAT logging Enable : true, NAT logging Diable : false) \n" +
@@ -137,6 +143,11 @@ func (r *vpcInternetGatewayResource) Schema(_ context.Context, _ resource.Schema
 							"  - example : true",
 						Computed: true,
 					},
+					common.ToSnakeCase("MultiZoneEnabled"): schema.BoolAttribute{
+						Description: "Whether MultiAZ is enabled for the internet gateway.(MultiAZ 사용여부)\n" +
+							"  - example : true",
+						Computed: true,
+					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
 						Description: "The identifier of the firewall associated with the internet gateway.\n" +
 							"  - example : 68db67f78abd405da98a6056a8ee42af",
@@ -192,13 +203,14 @@ func (r *vpcInternetGatewayResource) Configure(_ context.Context, req resource.C
 	}
 
 	r.client = inst.Client.Vpc
+	r.clientv1d3 = inst.Client.VpcV1Dot3
 	r.clients = inst.Client
 }
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan vpc.InternetGatewayResource
+	var plan vpcv1d3.InternetGatewayResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -206,7 +218,7 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Create new internet gateway
-	data, err := r.client.CreateInternetGateway(ctx, plan)
+	data, err := r.clientv1d3.CreateInternetGateway(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -219,7 +231,7 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(data.InternetGateway.Id)
 
-	igwModel := createInternetGatewayModel(data)
+	igwModel := createInternetGatewayModelV1d3(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
 	resp.Diagnostics.Append(diags...)
@@ -228,13 +240,16 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 	}
 	plan.InternetGateway = igwObjectValue
 
+	// Description might be default to "" in API response
+	plan.Description = igwModel.Description
+
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err = waitForInternetGatewayStatus(ctx, r.client, data.InternetGateway.Id, []string{}, []string{"ACTIVE"})
+	err = waitForInternetGatewayStatusV1d3(ctx, r.clientv1d3, data.InternetGateway.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating internet gateway",
@@ -257,7 +272,7 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 // Read refreshes the Terraform state with the latest data.
 func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state vpc.InternetGatewayResource
+	var state vpcv1d3.InternetGatewayResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -265,7 +280,7 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 	}
 
 	// Get refreshed order value from internet gateway
-	data, err := r.client.GetInternetGateway(ctx, state.Id.ValueString())
+	data, err := r.clientv1d3.GetInternetGateway(ctx, state.Id.ValueString())
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			resp.State.RemoveResource(ctx)
@@ -292,7 +307,7 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 	state.Loggable = types.BoolValue(data.InternetGateway.GetLoggable())
 	state.VpcId = types.StringValue(data.InternetGateway.VpcId)
 
-	igwModel := createInternetGatewayModel(data)
+	igwModel := createInternetGatewayModelV1d3(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
 	resp.Diagnostics.Append(diags...)
@@ -312,7 +327,7 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state vpc.InternetGatewayResource
+	var state vpcv1d3.InternetGatewayResource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -320,7 +335,7 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Update existing order
-	_, err := r.client.UpdateInternetGateway(ctx, state.Id.ValueString(), state)
+	_, err := r.clientv1d3.UpdateInternetGateway(ctx, state.Id.ValueString(), state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -331,7 +346,7 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Fetch updated items from GetInternetGateway as UpdateInternetGateway items are not populated.
-	data, err := r.client.GetInternetGateway(ctx, state.Id.ValueString())
+	data, err := r.clientv1d3.GetInternetGateway(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -341,7 +356,7 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	igwModel := createInternetGatewayModel(data)
+	igwModel := createInternetGatewayModelV1d3(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
 	resp.Diagnostics.Append(diags...)
@@ -350,6 +365,9 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 	}
 	state.InternetGateway = igwObjectValue
 	state.Loggable = types.BoolValue(data.InternetGateway.GetLoggable())
+
+	// Description might be default to "" in API response
+	state.Description = igwModel.Description
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -429,4 +447,135 @@ func (r *vpcInternetGatewayResource) ImportState(ctx context.Context, req resour
 		return
 	}
 	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[0]))
+}
+
+func createInternetGatewayModelV1d3(data *scpvpcv1d3.InternetGatewayShowResponseV1Dot3) vpcv1d3.InternetGateway {
+	igw := data.InternetGateway
+	return vpcv1d3.InternetGateway{
+		Id:               types.StringValue(igw.Id),
+		Name:             types.StringValue(igw.Name),
+		AccountId:        types.StringValue(igw.AccountId),
+		Description:      types.StringPointerValue(igw.Description.Get()),
+		VpcId:            types.StringValue(igw.VpcId),
+		VpcName:          types.StringValue(igw.VpcName),
+		Type:             types.StringValue(string(igw.Type)),
+		Loggable:         types.BoolValue(igw.GetLoggable()),
+		MultiZoneEnabled: types.BoolValue(igw.GetMultiZoneEnabled()),
+		FirewallId:       types.StringPointerValue(igw.FirewallId.Get()),
+		CreatedAt:        types.StringValue(igw.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:        types.StringValue(igw.CreatedBy),
+		ModifiedAt:       types.StringValue(igw.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:       types.StringValue(igw.ModifiedBy),
+		State:            types.StringValue(string(igw.State)),
+	}
+}
+
+func waitForInternetGatewayStatusV1d3(ctx context.Context, vpcClient *vpcv1d3.Client, id string, pendingStates []string, targetStates []string) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, err := vpcClient.GetInternetGateway(ctx, id)
+		if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.InternetGateway.State), nil
+	}, -1, -1, -1, -1)
+}
+
+func (r *vpcInternetGatewayResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpcv1d3.InternetGatewayResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpcv1d3.InternetGatewayResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fields that cannot be updated via the API — check each for changes
+	type fieldCheck struct {
+		name    string
+		changed bool
+	}
+	checks := []fieldCheck{
+		{"type", !plan.Type.Equal(state.Type)},
+		{"firewall_enabled", !plan.FirewallEnabled.Equal(state.FirewallEnabled)},
+		{"firewall_loggable", !plan.FirewallLoggable.Equal(state.FirewallLoggable)},
+		{"vpc_id", !plan.VpcId.Equal(state.VpcId)},
+		{"tags", !plan.Tags.Equal(state.Tags)},
+	}
+
+	for _, f := range checks {
+		if f.changed {
+			resp.Diagnostics.AddError(
+				"Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual resource. To change %s, recreate the resource.", f.name, f.name),
+			)
+		}
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Reconstruct internet_gateway: merge stable fields from state, leave rest as unknown.
+	// This prevents id, account_id, created_at, created_by from showing as (known after apply).
+	if !state.InternetGateway.IsNull() && !state.InternetGateway.IsUnknown() {
+		var stateIg vpcv1d3.InternetGateway
+		resp.Diagnostics.Append(state.InternetGateway.As(ctx, &stateIg, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Only mark modified_at/modified_by as unknown when description or loggable actually changes
+		descriptionChanged := !plan.Description.Equal(state.Description)
+		loggableChanged := !plan.Loggable.Equal(state.Loggable)
+		changed := descriptionChanged || loggableChanged
+
+		mergedIg := vpcv1d3.InternetGateway{
+			Id:               stateIg.Id,
+			Name:             stateIg.Name,
+			AccountId:        stateIg.AccountId,
+			Type:             stateIg.Type,
+			VpcId:            stateIg.VpcId,
+			VpcName:          stateIg.VpcName,
+			Loggable:         plan.Loggable,
+			FirewallId:       stateIg.FirewallId,
+			MultiZoneEnabled: stateIg.MultiZoneEnabled,
+			CreatedAt:        stateIg.CreatedAt,
+			CreatedBy:        stateIg.CreatedBy,
+			State:            stateIg.State,
+			Description:      plan.Description,
+		}
+
+		if changed {
+			mergedIg.ModifiedAt = types.StringUnknown()
+			mergedIg.ModifiedBy = types.StringUnknown()
+		} else {
+			mergedIg.ModifiedAt = stateIg.ModifiedAt
+			mergedIg.ModifiedBy = stateIg.ModifiedBy
+		}
+
+		mergedObj, diags := types.ObjectValueFrom(ctx, mergedIg.AttributeTypes(), mergedIg)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		plan.InternetGateway = mergedObj
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
 }

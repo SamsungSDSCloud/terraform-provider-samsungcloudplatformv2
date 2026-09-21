@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/mariadb"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpMariadb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/mariadb/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/mariadb"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpMariadb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/mariadb/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -174,6 +174,14 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 							databaseUtils.DescPatternLowerAlpha,
 						Required: true,
 					},
+					common.ToSnakeCase("OriginRegion"): schema.StringAttribute{
+						Description:         "Origin region of the source cluster (set for restored/replica clusters)\n  - example: kr-west1",
+						MarkdownDescription: "Origin region of the source cluster (set for restored/replica clusters)\n  - example: kr-west1",
+						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
 					common.ToSnakeCase("DatabaseUserPassword"): schema.StringAttribute{
 						Description: databaseUtils.DescDatabaseUserPassword +
 							databaseUtils.DescMinLength8 +
@@ -217,6 +225,9 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 										MarkdownDescription: databaseUtils.DescRoleType +
 											databaseUtils.DescExampleOS,
 										Required: true,
+										Validators: []validator.String{
+											stringvalidator.OneOf(databaseUtils.BSRoleTypesFull...),
+										},
 									},
 									common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
 										Description: databaseUtils.DescSizeInGB +
@@ -266,13 +277,13 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
 										Description: databaseUtils.DescRoleType +
 											databaseUtils.DescExampleACTIVE +
-											databaseUtils.DescPatternActiveStandby,
+											databaseUtils.DescPatternActiveStandbyReplica,
 										MarkdownDescription: databaseUtils.DescRoleType +
 											databaseUtils.DescExampleACTIVE +
-											databaseUtils.DescPatternActiveStandby,
+											databaseUtils.DescPatternActiveStandbyReplica,
 										Required: true,
 										Validators: []validator.String{
-											stringvalidator.OneOf("ACTIVE", "STANDBY"),
+											stringvalidator.OneOf("ACTIVE", "STANDBY", "REPLICA"),
 										},
 									},
 									common.ToSnakeCase("ServiceIpAddress"): schema.StringAttribute{
@@ -299,13 +310,13 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 						common.ToSnakeCase("RoleType"): schema.StringAttribute{
 							Description: databaseUtils.DescRoleType +
 								databaseUtils.DescExampleACTIVE +
-								databaseUtils.DescPatternActiveStandbyHa,
+								databaseUtils.DescPatternActiveStandbyHaReplica,
 							MarkdownDescription: databaseUtils.DescRoleType +
 								databaseUtils.DescExampleACTIVE +
-								databaseUtils.DescPatternActiveStandbyHa,
+								databaseUtils.DescPatternActiveStandbyHaReplica,
 							Required: true,
 							Validators: []validator.String{
-								stringvalidator.OneOf("ACTIVE", "ACTIVE_STANDBY"),
+								stringvalidator.OneOf("ACTIVE", "ACTIVE_STANDBY", "REPLICA"),
 							},
 						},
 						common.ToSnakeCase("ServerTypeName"): schema.StringAttribute{
@@ -335,6 +346,9 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 			common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 				Description: "Maintenance option",
 				Required:    true,
+				Validators: []validator.Object{
+					databaseUtils.MaintenanceOptionValidator(),
+				},
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
 						Description: databaseUtils.DescPeriodInHours +
@@ -364,6 +378,10 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 							databaseUtils.DescExampleFalse,
 						Optional: true,
 						Computed: true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseNonNullStateForUnknown(),
+							databaseUtils.ImmutableBool(),
+						},
 					},
 				},
 			},
@@ -402,6 +420,16 @@ func (r *mariadbClusterResource) Schema(_ context.Context, _ resource.SchemaRequ
 				MarkdownDescription: databaseUtils.DescTimezone +
 					databaseUtils.DescExampleAsiaSeoul,
 				Required: true,
+			},
+			common.ToSnakeCase("OriginClusterId"): schema.StringAttribute{
+				Description:         "Origin cluster ID to create this cluster from (restore/replica)\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				MarkdownDescription: "Origin cluster ID to create this cluster from (restore/replica)\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					databaseUtils.ImmutableString(),
+				},
 			},
 			common.ToSnakeCase("VipPublicIpId"): schema.StringAttribute{
 				Description:         "VIP Public IP ID (Required when NatEnabled=True & HaEnabled=True)\n  - example: 88a68b14850741599ecacd0eb190999a",
@@ -586,6 +614,7 @@ func (r *mariadbClusterResource) MapGetResponseToState(ctx context.Context, resp
 				DatabaseName:         types.StringValue(resp.InitConfigOption.DatabaseName),
 				DatabasePort:         types.Int32PointerValue(resp.InitConfigOption.DatabasePort.Get()),
 				DatabaseUserName:     types.StringValue(resp.InitConfigOption.DatabaseUserName),
+				OriginRegion:         types.StringPointerValue(resp.InitConfigOption.OriginRegion.Get()),
 			},
 			DatabaseUserPassword: dbUserPassword,
 		}
@@ -618,6 +647,7 @@ func (r *mariadbClusterResource) MapGetResponseToState(ctx context.Context, resp
 		InstanceNamePrefix:        plan.InstanceNamePrefix,
 		MaintenanceOption:         maintenanceOption,
 		Name:                      types.StringValue(resp.Name),
+		OriginClusterId:           types.StringValue(resp.GetOriginClusterId()),
 		ServiceState:              types.StringValue(string(resp.ServiceState)),
 		SubnetId:                  types.StringValue(resp.SubnetId),
 		Tags:                      tagsMap,
@@ -722,7 +752,7 @@ func (r *mariadbClusterResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "HaEnabled", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress", "ServiceWatchLogCollection"}
+	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "HaEnabled", "NatEnabled", "InstanceNamePrefix", "Name", "OriginClusterId", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress", "ServiceWatchLogCollection"}
 
 	// InitConfigOption is immutable except for BackupOption: guard it only when a
 	// field other than BackupOption changed.
@@ -991,6 +1021,14 @@ func (r *mariadbClusterResource) handlerUpdateInstanceGroups(ctx context.Context
 				}
 				if len(bsPlan.Removed) > 0 {
 					return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: removing an existing block storage is not supported")
+				}
+				// 리사이즈/추가를 실행하기 전에 role_type을 먼저 검증한다.
+				// 루프 중간에서 실패하면 이미 만들어진 디스크가 state에 남지 않아 drift가 생긴다.
+				for _, add := range bsPlan.Adds {
+					// AddBlockStorages는 ExtraBlockStorageGroupRoleType(OS 제외)만 허용한다.
+					if !databaseUtils.IsExtraBlockStorageRoleType(add.RoleType.ValueString()) {
+						return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: role_type %q cannot be added to an existing instance group (allowed: %s)", add.RoleType.ValueString(), strings.Join(databaseUtils.BSRoleTypesExtra, ", "))
+					}
 				}
 
 				// Resize existing Block Storages

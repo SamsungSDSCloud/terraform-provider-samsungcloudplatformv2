@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
 )
 
 const ServiceType = "scp-vertica"
@@ -127,7 +127,10 @@ type UpdateHandler struct {
 // --------------- Engine Version ------------ //
 
 type EngineVersionDataSource struct {
-	Contents []EngineVersion `tfsdk:"contents"`
+	Contents         []EngineVersion `tfsdk:"contents"`
+	Id               types.String    `tfsdk:"id"`
+	ProductImageType types.String    `tfsdk:"product_image_type"`
+	EosIncluded      types.Bool      `tfsdk:"eos_included"`
 }
 
 type EngineVersion struct {

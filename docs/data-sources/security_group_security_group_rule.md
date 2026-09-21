@@ -70,6 +70,10 @@ Read-Only:
   - example: 5
 - `protocol` (String) The network protocol the rule applies to.
   - example: TCP
+- `remote_address_group_id` (String) The identifier of the remote address group the rule applies to.
+  - example: YOUR RESOURCE'S REMOTE_ADDRESS_GROUP_ID
+- `remote_address_group_name` (String) The name of the remote address group the rule applies to.
+  - example: ag-web-prod
 - `remote_group_id` (String) The identifier of the remote security group the rule applies to.
   - example: YOUR RESOURCE'S REMOTE_GROUP_ID
 - `remote_group_name` (String) The name of the remote security group the rule applies to.

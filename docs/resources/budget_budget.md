@@ -25,7 +25,7 @@ resource "samsungcloudplatformv2_budget_budget" "budget" {
 }
 
 output "budget" {
-  value = samsungcloudplatformv2_budget_budget.budget.budget
+  value = samsungcloudplatformv2_budget_budget.budget
 }
 
 variable "budget_name" {
@@ -161,6 +161,9 @@ Example: `2024-01-15T00:00:00`
 - `created_by` (String) The user who created the budget.
 
 Example: `user@example.com`
+- `is_cost_linked` (Boolean) The state of cost navigator linkage setting.
+
+Example: `true`
 - `modified_at` (String) The datetime when the budget was last modified.
 
 Example: `2024-01-15T00:00:00`

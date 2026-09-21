@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -58,19 +58,12 @@ func (r *organizationResource) Schema(_ context.Context, _ resource.SchemaReques
 					"  - example : 'My Organization' \n",
 				Required: true,
 			},
-			"delegation_account_id": schema.StringAttribute{
-				Description: "Delegation Account. \n" +
-					"  - example : '124e7d6c5b4a3z2y1x0w9v8u7t6s5r' \n",
-				Optional: true,
-				Computed: true,
-			},
 			"use_scp_yn": schema.BoolAttribute{
 				Description: "Control Policy Usage YN. \n" +
 					"  - example : true \n",
 				Optional: true,
 				Computed: true,
 			},
-			// Computed fields
 			"created_at": schema.StringAttribute{
 				Description: "Timestamp when the organization was created. \n" +
 					"  - example : '2025-01-01T00:00:00.000Z' \n",
@@ -127,8 +120,6 @@ func (r *organizationResource) Schema(_ context.Context, _ resource.SchemaReques
 
 // Configure adds the provider configured client to the resource.
 func (r *organizationResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Add a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
 	if req.ProviderData == nil {
 		return
 	}
@@ -149,15 +140,23 @@ func (r *organizationResource) Configure(_ context.Context, req resource.Configu
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *organizationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	// Retrieve values from plan
 	var plan organization.OrganizationResource
+
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Create new Organization
+	if !plan.UseScpYn.IsNull() && !plan.UseScpYn.IsUnknown() && !plan.UseScpYn.ValueBool() {
+		resp.Diagnostics.AddError(
+			"Invalid use_scp_yn on creation",
+			"use_scp_yn cannot be set to false when creating an organization. "+
+				"Organizations are always created with SCP enabled. ",
+		)
+		return
+	}
+
 	data, err := r.client.CreateOrganization(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
@@ -170,7 +169,6 @@ func (r *organizationResource) Create(ctx context.Context, req resource.CreateRe
 
 	org := data.Organization
 
-	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(org.Id)
 	plan.CreatedAt = types.StringValue(org.CreatedAt.Format(time.RFC3339))
 	plan.CreatedBy = types.StringValue(org.CreatedBy)
@@ -182,12 +180,6 @@ func (r *organizationResource) Create(ctx context.Context, req resource.CreateRe
 	plan.MasterAccountEmail = types.StringValue(org.MasterAccountEmail)
 	plan.RootUnitId = types.StringValue(org.RootUnitId)
 	plan.Srn = types.StringValue(org.Srn)
-	delegationAccountId := org.DelegationAccountId.Get()
-	if delegationAccountId == nil || *delegationAccountId == "" {
-		plan.DelegationAccountId = types.StringNull()
-	} else {
-		plan.DelegationAccountId = types.StringValue(*delegationAccountId)
-	}
 	plan.UseScpYn = types.BoolValue(org.UseScpYn)
 
 	orgId := org.Id
@@ -210,7 +202,6 @@ func (r *organizationResource) Create(ctx context.Context, req resource.CreateRe
 
 // Read reads the resource state from Terraform state and updates the resource data.
 func (r *organizationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	// Retrieve values from state
 	var state organization.OrganizationResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -218,7 +209,6 @@ func (r *organizationResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	// Get refreshed Organization value from SCP
 	data, err := r.client.GetOrganization(ctx, state.Id.ValueString())
 	if err != nil {
 		resp.State.RemoveResource(ctx)
@@ -227,7 +217,6 @@ func (r *organizationResource) Read(ctx context.Context, req resource.ReadReques
 
 	org := data.Organization
 
-	// Overwrite items to refresh state
 	state.Id = types.StringValue(org.Id)
 	state.Name = types.StringValue(org.Name)
 	state.CreatedAt = types.StringValue(org.CreatedAt.Format(time.RFC3339))
@@ -240,10 +229,8 @@ func (r *organizationResource) Read(ctx context.Context, req resource.ReadReques
 	state.MasterAccountEmail = types.StringValue(org.MasterAccountEmail)
 	state.RootUnitId = types.StringValue(org.RootUnitId)
 	state.Srn = types.StringValue(org.Srn)
-	state.DelegationAccountId = types.StringPointerValue(org.DelegationAccountId.Get())
 	state.UseScpYn = types.BoolValue(org.UseScpYn)
 
-	// Set refreshed state
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -253,7 +240,6 @@ func (r *organizationResource) Read(ctx context.Context, req resource.ReadReques
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *organizationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// Retrieve values from plan
 	var plan organization.OrganizationResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -261,7 +247,6 @@ func (r *organizationResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	// Update existing Organization
 	_, err := r.client.UpdateOrganization(ctx, plan.Id.ValueString(), plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
@@ -272,7 +257,6 @@ func (r *organizationResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	// Read updated Organization
 	data, err := r.client.GetOrganization(ctx, plan.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -284,7 +268,6 @@ func (r *organizationResource) Update(ctx context.Context, req resource.UpdateRe
 
 	org := data.Organization
 
-	// Update plan with new values
 	plan.Id = types.StringValue(org.Id)
 	plan.Name = types.StringValue(org.Name)
 	plan.CreatedAt = types.StringValue(org.CreatedAt.Format(time.RFC3339))
@@ -300,13 +283,6 @@ func (r *organizationResource) Update(ctx context.Context, req resource.UpdateRe
 
 	plan.UseScpYn = types.BoolValue(org.UseScpYn)
 
-	delegationAccountId := org.DelegationAccountId.Get()
-	if delegationAccountId == nil || *delegationAccountId == "" {
-		plan.DelegationAccountId = types.StringNull()
-	} else {
-		plan.DelegationAccountId = types.StringValue(*delegationAccountId)
-	}
-
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -316,7 +292,6 @@ func (r *organizationResource) Update(ctx context.Context, req resource.UpdateRe
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *organizationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// Retrieve values from state
 	var state organization.OrganizationResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -324,7 +299,6 @@ func (r *organizationResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	// Delete existing Organization
 	_, err := r.client.DeleteOrganization(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)

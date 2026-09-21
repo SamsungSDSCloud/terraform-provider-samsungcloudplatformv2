@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -184,7 +184,7 @@ func (r *accountRemoveResource) Create(ctx context.Context, req resource.CreateR
 	result, err := r.client.RemoveAccounts(ctx, accountIds, orgId)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddWarning("Error removing Organization Accounts", "Could not remove Organization Accounts: "+err.Error()+"\nReason: "+detail)
+		resp.Diagnostics.AddError("Error removing Organization Accounts", "Could not remove Organization Accounts: "+err.Error()+"\nReason: "+detail)
 		successIds, successIdsDiags := types.ListValue(types.ObjectType{AttrTypes: successIdAttrTypes}, []attr.Value{})
 		resp.Diagnostics.Append(successIdsDiags...)
 		failedIds, failedIdsDiags := types.ListValue(types.ObjectType{AttrTypes: failedIdAttrTypes}, []attr.Value{})

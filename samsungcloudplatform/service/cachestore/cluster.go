@@ -6,13 +6,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/cachestore"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpCachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/cachestore/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/cachestore"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpCachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/cachestore/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -181,6 +181,9 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 										MarkdownDescription: databaseUtils.DescRoleType +
 											databaseUtils.DescExampleOS,
 										Required: true,
+										Validators: []validator.String{
+											stringvalidator.OneOf(databaseUtils.BSRoleTypesOsData...),
+										},
 									},
 									common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
 										Description: databaseUtils.DescSizeInGB +
@@ -295,6 +298,9 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 			common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 				Description: "Maintenance option",
 				Required:    true,
+				Validators: []validator.Object{
+					databaseUtils.MaintenanceOptionValidator(),
+				},
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
 						Description:         "Period in hours \n  - example: 1  \n",
@@ -316,6 +322,10 @@ func (r *cachestoreClusterResource) Schema(_ context.Context, _ resource.SchemaR
 						MarkdownDescription: "Use maintenance option \n  - example: False \n",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseNonNullStateForUnknown(),
+							databaseUtils.ImmutableBool(),
+						},
 					},
 				},
 			},

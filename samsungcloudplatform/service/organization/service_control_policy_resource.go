@@ -4,18 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	sdkorganization "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/organization/1.2"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	sdkorganization "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/organization/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -45,7 +43,7 @@ func (r *serviceControlPolicyResource) Schema(_ context.Context, _ resource.Sche
 	resp.Schema = schema.Schema{
 		Description: "Manages service control policies that define permission boundaries for accounts within the organization",
 		Attributes: map[string]schema.Attribute{
-			"policy_id": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				Description: "Service Control Policy ID. \n" +
 					"  - example : '138c2fc8c29a449dbfa8681f8f1d78e2' \n",
 				Optional: true,
@@ -55,9 +53,6 @@ func (r *serviceControlPolicyResource) Schema(_ context.Context, _ resource.Sche
 				Description: "Unique identifier of the organization. \n" +
 					"  - example : 'o-x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5' \n",
 				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
 			},
 			"name": schema.StringAttribute{
 				Description: "Service Control Policy Name. \n" +
@@ -434,11 +429,9 @@ func (r *serviceControlPolicyResource) Delete(ctx context.Context, req resource.
 }
 
 func (r *serviceControlPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Import ID format: policy_id or policy_id:organization_id
 	id := req.ID
 	orgId := ""
 
-	// Parse the import ID
 	for i := len(id) - 1; i >= 0; i-- {
 		if id[i] == ':' {
 			orgId = id[i+1:]
@@ -467,7 +460,6 @@ func (r *serviceControlPolicyResource) ImportState(ctx context.Context, req reso
 func (r *serviceControlPolicyResource) buildServiceControlPolicyValue(ctx context.Context, policy *sdkorganization.ServiceControlPolicy) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	// Build document value
 	documentValue, docDiags := r.buildDocumentValue(ctx, &policy.Document)
 	diags.Append(docDiags...)
 
@@ -502,7 +494,6 @@ func (r *serviceControlPolicyResource) buildServiceControlPolicyValue(ctx contex
 func (r *serviceControlPolicyResource) buildDocumentValue(ctx context.Context, doc *sdkorganization.ServiceControlPolicyDocument) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	// Build statements
 	var statements []attr.Value
 	for _, stmt := range doc.Statement {
 		statementValue, stmtDiags := r.buildStatementValue(ctx, &stmt)
@@ -558,7 +549,7 @@ func (r *serviceControlPolicyResource) buildDocumentValueFromResponse(ctx contex
 		return types.ObjectNull(organization.ServiceControlPolicyDocumentValue{}.AttributeTypes(ctx)), diags
 	}
 
-	inputStatements := extractInputStatements(inputDoc) // ← 헬퍼로 위임
+	inputStatements := extractInputStatements(inputDoc)
 
 	var statements []attr.Value
 	for i, stmt := range doc.Statement {

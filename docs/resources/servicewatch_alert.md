@@ -162,8 +162,10 @@ variable "missing_data_option" {
  - example : 3
 - `lower_bound` (Number) Lower bound for the Alert range operator.
  - example : 80.0
-- `recipient_ids` (List of String) List of user IDs.
+- `recipient_ids` (List of String) List of notification recipient IDs. All of them share the recipient_type.
  - example: YOUR RESOURCE'S RECIPIENT_IDS
+- `recipient_type` (String) The type of every recipient in recipient_ids - USER, GROUP.
+ - example : USER
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.

@@ -9,7 +9,7 @@ data "samsungcloudplatformv2_vpc_subnets" "subnets" {
   size     = 4
   sort     = var.sort
   state    = var.state
-  type     = ["LOCAL", "GENERAL", "VPC_ENDPOINT"]
+  type     = ["LOCAL", "PUBLIC", "PRIVATE", "VPC_ENDPOINT"]
   vpc_id   = var.vpc_id
   vpc_name = var.vpc_name
 }

@@ -16,8 +16,10 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_vpc_publicip" "publicip" {
-    description = var.publicip_description
-    type = var.publicip_type
+  description = var.publicip_description
+  type        = var.publicip_type
+  zone        = var.zone
+  tags        = var.tags
 }
 
 
@@ -28,12 +30,24 @@ output "publicip_output" {
 
 variable "publicip_description" {
   type    = string
-  default = "description-by-terrafrom"
+  default = "description-by-terrafrom-1211"
 }
 
 variable "publicip_type" {
   type    = string
   default = "GGW"
+}
+
+variable "zone" {
+  type    = string
+  default = "kr-west1-a"
+}
+
+variable "tags" {
+  type = map(string)
+  default = {
+    tags1 = "testing"
+  }
 }
 ```
 
@@ -53,6 +67,8 @@ variable "publicip_type" {
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
+- `zone` (String) Zone
+  - example: kr-west1-a
 
 ### Read-Only
 
@@ -91,3 +107,5 @@ Read-Only:
   - example : ACTIVE
 - `type` (String) The type of the public ip.
   - example : IGW
+- `zone` (String) Zone
+  - example: kr-west1-a

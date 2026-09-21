@@ -6,13 +6,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/epas"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpEpas "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/epas/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/epas"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpEpas "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/epas/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -180,6 +180,14 @@ func (r *epasClusterResource) Schema(_ context.Context, _ resource.SchemaRequest
 							databaseUtils.DescPatternLowerAlpha,
 						Required: true,
 					},
+					common.ToSnakeCase("OriginRegion"): schema.StringAttribute{
+						Description:         "Origin region of the source cluster (set for restored/replica clusters)\n  - example: kr-west1",
+						MarkdownDescription: "Origin region of the source cluster (set for restored/replica clusters)\n  - example: kr-west1",
+						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
 					common.ToSnakeCase("DatabaseUserPassword"): schema.StringAttribute{
 						Description: databaseUtils.DescDatabaseUserPassword +
 							databaseUtils.DescMinLength8 +
@@ -223,6 +231,9 @@ func (r *epasClusterResource) Schema(_ context.Context, _ resource.SchemaRequest
 										MarkdownDescription: databaseUtils.DescRoleType +
 											databaseUtils.DescExampleOS,
 										Required: true,
+										Validators: []validator.String{
+											stringvalidator.OneOf(databaseUtils.BSRoleTypesFull...),
+										},
 									},
 									common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
 										Description: databaseUtils.DescSizeInGB +
@@ -341,6 +352,9 @@ func (r *epasClusterResource) Schema(_ context.Context, _ resource.SchemaRequest
 			common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 				Description: "Maintenance option",
 				Required:    true,
+				Validators: []validator.Object{
+					databaseUtils.MaintenanceOptionValidator(),
+				},
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
 						Description: databaseUtils.DescPeriodInHours +
@@ -370,6 +384,10 @@ func (r *epasClusterResource) Schema(_ context.Context, _ resource.SchemaRequest
 							databaseUtils.DescExampleFalse,
 						Optional: true,
 						Computed: true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseNonNullStateForUnknown(),
+							databaseUtils.ImmutableBool(),
+						},
 					},
 				},
 			},
@@ -386,6 +404,16 @@ func (r *epasClusterResource) Schema(_ context.Context, _ resource.SchemaRequest
 					databaseUtils.DescMaxLength20 +
 					databaseUtils.DescPatternAlpha,
 				Required: true,
+			},
+			common.ToSnakeCase("OriginClusterId"): schema.StringAttribute{
+				Description:         "Origin cluster ID to create this cluster from (restore/replica)\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				MarkdownDescription: "Origin cluster ID to create this cluster from (restore/replica)\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					databaseUtils.ImmutableString(),
+				},
 			},
 			common.ToSnakeCase("ServiceState"): schema.StringAttribute{
 				Description: databaseUtils.DescServiceState +
@@ -562,6 +590,7 @@ func (r *epasClusterResource) MapGetResponseToState(ctx context.Context,
 				DatabaseName:     types.StringValue(resp.InitConfigOption.DatabaseName),
 				DatabasePort:     types.Int32PointerValue(resp.InitConfigOption.DatabasePort.Get()),
 				DatabaseUserName: types.StringValue(resp.InitConfigOption.DatabaseUserName),
+				OriginRegion:     types.StringPointerValue(resp.InitConfigOption.OriginRegion.Get()),
 			},
 			DatabaseUserPassword: dbUserPassword,
 		}
@@ -594,6 +623,7 @@ func (r *epasClusterResource) MapGetResponseToState(ctx context.Context,
 		InstanceNamePrefix:        plan.InstanceNamePrefix,
 		MaintenanceOption:         maintenanceOption,
 		Name:                      types.StringValue(resp.Name),
+		OriginClusterId:           types.StringValue(resp.GetOriginClusterId()),
 		ServiceState:              types.StringValue(string(resp.ServiceState)),
 		SubnetId:                  types.StringValue(resp.SubnetId),
 		Tags:                      tagsMap,
@@ -698,7 +728,7 @@ func (r *epasClusterResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	immutableFields := []string{"id", "MaintenanceOption", "HaEnabled", "NatEnabled", "Name", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress", "ServiceWatchLogCollection"}
+	immutableFields := []string{"id", "MaintenanceOption", "HaEnabled", "NatEnabled", "Name", "OriginClusterId", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress", "ServiceWatchLogCollection"}
 
 	// InitConfigOption is immutable except for BackupOption: guard it only when a
 	// field other than BackupOption changed.
@@ -963,6 +993,14 @@ func (r *epasClusterResource) handlerUpdateInstanceGroups(ctx context.Context, r
 				}
 				if len(bsPlan.Removed) > 0 {
 					return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: removing an existing block storage is not supported")
+				}
+				// 리사이즈/추가를 실행하기 전에 role_type을 먼저 검증한다.
+				// 루프 중간에서 실패하면 이미 만들어진 디스크가 state에 남지 않아 drift가 생긴다.
+				for _, add := range bsPlan.Adds {
+					// AddBlockStorages는 ExtraBlockStorageGroupRoleType(OS 제외)만 허용한다.
+					if !databaseUtils.IsExtraBlockStorageRoleType(add.RoleType.ValueString()) {
+						return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: role_type %q cannot be added to an existing instance group (allowed: %s)", add.RoleType.ValueString(), strings.Join(databaseUtils.BSRoleTypesExtra, ", "))
+					}
 				}
 
 				for _, resize := range bsPlan.Resizes {

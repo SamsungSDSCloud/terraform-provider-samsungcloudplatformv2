@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	vsclient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/virtualserver/1.4"
+	vsclient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/virtualserver/1.5"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -85,7 +85,7 @@ func (m mockAPI) handler(t *testing.T) http.Handler {
 	// SDK 는 매 호출마다 basePath 로 버전 확인(GET /) 을 한다.
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, scpsdk.VersionsResponse{
-			Versions: []scpsdk.Version{{ID: "v1.4", Status: "CURRENT"}},
+			Versions: []scpsdk.Version{{ID: "v1.5", Status: "CURRENT"}},
 		})
 	})
 
@@ -130,7 +130,7 @@ func newMockedResource(t *testing.T, m mockAPI) *virtualServerServerResource {
 
 	cfg := &scpsdk.Configuration{
 		Endpoint:        srv.URL,
-		AllowSDKVersion: []string{"v1.4"},
+		AllowSDKVersion: []string{"v1.5"},
 		AccountId:       testAccountId,
 		Region:          "kr-west1",
 		DefaultRegion:   "kr-west1",
@@ -209,13 +209,13 @@ func volumeObjectType() types.ObjectType {
 }
 
 // showResponse: GET /v1/servers/{id} 응답 (Read 가 이미 받아온 상태로 가정).
-func showResponse() *scpvirtualserver.ServerShowResponseV1Dot4 {
+func showResponse() *scpvirtualserver.ServerShowResponseV1Dot5 {
 	now := time.Date(2026, 8, 11, 3, 4, 5, 0, time.UTC)
 	osType := scpvirtualserver.PLANNEDCOMPUTEOSTYPE_OPEN_SOURCE
 	category := scpvirtualserver.SERVERPRODUCTCATEGORY_COMPUTE
 	offering := scpvirtualserver.SERVERPRODUCTOFFERING_VIRTUAL_SERVER
 
-	return &scpvirtualserver.ServerShowResponseV1Dot4{
+	return &scpvirtualserver.ServerShowResponseV1Dot5{
 		Id:                   testServerId,
 		AccountId:            testAccountId,
 		CreatedAt:            now,

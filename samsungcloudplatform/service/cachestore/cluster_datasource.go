@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/cachestore"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/cachestore"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -420,7 +420,6 @@ func (d *cachestoreClusterDataSource) Read(ctx context.Context, req datasource.R
 		AccountId:                 types.StringValue(data.AccountId),
 		AllowableIpAddresses:      allowableIpAddresses,
 		DbaasEngine:               types.StringValue(data.DbaasEngine),
-		DbaasEngineVersionName:    types.StringValue(data.DbaasEngineVersionName),
 		HaEnabled:                 types.BoolPointerValue(data.HaEnabled),
 		Id:                        types.StringValue(data.Id),
 		InitConfigOption:          initConfigOption,
@@ -429,7 +428,6 @@ func (d *cachestoreClusterDataSource) Read(ctx context.Context, req datasource.R
 		MaintenanceOption:         MaintenanceOption,
 		Name:                      types.StringValue(data.Name),
 		NatEnabled:                types.BoolPointerValue(data.NatEnabled),
-		ProductImageType:          types.StringValue(data.ProductImageType),
 		ProductType:               types.StringValue(string(data.ProductType)),
 		RoleType:                  types.StringPointerValue((*string)(data.RoleType.Get())),
 		ServiceState:              types.StringValue(string(data.ServiceState)),

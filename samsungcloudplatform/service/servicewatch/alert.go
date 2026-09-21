@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/servicewatch/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/servicewatch/1.5"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -219,10 +219,18 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 				},
 			},
 			common.ToSnakeCase("RecipientIds"): schema.ListAttribute{
-				Description: "List of user IDs.\n" +
+				Description: "List of notification recipient IDs. All of them share the recipient_type.\n" +
 					" - example : [\"90dddfc2b1e04edba54ba2b41539a9ac\"]\n",
 				Optional:    true,
 				ElementType: types.StringType,
+			},
+			common.ToSnakeCase("RecipientType"): schema.StringAttribute{
+				Description: "The type of every recipient in recipient_ids - USER, GROUP.\n" +
+					" - example : USER\n",
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(RecipientTypeUser, RecipientTypeGroup),
+				},
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 			common.ToSnakeCase("Timestamp"): schema.StringAttribute{
@@ -308,6 +316,20 @@ func (r *serviceWatchAlertResource) Create(ctx context.Context, req resource.Cre
 			fmt.Sprintf(ErrCreateAlertFmt, err.Error(), detail),
 		)
 		return
+	}
+
+	// The creation API has no activated_yn: an alert is always created active.
+	// Honour an explicit "N" by calling the activation endpoint right after create.
+	if plan.ActivatedYn.ValueString() == YnNo {
+		_, err := r.client.UpdateAlertActivated(ctx, data.GetId(), YnNo)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				ErrUpdateActivatedAlert,
+				fmt.Sprintf(ErrUpdateActivatedAlertFmt, err.Error(), detail),
+			)
+			return
+		}
 	}
 
 	// Fetch updated items from GetAlert as UpdateAlert items are not populated.
@@ -442,6 +464,25 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		}
 		state.Description = plan.Description
 	}
+	// If recipients change, perform notifications update.
+	// The alert body and its recipients are separate endpoints, so this is sent on its own.
+	// It is deliberately left out of needsUpdate/convertUpdateModel: recipients are not part
+	// of AlertSetRequest, and including them there would trigger a pointless body update.
+	if !plan.RecipientType.Equal(state.RecipientType) || !plan.RecipientIds.Equal(state.RecipientIds) {
+		_, err := r.client.UpdateAlertNotifications(ctx, plan.Id.ValueString(), plan)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				ErrUpdateAlertNotifications,
+				fmt.Sprintf(ErrUpdateAlertNotificationsFmt, err.Error(), detail),
+			)
+			return
+		}
+		// GetAlert mapping does not carry recipients, so keep the applied values in state.
+		state.RecipientType = plan.RecipientType
+		state.RecipientIds = plan.RecipientIds
+	}
+
 	// If metric info changes, call GetMetric to retrieve Id
 	planDimensionKeys, diags := getDimensionKeys(ctx, plan.Dimensions)
 	resp.Diagnostics.Append(diags...)
@@ -574,7 +615,7 @@ func getDimensionKeys(ctx context.Context, dimensions types.List) ([][]string, d
 	return [][]string{keys}, nil
 }
 
-func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.AlertResource, alertResp *servicewatch2.AlertDetailResponseV1Dot3) (servicewatch.AlertResource, diag.Diagnostics) {
+func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.AlertResource, alertResp *servicewatch2.AlertDetailResponseV1Dot5) (servicewatch.AlertResource, diag.Diagnostics) {
 	var dimensions []servicewatch.Dimension
 	for _, dimension := range alertResp.Dimensions {
 		dimensions = append(dimensions, servicewatch.Dimension{

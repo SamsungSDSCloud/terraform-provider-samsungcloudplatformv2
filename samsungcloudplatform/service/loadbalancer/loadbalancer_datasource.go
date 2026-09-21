@@ -3,17 +3,18 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -30,7 +31,7 @@ func NewLoadbalancerLoadbalancerDataSource() datasource.DataSource {
 // resourceManagerResourceGroupDataSources is the data source implementation.
 type loadbalancerLoadbalancerDataSource struct {
 	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
+	client  *loadbalancerv1d4.Client
 	clients *client.SCPClient
 }
 
@@ -79,11 +80,21 @@ func (d *loadbalancerLoadbalancerDataSource) Schema(_ context.Context, _ datasou
 							"  - example : 46c681018e33453085ca7c8db54e0076\n",
 						Optional: true,
 					},
-					common.ToSnakeCase("HealthCheckIp"): schema.ListAttribute{
-						Description: "The list of health check IP addresses.\n" +
-							"  - example : [\"192.168.1.1\", \"192.168.1.2\"]\n",
+					common.ToSnakeCase("Zones"): schema.ListAttribute{
 						ElementType: types.StringType,
-						Optional:    true,
+						Description: "The list of availability zones where the subnet is located.\n" +
+							"  - example : [\"zone-1\", \"zone-2\"]",
+						MarkdownDescription: "The list of availability zones where the subnet is located.\n" +
+							"  - example : [\"zone-1\", \"zone-2\"]",
+						Computed: true,
+					},
+					common.ToSnakeCase("HealthCheckIps"): schema.ListAttribute{
+						ElementType: types.StringType,
+						Description: "The list of availability Ips where the subnet is located.\n" +
+							"  - example : [\"192.168.0.1\", \"192.168.0.1\"]",
+						MarkdownDescription: "The list of availability Ips where the subnet is located.\n" +
+							"  - example : [\"192.168.0.1\", \"192.168.0.1\"]",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
 						Description: "The unique identifier.\n" +
@@ -169,13 +180,13 @@ func (d *loadbalancerLoadbalancerDataSource) Configure(_ context.Context, req da
 		return
 	}
 
-	d.client = inst.Client.LoadBalancer
+	d.client = inst.Client.LoadBalancerV1d4
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *loadbalancerLoadbalancerDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) { // 아직 정의하지 않은 Read 메서드를 추가한다.
-	var state loadbalancer.LoadbalancerDataSourceDetail
+	var state loadbalancerv1d4.LoadbalancerDataSourceDetail
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -192,13 +203,12 @@ func (d *loadbalancerLoadbalancerDataSource) Read(ctx context.Context, req datas
 		return
 	}
 
-	var loadbalancerState = loadbalancer.LoadbalancerDetail{
+	var loadbalancerState = loadbalancerv1d4.LoadbalancerDetail{
 		AccountId:        types.StringValue(data.Loadbalancer.AccountId),
 		CreatedAt:        types.StringValue(data.Loadbalancer.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:        types.StringValue(data.Loadbalancer.CreatedBy),
 		Description:      virtualserverutil.ToNullableStringValue(data.Loadbalancer.Description.Get()),
 		FirewallId:       virtualserverutil.ToNullableStringValue(data.Loadbalancer.FirewallId.Get()),
-		HealthCheckIp:    ToStringList(data.Loadbalancer.HealthCheckIp),
 		Id:               types.StringValue(data.Loadbalancer.Id),
 		LayerType:        types.StringValue(data.Loadbalancer.LayerType),
 		ModifiedAt:       types.StringValue(data.Loadbalancer.ModifiedAt.Format(time.RFC3339)),
@@ -210,6 +220,8 @@ func (d *loadbalancerLoadbalancerDataSource) Read(ctx context.Context, req datas
 		State:            types.StringValue(data.Loadbalancer.State),
 		SubnetId:         types.StringValue(data.Loadbalancer.SubnetId),
 		VpcId:            types.StringValue(data.Loadbalancer.VpcId),
+		Zones:            convertList(data.Loadbalancer.Zones),
+		HealthCheckIps:   convertList(data.Loadbalancer.HealthCheckIps),
 	}
 
 	loadbalancerObjectValue, _ := types.ObjectValueFrom(ctx, loadbalancerState.AttributeTypes(), loadbalancerState)

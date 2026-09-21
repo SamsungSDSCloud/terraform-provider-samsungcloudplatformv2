@@ -8,17 +8,17 @@ import (
 
 	"regexp"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -118,7 +118,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				},
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("dhcp_ip_address"): schema.StringAttribute{
 				Computed: true,
@@ -127,6 +129,17 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"  - example: 192.168.0.2",
 				MarkdownDescription: "The IP address automatically assigned by DHCP.\n" +
 					"  - example: 192.168.0.2",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			common.ToSnakeCase("PrimarySubnetId"): schema.StringAttribute{
+				Description: "The Primary Subnet Id of the VPC that the subnet belongs to.\n" +
+					"  - example : PrimarySubnetId",
+				MarkdownDescription: "The Primary Subnet Id of the VPC that the subnet belongs to.\n" +
+					"  - example : PrimarySubnetId",
+				Computed: true,
+				Optional: true,
 			},
 			common.ToSnakeCase("DnsNameservers"): schema.SetAttribute{
 				ElementType: types.StringType,
@@ -136,6 +149,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"  - example: [\"1.1.1.1\", \"2.2.2.2\"]",
 				MarkdownDescription: "The list of DNS name server addresses for the subnet.\n" +
 					"  - example: [\"1.1.1.1\", \"2.2.2.2\"]",
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("GatewayIpAddress"): schema.StringAttribute{
 				Optional: true,
@@ -144,6 +160,9 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"  - example: 192.168.0.1",
 				MarkdownDescription: "The gateway IP address of the subnet.\n" +
 					"  - example: 192.168.0.1",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("HostRoutes"): schema.ListNestedAttribute{
 				Description: "The static host routes configured for the subnet.\n" +
@@ -217,9 +236,16 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("Type"): schema.StringAttribute{
 				Description: "The type of the subnet.\n" +
-					"  - example : GENERAL | LOCAL | VPC_ENDPOINT",
+					"  - example : PUBLIC | PRIVATE | LOCAL | VPC_ENDPOINT",
 				MarkdownDescription: "The type of the subnet.\n" +
-					"  - example : GENERAL | LOCAL | VPC_ENDPOINT",
+					"  - example : PUBLIC | PRIVATE | LOCAL | VPC_ENDPOINT",
+				Required: true,
+			},
+			common.ToSnakeCase("Category"): schema.StringAttribute{
+				Description: "The Category of the subnet.\n" +
+					"  - example : PRIMARY | SECONDARY",
+				MarkdownDescription: "The Category of the subnet.\n" +
+					"  - example : PRIMARY | SECONDARY",
 				Required: true,
 			},
 			common.ToSnakeCase("VpcID"): schema.StringAttribute{
@@ -234,6 +260,22 @@ func (r *vpcSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"  - example : VpcName",
 				MarkdownDescription: "The name of the VPC that the subnet belongs to.\n" +
 					"  - example : VpcName",
+				Computed: true,
+			},
+			common.ToSnakeCase("SecondarySubnetIds"): schema.ListAttribute{
+				ElementType: types.StringType,
+				Description: "The list of Secondary Subnet IDs of the VPC that the subnet belongs to.\n" +
+					"  - example : [\"SecondarySubnetId1\", \"SecondarySubnetId2\"]",
+				MarkdownDescription: "The list of Secondary Subnet IDs of the VPC that the subnet belongs to.\n" +
+					"  - example : [\"SecondarySubnetId1\", \"SecondarySubnetId2\"]",
+				Computed: true,
+			},
+			common.ToSnakeCase("Zones"): schema.ListAttribute{
+				ElementType: types.StringType,
+				Description: "The list of availability zones where the subnet is located.\n" +
+					"  - example : [\"zone-1\", \"zone-2\"]",
+				MarkdownDescription: "The list of availability zones where the subnet is located.\n" +
+					"  - example : [\"zone-1\", \"zone-2\"]",
 				Computed: true,
 			},
 		},
@@ -258,7 +300,7 @@ func (r *vpcSubnetResource) Configure(_ context.Context, req resource.ConfigureR
 		return
 	}
 
-	r.client = inst.Client.VpcV1Dot2
+	r.client = inst.Client.VpcV1Dot3
 	r.clients = inst.Client
 }
 
@@ -285,6 +327,12 @@ func (r *vpcSubnetResource) Create(ctx context.Context, req resource.CreateReque
 
 	subnet := data.Subnet
 	plan.Id = types.StringValue(subnet.Id)
+	desc := subnet.Description.Get()
+	if desc != nil {
+		plan.Description = types.StringValue(*desc)
+	} else {
+		plan.Description = types.StringValue("")
+	}
 	diags = resp.State.Set(ctx, plan)
 
 	err = waitForSubnetStatus(ctx, r.client, subnet.Id, []string{}, []string{"ACTIVE"})
@@ -343,15 +391,31 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 	subnet := data.Subnet
 	state.Id = types.StringValue(subnet.Id)
 	state.AccountId = types.StringValue(subnet.AccountId)
-	state.GatewayIpAddress = types.StringPointerValue(subnet.GatewayIpAddress.Get())
+	gwIp := subnet.GatewayIpAddress.Get()
+	if gwIp != nil {
+		state.GatewayIpAddress = types.StringValue(*gwIp)
+	} else {
+		state.GatewayIpAddress = types.StringValue("")
+	}
 	state.VpcName = types.StringValue(subnet.VpcName)
-	state.Description = types.StringPointerValue(subnet.Description.Get())
+	desc := subnet.Description.Get()
+	if desc != nil {
+		state.Description = types.StringValue(*desc)
+	} else {
+		state.Description = types.StringValue("")
+	}
 	state.State = types.StringValue(string(subnet.State))
+	state.Category = types.StringValue(string(subnet.Category))
 	state.CreatedAt = types.StringValue(subnet.CreatedAt.Format(time.RFC3339))
 	state.CreatedBy = types.StringValue(subnet.CreatedBy)
 	state.ModifiedAt = types.StringValue(subnet.ModifiedAt.Format(time.RFC3339))
 	state.ModifiedBy = types.StringValue(subnet.ModifiedBy)
-	state.DhcpIpAddress = types.StringPointerValue(subnet.DhcpIpAddress.Get())
+	dhcpIp := subnet.DhcpIpAddress.Get()
+	if dhcpIp != nil {
+		state.DhcpIpAddress = types.StringValue(*dhcpIp)
+	} else {
+		state.DhcpIpAddress = types.StringValue("")
+	}
 
 	state.VpcId = types.StringValue(subnet.VpcId)
 	if subnet.Type.IsValid() {
@@ -359,6 +423,27 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 	state.Name = types.StringValue(subnet.Name)
 	state.Cidr = types.StringValue(subnet.Cidr)
+	state.PrimarySubnetId = types.StringPointerValue(subnet.PrimarySubnetId.Get())
+
+	secondarySubnetIdsStr := make([]string, 0, len(subnet.SecondarySubnetIds))
+	for _, id := range subnet.SecondarySubnetIds {
+		if s, ok := id.(string); ok {
+			secondarySubnetIdsStr = append(secondarySubnetIdsStr, s)
+		}
+	}
+	secondarySubnetIds, diag := types.ListValueFrom(ctx, types.StringType, secondarySubnetIdsStr)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	state.SecondarySubnetIds = secondarySubnetIds
+
+	zones, diag := types.ListValueFrom(ctx, types.StringType, subnet.Zones)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	state.Zones = zones
 
 	// Ignore AllocationPools data drift
 	// Ignore HostRoutes data drift
@@ -381,15 +466,26 @@ func (r *vpcSubnetResource) Read(ctx context.Context, req resource.ReadRequest, 
 // Update updates the subnet and sets the updated Terraform state on success.
 func (r *vpcSubnetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state vpc.SubnetResource
-	diags := req.Plan.Get(ctx, &state)
+	var plan vpc.SubnetResource
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Retrieve values from state to detect changes
+	var state vpc.SubnetResource
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Determine if dhcp_ip_address was changed
+	dhcpChanged := plan.DhcpIpAddress.ValueString() != state.DhcpIpAddress.ValueString()
+
 	// Update existing order
-	_, err := r.client.UpdateSubnet(ctx, state.Id.ValueString(), state)
+	data, err := r.client.UpdateSubnet(ctx, plan.Id.ValueString(), plan, dhcpChanged)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -398,8 +494,16 @@ func (r *vpcSubnetResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
-	// Save plan to state to avoid inconsistent data
-	diags = resp.State.Set(ctx, state)
+	desc := data.Description.Get()
+	if desc != nil {
+		plan.Description = types.StringValue(*desc)
+	} else {
+		plan.Description = types.StringValue("")
+	}
+	if v := data.DhcpIpAddress.Get(); v != nil {
+		plan.DhcpIpAddress = types.StringValue(*v)
+	}
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

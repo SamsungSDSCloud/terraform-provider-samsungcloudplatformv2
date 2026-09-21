@@ -58,8 +58,6 @@ Read-Only:
   - example: MEDIUM
 - `flavor_rule_quota` (Number) Firewall rule quota based on firewall size.
   - example: 200
-- `fw_resource_id` (String) The resource ID of the associated firewall service.
-  - example: YOUR RESOURCE'S FW_RESOURCE_ID
 - `id` (String) The unique identifier of the resource.
   - example: YOUR RESOURCE'S ID
 - `loggable` (Boolean) The flag indicating whether firewall flow logs are stored.
@@ -84,3 +82,16 @@ Read-Only:
   - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) The name of the VPC that the resource belongs to.
   - example: vpc-prod-01
+- `zone_resources` (Attributes List) Firewall Zone Resources (see [below for nested schema](#nestedatt--firewall--zone_resources))
+
+<a id="nestedatt--firewall--zone_resources"></a>
+### Nested Schema for `firewall.zone_resources`
+
+Read-Only:
+
+- `allocate_state` (String) Firewall Allocate Type.
+  - enum  : 'SUCCESS' | 'FAIL' | 'DELETED'
+- `fw_resource_id` (String) Firewall resource id.
+  - example: YOUR RESOURCE'S FW_RESOURCE_ID
+- `zone` (String) Firewall Zone.
+  - example : 'kr-west1-a'

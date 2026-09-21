@@ -3,8 +3,8 @@ package gslb
 import (
 	"context"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	gslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/gslb/1.1" // terraform-sdk-samsungcloudplatformv2 에서 resourcemanager 라이브러리를 import 한다.
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	gslb "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/gslb/1.2" // terraform-sdk-samsungcloudplatformv2 에서 resourcemanager 라이브러리를 import 한다.
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -108,17 +108,17 @@ func (client *Client) CreateGslb(ctx context.Context, request GslbResource) (*gs
 		}
 	}
 
-	gslbElement := gslb.GslbCreateRequestV1Dot1{
+	gslbElement := gslb.GslbCreateRequestV1Dot2{
 		Algorithm:   gslb.GslbAlgorithm(gslbCreate.Algorithm.ValueString()),
 		Description: *gslb.NewNullableString(gslbCreate.Description.ValueStringPointer()),
-		EnvUsage:    gslb.GslbEnv(gslbCreate.EnvUsage.ValueString()),
+		EnvUsage:    gslbCreate.EnvUsage.ValueString(),
 		HealthCheck: *gslb.NewNullableGslbHealthCheck(healthCheck),
 		Name:        gslbCreate.Name.ValueString(),
 		Resources:   gslbResources,
 		Tags:        GslbTags,
 	}
 
-	req = req.GslbCreateRequestV1Dot1(gslbElement)
+	req = req.GslbCreateRequestV1Dot2(gslbElement)
 
 	resp, _, err := req.Execute() // Execute 메서드를 호출하여 실행한다.
 	return resp, err

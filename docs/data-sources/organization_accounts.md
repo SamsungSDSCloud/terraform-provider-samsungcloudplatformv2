@@ -38,7 +38,7 @@ output "accounts" {
   value       = data.samsungcloudplatformv2_organization_accounts.accounts.accounts
 }
 
-output "total_count" {
+output "count" {
   description = "Total count of accounts"
   value       = data.samsungcloudplatformv2_organization_accounts.accounts.total_count
 }

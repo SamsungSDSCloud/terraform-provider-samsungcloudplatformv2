@@ -147,6 +147,8 @@ Read-Only:
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
+- `multi_zone_enabled` (Boolean) Whether MultiAZ is enabled for the internet gateway.(MultiAZ 사용여부)
+  - example : true
 - `name` (String) The name of the internet gateway.
   - example : IGW_VPCname
 - `state` (String) The current lifecycle state of the internet gateway.

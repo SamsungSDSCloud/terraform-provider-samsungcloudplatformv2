@@ -3,7 +3,7 @@ package vpcv1d2
 import (
 	"context"
 
-	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vpc/1.2"
+	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.2"
 )
 
 func (client *Client) ListPublicips(ctx context.Context, request PublicipDataSource) (*scpvpc.PublicipListResponseV1Dot2, error) {

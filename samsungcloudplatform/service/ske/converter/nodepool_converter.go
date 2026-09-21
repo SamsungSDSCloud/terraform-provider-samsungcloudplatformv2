@@ -3,8 +3,8 @@ package converter
 import (
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/ske"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/ske/1.5"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/ske"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/ske/1.6"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/loadbalancer"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/loadbalancer"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,9 +28,10 @@ func NewLoadbalancerLbListenerDataSource() datasource.DataSource {
 
 // resourceManagerResourceGroupDataSources is the data source implementation.
 type loadbalancerLbListenerDataSource struct {
-	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *loadbalancer.Client
+	clientv1d4 *loadbalancerv1d4.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -247,10 +249,53 @@ func (d *loadbalancerLbListenerDataSource) Schema(_ context.Context, _ datasourc
 							"  - maximum : 120\n",
 						Optional: true,
 					},
-					common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-						Description: "The LoadBalancer ID associated with the listener.\n" +
-							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+					common.ToSnakeCase("UrlRedirection"): schema.StringAttribute{
+						Description: "URL redirection configuration.\n" +
+							"  - example : https://example.com\n",
 						Optional: true,
+					},
+					common.ToSnakeCase("XForwardedFor"): schema.BoolAttribute{
+						Description: "X-Forwarded-For header configuration.\n" +
+							"  - example : true\n",
+						Optional: true,
+					},
+					common.ToSnakeCase("XForwardedPort"): schema.BoolAttribute{
+						Description: "X-Forwarded-Port header configuration.\n" +
+							"  - example : true\n",
+						Optional: true,
+					},
+					common.ToSnakeCase("XForwardedProto"): schema.BoolAttribute{
+						Description: "X-Forwarded-Proto header configuration.\n" +
+							"  - example : true\n",
+						Optional: true,
+					},
+					common.ToSnakeCase("RoutingAction"): schema.StringAttribute{
+						Description: "The routing action type. 'LB_SERVER_GROUP' for URL handler routing, 'URL_REDIRECT' for HTTPS/URL redirection.\n" +
+							"  - example : LB_SERVER_GROUP\n",
+						Optional: true,
+					},
+					common.ToSnakeCase("ConditionType"): schema.StringAttribute{
+						Description: "The condition type for routing. 'URL_PATH' or 'HOST_HEADER' for URL handler.\n" +
+							"  - example : URL_PATH\n",
+						Optional: true,
+					},
+					common.ToSnakeCase("HstsConfig"): schema.SingleNestedAttribute{
+						Description: "HSTS Configuration\n",
+						Optional:    true,
+						Attributes: map[string]schema.Attribute{
+							common.ToSnakeCase("MaxAge"): schema.Int32Attribute{
+								Description: "HSTS max age in seconds.\n" +
+									"  - example : 1\n",
+								Optional: true,
+								Computed: true,
+							},
+							common.ToSnakeCase("IncludeSubDomains"): schema.BoolAttribute{
+								Description: "The Include Sub Domains\n" +
+									"  - example : true\n",
+								Optional: true,
+								Computed: true,
+							},
+						},
 					},
 				},
 			},
@@ -277,11 +322,12 @@ func (d *loadbalancerLbListenerDataSource) Configure(_ context.Context, req data
 	}
 
 	d.client = inst.Client.LoadBalancer
+	d.clientv1d4 = inst.Client.LoadBalancerV1d4
 	d.clients = inst.Client
 }
 
 func (d *loadbalancerLbListenerDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) { // 아직 정의하지 않은 Read 메서드를 추가한다.
-	var state loadbalancer.LbListenerDataSourceDetail
+	var state loadbalancerv1d4.LbListenerDataSourceDetail
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -289,7 +335,7 @@ func (d *loadbalancerLbListenerDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	data, err := d.client.GetLbListener(ctx, state.Id.ValueString())
+	data, err := d.clientv1d4.GetLbListener(ctx, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Show LbListener",
@@ -298,9 +344,14 @@ func (d *loadbalancerLbListenerDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	lbListenerState, _ := loadbalancerutil.ConvertResponse(data)
+	lbListenerState, skipped := loadbalancerutil.ConvertResponse(data)
 
-	lbListenerObjectValue, _ := types.ObjectValueFrom(ctx, lbListenerState.AttributeTypes(), lbListenerState)
+	lbListenerObjectValue, diags := types.ObjectValueFrom(ctx, lbListenerState.AttributeTypes(), lbListenerState)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	state.LbListenerDetail = lbListenerObjectValue
 
 	// Set refreshed state
@@ -309,4 +360,12 @@ func (d *loadbalancerLbListenerDataSource) Read(ctx context.Context, req datasou
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	if skipped > 0 {
+		resp.Diagnostics.AddWarning(
+			"UrlHandler mapping skipped",
+			fmt.Sprintf("%d url_handler entries were skipped due to unexpected response format. Check provider logs for details.", skipped),
+		)
+	}
+
 }

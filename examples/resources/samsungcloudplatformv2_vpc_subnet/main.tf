@@ -13,4 +13,6 @@ resource "samsungcloudplatformv2_vpc_subnet" "subnet" {
   dhcp_ip_address    = var.dhcp_ip_address
   gateway_ip_address = var.gateway_ip_address
   tags               = var.tags
+  category               = var.category
+  primary_subnet_id               = var.primary_subnet_id
 }

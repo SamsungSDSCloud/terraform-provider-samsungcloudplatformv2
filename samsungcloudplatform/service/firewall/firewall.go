@@ -1,0 +1,370 @@
+package firewall
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	firewall "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/firewallv1d1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &firewallResource{}
+	_ resource.ResourceWithConfigure   = &firewallResource{}
+	_ resource.ResourceWithImportState = &firewallResource{}
+)
+
+func NewFirewallResource() resource.Resource {
+	return &firewallResource{}
+}
+
+type firewallResource struct {
+	config  *scpsdk.Configuration
+	client  *firewall.Client
+	clients *client.SCPClient
+}
+
+func (d *firewallResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
+}
+
+// Metadata returns the data source type name.
+func (d *firewallResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_firewall_firewall"
+}
+
+// Schema defines the schema for the data source.
+func (d *firewallResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Retrieves details of a firewall instance. Import only, create/destroy unsupported",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Description: "The unique identifier of the firewall.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			common.ToSnakeCase("FlavorName"): schema.StringAttribute{
+				Description: "Firewall size name. \n" +
+					"  - enum (EXSMALL, SMALL, MEDIUM, LARGE, EXLARGE) ",
+				Optional: true,
+				Computed: true,
+			},
+			common.ToSnakeCase("Loggable"): schema.BoolAttribute{
+				Description: "Log Enabled. \n" +
+					"  - example : False",
+				Optional: true,
+				Computed: true,
+			},
+			common.ToSnakeCase("Firewall"): schema.SingleNestedAttribute{
+				Description: "The firewall resource details.",
+				Computed:    true,
+				Attributes: map[string]schema.Attribute{
+					common.ToSnakeCase("Id"): schema.StringAttribute{
+						Description: "The unique identifier of the resource.\n" +
+							"  - example: 68db67f78abd405da98a6056a8ee42af",
+						Computed: true,
+					},
+					common.ToSnakeCase("AccountId"): schema.StringAttribute{
+						Description: "The account ID associated with the resource.\n" +
+							"  - example: 297615908b8e4ec69520a99a6777add3",
+						Computed: true,
+					},
+					common.ToSnakeCase("Name"): schema.StringAttribute{
+						Description: "The name of the resource.\n" +
+							"  - example: fw-web-prod",
+						Computed: true,
+					},
+					common.ToSnakeCase("VpcId"): schema.StringAttribute{
+						Description: "The identifier of the VPC that the resource belongs to.\n" +
+							"  - example: 6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d",
+						Computed: true,
+					},
+					common.ToSnakeCase("VpcName"): schema.StringAttribute{
+						Description: "The name of the VPC that the resource belongs to.\n" +
+							"  - example: vpc-prod-01",
+						Computed: true,
+					},
+					common.ToSnakeCase("Loggable"): schema.BoolAttribute{
+						Description: "The flag indicating whether firewall flow logs are stored.\n" +
+							"  - example: True",
+						Computed: true,
+					},
+					common.ToSnakeCase("PreProductId"): schema.StringAttribute{
+						Description: "The identifier of the firewall pre‑product associated with the service.\n" +
+							"  - example: a637b0c278064513ab90ac9e91a92e03",
+						Computed: true,
+					},
+					common.ToSnakeCase("ProductType"): schema.StringAttribute{
+						Description: "The type of the firewall service.\n" +
+							"  - example: IGW",
+						Computed: true,
+					},
+					common.ToSnakeCase("State"): schema.StringAttribute{
+						Description: "The current state of the resource.\n" +
+							"  - example: ACTIVE",
+						Computed: true,
+					},
+					common.ToSnakeCase("Status"): schema.StringAttribute{
+						Description: "The current status of the resource.\n" +
+							"  - example: ENABLE",
+						Computed: true,
+					},
+					common.ToSnakeCase("TotalRuleCount"): schema.Int32Attribute{
+						Description: "Number of rules in the firewall.\n" +
+							"  - example: 5",
+						Computed: true,
+					},
+					common.ToSnakeCase("FlavorName"): schema.StringAttribute{
+						Description: "Firewall size.\n" +
+							"  - example: MEDIUM",
+						Computed: true,
+					},
+					common.ToSnakeCase("FlavorRuleQuota"): schema.Int32Attribute{
+						Description: "Firewall rule quota based on firewall size.\n" +
+							"  - example: 200",
+						Computed: true,
+					},
+					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example: 2025-01-15T10:30:00Z",
+						Computed: true,
+					},
+					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
+						Description: "The user ID that created the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
+					},
+					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example: 2025-06-01T14:22:00Z",
+						Computed: true,
+					},
+					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
+						Description: "The user ID that modified the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
+					},
+					"zone_resources": schema.ListNestedAttribute{
+						Computed:    true,
+						Description: "Firewall Zone Resources",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"allocate_state": schema.StringAttribute{
+									Computed: true,
+									Description: "Firewall Allocate Type.\n" +
+										"  - enum  : 'SUCCESS' | 'FAIL' | 'DELETED'",
+								},
+								"fw_resource_id": schema.StringAttribute{
+									Computed: true,
+									Description: "Firewall resource id.\n" +
+										"  - example : '005fd1d30dea11f08a2c56773bef875b'",
+								},
+								"zone": schema.StringAttribute{
+									Computed: true,
+									Description: "Firewall Zone.\n" +
+										"  - example : 'kr-west1-a'",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+// Configure adds the provider configured client to the data source.
+func (d *firewallResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Add a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+
+		return
+	}
+
+	inst, ok := req.ProviderData.(client.Instance)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *client.Instance, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	d.client = inst.Client.FirewallV1d1
+	d.clients = inst.Client
+}
+
+// Read refreshes the Terraform state with the latest data.
+func (d *firewallResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state firewall.Resource
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	data, err := d.client.ShowFirewall(ctx, state.Id.ValueString()) // client 를 호출한다.
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Reading Firewall",
+			"Could not read Firewall ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+
+	firewallElement := data.Firewall
+
+	var zoneResources []firewall.ZoneResources
+	if len(firewallElement.ZoneResources) > 0 {
+		for _, v := range firewallElement.ZoneResources {
+			zoneResource := firewall.ZoneResources{
+				AllocateState: types.StringValue(string(v.AllocateState)),
+				FwResourceId:  types.StringValue(v.FwResourceId),
+				Zone:          types.StringValue(v.Zone),
+			}
+			zoneResources = append(zoneResources, zoneResource)
+		}
+	}
+
+	firewallModel := firewall.Firewall{
+		Id:              types.StringValue(firewallElement.Id),
+		AccountId:       types.StringValue(firewallElement.AccountId),
+		Name:            types.StringValue(firewallElement.Name),
+		VpcId:           types.StringPointerValue(firewallElement.VpcId.Get()),
+		VpcName:         types.StringPointerValue(firewallElement.VpcName.Get()),
+		Loggable:        types.BoolValue(firewallElement.Loggable),
+		PreProductId:    types.StringPointerValue(firewallElement.PreProductId),
+		ProductType:     types.StringValue(string(firewallElement.ProductType)),
+		State:           types.StringValue(string(firewallElement.State)),
+		Status:          types.StringValue(string(firewallElement.Status)),
+		TotalRuleCount:  types.Int32PointerValue(firewallElement.TotalRuleCount),
+		FlavorName:      types.StringPointerValue(firewallElement.FlavorName),
+		FlavorRuleQuota: types.Int32PointerValue(firewallElement.FlavorRuleQuota),
+		CreatedAt:       types.StringValue(firewallElement.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:       types.StringValue(firewallElement.CreatedBy),
+		ModifiedAt:      types.StringValue(firewallElement.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:      types.StringValue(firewallElement.ModifiedBy),
+		ZoneResources:   zoneResources,
+	}
+	firewallObjectValue, _ := types.ObjectValueFrom(ctx, firewallModel.AttributeTypes(), firewallModel)
+	state.Firewall = firewallObjectValue
+
+	// Set refreshed state
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+func (d *firewallResource) Create(_ context.Context, _ resource.CreateRequest, response *resource.CreateResponse) {
+	response.Diagnostics.AddError(
+		"Error Create Firewall",
+		"Create Firewall is not supported! ",
+	)
+	return
+}
+
+func (d *firewallResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	// Retrieve values from plan
+	var plan firewall.Resource
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Update existing firewall
+	_, err := d.client.SetFirewall(ctx, plan)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Updating Firewall",
+			"Could not update firewall, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+
+	// Fetch updated data from ShowFirewall as SetFirewall response may not be fully populated.
+	data, err := d.client.ShowFirewall(ctx, plan.Id.ValueString())
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Reading Firewall",
+			"Could not read firewall ID "+plan.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+
+	firewallElement := data.Firewall
+
+	var zoneResources []firewall.ZoneResources
+	if len(firewallElement.ZoneResources) > 0 {
+		for _, v := range firewallElement.ZoneResources {
+			zoneResource := firewall.ZoneResources{
+				AllocateState: types.StringValue(string(v.AllocateState)),
+				FwResourceId:  types.StringValue(v.FwResourceId),
+				Zone:          types.StringValue(v.Zone),
+			}
+			zoneResources = append(zoneResources, zoneResource)
+		}
+	}
+
+	firewallModel := firewall.Firewall{
+		Id:              types.StringValue(firewallElement.Id),
+		AccountId:       types.StringValue(firewallElement.AccountId),
+		Name:            types.StringValue(firewallElement.Name),
+		VpcId:           types.StringPointerValue(firewallElement.VpcId.Get()),
+		VpcName:         types.StringPointerValue(firewallElement.VpcName.Get()),
+		Loggable:        types.BoolValue(firewallElement.Loggable),
+		PreProductId:    types.StringPointerValue(firewallElement.PreProductId),
+		ProductType:     types.StringValue(string(firewallElement.ProductType)),
+		State:           types.StringValue(string(firewallElement.State)),
+		Status:          types.StringValue(string(firewallElement.Status)),
+		TotalRuleCount:  types.Int32PointerValue(firewallElement.TotalRuleCount),
+		FlavorName:      types.StringPointerValue(firewallElement.FlavorName),
+		FlavorRuleQuota: types.Int32PointerValue(firewallElement.FlavorRuleQuota),
+		CreatedAt:       types.StringValue(firewallElement.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:       types.StringValue(firewallElement.CreatedBy),
+		ModifiedAt:      types.StringValue(firewallElement.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:      types.StringValue(firewallElement.ModifiedBy),
+		ZoneResources:   zoneResources,
+	}
+	firewallObjectValue, objDiags := types.ObjectValueFrom(ctx, firewallModel.AttributeTypes(), firewallModel)
+	resp.Diagnostics.Append(objDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	plan.Firewall = firewallObjectValue
+
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+func (d *firewallResource) Delete(_ context.Context, _ resource.DeleteRequest, response *resource.DeleteResponse) {
+	response.Diagnostics.AddError(
+		"Error Delete Firewall",
+		"Delete Firewall is not supported! ",
+	)
+	return
+}

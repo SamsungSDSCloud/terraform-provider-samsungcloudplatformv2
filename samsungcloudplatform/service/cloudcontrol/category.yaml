@@ -1,0 +1,13 @@
+category:
+  cloudcontrol_landing_zone: Landing Zone
+
+  cloudcontrol_account_factory: Account Factory
+
+  cloudcontrol_baseline_assignment: Baseline Assignment
+  cloudcontrol_baseline_assignments: Baseline Assignment
+
+  cloudcontrol_guardrail: Guardrail
+  cloudcontrol_guardrails: Guardrail
+  cloudcontrol_guardrail_binding: Guardrail
+  cloudcontrol_guardrail_bindings_guardrails: Guardrail
+  cloudcontrol_guardrail_bindings_targets: Guardrail

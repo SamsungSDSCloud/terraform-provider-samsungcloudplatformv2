@@ -3,27 +3,28 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/loadbalancer/1.3"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scploadbalancerv1d4 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.4"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &loadbalancerLbHealthCheckResource{}
-	_ resource.ResourceWithConfigure = &loadbalancerLbHealthCheckResource{}
+	_ resource.Resource                = &loadbalancerLbHealthCheckResource{}
+	_ resource.ResourceWithConfigure   = &loadbalancerLbHealthCheckResource{}
 	_ resource.ResourceWithImportState = &loadbalancerLbHealthCheckResource{}
 )
 
@@ -34,9 +35,9 @@ func NewLoadBalancerLbHealthCheckResource() resource.Resource {
 
 // loadbalancerLbHealthCheckResource is the data source implementation.
 type loadbalancerLbHealthCheckResource struct {
-	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	clientv1d4 *loadbalancerv1d4.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -299,7 +300,7 @@ func (r *loadbalancerLbHealthCheckResource) Configure(_ context.Context, req res
 		return
 	}
 
-	r.client = inst.Client.LoadBalancer
+	r.clientv1d4 = inst.Client.LoadBalancerV1d4
 	r.clients = inst.Client
 }
 
@@ -310,15 +311,34 @@ func (r *loadbalancerLbHealthCheckResource) ImportState(ctx context.Context, req
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLbHealthCheckResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan loadbalancer.LbHealthCheckResource
+	var plan loadbalancerv1d4.LbHealthCheckResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Create new Lb Health Check
-	data, err := r.client.CreateLbHealthCheck(ctx, plan)
+	// Create new Lb Health Check using v1.4 API (async - returns 202 Accepted)
+	lbHealthCheck := plan.LbHealthCheckCreate
+
+	body := &loadbalancerv1d4.LbHealthCheckCreate{
+		Name:                lbHealthCheck.Name,
+		VpcId:               lbHealthCheck.VpcId,
+		SubnetId:            lbHealthCheck.SubnetId,
+		Protocol:            lbHealthCheck.Protocol,
+		HealthCheckPort:     lbHealthCheck.HealthCheckPort,
+		HealthCheckInterval: lbHealthCheck.HealthCheckInterval,
+		HealthCheckTimeout:  lbHealthCheck.HealthCheckTimeout,
+		HealthCheckCount:    lbHealthCheck.HealthCheckCount,
+		HttpMethod:          lbHealthCheck.HttpMethod,
+		HealthCheckUrl:      lbHealthCheck.HealthCheckUrl,
+		ResponseCode:        lbHealthCheck.ResponseCode,
+		RequestData:         lbHealthCheck.RequestData,
+		Description:         lbHealthCheck.Description,
+		Tags:                lbHealthCheck.Tags,
+	}
+
+	data, err := r.clientv1d4.CreateLbHealthCheck(ctx, body)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -330,8 +350,22 @@ func (r *loadbalancerLbHealthCheckResource) Create(ctx context.Context, req reso
 
 	plan.Id = types.StringValue(data.LbHealthCheck.Id)
 
-	// Wait for ACTIVE state
-	if err := waitForLbHealthCheckStatus(ctx, r.client, data.LbHealthCheck.Id, []string{}, []string{"ACTIVE"}); err != nil {
+	// Map response body to schema and populate Computed attribute values
+	lbHealthCheckModel := createLbHealthCheckModelV1d4(data)
+	lbHealthCheckObjectValue, diags := types.ObjectValueFrom(ctx, lbHealthCheckModel.AttributeTypes(), lbHealthCheckModel)
+	plan.LbHealthCheck = lbHealthCheckObjectValue
+
+	// Set state before waiter — if waiter fails, ID remains in state
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Wait for ACTIVE state (async operation)
+	refreshFn := r.getLbHealthCheckRefreshFunc(ctx, plan.Id.ValueString())
+	err = client.WaitForResourceCreated(ctx, refreshFn)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Lb Health Check",
 			"Error waiting for Lb Health Check to become active: "+err.Error(),
@@ -339,23 +373,17 @@ func (r *loadbalancerLbHealthCheckResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	// Map response body to schema and populate Computed attribute values
-	lbHealthCheckModel := createLbHealthCheckModel(data)
-	lbHealthCheckOjbectValue, diags := types.ObjectValueFrom(ctx, lbHealthCheckModel.AttributeTypes(), lbHealthCheckModel)
-	plan.LbHealthCheck = lbHealthCheckOjbectValue
-
-	// Set state to fully populated data
-	diags = resp.State.Set(ctx, plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// Final Read to refresh state
+	readReq := resource.ReadRequest{State: resp.State}
+	readResp := &resource.ReadResponse{State: resp.State}
+	r.Read(ctx, readReq, readResp)
+	resp.State = readResp.State
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (r *loadbalancerLbHealthCheckResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state loadbalancer.LbHealthCheckResource
+	var state loadbalancerv1d4.LbHealthCheckResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -363,7 +391,7 @@ func (r *loadbalancerLbHealthCheckResource) Read(ctx context.Context, req resour
 	}
 
 	// Get refreshed order value from LB Health Check
-	data, err := r.client.GetLbHealthCheck(ctx, state.Id.ValueString())
+	data, err := r.clientv1d4.GetLbHealthCheck(ctx, state.Id.ValueString())
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			resp.State.RemoveResource(ctx)
@@ -371,13 +399,13 @@ func (r *loadbalancerLbHealthCheckResource) Read(ctx context.Context, req resour
 		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Lb Health Check",
-			"Could not create Lb Health Check, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error reading Lb Health Check",
+			"Could not read Lb Health Check, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
 
-	lbHealthCheckModel := createLbHealthCheckModel(data)
+	lbHealthCheckModel := createLbHealthCheckModelV1d4(data)
 
 	lbHealthCheckObjectValue, diags := types.ObjectValueFrom(ctx, lbHealthCheckModel.AttributeTypes(), lbHealthCheckModel)
 	state.LbHealthCheck = lbHealthCheckObjectValue
@@ -385,7 +413,7 @@ func (r *loadbalancerLbHealthCheckResource) Read(ctx context.Context, req resour
 	// Reconcile lb_health_check_create input block with API response to detect drift
 	// Only populate if nil (e.g., after import) — preserve user config values otherwise
 	if state.LbHealthCheckCreate == nil {
-		state.LbHealthCheckCreate = &loadbalancer.LbHealthCheckCreate{
+		state.LbHealthCheckCreate = &loadbalancerv1d4.LbHealthCheckCreate{
 			Name:                types.StringValue(data.LbHealthCheck.Name),
 			Description:         loadbalancerutil.ToNullableStringValue(data.LbHealthCheck.Description.Get()),
 			Protocol:            loadbalancerutil.ToNullableStringValue((*string)(data.LbHealthCheck.Protocol)),
@@ -414,63 +442,94 @@ func (r *loadbalancerLbHealthCheckResource) Read(ctx context.Context, req resour
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *loadbalancerLbHealthCheckResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state loadbalancer.LbHealthCheckResource
+	var state loadbalancerv1d4.LbHealthCheckResource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Update existing order
-	_, err := r.client.UpdateLbHealthCheck(ctx, state.Id.ValueString(), state)
+	lbHealthCheck := state.LbHealthCheckCreate
+
+	body := scploadbalancerv1d4.LbHealthCheckSetRequest{
+		LbHealthCheck: scploadbalancerv1d4.LbHealthCheckSet{
+			Protocol:            *scploadbalancerv1d4.NewNullableLbMonitorProtocol((*scploadbalancerv1d4.LbMonitorProtocol)(lbHealthCheck.Protocol.ValueStringPointer())),
+			HealthCheckPort:     *scploadbalancerv1d4.NewNullableInt32(lbHealthCheck.HealthCheckPort.ValueInt32Pointer()),
+			HealthCheckInterval: *scploadbalancerv1d4.NewNullableInt32(lbHealthCheck.HealthCheckInterval.ValueInt32Pointer()),
+			HealthCheckTimeout:  *scploadbalancerv1d4.NewNullableInt32(lbHealthCheck.HealthCheckTimeout.ValueInt32Pointer()),
+			HealthCheckCount:    *scploadbalancerv1d4.NewNullableInt32(lbHealthCheck.HealthCheckCount.ValueInt32Pointer()),
+			HttpMethod:          *scploadbalancerv1d4.NewNullableLbMonitorHttpMethod((*scploadbalancerv1d4.LbMonitorHttpMethod)(lbHealthCheck.HttpMethod.ValueStringPointer())),
+			HealthCheckUrl:      *scploadbalancerv1d4.NewNullableString(lbHealthCheck.HealthCheckUrl.ValueStringPointer()),
+			ResponseCode:        *scploadbalancerv1d4.NewNullableString(lbHealthCheck.ResponseCode.ValueStringPointer()),
+			RequestData:         *scploadbalancerv1d4.NewNullableString(lbHealthCheck.RequestData.ValueStringPointer()),
+			Description:         *scploadbalancerv1d4.NewNullableString(lbHealthCheck.Description.ValueStringPointer()),
+		},
+	}
+
+	// Update using v1.4 API (async - returns 202 Accepted)
+	_, err := r.clientv1d4.UpdateLbHealthCheck(ctx, state.Id.ValueString(), &body)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Lb Health Check",
-			"Could not create Lb Health Check, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error updating Lb Health Check",
+			"Could not update Lb Health Check, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
 
-	// Fetch updated items from GetFirewallRule as UpdateFirewallRule items are not populated.
-	data, err := r.client.GetLbHealthCheck(ctx, state.Id.ValueString())
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddError(
-			"Error creating Lb Health Check",
-			"Could not create Lb Health Check, unexpected error: "+err.Error()+"\nReason: "+detail,
-		)
-		return
-	}
-	lbHealthCheckModel := createLbHealthCheckModel(data)
-
-	lbHealthCheckObjectValue, diags := types.ObjectValueFrom(ctx, lbHealthCheckModel.AttributeTypes(), lbHealthCheckModel)
-	state.LbHealthCheck = lbHealthCheckObjectValue
-
+	// Set plan state before waiter
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Wait for ACTIVE state (async operation)
+	refreshFn := r.getLbHealthCheckRefreshFunc(ctx, state.Id.ValueString())
+	err = client.WaitForResourceUpdated(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error updating Lb Health Check",
+			"Error waiting for Lb Health Check to become active: "+err.Error(),
+		)
+		return
+	}
+
+	// Final Read to refresh state
+	readReq := resource.ReadRequest{State: resp.State}
+	readResp := &resource.ReadResponse{State: resp.State}
+	r.Read(ctx, readReq, readResp)
+	resp.State = readResp.State
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *loadbalancerLbHealthCheckResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state loadbalancer.LbHealthCheckResource
+	var state loadbalancerv1d4.LbHealthCheckResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Delete existing LB Health Check
-	err := r.client.DeleteLbHealthCheck(ctx, state.Id.ValueString())
+	// Delete existing LB Health Check using v1.4 API (async operation)
+	err := r.clientv1d4.DeleteLbHealthCheck(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Deleting LB Health Check",
 			"Could not delete lb health check, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+
+	// Wait for deletion to complete (async operation)
+	refreshFn := r.getLbHealthCheckRefreshFunc(ctx, state.Id.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting Lb Health Check",
+			"Error waiting for Lb Health Check to be deleted: "+err.Error(),
 		)
 		return
 	}
@@ -483,20 +542,20 @@ func ToNullableInt32Value(v *int32) types.Int32 {
 	return types.Int32Value(*v)
 }
 
-func waitForLbHealthCheckStatus(ctx context.Context, loadbalancerClient *loadbalancer.Client, id string, pendingStates []string, targetStates []string) error {
-	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
-		info, err := loadbalancerClient.GetLbHealthCheck(ctx, id)
+func (r *loadbalancerLbHealthCheckResource) getLbHealthCheckRefreshFunc(ctx context.Context, id string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		info, err := r.clientv1d4.GetLbHealthCheck(ctx, id)
 		if err != nil {
 			return nil, "", err
 		}
-		return info, string(info.LbHealthCheck.State), nil
-	}, -1, -1, -1, -1)
+		return info, info.LbHealthCheck.State, nil
+	}
 }
 
-func createLbHealthCheckModel(data *scploadbalancer.LbHealthCheckShowResponse) loadbalancer.LbHealthCheckDetail {
+func createLbHealthCheckModelV1d4(data *scploadbalancerv1d4.LbHealthCheckShowResponse) loadbalancerv1d4.LbHealthCheckDetail {
 	lbHealthCheck := data.LbHealthCheck
 
-	return loadbalancer.LbHealthCheckDetail{
+	return loadbalancerv1d4.LbHealthCheckDetail{
 		Name:                types.StringValue(lbHealthCheck.Name),
 		VpcId:               loadbalancerutil.ToNullableStringValue(lbHealthCheck.VpcId.Get()),
 		SubnetId:            loadbalancerutil.ToNullableStringValue(lbHealthCheck.SubnetId.Get()),

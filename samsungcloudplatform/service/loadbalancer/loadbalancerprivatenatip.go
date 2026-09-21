@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/loadbalancer"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/loadbalancer/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/loadbalancer"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -263,6 +263,16 @@ func (r *loadbalancerLoadbalancerPrivateNatIpResource) Delete(ctx context.Contex
 		)
 		return
 	}
+
+	refreshFn := r.getLoadbalancerPrivateNatIpRefreshFunc(ctx, state.LoadbalancerId.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting LB Private NAT IP",
+			"Error waiting for LB Private NAT IP to become deleted: "+err.Error(),
+		)
+		return
+	}
 }
 
 func createLoadbalancerPrivateNatModel(data *scploadbalancer.PrivateStaticNatCreateResponse) loadbalancer.LoadbalancerPrivateNatIpDetail {
@@ -307,4 +317,21 @@ func waitForLoadbalancerPrivateNatIpStatus(ctx context.Context, loadbalancerClie
 		}
 		return info, *state, nil
 	}, -1, -1, -1, -1)
+}
+
+func (r *loadbalancerLoadbalancerPrivateNatIpResource) getLoadbalancerPrivateNatIpRefreshFunc(ctx context.Context, loadbalancerId string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		data, err := r.client.GetLoadbalancerPrivateNatIp(ctx, loadbalancerId)
+		if err != nil {
+			return nil, "", err
+		}
+		staticNat := data.GetStaticNat()
+		if staticNat.State.IsSet() {
+			state := staticNat.State.Get()
+			if state != nil {
+				return data, string(*state), nil
+			}
+		}
+		return data, "DELETED", nil
+	}
 }

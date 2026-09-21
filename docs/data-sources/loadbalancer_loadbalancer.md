@@ -54,8 +54,6 @@ Optional:
   - maxLength : 255
 - `firewall_id` (String) The firewall ID associated with the LoadBalancer.
   - example: YOUR RESOURCE'S FIREWALL_ID
-- `health_check_ip` (List of String) The list of health check IP addresses.
-  - example : ["192.168.1.1", "192.168.1.2"]
 - `layer_type` (String) The layer type of the Load Balancer.
   - example : L7
   - pattern : L4 | L7
@@ -84,9 +82,13 @@ Read-Only:
   - example : 2024-01-01T00:00:00Z
 - `created_by` (String) The user id that created the resource.
   - example: YOUR RESOURCE'S CREATED_BY
+- `health_check_ips` (List of String) The list of availability Ips where the subnet is located.
+  - example : ["192.168.0.1", "192.168.0.1"]
 - `id` (String) The unique identifier.
   - example: YOUR RESOURCE'S ID
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
   - example : 2024-01-01T00:00:00Z
 - `modified_by` (String) The user id that last modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
+- `zones` (List of String) The list of availability zones where the subnet is located.
+  - example : ["zone-1", "zone-2"]

@@ -17,7 +17,8 @@ provider "samsungcloudplatformv2" {
 
 resource "samsungcloudplatformv2_vpc_nat_gateway" "natgateway" {
     subnet_id = var.natgateway_subnet_id
-    publicip_id = var.natgateway_publicip_id
+    publicip_ids = var.natgateway_publicip_ids
+    multi_zone_enabled = var.natgateway_multi_zone_enabled
     description = var.natgateway_description
 }
 
@@ -32,9 +33,14 @@ variable "natgateway_subnet_id" {
   default = "ENTER YOUR RESOURCE'S NATGATEWAY_SUBNET_ID"
 }
 
-variable "natgateway_publicip_id" {
-  type    = string
-  default = "ENTER YOUR RESOURCE'S NATGATEWAY_PUBLICIP_ID"
+variable "natgateway_publicip_ids" {
+  type    = list(string)
+  default = ["ENTER YOUR RESOURCE'S NATGATEWAY_PUBLICIP_IDS"]
+}
+
+variable "natgateway_multi_zone_enabled" {
+  type    = bool
+  default = false
 }
 
 variable "natgateway_description" {
@@ -48,8 +54,8 @@ variable "natgateway_description" {
 
 ### Required
 
-- `publicip_id` (String) The identifier of the public IP address.
-  - example: YOUR RESOURCE'S PUBLICIP_ID
+- `publicip_ids` (List of String) A list of public IP address identifiers.
+  - example: YOUR RESOURCE'S PUBLICIP_IDS
 - `subnet_id` (String) The identifier of the subnet that the nat gateway belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
 
@@ -58,6 +64,8 @@ variable "natgateway_description" {
 - `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
   - example : NAT Gateway Description
   - maxLength : 50
+- `multi_zone_enabled` (Boolean) Indicates whether Multi-AZ is enabled for the NAT gateway.
+  - example : true
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
@@ -87,10 +95,11 @@ Read-Only:
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
+- `multi_zone_enabled` (Boolean) Indicates whether Multi-AZ is enabled for the NAT gateway.
+  - example : true
 - `name` (String) The name of the NAT gateway.
   - example : NatGatewayName
-- `nat_gateway_ip_address` (String) The IP address of the NAT gateway.
-  - example : 192.167.0.5
+- `nat_gateway_ips` (Attributes List) A list of NAT gateway IP addresses. (see [below for nested schema](#nestedatt--nat_gateway--nat_gateway_ips))
 - `state` (String) The current lifecycle state of the NAT gateway.
   - example : ACTIVE
 - `subnet_cidr` (String) The IP address range of the subnet in CIDR notation.
@@ -103,3 +112,13 @@ Read-Only:
   - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) The name of the VPC that the NAT gateway belongs to.
   - example : vpcName
+
+<a id="nestedatt--nat_gateway--nat_gateway_ips"></a>
+### Nested Schema for `nat_gateway.nat_gateway_ips`
+
+Read-Only:
+
+- `ip_address` (String) The IP address of the NAT gateway.
+  - example : 42.15.165.56
+- `publicip_id` (String) The identifier of the public IP address.
+  - example: YOUR RESOURCE'S PUBLICIP_ID

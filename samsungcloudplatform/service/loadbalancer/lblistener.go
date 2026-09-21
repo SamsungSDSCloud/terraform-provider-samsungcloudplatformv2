@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/loadbalancer"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -34,9 +37,10 @@ func NewLoadBalancerListenerResource() resource.Resource {
 
 // resourceManagerResourceGroupResource is the data source implementation.
 type loadbalancerLbListenerResource struct {
-	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *loadbalancer.Client
+	clientv1d4 *loadbalancerv1d4.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -201,7 +205,7 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 					common.ToSnakeCase("State"): schema.StringAttribute{
 						Description: "The current state of the LB Listener.\n" +
 							"  - example : ACTIVE\n" +
-							"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+							"  - pattern : CREATING | ACTIVE | EDITING | DELETING | ERROR\n",
 						Computed: true,
 					},
 					common.ToSnakeCase("UrlHandler"): schema.ListNestedAttribute{
@@ -292,10 +296,23 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 							"  - maximum : 3600\n",
 						Optional: true,
 					},
-					common.ToSnakeCase("HstsMaxAge"): schema.Int32Attribute{
-						Description: "HSTS max age in seconds.\n" +
-							"  - example : 31536000\n",
-						Optional: true,
+					common.ToSnakeCase("HstsConfig"): schema.SingleNestedAttribute{
+						Description: "HSTS Configuration\n",
+						Optional:    true,
+						Attributes: map[string]schema.Attribute{
+							common.ToSnakeCase("MaxAge"): schema.Int32Attribute{
+								Description: "HSTS max age in seconds.\n" +
+									"  - example : 1\n",
+								Optional: true,
+								Computed: true,
+							},
+							common.ToSnakeCase("IncludeSubDomains"): schema.BoolAttribute{
+								Description: "The Include Sub Domains\n" +
+									"  - example : true\n",
+								Optional: true,
+								Computed: true,
+							},
+						},
 					},
 				},
 			},
@@ -304,6 +321,7 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 				Optional:    true,
 
 				Attributes: map[string]schema.Attribute{
+					"tags": tag.ResourceSchema(),
 					common.ToSnakeCase("Description"): schema.StringAttribute{
 						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
 							"  - example : LB Listener for web traffic\n" +
@@ -393,6 +411,7 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 							},
 						},
 					},
+
 					common.ToSnakeCase("SniCertificate"): schema.ListNestedAttribute{
 						Description: "SNI certificate configuration for multiple domains.",
 						Optional:    true,
@@ -409,6 +428,11 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 										"  - minLength : 1\n" +
 										"  - maxLength : 63\n" +
 										"  - pattern : ^[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,61}[a-zA-Z0-9])?$\n",
+									Optional: true,
+								},
+								common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
+									Description: "The expiration date and time of the certificate. Read-only.\n" +
+										"  - example : 2024-12-31T23:59:59Z\n",
 									Optional: true,
 								},
 							},
@@ -502,10 +526,29 @@ func (r *loadbalancerLbListenerResource) Schema(_ context.Context, _ resource.Sc
 							"  - maximum : 3600\n",
 						Optional: true,
 					},
-					common.ToSnakeCase("HstsMaxAge"): schema.Int32Attribute{
-						Description: "HSTS max age in seconds.\n" +
-							"  - example : 31536000\n",
+					common.ToSnakeCase("SupportHttp2"): schema.BoolAttribute{
+						Description: "HTTP2.0 사용\n" +
+							"  - example : true | false",
 						Optional: true,
+						Default:  booldefault.StaticBool(false),
+						Computed: true,
+					},
+					common.ToSnakeCase("HstsConfig"): schema.SingleNestedAttribute{
+						Description: "HSTS Configuration",
+						Optional:    true,
+						Attributes: map[string]schema.Attribute{
+							common.ToSnakeCase("MaxAge"): schema.Int32Attribute{
+								Description: "HSTS max age in seconds.\n" +
+									"  - example : 1",
+								Optional: true,
+							},
+							common.ToSnakeCase("IncludeSubDomains"): schema.BoolAttribute{
+								Description: "Whether to include subdomains.\n" +
+									"  - example : true",
+								Optional: true,
+								Computed: true,
+							},
+						},
 					},
 				},
 			},
@@ -532,6 +575,7 @@ func (r *loadbalancerLbListenerResource) Configure(_ context.Context, req resour
 	}
 
 	r.client = inst.Client.LoadBalancer
+	r.clientv1d4 = inst.Client.LoadBalancerV1d4
 	r.clients = inst.Client
 }
 
@@ -541,20 +585,20 @@ func (r *loadbalancerLbListenerResource) ImportState(ctx context.Context, req re
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { // 아직 정의하지 않은 Create 메서드를 추가한다.
-	var plan loadbalancer.LbListenerResource
+	var plan loadbalancerv1d4.LbListenerResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if err := validateLbListenerCreate(ctx, r.client, *plan.LbListenerCreate); err != nil {
+	if err := validateLbListenerCreate(ctx, r.clientv1d4, *plan.LbListenerCreate); err != nil {
 		resp.Diagnostics.AddError("Error creating LB Listener", err.Error())
 		return
 	}
 
 	// Create new Lb Listener
-	data, err := r.client.CreateLbListener(ctx, plan)
+	data, err := r.clientv1d4.CreateLbListener(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -575,7 +619,7 @@ func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resourc
 	diags = resp.State.Set(ctx, plan)
 
 	// Wait for active state
-	err = waitForLBListenerStatus(ctx, r.client, data.Listener.Id, []string{}, []string{"ACTIVE"})
+	err = waitForLBListenerStatus(ctx, r.clientv1d4, data.Listener.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Lb Listener",
@@ -605,7 +649,7 @@ func (r *loadbalancerLbListenerResource) Create(ctx context.Context, req resourc
 // Read refreshes the Terraform state with the latest data.
 func (r *loadbalancerLbListenerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state loadbalancer.LbListenerResource
+	var state loadbalancerv1d4.LbListenerResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -613,7 +657,7 @@ func (r *loadbalancerLbListenerResource) Read(ctx context.Context, req resource.
 	}
 
 	// Get refreshed order value from LB Listener
-	data, err := r.client.GetLbListener(ctx, state.Id.ValueString())
+	data, err := r.clientv1d4.GetLbListener(ctx, state.Id.ValueString())
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			resp.State.RemoveResource(ctx)
@@ -629,18 +673,85 @@ func (r *loadbalancerLbListenerResource) Read(ctx context.Context, req resource.
 
 	lbListenerModel, skipped := loadbalancerutil.ConvertResponse(data)
 
-	lbListenerObjectValue, diags := types.ObjectValueFrom(ctx, lbListenerModel.AttributeTypes(), lbListenerModel)
+	lbListenerObjectValue, d := types.ObjectValueFrom(ctx, lbListenerModel.AttributeTypes(), lbListenerModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	state.LbListener = lbListenerObjectValue
 
 	// Reconcile lb_listener_create input block with API response to detect drift
 	// Only populate if nil (e.g., after import) — preserve user config values otherwise
 	if state.LbListenerCreate == nil {
-		state.LbListenerCreate = &loadbalancer.LbListenerCreate{
-			Name:           types.StringValue(data.Listener.Name),
-			Description:    loadbalancerutil.ToNullableStringValue(data.Listener.Description.Get()),
-			Protocol:       types.StringValue(string(data.Listener.Protocol)),
-			ServicePort:    types.Int32Value(data.Listener.ServicePort),
-			LoadbalancerId: types.StringNull(),
+		// Build nested objects from API response
+		var sslCert *loadbalancerv1d4.SslCertificate
+		if sslCertData := data.Listener.SslCertificate.Get(); sslCertData != nil {
+			sslCert = &loadbalancerv1d4.SslCertificate{
+				ClientCertId:    types.StringValue(sslCertData.GetClientCertId()),
+				ClientCertLevel: types.StringValue(sslCertData.GetClientCertLevel()),
+				ServerCertLevel: types.StringValue(sslCertData.GetServerCertLevel()),
+			}
+		}
+
+		var sniCerts []loadbalancerv1d4.SniCertificate
+		if data.Listener.SniCertificate != nil && len(data.Listener.SniCertificate) > 0 {
+			sniCerts = make([]loadbalancerv1d4.SniCertificate, len(data.Listener.SniCertificate))
+			for i, sni := range data.Listener.SniCertificate {
+				sniCerts[i] = loadbalancerv1d4.SniCertificate{
+					SniCertId:  types.StringValue(sni.GetSniCertId()),
+					DomainName: types.StringValue(sni.GetDomainName()),
+				}
+			}
+		}
+
+		var urlHandlers []loadbalancerv1d4.UrlHandler
+		for _, uh := range data.Listener.UrlHandler {
+			urlPattern := uh.GetUrlPattern()
+			serverGroupId := uh.GetServerGroupId()
+			seq := uh.GetSeq()
+			if urlPattern != "" && uh.ServerGroupId.IsSet() && uh.Seq.IsSet() {
+				urlHandlers = append(urlHandlers, loadbalancerv1d4.UrlHandler{
+					UrlPattern:    types.StringValue(urlPattern),
+					ServerGroupId: types.StringValue(serverGroupId),
+					Seq:           types.Int32Value(int32(seq)),
+				})
+			}
+		}
+
+		var httpsRedirect *loadbalancerv1d4.HttpsRedirection
+		if httpsRedirectData := data.Listener.HttpsRedirection.Get(); httpsRedirectData != nil {
+			httpsRedirect = &loadbalancerv1d4.HttpsRedirection{
+				Protocol:     types.StringValue(httpsRedirectData.GetProtocol()),
+				Port:         types.StringValue(httpsRedirectData.GetPort()),
+				ResponseCode: types.StringValue(httpsRedirectData.GetResponseCode()),
+			}
+		}
+
+		state.LbListenerCreate = &loadbalancerv1d4.LbListenerCreate{
+			Tags:                types.MapNull(types.StringType),
+			Name:                types.StringValue(data.Listener.Name),
+			Description:         loadbalancerutil.ToNullableStringValue(data.Listener.Description.Get()),
+			Protocol:            types.StringValue(string(data.Listener.Protocol)),
+			ServicePort:         types.Int32Value(data.Listener.ServicePort),
+			LoadbalancerId:      types.StringValue(data.Listener.LoadbalancerId),
+			InsertClientIp:      loadbalancerutil.ToNullableBoolValue(data.Listener.InsertClientIp.Get()),
+			Persistence:         loadbalancerutil.ToNullableStringValue(data.Listener.Persistence.Get()),
+			ResponseTimeout:     loadbalancerutil.ToNullableInt32Value(data.Listener.ResponseTimeout.Get()),
+			ServerGroupId:       loadbalancerutil.ToNullableStringValue(data.Listener.ServerGroupId.Get()),
+			SessionDurationTime: loadbalancerutil.ToNullableInt32Value(data.Listener.SessionDurationTime.Get()),
+			SslCertificate:      sslCert,
+			SniCertificate:      sniCerts,
+			UrlHandler:          urlHandlers,
+			HttpsRedirection:    httpsRedirect,
+			UrlRedirection:      loadbalancerutil.ToNullableStringValue(data.Listener.UrlRedirection.Get()),
+			XForwardedFor:       loadbalancerutil.ToNullableBoolValue(data.Listener.XForwardedFor.Get()),
+			XForwardedPort:      loadbalancerutil.ToNullableBoolValue(data.Listener.XForwardedPort.Get()),
+			XForwardedProto:     loadbalancerutil.ToNullableBoolValue(data.Listener.XForwardedProto.Get()),
+			RoutingAction:       types.StringValue(string(data.Listener.RoutingAction)),
+			ConditionType:       loadbalancerutil.ToNullableStringValue((*string)(data.Listener.ConditionType.Get())),
+			IdleTimeout:         loadbalancerutil.ToNullableInt32Value(data.Listener.IdleTimeout.Get()),
+			SupportHttp2:        types.BoolValue(data.Listener.GetSupportHttp2()),
 		}
 	}
 
@@ -661,31 +772,126 @@ func (r *loadbalancerLbListenerResource) Read(ctx context.Context, req resource.
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state loadbalancer.LbListenerResource
-	diags := req.Plan.Get(ctx, &state)
+	var plan loadbalancerv1d4.LbListenerResource
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if err := validateLbListenerCreate(ctx, r.client, *state.LbListenerCreate); err != nil {
-		resp.Diagnostics.AddError("Error updating LB Listener", err.Error())
+	// Retrieve values from state to detect rule changes
+	var state loadbalancerv1d4.LbListenerResource
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Update existing order
-	_, err := r.client.UpdateLbListener(ctx, state.Id.ValueString(), state)
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddError(
-			"Error update Lb Listener",
-			"Could not update Lb Listener, unexpected error: "+err.Error()+"\nReason: "+detail,
-		)
-		return
+	// If rule fields changed, call the dedicated v1.4 SetLbListenerRule API
+	if loadbalancerutil.HasRuleChanged(state.LbListenerCreate, plan.LbListenerCreate) {
+		if err := validateLbListenerCreate(ctx, r.clientv1d4, *plan.LbListenerCreate); err != nil {
+			resp.Diagnostics.AddError("Error updating LB Listener", err.Error())
+			return
+		}
+		ruleReq := loadbalancerutil.BuildRuleSetRequest(plan.LbListenerCreate)
+		_, err := r.clientv1d4.SetLbListenerRule(ctx, plan.Id.ValueString(), ruleReq)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error updating Lb Listener Rule",
+				"Could not update Lb Listener Rule, unexpected error: "+err.Error()+"\nReason: "+detail,
+			)
+			return
+		}
+
+		// Wait for ACTIVE state after rule update (EDITING is a valid pending state)
+		refreshFn := r.getLoadbalancerListenerRefreshFunc(ctx, plan.Id.ValueString())
+		err = client.WaitForResourceUpdated(ctx, refreshFn)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error updating Lb Listener Rule",
+				"Error waiting for Lb Listener to become active after rule update: "+err.Error(),
+			)
+			return
+		}
+	}
+	// If resource fields changed, call the dedicated v1.4 SetLbListenerResource API
+	if loadbalancerutil.HasResourceChanged(state.LbListenerCreate, plan.LbListenerCreate) {
+		resourceReq := loadbalancerutil.BuildResourceSetRequest(plan.LbListenerCreate)
+		_, err := r.clientv1d4.SetLbListenerResource(ctx, plan.Id.ValueString(), resourceReq)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error updating Lb Listener Resource",
+				"Could not update Lb Listener Resource, unexpected error: "+err.Error()+"\nReason: "+detail,
+			)
+			return
+		}
+
+		// Wait for ACTIVE state after resource update (EDITING is a valid pending state)
+		refreshFn := r.getLoadbalancerListenerRefreshFunc(ctx, plan.Id.ValueString())
+		err = client.WaitForResourceUpdated(ctx, refreshFn)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error updating Lb Listener Resource",
+				"Error waiting for Lb Listener to become active after resource update: "+err.Error(),
+			)
+			return
+		}
+	}
+
+	// If SSL certificate changed, call the dedicated v1.4 SetLbListenerCertificate API
+	if loadbalancerutil.SslCertificateChanged(state.LbListenerCreate.SslCertificate, plan.LbListenerCreate.SslCertificate) {
+		sslCertReq := loadbalancerutil.BuildSslCertificateSetRequest(plan.LbListenerCreate)
+		_, err := r.clientv1d4.SetLbListenerCertificate(ctx, plan.Id.ValueString(), sslCertReq)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error updating Lb Listener SSL Certificate",
+				"Could not update Lb Listener SSL Certificate, unexpected error: "+err.Error()+"\nReason: "+detail,
+			)
+			return
+		}
+
+		// Wait for ACTIVE state after certificate update (EDITING is a valid pending state)
+		refreshFn := r.getLoadbalancerListenerRefreshFunc(ctx, plan.Id.ValueString())
+		err = client.WaitForResourceUpdated(ctx, refreshFn)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error updating Lb Listener SSL Certificate",
+				"Error waiting for Lb Listener to become active after certificate update: "+err.Error(),
+			)
+			return
+		}
+	}
+
+	// If SNI certificate changed, call the dedicated v1.4 SetLbListenerCertificate API
+	if loadbalancerutil.SniCertificateChanged(state.LbListenerCreate.SniCertificate, plan.LbListenerCreate.SniCertificate) {
+		sniCertReq := loadbalancerutil.BuildSniCertificateSetRequest(plan.LbListenerCreate)
+		_, err := r.clientv1d4.SetLbListenerCertificate(ctx, plan.Id.ValueString(), sniCertReq)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error updating Lb Listener SNI Certificate",
+				"Could not update Lb Listener SNI Certificate, unexpected error: "+err.Error()+"\nReason: "+detail,
+			)
+			return
+		}
+
+		// Wait for ACTIVE state after certificate update (EDITING is a valid pending state)
+		refreshFn := r.getLoadbalancerListenerRefreshFunc(ctx, plan.Id.ValueString())
+		err = client.WaitForResourceUpdated(ctx, refreshFn)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error updating Lb Listener SNI Certificate",
+				"Error waiting for Lb Listener to become active after certificate update: "+err.Error(),
+			)
+			return
+		}
 	}
 
 	// Fetch updated items from GetFirewallRule as UpdateFirewallRule items are not populated.
-	data, err := r.client.GetLbListener(ctx, state.Id.ValueString())
+	data, err := r.clientv1d4.GetLbListener(ctx, plan.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -697,9 +903,9 @@ func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resourc
 	lbListenerModel, skipped := loadbalancerutil.ConvertResponse(data)
 
 	lbListenerObjectValue, diags := types.ObjectValueFrom(ctx, lbListenerModel.AttributeTypes(), lbListenerModel)
-	state.LbListener = lbListenerObjectValue
+	plan.LbListener = lbListenerObjectValue
 
-	diags = resp.State.Set(ctx, state)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -715,7 +921,7 @@ func (r *loadbalancerLbListenerResource) Update(ctx context.Context, req resourc
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *loadbalancerLbListenerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state loadbalancer.LbListenerResource
+	var state loadbalancerv1d4.LbListenerResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -723,7 +929,7 @@ func (r *loadbalancerLbListenerResource) Delete(ctx context.Context, req resourc
 	}
 
 	// Delete existing LB Server Group
-	err := r.client.DeleteLbListener(ctx, state.Id.ValueString())
+	err := r.clientv1d4.DeleteLbListener(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -732,9 +938,20 @@ func (r *loadbalancerLbListenerResource) Delete(ctx context.Context, req resourc
 		)
 		return
 	}
+
+	refreshFn := r.getLoadbalancerListenerRefreshFunc(ctx, state.Id.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting LB Listener",
+			"Error waiting for LB Listener to become deleted: "+err.Error(),
+		)
+		return
+	}
+
 }
 
-func validateServerGroup(ctx context.Context, lbClient *loadbalancer.Client, serverGroupId string) error {
+func validateServerGroup(ctx context.Context, lbClient *loadbalancerv1d4.Client, serverGroupId string) error {
 	serverGroup, err := lbClient.GetLbServerGroup(ctx, serverGroupId)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
@@ -747,7 +964,7 @@ func validateServerGroup(ctx context.Context, lbClient *loadbalancer.Client, ser
 	return nil
 }
 
-func validateLbListenerCreate(ctx context.Context, lbClient *loadbalancer.Client, create loadbalancer.LbListenerCreate) error {
+func validateLbListenerCreate(ctx context.Context, lbClient *loadbalancerv1d4.Client, create loadbalancerv1d4.LbListenerCreate) error {
 	protocol := strings.ToUpper(create.Protocol.ValueString())
 	layer4Protocols := map[string]bool{"TCP": true, "UDP": true, "TLS": true, "TCP_PROXY": true}
 	if layer4Protocols[protocol] && len(create.UrlHandler) > 0 {
@@ -776,7 +993,7 @@ func validateLbListenerCreate(ctx context.Context, lbClient *loadbalancer.Client
 	return nil
 }
 
-func waitForLBListenerStatus(ctx context.Context, loadbalancerClient *loadbalancer.Client, id string, pendingStates []string, targetStates []string) error {
+func waitForLBListenerStatus(ctx context.Context, loadbalancerClient *loadbalancerv1d4.Client, id string, pendingStates []string, targetStates []string) error {
 	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
 		info, err := loadbalancerClient.GetLbListener(ctx, id)
 		if err != nil {
@@ -784,4 +1001,14 @@ func waitForLBListenerStatus(ctx context.Context, loadbalancerClient *loadbalanc
 		}
 		return info, string(info.Listener.State), nil
 	}, -1, -1, -1, -1)
+}
+
+func (r *loadbalancerLbListenerResource) getLoadbalancerListenerRefreshFunc(ctx context.Context, lbListenerId string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		data, err := r.clientv1d4.GetLbListener(ctx, lbListenerId)
+		if err != nil {
+			return nil, "", err
+		}
+		return data, string(data.GetListener().State), nil
+	}
 }

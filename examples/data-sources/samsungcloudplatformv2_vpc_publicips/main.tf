@@ -12,4 +12,5 @@ data "samsungcloudplatformv2_vpc_publicips" "publicips" {
   attached_resource_name = var.attached_resource_name
   vpc_id                 = var.vpc_id
   type                   = var.type
+  zone                   = var.zone
 }

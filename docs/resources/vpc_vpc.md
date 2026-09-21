@@ -48,10 +48,6 @@ variable "vpc_name" {
 
 ### Required
 
-- `cidr` (String) The IP address range of the network in CIDR notation.
-  - example : 192.167.0.0/18
-  - maxMask : /24
-  - minMask : /16
 - `name` (String) The name of the vpc.
   - example : vpcName
   - maxLength : 20
@@ -60,6 +56,10 @@ variable "vpc_name" {
 
 ### Optional
 
+- `cidr` (String) The IP address range of the network in CIDR notation.
+  - example : 192.167.0.0/18
+  - maxMask : /24
+  - minMask : /16
 - `description` (String) Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.
   - example : VPC description
   - maxLength : 50
@@ -104,6 +104,10 @@ Read-Only:
 - `state` (String) The current lifecycle state of the vpc.
   - enum: ["ACTIVE","ERROR"]
   - example : ACTIVE
+- `zone_type` (String) The zone type of the vpc.
+  - example: GLOBAL
+- `zones` (List of String) The list of availability zones associated with the vpc.
+  - example: ["kr-1","kr-2"]
 
 <a id="nestedatt--vpc--cidrs"></a>
 ### Nested Schema for `vpc.cidrs`

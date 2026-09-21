@@ -88,7 +88,7 @@ Optional:
   - example: YOUR RESOURCE'S LB_HEALTH_CHECK_ID
 - `lb_method` (String) The load balancing method.
   - example : ROUND_ROBIN
-  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION
+  - pattern : ROUND_ROBIN | LEAST_CONNECTION | SOURCE_IP_PORT_HASH | SOURCE_IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION
 - `name` (String) The name of the LB Server Group.
   - example : ServerGroup01
   - minLength : 1
@@ -126,7 +126,7 @@ Read-Only:
   - maxLength : 255
 - `lb_method` (String) The load balancing method.
   - example : ROUND_ROBIN
-  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION
+  - pattern : ROUND_ROBIN | LEAST_CONNECTION | SOURCE_IP_PORT_HASH | SOURCE_IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION
 - `lb_name` (String) The name of the LoadBalancer.
   - example : LoadBalancer01
 - `loadbalancer_id` (String) The LoadBalancer ID associated with the server group.
@@ -144,7 +144,7 @@ Read-Only:
   - pattern : TCP | UDP
 - `state` (String) The current state of the LB Server Group.
   - example : ACTIVE
-  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING
+  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING | TERMINATING
 - `subnet_id` (String) The subnet ID where the resource is located.
   - example: YOUR RESOURCE'S SUBNET_ID
 - `vpc_id` (String) The VPC ID where the resource is located.

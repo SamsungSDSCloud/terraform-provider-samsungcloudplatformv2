@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	organization "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/organization/1.2"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	organization "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/organization/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -70,11 +70,6 @@ func (client *Client) CreateOrganization(ctx context.Context, request Organizati
 func (client *Client) UpdateOrganization(ctx context.Context, organizationId string, request OrganizationResource) (*organization.OrganizationShowResponse, error) {
 	req := client.sdkClient.OrganizationV1OrganizationsAPIsAPI.SetOrganization(ctx, organizationId)
 
-	var delegationAccountId organization.NullableString
-	if !request.DelegationAccountId.IsNull() && !request.DelegationAccountId.IsUnknown() {
-		delegationAccountId = *organization.NewNullableString(request.DelegationAccountId.ValueStringPointer())
-	}
-
 	var name organization.NullableString
 	if !request.Name.IsNull() && !request.Name.IsUnknown() {
 		name = *organization.NewNullableString(request.Name.ValueStringPointer())
@@ -86,10 +81,8 @@ func (client *Client) UpdateOrganization(ctx context.Context, organizationId str
 	}
 
 	req = req.OrganizationSetRequest(organization.OrganizationSetRequest{
-		DelegationAccountId: delegationAccountId,
-		Name:                name,
-		OrganizationId:      *organization.NewNullableString(&organizationId),
-		UseScpYn:            useScpYn,
+		Name:     name,
+		UseScpYn: useScpYn,
 	})
 
 	resp, _, err := req.Execute()
@@ -336,13 +329,84 @@ func (client *Client) DeleteOrganizationUnit(ctx context.Context, unitId string,
 	return resp, err
 }
 
-func (client *Client) GetPoliciesForTarget(ctx context.Context, targetId string, organizationId string) (*organization.ListPoliciesForTargetResponse, error) {
+func (client *Client) GetPoliciesForTarget(ctx context.Context, targetId, organizationId, policyCategory, name string, size, page int32, sort string) (*organization.ListPoliciesForTargetResponse, error) {
 	req := client.sdkClient.OrganizationV1AssignmentsAPIsAPI.ListPoliciesForTarget(ctx)
 	req = req.TargetId(targetId)
 
 	if organizationId != "" {
 		req = req.OrganizationId(organizationId)
 	}
+	if policyCategory != "" {
+		req = req.PolicyCategory(organization.PolicyCategoryEnum(policyCategory))
+	}
+	if name != "" {
+		req = req.Name(name)
+	}
+	if size > 0 {
+		req = req.Size(size)
+	}
+	if page > 0 {
+		req = req.Page(page)
+	}
+	if sort != "" {
+		req = req.Sort(sort)
+	}
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) AttachPolicyBindings(ctx context.Context, entity organization.AssignmentEntityType, policyIds []string, targetIds []string, organizationId string) (*organization.ControlPolicyAssignmentResponse, error) {
+	req := client.sdkClient.OrganizationV1AssignmentsAPIsAPI.AttachPolicyBindings(ctx)
+
+	bindReq := organization.NewPolicyAttachRequest(entity, policyIds, targetIds)
+	if organizationId != "" {
+		bindReq.SetOrganizationId(organizationId)
+	}
+
+	req = req.PolicyAttachRequest(*bindReq)
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) ListTargetsForPolicy(ctx context.Context, policyId, targetType, organizationId, policyCategory, name string, size, page int32, sort string) (*organization.ListTargetsForPolicyResponse, error) {
+	req := client.sdkClient.OrganizationV1AssignmentsAPIsAPI.ListTargetsForPolicy(ctx)
+	req = req.PolicyId(policyId)
+	req = req.TargetType(organization.AssignmentTargetType(targetType))
+
+	if organizationId != "" {
+		req = req.OrganizationId(organizationId)
+	}
+	if policyCategory != "" {
+		req = req.PolicyCategory(organization.PolicyCategoryEnum(policyCategory))
+	}
+	if name != "" {
+		req = req.Name(name)
+	}
+	if size > 0 {
+		req = req.Size(size)
+	}
+	if page > 0 {
+		req = req.Page(page)
+	}
+	if sort != "" {
+		req = req.Sort(sort)
+	}
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) RemovePolicyBindings(ctx context.Context, entity organization.AssignmentEntityType, policyIds []string, targetIds []string, organizationId string) (*organization.ControlPolicyAssignmentResponse, error) {
+	req := client.sdkClient.OrganizationV1AssignmentsAPIsAPI.RemovePolicyBindings(ctx)
+
+	bindReq := organization.NewPolicyRemoveRequest(entity, policyIds, targetIds)
+	if organizationId != "" {
+		bindReq.SetOrganizationId(organizationId)
+	}
+
+	req = req.PolicyRemoveRequest(*bindReq)
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -549,6 +613,75 @@ func (client *Client) DeleteDelegationPolicy(ctx context.Context, organizationId
 	return resp, err
 }
 
+// =====================
+// Delegation Account Methods
+// =====================
+
+func (client *Client) ListDelegationAccounts(ctx context.Context, organizationId, serviceType string, size, page int32, sort, accountId string) (*organization.DelegationAccountPageResponse, error) {
+	req := client.sdkClient.OrganizationV1DelegationAccountsAPIsAPI.ListDelegatedAdministrators(ctx)
+
+	if organizationId != "" {
+		req = req.OrganizationId(organizationId)
+	}
+	if serviceType != "" {
+		req = req.ServiceType(organization.DelegatedAccountServiceType(serviceType))
+	}
+	if size > 0 {
+		req = req.Size(size)
+	}
+	if page > 0 {
+		req = req.Page(page)
+	}
+	if len(sort) > 0 {
+		req = req.Sort(sort)
+	}
+	if accountId != "" {
+		req = req.AccountId(accountId)
+	}
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) CreateDelegationAccount(ctx context.Context, request DelegationAccountResource) (*organization.DelegationAccountCreateResponse, error) {
+	req := client.sdkClient.OrganizationV1DelegationAccountsAPIsAPI.RegisterDelegatedAdministrator(ctx)
+
+	req = req.DelegationAccountCreateRequest(organization.DelegationAccountCreateRequest{
+		AccountId:      request.AccountId.ValueString(),
+		OrganizationId: request.OrganizationId.ValueString(),
+		ServiceType:    organization.DelegatedAccountServiceType(request.ServiceType.ValueString()),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) DeleteDelegationAccount(ctx context.Context, request DelegationAccountResource) (*http.Response, error) {
+	req := client.sdkClient.OrganizationV1DelegationAccountsAPIsAPI.DeregisterDelegatedAdministrator(ctx)
+
+	req = req.DelegationAccountDeleteRequest(organization.DelegationAccountDeleteRequest{
+		AccountIds:     []string{request.AccountId.ValueString()},
+		OrganizationId: request.OrganizationId.ValueString(),
+		ServiceType:    organization.DelegatedAccountServiceType(request.ServiceType.ValueString()),
+	})
+
+	resp, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) DeleteDelegationAccounts(ctx context.Context, accountIds []string, organizationId, serviceType string) error {
+	req := client.sdkClient.OrganizationV1DelegationAccountsAPIsAPI.DeregisterDelegatedAdministrator(ctx)
+
+	req = req.DelegationAccountDeleteRequest(organization.DelegationAccountDeleteRequest{
+		AccountIds:     accountIds,
+		OrganizationId: organizationId,
+		ServiceType:    organization.DelegatedAccountServiceType(serviceType),
+	})
+
+	_, err := req.Execute()
+	return err
+}
+
 func (client *Client) GetServiceControlPolicy(ctx context.Context, policyId string, organizationId string) (*organization.ServiceControlPolicyShowResponse, error) {
 	req := client.sdkClient.OrganizationV1ServiceControlPoliciesAPIsAPI.ShowServiceControlPolicy(ctx, policyId)
 
@@ -717,6 +850,13 @@ func (o ServiceControlPolicyDocumentValue) toSdkType() (*organization.ServiceCon
 	}
 
 	return doc, nil
+}
+
+func (client *Client) LeaveOrganization(ctx context.Context, organizationId string) (*organization.OrganizationLeaveResponse, error) {
+	req := client.sdkClient.OrganizationV1OrganizationsAPIsAPI.LeaveOrganization(ctx, organizationId)
+
+	resp, _, err := req.Execute()
+	return resp, err
 }
 
 func documentObjectToSdkType(docObj types.Object) (*organization.ServiceControlPolicyDocument, error) {

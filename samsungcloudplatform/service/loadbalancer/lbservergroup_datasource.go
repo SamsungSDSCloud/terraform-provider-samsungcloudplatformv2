@@ -3,15 +3,16 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -27,9 +28,9 @@ func NewLoadbalancerLbServerGroupDataSource() datasource.DataSource {
 
 // loadBalancerLbServerGroupDataSource is the data source implementation.
 type loadBalancerLbServerGroupDataSource struct {
-	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	clientv1d4 *loadbalancerv1d4.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -85,7 +86,7 @@ func (d *loadBalancerLbServerGroupDataSource) Schema(_ context.Context, _ dataso
 					common.ToSnakeCase("LbMethod"): schema.StringAttribute{
 						Description: "The load balancing method.\n" +
 							"  - example : ROUND_ROBIN\n" +
-							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
+							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | SOURCE_IP_PORT_HASH | SOURCE_IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
 						Optional: true,
 					},
 					common.ToSnakeCase("LbName"): schema.StringAttribute{
@@ -101,7 +102,7 @@ func (d *loadBalancerLbServerGroupDataSource) Schema(_ context.Context, _ dataso
 					common.ToSnakeCase("State"): schema.StringAttribute{
 						Description: "The current state of the LB Server Group.\n" +
 							"  - example : ACTIVE\n" +
-							"  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING\n",
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING | TERMINATING\n",
 						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
@@ -115,7 +116,7 @@ func (d *loadBalancerLbServerGroupDataSource) Schema(_ context.Context, _ dataso
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
 						Description: "The protocol for the server group.\n" +
 							"  - example : TCP\n" +
-							"  - pattern : TCP | UDP\n",
+							"  - pattern : TCP | UDP | HTTP | HTTPS\n",
 						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
@@ -157,14 +158,14 @@ func (d *loadBalancerLbServerGroupDataSource) Configure(_ context.Context, req d
 		return
 	}
 
-	d.client = inst.Client.LoadBalancer
+	d.clientv1d4 = inst.Client.LoadBalancerV1d4
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *loadBalancerLbServerGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	// Get current state
-	var state loadbalancer.LbServerGroupDataSourceDetail
+	var state loadbalancerv1d4.LbServerGroupDataSourceDetail
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -172,8 +173,8 @@ func (d *loadBalancerLbServerGroupDataSource) Read(ctx context.Context, req data
 		return
 	}
 
-	// Get refreshed order value from routing rule
-	data, err := d.client.GetLbServerGroup(ctx, state.Id.ValueString())
+	// Get refreshed LB Server Group value from v1.4 API
+	data, err := d.clientv1d4.GetLbServerGroupV1d4(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -183,7 +184,7 @@ func (d *loadBalancerLbServerGroupDataSource) Read(ctx context.Context, req data
 		return
 	}
 
-	var lbServerGroupState = loadbalancer.LbServerGroupDetail{
+	var lbServerGroupState = loadbalancerv1d4.LbServerGroupDetail{
 		Name:            types.StringValue(data.LbServerGroup.Name),
 		Protocol:        types.StringValue(string(data.LbServerGroup.Protocol)),
 		LoadbalancerId:  types.StringPointerValue(data.LbServerGroup.LoadbalancerId.Get()),

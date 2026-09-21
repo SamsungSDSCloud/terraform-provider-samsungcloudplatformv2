@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpc"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/virtualserver/1.4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpc"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/virtualserver/1.5"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -239,11 +239,14 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("Metadata"): schema.MapAttribute{
-				Description:         "Metadata. Specifies key-value pairs to store on the server.",
-				MarkdownDescription: "Metadata. Specifies key-value pairs to store on the server.\n  - example: {\"key\": \"value\"}",
-				Optional:            true,
-				Computed:            true,
-				ElementType:         types.StringType,
+				Description: "Metadata. Key-value pairs the platform stores on the server.\n" +
+					"  - Read-only. The platform manages these entries and adds its own (e.g. HA_Enabled),\n" +
+					"    so they cannot be set from configuration. Use user_data or tags instead.",
+				MarkdownDescription: "Metadata. Key-value pairs the platform stores on the server.\n" +
+					"  - Read-only. The platform manages these entries and adds its own (e.g. `HA_Enabled`),\n" +
+					"    so they cannot be set from configuration. Use `user_data` or `tags` instead.",
+				Computed:    true,
+				ElementType: types.StringType,
 				PlanModifiers: []planmodifier.Map{
 					mapplanmodifier.UseStateForUnknown(),
 				},
@@ -333,10 +336,14 @@ func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.Schem
 			common.ToSnakeCase("State"): schema.StringAttribute{
 				Description: "Server state.\n" +
 					"  - example: ACTIVE\n" +
-					"  - Available values: ACTIVE, SHUTOFF",
+					"  - Available values: ACTIVE, SHUTOFF\n" +
+					"  - Only ACTIVE is allowed when creating a server. " +
+					"To stop a server, create it first and then change this value to SHUTOFF.",
 				MarkdownDescription: "Server state.\n" +
 					"  - example: ACTIVE\n" +
-					"  - Available values: ACTIVE, SHUTOFF",
+					"  - Available values: ACTIVE, SHUTOFF\n" +
+					"  - Only ACTIVE is allowed when creating a server. " +
+					"To stop a server, create it first and then change this value to SHUTOFF.",
 				Optional:      true,
 				Computed:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
@@ -841,7 +848,7 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 
 	volumeBootVolumeSet, volumeIdsSet, volumeDeleteOnTerminationSet := r.buildVolumeSets(getServerVolumes)
 
-	getVolumes, err := r.client.GetVolumeList()
+	getVolumes, err := r.client.GetVolumeListAll(ctx)
 	if err != nil {
 		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
 	}
@@ -971,7 +978,7 @@ func (r *virtualServerServerResource) mapNetworksBySubnetOnly(
 
 func (r *virtualServerServerResource) processNetworks(
 	ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponseV1Dot4,
+	resp *scpvirtualserver.ServerShowResponseV1Dot5,
 	state virtualserver.ServerResource,
 ) (types.Map, error) {
 	var networkMap map[string]virtualserver.ServerResourceNetwork
@@ -1055,7 +1062,12 @@ func (r *virtualServerServerResource) processNetworks(
 	return networks, nil
 }
 
-func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.ServerShowResponseV1Dot4) types.Map {
+// processMetadata 는 API 응답의 metadata 를 그대로 state 값으로 옮긴다.
+//
+// metadata 는 Computed 전용이라 config 로 지정할 수 없다. 즉 비교 대상인 config 값이
+// 없으므로 API 가 HA_Enabled 같은 키를 덧붙여도 apply 가 깨지지 않는다.
+// 플랫폼이 관리하는 값을 있는 그대로 보여주는 것이 이 속성의 역할이다.
+func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.ServerShowResponseV1Dot5) types.Map {
 	metadataMap := make(map[string]attr.Value)
 	for k, v := range resp.Metadata {
 		// v.(string) 단정은 API 가 string 이 아닌 값을 주면 panic 한다.
@@ -1072,7 +1084,7 @@ func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.Ser
 
 func (r *virtualServerServerResource) processSecurityGroups(
 	ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponseV1Dot4,
+	resp *scpvirtualserver.ServerShowResponseV1Dot5,
 	state virtualserver.ServerResource,
 ) ([]attr.Value, error) {
 	getSecurityGroups, err := r.client.GetServerSecurityGroupList(ctx, resp.Id)
@@ -1115,7 +1127,7 @@ func (r *virtualServerServerResource) processSecurityGroups(
 }
 
 func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponseV1Dot4, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
+	resp *scpvirtualserver.ServerShowResponseV1Dot5, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
 	networks, err := r.processNetworks(ctx, resp, state)
 	if err != nil {
 		return virtualserver.ServerResource{}, err
@@ -1271,7 +1283,7 @@ func (r *virtualServerServerResource) handlerUpdateServerType(ctx context.Contex
 		return err
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot4, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot5, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -1693,7 +1705,7 @@ func (r *virtualServerServerResource) handlerUpdateServerState(ctx context.Conte
 		return err
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot4, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot5, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -1735,7 +1747,7 @@ func (r *virtualServerServerResource) AsyncPollingServerDeleted(ctx context.Cont
 	return fmt.Errorf("max attempts reached (%d)", maxAttempts)
 }
 
-func (r *virtualServerServerResource) resolveServerServiceInfoFromResponse(response *scpvirtualserver.ServerShowResponseV1Dot4) (serviceName, resourceType string) {
+func (r *virtualServerServerResource) resolveServerServiceInfoFromResponse(response *scpvirtualserver.ServerShowResponseV1Dot5) (serviceName, resourceType string) {
 	if response.ProductOffering.Get().Ptr() != nil &&
 		(*response.ProductOffering.Get().Ptr() == ProductOfferingGpuServer || *response.ProductOffering.Get().Ptr() == ProductOfferingK8sGpuServer) {
 		return ServiceNameGpuServer, ResourceTypeGpuServer
@@ -1759,13 +1771,13 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	if !plan.State.IsNull() {
-		if plan.State.ValueString() != "ACTIVE" {
-			resp.Diagnostics.AddError(
-				"Error Creating Server",
-				"Invalid server state. Server state must be 'ACTIVE' during creation.\nState: "+plan.State.ValueString())
-			return
-		}
+	// 정상 경로라면 ModifyPlan 이 plan 단계에서 이미 걸러낸다. 여기는 마지막 방어선이다.
+	if !plan.State.IsNull() && plan.State.ValueString() != ServerStateActive {
+		resp.Diagnostics.AddError(
+			"Error Creating Server",
+			"Invalid server state. Server state must be '"+ServerStateActive+"' during creation.\n"+
+				"State: "+plan.State.ValueString())
+		return
 	}
 
 	data, err := r.client.CreateServer(ctx, plan)
@@ -1786,7 +1798,7 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot4, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot5, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -2049,7 +2061,19 @@ func (r *virtualServerServerResource) ModifyPlan(ctx context.Context, req resour
 		return
 	}
 
+	// prior state 가 없으면 create 다.
+	// API 는 생성 시 ACTIVE 만 허용하므로 apply 까지 가서 실패하지 않도록 여기서 막는다.
 	if req.State.Raw.IsNull() {
+		if !plan.State.IsNull() && !plan.State.IsUnknown() &&
+			plan.State.ValueString() != ServerStateActive {
+			resp.Diagnostics.AddError(
+				"Invalid Server State",
+				"Server state must be '"+ServerStateActive+"' during creation.\n"+
+					"State: "+plan.State.ValueString()+"\n"+
+					"To end up with a '"+ServerStateShutoff+"' server, create it as '"+
+					ServerStateActive+"' first and then change the state.",
+			)
+		}
 		return
 	}
 

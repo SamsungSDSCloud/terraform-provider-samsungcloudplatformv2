@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/sqlserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/sqlserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -64,6 +64,11 @@ func (d *sqlserverClusterDataSource) Schema(_ context.Context, _ datasource.Sche
 					common.ToSnakeCase("DbaasEngine"): schema.StringAttribute{
 						Description:         "DBaaS engine\n  - example: Microsoft SQL Server",
 						MarkdownDescription: "DBaaS engine\n  - example: Microsoft SQL Server",
+						Computed:            true,
+					},
+					common.ToSnakeCase("DbaasEngineVersionName"): schema.StringAttribute{
+						Description:         "DBaaS engine version name\n  - example: Microsoft SQL Server 2019 Standard",
+						MarkdownDescription: "DBaaS engine version name\n  - example: Microsoft SQL Server 2019 Standard",
 						Computed:            true,
 					},
 					common.ToSnakeCase("NatEnabled"): schema.BoolAttribute{
@@ -323,6 +328,11 @@ func (d *sqlserverClusterDataSource) Schema(_ context.Context, _ datasource.Sche
 						MarkdownDescription: "Cluster name\n  - example: mytest",
 						Computed:            true,
 					},
+					common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
+						Description:         "Product image type\n  - example: Microsoft SQL Server",
+						MarkdownDescription: "Product image type\n  - example: Microsoft SQL Server",
+						Computed:            true,
+					},
 					common.ToSnakeCase("ProductType"): schema.StringAttribute{
 						Description:         "Product type\n  - example: Microsoft SQL Server",
 						MarkdownDescription: "Product type\n  - example: Microsoft SQL Server",
@@ -351,6 +361,11 @@ func (d *sqlserverClusterDataSource) Schema(_ context.Context, _ datasource.Sche
 					common.ToSnakeCase("Timezone"): schema.StringAttribute{
 						Description:         "Timezone\n  - example: Asia/Seoul",
 						MarkdownDescription: "Timezone\n  - example: Asia/Seoul",
+						Computed:            true,
+					},
+					common.ToSnakeCase("VipPublicIpAddress"): schema.StringAttribute{
+						Description:         "(VIP) Public IP address\n  - example: 10.10.10.10",
+						MarkdownDescription: "(VIP) Public IP address\n  - example: 10.10.10.10",
 						Computed:            true,
 					},
 					common.ToSnakeCase("VipPublicIpId"): schema.StringAttribute{

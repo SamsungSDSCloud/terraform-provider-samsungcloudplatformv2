@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -108,6 +108,13 @@ func (d *vpcVpcDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 						"ERROR",
 					),
 				},
+			},
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Description: "The availability zone of the vpc.\n" +
+					"  - example : kr-1",
+				MarkdownDescription: "The availability zone of the vpc.\n" +
+					"  - example : kr-1",
+				Optional: true,
 			},
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
 				Computed: true,
@@ -236,6 +243,21 @@ func (d *vpcVpcDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 								"  - exmaple : ACTIVE",
 							Computed: true,
 						},
+						common.ToSnakeCase("ZoneType"): schema.StringAttribute{
+							Description: "The zone type of the vpc.\n" +
+								"  - example: GLOBAL",
+							MarkdownDescription: "The zone type of the vpc.\n" +
+								"  - example: GLOBAL",
+							Computed: true,
+						},
+						common.ToSnakeCase("Zones"): schema.ListAttribute{
+							ElementType: types.StringType,
+							Description: "The list of availability zones associated with the vpc.\n" +
+								"  - example: [\"kr-1\",\"kr-2\"]",
+							MarkdownDescription: "The list of availability zones associated with the vpc.\n" +
+								"  - example: [\"kr-1\",\"kr-2\"]",
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -261,7 +283,7 @@ func (d *vpcVpcDataSource) Configure(_ context.Context, req datasource.Configure
 		return
 	}
 
-	d.client = inst.Client.VpcV1Dot2
+	d.client = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 
@@ -275,7 +297,7 @@ func (d *vpcVpcDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	data, err := d.client.GetVpcList(ctx, state)
+	data, err := d.client.ListVpc(ctx, state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(

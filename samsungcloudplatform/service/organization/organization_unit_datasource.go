@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -63,6 +63,11 @@ func (d *organizationUnitDataSource) Schema(_ context.Context, _ datasource.Sche
 				Required: true,
 				Description: "Organization Unit ID. \n" +
 					"  - example : 'ou-c29a138f8f1d78e24dbfa8681fc2fc8' \n",
+			},
+			"organization_id": schema.StringAttribute{
+				Optional: true,
+				Description: "Unique identifier of the organization. \n" +
+					"  - example : 'o-x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5' \n",
 			},
 			"organization_unit": schema.SingleNestedAttribute{
 				Computed: true,
@@ -155,8 +160,9 @@ func (d *organizationUnitDataSource) Read(ctx context.Context, req datasource.Re
 	}
 
 	unitId := data.UnitId.ValueString()
+	orgId := data.OrganizationId.ValueString()
 
-	result, err := d.client.GetOrganizationUnit(ctx, unitId, "")
+	result, err := d.client.GetOrganizationUnit(ctx, unitId, orgId)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to read Organization Unit",
@@ -193,6 +199,7 @@ func (d *organizationUnitDataSource) Read(ctx context.Context, req datasource.Re
 
 type OrganizationUnitDataSourceModel struct {
 	UnitId           types.String          `tfsdk:"unit_id"`
+	OrganizationId   types.String          `tfsdk:"organization_id"`
 	OrganizationUnit *OrganizationUnitInfo `tfsdk:"organization_unit"`
 }
 

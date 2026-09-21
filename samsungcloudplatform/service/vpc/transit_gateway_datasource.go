@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -111,6 +111,22 @@ func (d *tgwDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, re
 							"  - example : false",
 						Computed: true,
 					},
+					common.ToSnakeCase("UplinkActiveZone"): schema.StringAttribute{
+						Description: "The active availability zone for the uplink connection.\n" +
+							"  - example : apigw-kr-1",
+						Computed: true,
+					},
+					common.ToSnakeCase("UplinkStandbyZone"): schema.StringAttribute{
+						Description: "The standby availability zone for the uplink connection.\n" +
+							"  - example : apigw-kr-2",
+						Computed: true,
+					},
+					common.ToSnakeCase("UplinkZoneState"): schema.StringAttribute{
+						Description: "The current state of the uplink zone.\n" +
+							"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR\n" +
+							"  - example : ACTIVE",
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -131,7 +147,7 @@ func (d *tgwDataSource) Configure(_ context.Context, req datasource.ConfigureReq
 		return
 	}
 
-	d.client = inst.Client.VpcV1Dot2
+	d.client = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 

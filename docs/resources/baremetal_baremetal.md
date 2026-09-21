@@ -156,7 +156,7 @@ variable "delete_timeouts" {
   - example: YOUR RESOURCE'S REGION_ID
 - `server_details` (Attributes List) Detailed settings for each server
   - example: [{bare_metal_server_name='bm-server', server_type_id='YOUR RESOURCE'S SERVER_TYPE_ID', nat_enabled='false'}]
-  - maxLength: 5
+  - maxLength: 20
   - minLength: 1 (see [below for nested schema](#nestedatt--server_details))
 - `subnet_id` (String) Subnet ID
   - example: YOUR RESOURCE'S SUBNET_ID

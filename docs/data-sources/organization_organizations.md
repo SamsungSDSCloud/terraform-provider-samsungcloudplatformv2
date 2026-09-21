@@ -29,7 +29,7 @@ output "organizations" {
   value       = data.samsungcloudplatformv2_organization_organizations.orgs.organizations
 }
 
-output "total_count" {
+output "count" {
   description = "Total count"
   value       = data.samsungcloudplatformv2_organization_organizations.orgs.total_count
 }
@@ -127,8 +127,6 @@ Read-Only:
   - example : '2025-01-01T00:00:00.000Z'
 - `created_by` (String) User who created the organization. 
   - example: YOUR RESOURCE'S CREATED_BY
-- `delegation_account_id` (String) Delegation Account. 
-  - example: YOUR RESOURCE'S DELEGATION_ACCOUNT_ID
 - `id` (String) Unique identifier of the organization. 
   - example: YOUR RESOURCE'S ID
 - `master_account_id` (String) Unique identifier of the master account that manages the organization. 

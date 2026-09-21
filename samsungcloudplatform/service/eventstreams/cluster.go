@@ -6,13 +6,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/eventstreams"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpEventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/eventstreams/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/eventstreams"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpEventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/eventstreams/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -209,6 +209,9 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 										Description:         "Block storage role type\n  - example: OS",
 										MarkdownDescription: "Block storage role type\n  - example: OS",
 										Required:            true,
+										Validators: []validator.String{
+											stringvalidator.OneOf(databaseUtils.BSRoleTypesOsData...),
+										},
 									},
 									common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
 										Description: databaseUtils.DescSizeInGB +
@@ -332,6 +335,9 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 			common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 				Description: "MaintenanceOption",
 				Required:    true,
+				Validators: []validator.Object{
+					databaseUtils.MaintenanceOptionValidator(),
+				},
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
 						Description: databaseUtils.DescPeriodInHours +
@@ -361,6 +367,10 @@ func (r *eventstreamsClusterResource) Schema(_ context.Context, _ resource.Schem
 							databaseUtils.DescExampleFalse,
 						Optional: true,
 						Computed: true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseNonNullStateForUnknown(),
+							databaseUtils.ImmutableBool(),
+						},
 					},
 				},
 			},

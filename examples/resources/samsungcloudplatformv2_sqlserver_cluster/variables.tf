@@ -115,7 +115,7 @@ variable "instance_name_prefix" {
 
 variable "name" {
   type    = string
-  default = "sqlserverTd"
+  default = "sqlserverb"
 }
 
 variable "subnet_id" {

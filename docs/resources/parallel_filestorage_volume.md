@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_parallel_filestorage_volume Resource - samsungcloudplatformv2"
-subcategory: Parallel File Storage Volume
+subcategory: samsungcloudplatformv2_parallel_filestorage_volume
 description: |-
   
 ---
@@ -88,6 +88,7 @@ variable "tags" {
 - `created_at` (String) Created At 
   - example : '2024-07-30T04:54:33.219373'
 - `id` (String) Identifier of the resource.
+- `name_uuid` (String) Actual Volume Name on the server (may include a unique suffix appended by the server).
 - `state` (String) Volume State
 
 <a id="nestedatt--access_rules"></a>

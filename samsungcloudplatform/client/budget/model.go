@@ -1,7 +1,7 @@
 package budget
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -52,6 +52,7 @@ type Budget struct {
 	StartMonth types.String `tfsdk:"start_month"`
 	BudgetType types.String `tfsdk:"type"`
 	Unit       types.String `tfsdk:"unit"`
+	IsCostLinked types.Bool `tfsdk:"is_cost_linked"`
 	state      attr.ValueState
 }
 
@@ -67,6 +68,7 @@ func (v Budget) AttributeTypes() map[string]attr.Type {
 		"start_month": types.StringType,
 		"type":        types.StringType,
 		"unit":        types.StringType,
+		"is_cost_linked": types.BoolType,
 	}
 }
 

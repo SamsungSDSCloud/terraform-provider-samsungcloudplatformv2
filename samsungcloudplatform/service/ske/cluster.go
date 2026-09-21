@@ -4,21 +4,21 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"reflect"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/ske/1.5"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/ske/1.6"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -31,6 +31,131 @@ var (
 	_ resource.ResourceWithConfigure   = &skeClusterResource{}
 	_ resource.ResourceWithImportState = &skeClusterResource{}
 )
+
+// linkedResourceObjectType is the tfsdk object type for the linked_resources nested block.
+var linkedResourceObjectType = types.ObjectType{
+	AttrTypes: map[string]attr.Type{
+		"id":   types.StringType,
+		"name": types.StringType,
+		"type": types.StringType,
+	},
+}
+
+// Example ID used in schema descriptions for nested resource objects.
+const exampleNestedResourceID = "  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f'}"
+
+// listStringsEqualSet checks if two types.List of strings contain the same elements, ignoring order.
+func listStringsEqualSet(a, b types.List) bool {
+	if a.IsNull() && b.IsNull() {
+		return true
+	}
+	if a.IsNull() || b.IsNull() {
+		return false
+	}
+	if len(a.Elements()) != len(b.Elements()) {
+		return false
+	}
+	var aSlice, bSlice []string
+	_ = a.ElementsAs(context.Background(), &aSlice, false)
+	_ = b.ElementsAs(context.Background(), &bSlice, false)
+	return stringSliceEqualSet(aSlice, bSlice)
+}
+
+// stringSliceEqualSet checks if two string slices contain the same elements, ignoring order.
+func stringSliceEqualSet(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	m := make(map[string]int, len(a))
+	for _, v := range a {
+		m[v]++
+	}
+	for _, v := range b {
+		m[v]--
+		if m[v] == 0 {
+			delete(m, v)
+		}
+	}
+	return len(m) == 0
+}
+
+// peacrListEqualSet checks if two types.List of PrivateEndpointAccessControlResource contain the same elements, ignoring order.
+func peacrListEqualSet(ctx context.Context, a, b types.List) bool {
+	if a.IsNull() && b.IsNull() {
+		return true
+	}
+	if a.IsNull() || b.IsNull() {
+		return false
+	}
+	if len(a.Elements()) != len(b.Elements()) {
+		return false
+	}
+	var aSlice, bSlice []ske.PrivateEndpointAccessControlResource
+	_ = a.ElementsAs(ctx, &aSlice, false)
+	_ = b.ElementsAs(ctx, &bSlice, false)
+	return peacrSliceEqualSet(aSlice, bSlice)
+}
+
+// peacrSliceEqualSet checks if two PrivateEndpointAccessControlResource slices contain the same elements, ignoring order.
+func peacrSliceEqualSet(a, b []ske.PrivateEndpointAccessControlResource) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	key := func(r ske.PrivateEndpointAccessControlResource) string {
+		return r.Id.ValueString() + "\x1f" + r.Name.ValueString() + "\x1f" + r.Type.ValueString()
+	}
+	m := make(map[string]int, len(a))
+	for _, v := range a {
+		m[key(v)]++
+	}
+	for _, v := range b {
+		k := key(v)
+		m[k]--
+		if m[k] == 0 {
+			delete(m, k)
+		}
+	}
+	return len(m) == 0
+}
+
+// linkedResourceListEqualSet checks if two types.List of LinkedResource contain the same elements, ignoring order.
+func linkedResourceListEqualSet(ctx context.Context, a, b types.List) bool {
+	if a.IsNull() && b.IsNull() {
+		return true
+	}
+	if a.IsNull() || b.IsNull() {
+		return false
+	}
+	if len(a.Elements()) != len(b.Elements()) {
+		return false
+	}
+	var aSlice, bSlice []ske.LinkedResource
+	_ = a.ElementsAs(ctx, &aSlice, false)
+	_ = b.ElementsAs(ctx, &bSlice, false)
+	return linkedResourceSliceEqualSet(aSlice, bSlice)
+}
+
+// linkedResourceSliceEqualSet checks if two LinkedResource slices contain the same elements, ignoring order.
+func linkedResourceSliceEqualSet(a, b []ske.LinkedResource) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	key := func(r ske.LinkedResource) string {
+		return r.Id.ValueString() + "\x1f" + r.Name.ValueString() + "\x1f" + r.Type.ValueString()
+	}
+	m := make(map[string]int, len(a))
+	for _, v := range a {
+		m[key(v)]++
+	}
+	for _, v := range b {
+		k := key(v)
+		m[k]--
+		if m[k] == 0 {
+			delete(m, k)
+		}
+	}
+	return len(m) == 0
+}
 
 // NewSkeClusterResource is a helper function to simplify the provider implementation.
 func NewSkeClusterResource() resource.Resource {
@@ -50,19 +175,14 @@ func (r *skeClusterResource) Metadata(_ context.Context, req resource.MetadataRe
 }
 
 // Schema defines the schema for the data source.
-func (r *skeClusterResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = ClusterResourceSchema(ctx)
+func (r *skeClusterResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ClusterResourceSchema()
 }
 
-func ClusterResourceSchema(ctx context.Context) schema.Schema {
+func ClusterResourceSchema() schema.Schema {
 	return schema.Schema{
 		Description: "cluster",
 		Attributes: map[string]schema.Attribute{
-			"cloud_logging_enabled": schema.BoolAttribute{
-				Required:            true,
-				Description:         "Cloud Logging Enabled\n  - example: true",
-				MarkdownDescription: "Cloud Logging Enabled\n  - example: true",
-			},
 			"cluster": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"account_id": schema.StringAttribute{
@@ -70,10 +190,11 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 						Description:         "Account ID\n  - example: 617b3d0e90c24a5fa1f65a3824861354",
 						MarkdownDescription: "Account ID\n  - example: 617b3d0e90c24a5fa1f65a3824861354",
 					},
-					"cloud_logging_enabled": schema.BoolAttribute{
+					"additional_subnet_id_list": schema.ListAttribute{
 						Computed:            true,
-						Description:         "Cloud Logging Enabled\n  - example: true",
-						MarkdownDescription: "Cloud Logging Enabled\n  - example: true",
+						ElementType:         types.StringType,
+						Description:         "Additional Subnet ID List",
+						MarkdownDescription: "List of additional subnet IDs associated with the cluster.",
 					},
 					"cluster_namespace": schema.StringAttribute{
 						Computed:            true,
@@ -108,24 +229,43 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 							"  - example: v1.34.3\n" +
 							"  - Use the samsungcloudplatformv2_ske_kubernetes_versions data source to query the SKE service for all Kubernetes versions supported. (ex v1.31.X|v1.32.X|v1.33.X|v1.34.X)",
 					},
+					"linked_resources": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource ID\n  - example: res-12345678",
+									MarkdownDescription: "Linked Resource ID\n  - example: res-12345678",
+								},
+								"name": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource Name\n  - example: my-resource",
+									MarkdownDescription: "Linked Resource Name\n  - example: my-resource",
+								},
+								"type": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource Type (fs/obs)\n  - pattern: fs|obs\n  - example: fs",
+									MarkdownDescription: "Linked Resource Type (fs/obs)\n  - pattern: fs|obs\n  - example: fs",
+								},
+							},
+						},
+						Computed:            true,
+						Description:         "List of linked resources associated with the cluster\n  - example: {id='res-12345678', name='my-resource', type='fs'}",
+						MarkdownDescription: "List of linked resources associated with the cluster\n  - example: {id='res-12345678', name='my-resource', type='fs'}",
+					},
 					"managed_security_group": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"id": schema.StringAttribute{
 								Computed:            true,
-								Description:         "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-								MarkdownDescription: "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-							},
-							"name": schema.StringAttribute{
-								Computed:            true,
-								Description:         "External Resource name\n  - example: sample-name",
-								MarkdownDescription: "External Resource name\n  - example: sample-name",
+								Description:         "Managed Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								MarkdownDescription: "Managed Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 							},
 						},
 						Computed: true,
 						Description: "Managed Security Group\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 						MarkdownDescription: "Managed Security Group\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 					},
 					"max_node_count": schema.Int64Attribute{
 						Computed:            true,
@@ -208,21 +348,16 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
 									Computed:            true,
-									Description:         "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-									MarkdownDescription: "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-								},
-								"name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "External Resource name\n  - example: sample-name",
-									MarkdownDescription: "External Resource name\n  - example: sample-name",
+									Description:         "Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+									MarkdownDescription: "Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 								},
 							},
 						},
 						Computed: true,
 						Description: "Connected Security Group List\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 						MarkdownDescription: "Connected Security Group List\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 					},
 					"service_watch_logging_enabled": schema.BoolAttribute{
 						Computed:            true,
@@ -238,39 +373,29 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 						Attributes: map[string]schema.Attribute{
 							"id": schema.StringAttribute{
 								Computed:            true,
-								Description:         "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-								MarkdownDescription: "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-							},
-							"name": schema.StringAttribute{
-								Computed:            true,
-								Description:         "External Resource name\n  - example: sample-name",
-								MarkdownDescription: "External Resource name\n  - example: sample-name",
+								Description:         "Subnet ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								MarkdownDescription: "Subnet ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 							},
 						},
 						Computed: true,
 						Description: "Subnet of Cluster\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 						MarkdownDescription: "Subnet of Cluster\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 					},
 					"volume": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"id": schema.StringAttribute{
 								Computed:            true,
-								Description:         "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-								MarkdownDescription: "External Resource ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-							},
-							"name": schema.StringAttribute{
-								Computed:            true,
-								Description:         "External Resource name\n  - example: sample-name",
-								MarkdownDescription: "External Resource name\n  - example: sample-name",
+								Description:         "NFS Volume ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								MarkdownDescription: "NFS Volume ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 							},
 						},
 						Computed: true,
 						Description: "Connected File Storage\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 						MarkdownDescription: "Connected File Storage\n" +
-							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
+							exampleNestedResourceID,
 					},
 					"vpc": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -292,10 +417,7 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'}",
 					},
 				},
-				Computed: true,
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
 				Description:         "Cluster\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_cluster#nested-schema-for-cluster",
 				MarkdownDescription: "Cluster\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_cluster#nested-schema-for-cluster",
 			},
@@ -352,6 +474,7 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 				Optional: true,
+				Computed: true,
 				Description: "Private Endpoint Access Control Resources\n" +
 					"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name', type='vm'}",
 				MarkdownDescription: "Private Endpoint Access Control Resources\n" +
@@ -359,12 +482,14 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"public_endpoint_access_control_ip": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				Description:         "Public Endpoint Access Control IP\n  - example: 192.168.0.0",
 				MarkdownDescription: "Public Endpoint Access Control IP\n  - example: 192.168.0.0",
 			},
 			"security_group_id_list": schema.ListAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				Description:         "Security Group ID List\n  - example: [bdfda539-bd2e-4a5c-9021-ec6d52d1ca79]",
 				MarkdownDescription: "Security Group ID List\n  - example: [bdfda539-bd2e-4a5c-9021-ec6d52d1ca79]",
 			},
@@ -373,20 +498,67 @@ func ClusterResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Service Watch Enabled\n  - example: true",
 				MarkdownDescription: "Service Watch Enabled\n  - example: true",
 			},
-			"subnet_id": schema.StringAttribute{
+			"default_subnet_id": schema.StringAttribute{
 				Required:            true,
-				Description:         "Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
-				MarkdownDescription: "Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
+				Description:         "Default Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
+				MarkdownDescription: "Default Subnet ID\n  - example: 023c57b14f11483689338d085e061492",
 			},
-			"volume_id": schema.StringAttribute{
-				Required:            true,
-				Description:         "Volume ID\n  - example: bfdbabf2-04d9-4e8b-a205-020f8e6da438",
-				MarkdownDescription: "Volume ID\n  - example: bfdbabf2-04d9-4e8b-a205-020f8e6da438",
+			"nfs_volume_id": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Description:         "NFS Volume (File Storage) ID\n  - example: bfdbabf2-04d9-4e8b-a205-020f8e6da438",
+				MarkdownDescription: "NFS Volume (File Storage) ID\n  - example: bfdbabf2-04d9-4e8b-a205-020f8e6da438",
 			},
 			"vpc_id": schema.StringAttribute{
 				Required:            true,
 				Description:         "VPC ID\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
 				MarkdownDescription: "VPC ID\n  - example: 7df8abb4912e4709b1cb237daccca7a8",
+			},
+			"additional_subnet_id_list": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				Description:         "Additional Subnet ID List (max 2)\n  - example: [88b9be0f9a7f4c6e8a5f0e6b9e6b6f1a]",
+				MarkdownDescription: "Additional Subnet ID List (max 2)\n  - example: [88b9be0f9a7f4c6e8a5f0e6b9e6b6f1a]",
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(2),
+				},
+			},
+			"deletion_protection_enabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Description:         "Cluster Deletion Protection Enabled\n  - example: true",
+				MarkdownDescription: "Cluster Deletion Protection Enabled\n  - example: true",
+			},
+			"linked_resources": schema.ListNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Required:            true,
+							Description:         "Linked Resource ID\n  - example: 8a6c40d5-270b-4ef9-aa6b-ac19e89a71e9",
+							MarkdownDescription: "Linked Resource ID\n  - example: 8a6c40d5-270b-4ef9-aa6b-ac19e89a71e9",
+						},
+						"name": schema.StringAttribute{
+							Required:            true,
+							Description:         "Linked Resource Name\n  - example: terraformskenfs_xjviey",
+							MarkdownDescription: "Linked Resource Name\n  - example: terraformskenfs_xjviey",
+						},
+						"type": schema.StringAttribute{
+							Required:            true,
+							Description:         "Linked Resource Type\n  - pattern: fs|obs\n  - example: fs",
+							MarkdownDescription: "Linked Resource Type\n  - pattern: fs|obs\n  - example: fs",
+							Validators: []validator.String{
+								stringvalidator.OneOf("fs", "obs"),
+							},
+						},
+					},
+				},
+				Optional: true,
+				Computed: true,
+				Description: "Linked Resources\n" +
+					"  - example: {id='8a6c40d5-270b-4ef9-aa6b-ac19e89a71e9', name='terraformskenfs_xjviey', type='fs'}",
+				MarkdownDescription: "Linked Resources\n" +
+					"  - example: {id='8a6c40d5-270b-4ef9-aa6b-ac19e89a71e9', name='terraformskenfs_xjviey', type='fs'}",
 			},
 			"tags": tag.ResourceSchema(),
 		},
@@ -450,6 +622,13 @@ func (r *skeClusterResource) Create(ctx context.Context, req resource.CreateRequ
 			"Error Creating Cluster",
 			"Error waiting for cluster to become running: "+err.Error(),
 		)
+		// Still attempt Read to populate known values (e.g. status=ERROR) before returning,
+		// so Terraform state doesn't retain unknown Computed values.
+		readReq := resource.ReadRequest{State: resp.State}
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, readReq, readResp)
+		resp.Diagnostics.Append(readResp.Diagnostics...)
+		resp.State = readResp.State
 		return
 	}
 
@@ -489,12 +668,14 @@ func (r *skeClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	cluster := data.Cluster
 
-	var securityGroups []ske.ExternalResource
-	for _, securityGroup := range cluster.SecurityGroupList {
-		securityGroups = append(securityGroups, r.makeExternalResourceModel((*scpske.ExternalResource)(&securityGroup)))
+	var securityGroups []ske.ExternalResourceId
+	for _, sgId := range cluster.SecurityGroupIdList {
+		securityGroups = append(securityGroups, ske.ExternalResourceId{
+			Id: types.StringValue(sgId),
+		})
 	}
 
-	var privateEndpointAccessControlResources []ske.PrivateEndpointAccessControlResource
+	privateEndpointAccessControlResources := make([]ske.PrivateEndpointAccessControlResource, 0, len(cluster.PrivateEndpointAccessControlResources))
 	for _, privateEndpointAccessControlResource := range cluster.PrivateEndpointAccessControlResources {
 		privateEndpointAccessControlResources = append(privateEndpointAccessControlResources, r.makePrivateEndpointAccessControlResourceModel((*scpske.PrivateEndpointAccessControlResource)(&privateEndpointAccessControlResource)))
 	}
@@ -503,7 +684,7 @@ func (r *skeClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		Id:                                    types.StringValue(cluster.Id),
 		Name:                                  types.StringValue(cluster.Name),
 		AccountId:                             types.StringValue(cluster.AccountId),
-		CloudLoggingEnabled:                   types.BoolValue(cluster.CloudLoggingEnabled),
+		AdditionalSubnetIdList:                func() types.List { v, _ := types.ListValueFrom(ctx, types.StringType, func() []string { ids := make([]string, len(cluster.AdditionalSubnetIdList)); copy(ids, cluster.AdditionalSubnetIdList); return ids }()); return v }(),
 		KubernetesVersion:                     types.StringValue(cluster.KubernetesVersion),
 		ClusterNamespace:                      types.StringValue(cluster.ClusterNamespace),
 		MaxNodeCount:                          types.Int32PointerValue(cluster.MaxNodeCount.Get()),
@@ -513,18 +694,19 @@ func (r *skeClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		PrivateEndpointAccessControlResources: privateEndpointAccessControlResources,
 		PublicEndpointUrl:                     types.StringValue(cluster.GetPublicEndpointUrl()),
 		PublicKubeconfigDownloadYn:            types.StringValue(cluster.PublicKubeconfigDownloadYn),
-		PublicEndpointAccessControlIp:         types.StringValue(cluster.GetPublicEndpointAccessControlIp()),
-		Vpc:                                   r.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Vpc.Get())),
-		Subnet:                                r.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Subnet.Get())),
-		Volume:                                r.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Volume.Get())),
+		PublicEndpointAccessControlIp:         r.nullableStringToStringValue(cluster.PublicEndpointAccessControlIp),
+		Vpc:                                   r.nullableStringToExternalResourceId(cluster.VpcId),
+		Subnet:                                r.nullableStringToExternalResourceId(cluster.DefaultSubnetId),
+		Volume:                                r.nullableStringToExternalResourceId(cluster.NfsVolumeId),
 		SecurityGroupList:                     securityGroups,
-		ManagedSecurityGroup:                  r.makeExternalResourceModel((*scpske.ExternalResource)(cluster.ManagedSecurityGroup.Get())),
+		ManagedSecurityGroup:                  r.nullableStringToExternalResourceId(cluster.ManagedSecurityGroupId),
 		CreatedAt:                             types.StringValue(cluster.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:                             types.StringValue(cluster.CreatedBy),
 		ModifiedAt:                            types.StringValue(cluster.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:                            types.StringValue(cluster.ModifiedBy),
 		Status:                                types.StringValue(cluster.Status),
-		ServiceWatchLoggingEnabled:            types.BoolValue(cluster.GetServiceWatchLoggingEnabled()), // v1.1
+		ServiceWatchLoggingEnabled:            types.BoolValue(cluster.GetServiceWatchLoggingEnabled()),
+		LinkedResources:                       convertLinkedResourcesFromSDK(cluster.LinkedResources),
 	}
 	clusterObjectValue, diags := types.ObjectValueFrom(ctx, clusterModel.AttributeTypes(), clusterModel)
 	resp.Diagnostics.Append(diags...)
@@ -534,23 +716,71 @@ func (r *skeClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	state.Cluster = clusterObjectValue
 
-	/* import state (determined by state.Name) root level setting start*/
-	if state.Name.IsNull() {
-		state.Name = types.StringValue(cluster.Name)
-		state.CloudLoggingEnabled = types.BoolValue(cluster.CloudLoggingEnabled)
-		state.KubernetesVersion = types.StringValue(cluster.KubernetesVersion)
-		state.PrivateEndpointAccessControlResources = privateEndpointAccessControlResources
-		state.PublicEndpointAccessControlIp = types.StringValue(cluster.GetPublicEndpointAccessControlIp())
+	/* root level setting from API response (covers both import and refresh) */
+	state.Name = types.StringValue(cluster.Name)
+	state.KubernetesVersion = types.StringValue(cluster.KubernetesVersion)
 
-		var securityGroupsStringList []types.String
-		for _, securityGroup := range cluster.SecurityGroupList {
-			securityGroupsStringList = append(securityGroupsStringList, types.StringValue(securityGroup.Id))
-		}
-		state.SecurityGroupIdList = securityGroupsStringList
-		state.ServiceWatchLoggingEnabled = types.BoolValue(cluster.ServiceWatchLoggingEnabled)
-		state.SubnetId = types.StringValue(cluster.Subnet.Get().Id)
-		state.VolumeId = types.StringValue(cluster.Volume.Get().Id)
-		state.VpcId = types.StringValue(cluster.Vpc.Get().Id)
+	// Preserve config order: if element set matches current state, keep state value.
+	peacrListValue, diags := types.ListValueFrom(ctx, types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"id":   types.StringType,
+			"name": types.StringType,
+			"type": types.StringType,
+		},
+	}, privateEndpointAccessControlResources)
+	resp.Diagnostics.Append(diags...)
+	if !state.PrivateEndpointAccessControlResources.IsNull() && !state.PrivateEndpointAccessControlResources.IsUnknown() &&
+		peacrListEqualSet(ctx, state.PrivateEndpointAccessControlResources, peacrListValue) {
+		// Keep existing state to preserve config order.
+	} else {
+		state.PrivateEndpointAccessControlResources = peacrListValue
+	}
+	state.PublicEndpointAccessControlIp = r.nullableStringToStringValue(cluster.PublicEndpointAccessControlIp)
+
+	securityGroupsStringList := make([]types.String, 0, len(cluster.SecurityGroupIdList))
+	for _, sgId := range cluster.SecurityGroupIdList {
+		securityGroupsStringList = append(securityGroupsStringList, types.StringValue(sgId))
+	}
+	securityGroupIdListValue, diags := types.ListValueFrom(ctx, types.StringType, securityGroupsStringList)
+	resp.Diagnostics.Append(diags...)
+	if !state.SecurityGroupIdList.IsNull() && !state.SecurityGroupIdList.IsUnknown() &&
+		listStringsEqualSet(state.SecurityGroupIdList, securityGroupIdListValue) {
+		// Keep existing state to preserve config order.
+	} else {
+		state.SecurityGroupIdList = securityGroupIdListValue
+	}
+	state.ServiceWatchLoggingEnabled = types.BoolValue(cluster.ServiceWatchLoggingEnabled)
+	state.DefaultSubnetId = types.StringValue(cluster.GetDefaultSubnetId())
+	state.NfsVolumeId = r.nullableStringToStringValue(cluster.NfsVolumeId)
+	state.VpcId = types.StringValue(cluster.GetVpcId())
+
+	// v1.6 fields
+	state.DeletionProtectionEnabled = types.BoolValue(cluster.DeletionProtectionEnabled)
+	additionalSubnetIdList := make([]types.String, 0, len(cluster.AdditionalSubnetIdList))
+	for _, id := range cluster.AdditionalSubnetIdList {
+		additionalSubnetIdList = append(additionalSubnetIdList, types.StringValue(id))
+	}
+	additionalSubnetIdListValue, _ := types.ListValueFrom(ctx, types.StringType, additionalSubnetIdList)
+	if !state.AdditionalSubnetIdList.IsNull() && !state.AdditionalSubnetIdList.IsUnknown() &&
+		listStringsEqualSet(state.AdditionalSubnetIdList, additionalSubnetIdListValue) {
+		// Keep existing state to preserve config order.
+	} else {
+		state.AdditionalSubnetIdList = additionalSubnetIdListValue
+	}
+	linkedResources := make([]ske.LinkedResource, 0, len(cluster.LinkedResources))
+	for _, lr := range cluster.LinkedResources {
+		linkedResources = append(linkedResources, ske.LinkedResource{
+			Id:   types.StringValue(lr.Id),
+			Name: types.StringValue(lr.Name),
+			Type: types.StringValue(lr.Type),
+		})
+	}
+	linkedResourcesList, _ := types.ListValueFrom(ctx, linkedResourceObjectType, linkedResources)
+	if !state.LinkedResources.IsNull() && !state.LinkedResources.IsUnknown() &&
+		linkedResourceListEqualSet(ctx, state.LinkedResources, linkedResourcesList) {
+		// Keep existing state to preserve config order.
+	} else {
+		state.LinkedResources = linkedResourcesList
 	}
 
 	// Set refreshed state
@@ -573,11 +803,7 @@ func (r *skeClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 	req.State.Get(ctx, &state)
 
-	err := r.syncCloudLoggingEnabled(ctx, state, &plan, resp)
-	if err != nil {
-		return
-	}
-	err = r.syncSecurityGroupList(ctx, state, &plan, resp)
+	err := r.syncSecurityGroupList(ctx, state, &plan, resp)
 	if err != nil {
 		return
 	}
@@ -601,6 +827,22 @@ func (r *skeClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	if err != nil {
 		return
 	}
+	err = r.syncClusterSubnets(ctx, state, &plan, resp)
+	if err != nil {
+		return
+	}
+	err = r.syncNfsVolume(ctx, state, &plan, resp)
+	if err != nil {
+		return
+	}
+	err = r.syncDeletionProtection(ctx, state, &plan, resp)
+	if err != nil {
+		return
+	}
+	err = r.syncLinkedResources(ctx, state, &plan, resp)
+	if err != nil {
+		return
+	}
 
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -618,44 +860,8 @@ func (r *skeClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	resp.State = readResp.State
 }
 
-func (r *skeClusterResource) syncCloudLoggingEnabled(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
-	if state.CloudLoggingEnabled.Equal(plan.CloudLoggingEnabled) {
-		return nil
-	}
-	data, err := r.client.UpdateClusterLogging(ctx, plan.Id.ValueString(), *plan)
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddError(
-			"Error Updating CloudLoggingEnabled",
-			"Could not update cloud logging enabled, unexpected error: "+err.Error()+"\nReason: "+detail,
-		)
-		return err
-	}
-	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Updating Cluster",
-			"Error waiting for cluster to become running: "+err.Error(),
-		)
-		return err
-	}
-	plan.Id = types.StringValue(data.ResourceId)
-	//plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
-	return nil
-}
-
 func (r *skeClusterResource) syncSecurityGroupList(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
-	securityGroupIdListPlan, diags := types.ListValueFrom(ctx, types.StringType, plan.SecurityGroupIdList)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return nil
-	}
-	securityGroupIdListState, diags := types.ListValueFrom(ctx, types.StringType, state.SecurityGroupIdList)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return nil
-	}
-	if securityGroupIdListPlan.Equal(securityGroupIdListState) {
+	if plan.SecurityGroupIdList.IsUnknown() || listStringsEqualSet(plan.SecurityGroupIdList, state.SecurityGroupIdList) {
 		return nil
 	}
 	data, err := r.client.UpdateClusterSecurityGroups(ctx, plan.Id.ValueString(), *plan)
@@ -699,7 +905,7 @@ func (r *skeClusterResource) syncKubernetesVersion(ctx context.Context, state sk
 }
 
 func (r *skeClusterResource) syncPrivateEndpointAccessControlResources(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
-	if reflect.DeepEqual(plan.PrivateEndpointAccessControlResources, state.PrivateEndpointAccessControlResources) {
+	if plan.PrivateEndpointAccessControlResources.IsUnknown() || peacrListEqualSet(ctx, plan.PrivateEndpointAccessControlResources, state.PrivateEndpointAccessControlResources) {
 		return nil
 	}
 	data, err := r.client.UpdatePrivateEndpointAccessControlResources(ctx, plan.Id.ValueString(), *plan)
@@ -717,7 +923,7 @@ func (r *skeClusterResource) syncPrivateEndpointAccessControlResources(ctx conte
 }
 
 func (r *skeClusterResource) syncPublicEndpointAccessControlIp(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
-	if plan.PublicEndpointAccessControlIp.Equal(state.PublicEndpointAccessControlIp) {
+	if plan.PublicEndpointAccessControlIp.IsUnknown() || plan.PublicEndpointAccessControlIp.Equal(state.PublicEndpointAccessControlIp) {
 		return nil
 	}
 	data, err := r.client.UpdatePublicEndpointAccessControlIps(ctx, plan.Id.ValueString(), *plan)
@@ -794,6 +1000,108 @@ func (r *skeClusterResource) syncTags(ctx context.Context, state ske.ClusterReso
 	return nil
 }
 
+func (r *skeClusterResource) syncClusterSubnets(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
+	if plan.AdditionalSubnetIdList.IsUnknown() || listStringsEqualSet(plan.AdditionalSubnetIdList, state.AdditionalSubnetIdList) {
+		return nil
+	}
+	data, err := r.client.UpdateClusterSubnets(ctx, plan.Id.ValueString(), *plan)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Updating Cluster Subnets",
+			"Could not update cluster subnets, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return err
+	}
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Cluster",
+			"Error waiting for cluster to become running: "+err.Error(),
+		)
+		return err
+	}
+	plan.Id = types.StringValue(data.ResourceId)
+	return nil
+}
+
+func (r *skeClusterResource) syncNfsVolume(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
+	// Skip when unset in config (unknown) to avoid sending an update that the API rejects.
+	if plan.NfsVolumeId.IsUnknown() || plan.NfsVolumeId.Equal(state.NfsVolumeId) {
+		return nil
+	}
+	data, err := r.client.UpdateClusterNfsVolume(ctx, plan.Id.ValueString(), *plan)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Updating NFS Volume",
+			"Could not update NFS volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return err
+	}
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Cluster",
+			"Error waiting for cluster to become running: "+err.Error(),
+		)
+		return err
+	}
+	plan.Id = types.StringValue(data.ResourceId)
+	return nil
+}
+
+func (r *skeClusterResource) syncDeletionProtection(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
+	// Skip when unset in config to avoid sending false (which would silently disable deletion protection).
+	if plan.DeletionProtectionEnabled.IsNull() || plan.DeletionProtectionEnabled.Equal(state.DeletionProtectionEnabled) {
+		return nil
+	}
+	data, _, err := r.client.UpdateClusterDeletionProtection(ctx, plan.Id.ValueString(), *plan)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Updating Deletion Protection",
+			"Could not update deletion protection, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return err
+	}
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Cluster",
+			"Error waiting for cluster to become running: "+err.Error(),
+		)
+		return err
+	}
+	plan.Id = types.StringValue(data.ResourceId)
+	return nil
+}
+
+func (r *skeClusterResource) syncLinkedResources(ctx context.Context, state ske.ClusterResource, plan *ske.ClusterResource, resp *resource.UpdateResponse) error {
+	if plan.LinkedResources.IsUnknown() || linkedResourceListEqualSet(ctx, plan.LinkedResources, state.LinkedResources) {
+		return nil
+	}
+	data, err := r.client.UpdateClusterLinkedResources(ctx, plan.Id.ValueString(), ske.LinkedResourcesFromList(ctx, plan.LinkedResources))
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error Updating Linked Resources",
+			"Could not update linked resources, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return err
+	}
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"UPDATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Cluster",
+			"Error waiting for cluster to become running: "+err.Error(),
+		)
+		return err
+	}
+	plan.Id = types.StringValue(data.ResourceId)
+	return nil
+}
+
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *skeClusterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
@@ -825,11 +1133,23 @@ func (r *skeClusterResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 }
 
-func (r *skeClusterResource) makeExternalResourceModel(externalResource *scpske.ExternalResource) ske.ExternalResource {
-	return ske.ExternalResource{
-		Id:   types.StringValue(externalResource.GetId()),
-		Name: types.StringValue(externalResource.GetName()),
+func (r *skeClusterResource) nullableStringToExternalResourceId(ns scpske.NullableString) ske.ExternalResourceId {
+	if ns.Get() == nil {
+		return ske.ExternalResourceId{
+			Id: types.StringNull(),
+		}
 	}
+	return ske.ExternalResourceId{
+		Id: types.StringValue(*ns.Get()),
+	}
+}
+
+// nullableStringToStringValue converts a NullableString to types.String (null-safe, treats empty as null).
+func (r *skeClusterResource) nullableStringToStringValue(ns scpske.NullableString) types.String {
+	if !ns.IsSet() || ns.Get() == nil || *ns.Get() == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(*ns.Get())
 }
 
 func (r *skeClusterResource) makePrivateEndpointAccessControlResourceModel(privateEndpointAccessControlResource *scpske.PrivateEndpointAccessControlResource) ske.PrivateEndpointAccessControlResource {

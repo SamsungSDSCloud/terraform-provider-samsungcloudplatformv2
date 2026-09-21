@@ -41,8 +41,6 @@ variable "firewall_id" {
 
 ### Required
 
-- `firewall_id` (String) The identifier of the firewall associated with the resource.
-  - example: YOUR RESOURCE'S FIREWALL_ID
 - `id` (String) The unique identifier of the resource.
   - example: YOUR RESOURCE'S ID
 
@@ -65,8 +63,6 @@ Read-Only:
   - example: Firewall rule for web tier
 - `destination_address` (List of String) The destination address the rule applies to.
   - example: [192.168.0.0/16, 192.169.0.0/16]
-- `destination_interface` (String) The destination interface the rule applies to.
-  - example: L2FW-DGW2800dn
 - `direction` (String) The direction of the traffic the rule applies to.
   - example: INBOUND
 - `firewall_id` (String) The identifier of the firewall associated with the resource.
@@ -77,21 +73,15 @@ Read-Only:
   - example: 2025-06-01T14:22:00Z
 - `modified_by` (String) The user ID that modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) The name of the resource.
-  - example: 0e2b4ece64944d7d8a72983e945b867b
 - `sequence` (Number) The order in which the rule is evaluated.
   - example: 100
 - `service` (Attributes List) The service ports the rule applies to. (see [below for nested schema](#nestedatt--firewall_rule--service))
 - `source_address` (List of String) The source IP addresses the rule applies to.
   - example: [10.10.10.0/24, 10.10.11.0/24]
-- `source_interface` (String) The source interface the rule applies to.
-  - example: L2FW-DGW2800up
 - `state` (String) The current state of the resource.
   - example: ACTIVE
 - `status` (String) The current status of the resource.
   - example: ENABLE
-- `vendor_rule_id` (String) The firewall device's unique identifier for the rule.
-  - example: YOUR RESOURCE'S VENDOR_RULE_ID
 
 <a id="nestedatt--firewall_rule--service"></a>
 ### Nested Schema for `firewall_rule.service`

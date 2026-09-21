@@ -29,7 +29,7 @@ data "samsungcloudplatformv2_organization_service_control_policies" "scp_policie
 output "scp_policies" {
   value = {
     policies    = data.samsungcloudplatformv2_organization_service_control_policies.scp_policies.policies
-    total_count = data.samsungcloudplatformv2_organization_service_control_policies.scp_policies.total_count
+    count = data.samsungcloudplatformv2_organization_service_control_policies.scp_policies.total_count
     page        = data.samsungcloudplatformv2_organization_service_control_policies.scp_policies.page
     size        = data.samsungcloudplatformv2_organization_service_control_policies.scp_policies.size
     sort        = data.samsungcloudplatformv2_organization_service_control_policies.scp_policies.sort_result
@@ -38,13 +38,12 @@ output "scp_policies" {
 
 variable "organization_id" {
   type        = string
-  default     = "ENTER YOUR RESOURCE'S ORGANIZATION_ID"
   description = "Organization ID"
 }
 
 variable "size" {
   type    = number
-  default = 3
+  default = 20
 }
 
 variable "page" {

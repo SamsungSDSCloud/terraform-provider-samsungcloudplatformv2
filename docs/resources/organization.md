@@ -17,7 +17,6 @@ provider "samsungcloudplatformv2" {
 
 resource "samsungcloudplatformv2_organization" "org" {
   name                  = var.name
-  delegation_account_id = var.delegation_account_id
   use_scp_yn            = var.use_scp_yn
 }
 
@@ -30,12 +29,6 @@ variable "name" {
   type        = string
   description = "Organization name"
   default     = "terraform-org"
-}
-
-variable "delegation_account_id" {
-  type        = string
-  description = "Delegation Account ID"
-  default     = "ENTER YOUR RESOURCE'S DELEGATION_ACCOUNT_ID"
 }
 
 variable "use_scp_yn" {
@@ -55,8 +48,6 @@ variable "use_scp_yn" {
 
 ### Optional
 
-- `delegation_account_id` (String) Delegation Account. 
-  - example: YOUR RESOURCE'S DELEGATION_ACCOUNT_ID
 - `use_scp_yn` (Boolean) Control Policy Usage YN. 
   - example : true
 

@@ -91,7 +91,6 @@ type ClusterDetail struct {
 	AccountId                 types.String          `tfsdk:"account_id"`
 	AllowableIpAddresses      types.Set             `tfsdk:"allowable_ip_addresses"`
 	DbaasEngine               types.String          `tfsdk:"dbaas_engine"`
-	DbaasEngineVersionName    types.String          `tfsdk:"dbaas_engine_version_name"`
 	HaEnabled                 types.Bool            `tfsdk:"ha_enabled"`
 	Id                        types.String          `tfsdk:"id"`
 	InitConfigOption          *InitConfigOptionBase `tfsdk:"init_config_option"`
@@ -100,7 +99,6 @@ type ClusterDetail struct {
 	MaintenanceOption         *MaintenanceOption    `tfsdk:"maintenance_option"`
 	Name                      types.String          `tfsdk:"name"`
 	NatEnabled                types.Bool            `tfsdk:"nat_enabled"`
-	ProductImageType          types.String          `tfsdk:"product_image_type"`
 	ProductType               types.String          `tfsdk:"product_type"`
 	RoleType                  types.String          `tfsdk:"role_type"`
 	ServiceState              types.String          `tfsdk:"service_state"`
@@ -125,7 +123,9 @@ type UpdateHandler struct {
 
 type EngineVersionDataSource struct {
 	Contents         []EngineVersion `tfsdk:"contents"`
+	Id               types.String    `tfsdk:"id"`
 	ProductImageType types.String    `tfsdk:"product_image_type"`
+	EosIncluded      types.Bool      `tfsdk:"eos_included"`
 }
 
 type EngineVersion struct {

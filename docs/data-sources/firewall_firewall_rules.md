@@ -52,9 +52,6 @@ variable "dst_ip" {
   - constraints: maxLength: 100
 - `dst_ip` (String) Destination IP.
   - example: 10.10.10.10
-- `fetch_all` (Boolean) Whether to retrieve the full list of firewall rules.
-  - example: True
-  - valid: True, False
 - `page` (Number) The page number for pagination.
   - example: 1
   - constraints: min: 1
@@ -75,5 +72,57 @@ variable "dst_ip" {
 
 ### Read-Only
 
-- `ids` (List of String) Firewall Rule Id List.
-  - example: ['YOUR RESOURCE'S IDS']
+- `firewall_rules` (Attributes List) A list of firewall rules.
+  - example: see firewall_rules block below (see [below for nested schema](#nestedatt--firewall_rules))
+- `total_count` (Number) The total number of firewall rules.
+  - example: 20
+
+<a id="nestedatt--firewall_rules"></a>
+### Nested Schema for `firewall_rules`
+
+Read-Only:
+
+- `action` (String) The action to take when a packet matches this rule.
+  - example: ALLOW
+  - valid: ALLOW, DENY
+- `created_at` (String) The timestamp when the firewall rule was created.
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) The user ID that created the firewall rule.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) A brief explanation or note about this firewall rule.
+  - example: Allow HTTP traffic
+- `destination_address` (List of String) The destination IP addresses or CIDR ranges.
+  - example: ["192.168.0.0/16"]
+- `direction` (String) The direction of traffic this rule applies to.
+  - example: INBOUND
+  - valid: INBOUND, OUTBOUND
+- `firewall_id` (String) The identifier of the firewall associated with the rule.
+  - example: YOUR RESOURCE'S FIREWALL_ID
+- `id` (String) The unique identifier of the firewall rule.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the firewall rule was last modified.
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) The user ID that last modified the firewall rule.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `sequence` (Number) The order in which this rule is evaluated.
+  - example: 1
+- `service` (Attributes List) The service/port configuration for this rule.
+  - example: see service block below (see [below for nested schema](#nestedatt--firewall_rules--service))
+- `source_address` (List of String) The source IP addresses or CIDR ranges.
+  - example: ["10.0.0.0/24"]
+- `state` (String) The current lifecycle state of the firewall rule.
+  - example: ACTIVE
+  - valid: CREATING, ACTIVE, DELETING, EDITING, ERROR
+- `status` (String) The current status of the firewall rule.
+  - example: ENABLE
+  - valid: ENABLE, DISABLE
+
+<a id="nestedatt--firewall_rules--service"></a>
+### Nested Schema for `firewall_rules.service`
+
+Read-Only:
+
+- `service_type` (String) The type of the service.
+  - example: TCP
+- `service_value` (String) The value of the service, typically a port number or range.
+  - example: 80

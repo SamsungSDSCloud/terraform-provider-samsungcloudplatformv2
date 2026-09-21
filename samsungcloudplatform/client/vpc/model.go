@@ -1,7 +1,7 @@
 package vpc
 
 import (
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vpc/1.1"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -140,64 +140,6 @@ func convertHostRoutesToInterface(routes []HostRoute) []interface{} {
 		}
 	}
 	return result
-}
-
-//------------------- Public IP -------------------//
-
-type PublicipResource struct {
-	Id          types.String `tfsdk:"id"`
-	Type        types.String `tfsdk:"type"`
-	Description types.String `tfsdk:"description"`
-	Tags        types.Map    `tfsdk:"tags"`
-	Publicip    types.Object `tfsdk:"publicip"`
-}
-
-type PublicipDataSource struct {
-	Limit                types.Int32  `tfsdk:"limit"`
-	Marker               types.String `tfsdk:"marker"`
-	Sort                 types.String `tfsdk:"sort"`
-	IpAddress            types.String `tfsdk:"ip_address"`
-	State                types.String `tfsdk:"state"`
-	AttachedResourceType types.String `tfsdk:"attached_resource_type"`
-	AttachedResourceName types.String `tfsdk:"attached_resource_name"`
-	AttachedResourceId   types.String `tfsdk:"attached_resource_id"`
-	VpcId                types.String `tfsdk:"vpc_id"`
-	Type                 types.String `tfsdk:"type"`
-	Publicips            []Publicip   `tfsdk:"publicips"`
-}
-
-type Publicip struct {
-	Id                   types.String `tfsdk:"id"`
-	IpAddress            types.String `tfsdk:"ip_address"`
-	AccountId            types.String `tfsdk:"account_id"`
-	AttachedResourceType types.String `tfsdk:"attached_resource_type"`
-	AttachedResourceName types.String `tfsdk:"attached_resource_name"`
-	AttachedResourceId   types.String `tfsdk:"attached_resource_id"`
-	Type                 types.String `tfsdk:"type"`
-	State                types.String `tfsdk:"state"`
-	Description          types.String `tfsdk:"description"`
-	CreatedAt            types.String `tfsdk:"created_at"`
-	CreatedBy            types.String `tfsdk:"created_by"`
-	ModifiedAt           types.String `tfsdk:"modified_at"`
-	ModifiedBy           types.String `tfsdk:"modified_by"`
-}
-
-func (m Publicip) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"id":                     types.StringType,
-		"ip_address":             types.StringType,
-		"account_id":             types.StringType,
-		"attached_resource_type": types.StringType,
-		"attached_resource_name": types.StringType,
-		"attached_resource_id":   types.StringType,
-		"type":                   types.StringType,
-		"state":                  types.StringType,
-		"description":            types.StringType,
-		"created_at":             types.StringType,
-		"created_by":             types.StringType,
-		"modified_at":            types.StringType,
-		"modified_by":            types.StringType,
-	}
 }
 
 // ------------ Port -------------------//

@@ -140,9 +140,9 @@ func (m LoadbalancerCreateResponseDetail) AttributeTypes() map[string]attr.Type 
 }
 
 type LoadbalancerPublicNatIpResource struct {
-	LoadbalancerId          types.String    `tfsdk:"loadbalancer_id"`
-	Id                      types.String    `tfsdk:"id"`
-	LoadbalancerPublicNatIp types.Object    `tfsdk:"loadbalancer_public_nat_ip"`
+	LoadbalancerId          types.String     `tfsdk:"loadbalancer_id"`
+	Id                      types.String     `tfsdk:"id"`
+	LoadbalancerPublicNatIp types.Object     `tfsdk:"loadbalancer_public_nat_ip"`
 	LoadbalancerNatCreate   *StaticNatCreate `tfsdk:"static_nat_create"`
 }
 
@@ -199,9 +199,9 @@ func (m LoadbalancerPublicNatIpDetail) AttributeTypes() map[string]attr.Type {
 }
 
 type LoadbalancerPrivateNatIpResource struct {
-	LoadbalancerId               types.String           `tfsdk:"loadbalancer_id"`
-	Id                           types.String           `tfsdk:"id"`
-	LoadbalancerPrivateNatIp     types.Object           `tfsdk:"loadbalancer_private_nat_ip"`
+	LoadbalancerId               types.String            `tfsdk:"loadbalancer_id"`
+	Id                           types.String            `tfsdk:"id"`
+	LoadbalancerPrivateNatIp     types.Object            `tfsdk:"loadbalancer_private_nat_ip"`
 	LoadbalancerPrivateNatCreate *PrivateStaticNatCreate `tfsdk:"private_static_nat_create"`
 }
 
@@ -463,9 +463,9 @@ type LbMemberCreate struct {
 }
 
 type LbMemberResource struct {
-	LbServerGroupId types.String   `tfsdk:"lb_server_group_id"`
-	Id              types.String   `tfsdk:"id"`
-	LbMember        types.Object   `tfsdk:"lb_member"`
+	LbServerGroupId types.String    `tfsdk:"lb_server_group_id"`
+	Id              types.String    `tfsdk:"id"`
+	LbMember        types.Object    `tfsdk:"lb_member"`
 	LbMemberSet     *LbMemberCreate `tfsdk:"lb_member_create"`
 }
 

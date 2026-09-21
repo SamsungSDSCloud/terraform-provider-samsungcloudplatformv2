@@ -2,12 +2,13 @@ package backup
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/backup/1.3"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"math"
 	"net/http"
 	"strings"
+
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpbackup "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/backup/1.4"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type Client struct {

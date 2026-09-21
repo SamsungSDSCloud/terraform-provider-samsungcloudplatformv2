@@ -23,7 +23,7 @@ data "samsungcloudplatformv2_vpc_subnets" "subnets" {
   size     = 4
   sort     = var.sort
   state    = var.state
-  type     = ["LOCAL", "GENERAL", "VPC_ENDPOINT"]
+  type     = ["LOCAL", "PUBLIC", "PRIVATE", "VPC_ENDPOINT"]
   vpc_id   = var.vpc_id
   vpc_name = var.vpc_name
 }
@@ -91,6 +91,8 @@ variable "vpc_name" {
 
 ### Optional
 
+- `category` (String) The current lifecycle category of the subnet.  - enum: ["PRIMARY","SECONDARY"]
+  - example : PRIMARY
 - `cidr` (String) The IP address range of the network in CIDR notation.
   - example : 192.168.0.0/24 
   - maxMask : /28
@@ -101,6 +103,8 @@ variable "vpc_name" {
   - example : subnetName
 - `page` (Number) The page number for pagination.
   - example : 0
+- `primary_subnet_id` (String) The primary subnet id of the subnet.
+  - example: YOUR RESOURCE'S PRIMARY_SUBNET_ID
 - `size` (Number) The number of items per page.
   - example : 20
 - `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
@@ -108,11 +112,13 @@ variable "vpc_name" {
 - `state` (String) The current lifecycle state of the subnet.  - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR"]
   - example : ACTIVE
 - `type` (List of String) Type 
-  - example : ["LOCAL", "GENERAL", "VPC_ENDPOINT"]
+  - example : ["LOCAL", "PUBLIC", "PRIVATE", "VPC_ENDPOINT"]
 - `vpc_id` (String) The identifier of the VPC that the subnet belongs to. 
   - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) The name of the VPC that the subnet belongs to.
   - example : vpcName
+- `zone` (String) The zone of the subnet.
+  - example : kr-west1-a
 
 ### Read-Only
 
@@ -127,6 +133,9 @@ Read-Only:
 
 - `account_id` (String) The identifier of the account that owns the subnet.
   - example: YOUR RESOURCE'S ACCOUNT_ID
+- `category` (String) The category of the subnet.
+  - enum: ["Primary","Secondary"]
+  - example : Primary
 - `cidr` (String) The IP address range of the network in CIDR notation.
   - example: 192.168.0.0/24
 - `created_at` (String) The timestamp when the subnet was created in ISO 8601 format.
@@ -149,9 +158,11 @@ Read-Only:
 - `state` (String) The current lifecycle state of the subnet.  - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR"]
   - example : ACTIVE
 - `type` (String) The type of the subnet.
-  - enum: ["GENERAL","LOCAL","VPC_ENDPOINT"]
+  - enum: ["LOCAL", "PUBLIC", "PRIVATE","VPC_ENDPOINT"]
   - example : GENERAL
 - `vpc_id` (String) The identifier of the VPC that the subnet belongs to.
   - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) The name of the VPC that the subnet belongs to.
   - example: vpcName
+- `zones` (List of String) The list of availability zones where the subnet is located.
+  - example : ["zone-1", "zone-2"]

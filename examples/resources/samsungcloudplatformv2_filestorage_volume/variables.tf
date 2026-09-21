@@ -23,14 +23,6 @@ variable "file_unit_recovery_enabled" {
   default = false
 }
 
-variable "access_rules" {
-  type = list(object({
-    object_type = string,
-    object_id   = string
-  }))
-  default = []
-}
-
 variable "tags" {
   type = map(string)
   default = {

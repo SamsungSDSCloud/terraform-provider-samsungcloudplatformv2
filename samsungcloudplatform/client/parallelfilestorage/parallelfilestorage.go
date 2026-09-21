@@ -2,8 +2,8 @@ package parallelfilestorage
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpparallelfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/parallelfilestorage/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpparallelfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/parallelfilestorage/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

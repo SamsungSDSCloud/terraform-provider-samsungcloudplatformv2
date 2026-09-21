@@ -57,6 +57,8 @@ Read-Only:
   - example: YOUR RESOURCE'S CREATED_BY
 - `dbaas_engine` (String) DBaaS engine
   - example: Kafka
+- `dbaas_engine_version_name` (String) DBaaS engine version name
+  - example: Event Streams 3.9.2
 - `id` (String) Identifier of the resource.
   - example: YOUR RESOURCE'S ID
 - `init_config_option` (Attributes) InitConfigOption. (see [below for nested schema](#nestedatt--cluster--init_config_option))
@@ -74,8 +76,12 @@ Read-Only:
   - example: mytest
 - `nat_enabled` (Boolean) NAT availability
   - example: false
+- `product_image_type` (String) Product image type
+  - example: Event Streams
 - `product_type` (String) Product type
   - example: Event Streams
+- `role_type` (String) Role type
+  - example: ACTIVE / RESTORE / DR_REPLICA / DR_SECONDARY
 - `service_state` (String) Service state
   - example: RUNNING
 - `service_watch_log_collection` (Boolean) ServiceWatchLogCollection

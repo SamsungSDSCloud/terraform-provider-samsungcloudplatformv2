@@ -6,13 +6,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/searchengine"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpSearchengine "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/searchengine/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/searchengine"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpSearchengine "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/searchengine/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -178,6 +178,9 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 										MarkdownDescription: databaseUtils.DescRoleType +
 											databaseUtils.DescExampleOS,
 										Required: true,
+										Validators: []validator.String{
+											stringvalidator.OneOf(databaseUtils.BSRoleTypesOsDataBackup...),
+										},
 									},
 									common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
 										Description: databaseUtils.DescSizeInGB +
@@ -305,6 +308,9 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 			common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 				Description: "MaintenanceOption",
 				Required:    true,
+				Validators: []validator.Object{
+					databaseUtils.MaintenanceOptionValidator(),
+				},
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
 						Description: databaseUtils.DescPeriodInHours +
@@ -334,6 +340,10 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 							databaseUtils.DescExampleFalse,
 						Optional: true,
 						Computed: true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseNonNullStateForUnknown(),
+							databaseUtils.ImmutableBool(),
+						},
 					},
 				},
 			},
@@ -904,6 +914,14 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 				}
 				if len(bsPlan.Removed) > 0 {
 					return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: removing an existing block storage is not supported")
+				}
+				// 리사이즈/추가를 실행하기 전에 role_type을 먼저 검증한다.
+				// 루프 중간에서 실패하면 이미 만들어진 디스크가 state에 남지 않아 drift가 생긴다.
+				for _, add := range bsPlan.Adds {
+					// AddBlockStorages는 ExtraBlockStorageGroupRoleType(OS 제외)만 허용한다.
+					if !databaseUtils.IsExtraBlockStorageRoleType(add.RoleType.ValueString()) {
+						return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: role_type %q cannot be added to an existing instance group (allowed: %s)", add.RoleType.ValueString(), strings.Join(databaseUtils.BSRoleTypesExtra, ", "))
+					}
 				}
 
 				// Resize existing Block Storages

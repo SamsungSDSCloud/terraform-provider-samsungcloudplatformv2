@@ -47,6 +47,8 @@ variable "id" {
 
 Optional:
 
+- `condition_type` (String) The condition type for routing. 'URL_PATH' or 'HOST_HEADER' for URL handler.
+  - example : URL_PATH
 - `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
   - example : 2024-05-17T00:23:17Z
 - `created_by` (String) The user id that created the resource.
@@ -54,6 +56,7 @@ Optional:
 - `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
   - example : LB Listener for web traffic
   - maxLength : 255
+- `hsts_config` (Attributes) HSTS Configuration (see [below for nested schema](#nestedatt--lb_listener--hsts_config))
 - `https_redirection` (Attributes) HTTPS redirection configuration. Only for HTTP protocol listeners. (see [below for nested schema](#nestedatt--lb_listener--https_redirection))
 - `idle_timeout` (Number) The idle timeout in seconds. Only for L7 protocols (HTTP/HTTPS).
   - example : 60
@@ -61,8 +64,6 @@ Optional:
   - maximum : 120
 - `insert_client_ip` (Boolean) Whether to insert client IP in the header using Proxy Protocol v1.
   - example : true
-- `loadbalancer_id` (String) The LoadBalancer ID associated with the listener.
-  - example: YOUR RESOURCE'S LOADBALANCER_ID
 - `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
@@ -82,6 +83,8 @@ Optional:
   - example : 30
   - minimum : 1
   - maximum : 120
+- `routing_action` (String) The routing action type. 'LB_SERVER_GROUP' for URL handler routing, 'URL_REDIRECT' for HTTPS/URL redirection.
+  - example : LB_SERVER_GROUP
 - `server_group_id` (String) The ID of the server group associated with the listener.
   - example: YOUR RESOURCE'S SERVER_GROUP_ID
 - `server_group_name` (String) The server group name for the listener.
@@ -97,6 +100,14 @@ Optional:
 - `sni_certificate` (Attributes List) SNI certificate configuration for multiple domains. (see [below for nested schema](#nestedatt--lb_listener--sni_certificate))
 - `ssl_certificate` (Attributes) SSL certificate configuration for the listener. (see [below for nested schema](#nestedatt--lb_listener--ssl_certificate))
 - `url_handler` (Attributes List) URL handler configuration for routing. Only for L7 protocols (HTTP/HTTPS). (see [below for nested schema](#nestedatt--lb_listener--url_handler))
+- `url_redirection` (String) URL redirection configuration.
+  - example : https://example.com
+- `x_forwarded_for` (Boolean) X-Forwarded-For header configuration.
+  - example : true
+- `x_forwarded_port` (Boolean) X-Forwarded-Port header configuration.
+  - example : true
+- `x_forwarded_proto` (Boolean) X-Forwarded-Proto header configuration.
+  - example : true
 
 Read-Only:
 
@@ -105,6 +116,17 @@ Read-Only:
 - `state` (String) The current state of the LB Listener.
   - example : ACTIVE
   - pattern : CREATING | ACTIVE | DELETING | ERROR
+
+<a id="nestedatt--lb_listener--hsts_config"></a>
+### Nested Schema for `lb_listener.hsts_config`
+
+Optional:
+
+- `include_sub_domains` (Boolean) The Include Sub Domains
+  - example : true
+- `max_age` (Number) HSTS max age in seconds.
+  - example : 1
+
 
 <a id="nestedatt--lb_listener--https_redirection"></a>
 ### Nested Schema for `lb_listener.https_redirection`

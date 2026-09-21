@@ -3,21 +3,25 @@ package vpc
 import (
 	"context"
 	"fmt"
-	"time"
+	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	vpcV1Dot2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &VpcCidrResource{}
-	_ resource.ResourceWithConfigure = &VpcCidrResource{}
+	_ resource.Resource                = &VpcCidrResource{}
+	_ resource.ResourceWithConfigure   = &VpcCidrResource{}
+	_ resource.ResourceWithImportState = &VpcCidrResource{}
 )
 
 // NewVpcCidrResource is a helper function to simplify the provider implementation.
@@ -28,7 +32,7 @@ func NewVpcCidrResource() resource.Resource {
 // VpcCidrResource is the resource implementation.
 type VpcCidrResource struct {
 	_config *scpsdk.Configuration
-	client  *vpcV1Dot2.Client
+	client  *vpc.Client
 	clients *client.SCPClient
 }
 
@@ -45,99 +49,26 @@ func (r *VpcCidrResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			// Input
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
 				Description: "The identifier of the VPC that the resource belongs to.\n" +
-					"  - example : 023c57b14f11483689338d085e061492",
+					"  - example : '023c57b14f11483689338d085e061492'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Cidr"): schema.StringAttribute{
 				Description: "The IP address range of the vpc in CIDR notation.\n" +
-					"  - example : 192.168.0.0/24",
+					"  - example : '192.168.0.0/24'",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 
 			// Output
-			common.ToSnakeCase("Vpc"): schema.SingleNestedAttribute{
-				Description: "VPC detail information.",
-				Computed:    true,
-				Attributes: map[string]schema.Attribute{
-					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "The unique identifier of the vpc.\n" +
-							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
-						Computed: true,
-					},
-					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "The name of the vpc.\n" +
-							"  - example : vpcName",
-						Computed: true,
-					},
-					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Enter a brief explanation or note about this vpc. This help identify the purpose or usage of the vpc.\n" +
-							"  - example : vpcDescription",
-						Computed: true,
-					},
-					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "The identifier of the account that owns the vpc.\n" +
-							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
-						Computed: true,
-					},
-					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "The current lifecycle state of the vpc.\n" +
-							"  - example : ACTIVE",
-						Computed: true,
-					},
-					common.ToSnakeCase("CidrCount"): schema.Int32Attribute{
-						Description: "The number of CIDR blocks associated with the vpc.\n" +
-							"  - example : 20",
-						Computed: true,
-					},
-					common.ToSnakeCase("Cidrs"): schema.ListNestedAttribute{
-						Description: "CIDRs",
-						Computed:    true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "The unique identifier of the cidr.\n" +
-										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
-									Computed: true,
-								},
-								common.ToSnakeCase("Cidr"): schema.StringAttribute{
-									Description: "The IP address range of the vpc in CIDR notation.\n" +
-										"  - example : 192.167.0.0/18",
-									Computed: true,
-								},
-								common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-									Description: "The timestamp when the vpc was created in ISO 8601 format.\n" +
-										"  - example: 2024-05-17T00:23:17Z",
-									Computed: true,
-								},
-								common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-									Description: "The user id that vpc the cidr.\n" +
-										"  - example : 7df8abb4912e4709b1cb237daccca7a8",
-									Computed: true,
-								},
-							},
-						},
-					},
-					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
-							"  - example: 2024-05-17T00:23:17Z",
-						Computed: true,
-					},
-					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "The user id that created the vpc.\n" +
-							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-						Computed: true,
-					},
-					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "The timestamp when the vpc was last modified in ISO 8601 format.\n" +
-							"  - example: 2024-05-17T00:23:17Z",
-						Computed: true,
-					},
-					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "The user id that modified the vpc.\n" +
-							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
-						Computed: true,
-					},
-				},
+			common.ToSnakeCase("Id"): schema.StringAttribute{
+				Description: "The unique identifier of the vpc cidr.\n" +
+					"  - example : '192.168.0.0/24'",
+				Computed: true,
 			},
 		},
 	}
@@ -161,13 +92,13 @@ func (r *VpcCidrResource) Configure(_ context.Context, req resource.ConfigureReq
 		return
 	}
 
-	r.client = inst.Client.VpcV1Dot2
+	r.client = inst.Client.VpcV1Dot3
 	r.clients = inst.Client
 }
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *VpcCidrResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan vpcV1Dot2.VpcCidrResource
+	var plan vpc.VpcCidrResource
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -180,46 +111,19 @@ func (r *VpcCidrResource) Create(ctx context.Context, req resource.CreateRequest
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Failed to add VPC CIDR",
-			fmt.Sprintf("An error occurred while creating VPC CIDR: %s. Details: %s", err.Error(), detail),
+			fmt.Sprintf("An error occurred while adding VPC CIDR: %s. Details: %s", err.Error(), detail),
+		)
+		return
+	}
+	if !data.HasCidr() {
+		resp.Diagnostics.AddError(
+			"Failed to add VPC CIDR",
+			"An error occurred while adding VPC CIDR. Empty response.",
 		)
 		return
 	}
 
-	// Map API response to object
-	vpcCidr := &vpcV1Dot2.VpcCidrDetail{
-		Id:         types.StringValue(data.Vpc.Id),
-		Name:       types.StringValue(data.Vpc.Name),
-		AccountId:  types.StringValue(data.Vpc.AccountId),
-		State:      types.StringValue(string(data.Vpc.State)),
-		CidrCount:  types.Int32Value(data.Vpc.CidrCount),
-		CreatedAt:  types.StringValue(data.Vpc.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:  types.StringValue(data.Vpc.CreatedBy),
-		ModifiedAt: types.StringValue(data.Vpc.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy: types.StringValue(data.Vpc.ModifiedBy),
-	}
-
-	if data.Vpc.Description.IsSet() {
-		if desc := data.Vpc.Description.Get(); desc != nil {
-			vpcCidr.Description = types.StringValue(*desc)
-		}
-	}
-
-	if data.Vpc.Cidrs != nil {
-		for _, cidr := range data.Vpc.Cidrs {
-			vpcCidr.Cidrs = append(vpcCidr.Cidrs, vpcV1Dot2.VpcCidrInfo{
-				Id:        types.StringValue(cidr.Id),
-				Cidr:      types.StringValue(cidr.Cidr),
-				CreatedAt: types.StringValue(cidr.CreatedAt.Format(time.RFC3339)),
-				CreatedBy: types.StringValue(cidr.CreatedBy),
-			})
-		}
-	} else {
-		vpcCidr.Cidrs = []vpcV1Dot2.VpcCidrInfo{}
-	}
-
-	vpcCidrObjectValue, d := types.ObjectValueFrom(ctx, vpcCidr.AttributeTypes(), vpcCidr)
-	resp.Diagnostics.Append(d...)
-	plan.Vpc = vpcCidrObjectValue
+	plan.Id = types.StringValue(data.GetCidr())
 
 	// Set state
 	diags = resp.State.Set(ctx, &plan)
@@ -231,29 +135,84 @@ func (r *VpcCidrResource) Create(ctx context.Context, req resource.CreateRequest
 
 // Read refreshes the Terraform state with the latest data.
 func (r *VpcCidrResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	// TODO: Implement Read function when needed, remove resource for now
+	var state vpc.VpcCidrResource
 
-	// resp.Diagnostics.AddError(
-	// 	"Read Not Implemented",
-	// 	"VPC CIDR Read function is not yet implemented.",
-	// )
-	resp.State.RemoveResource(ctx)
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Get VPC detail which includes all CIDRs
+	vpcData, err := r.client.GetVpc(ctx, state.VpcId.ValueString())
+	if err != nil {
+		if strings.HasPrefix(err.Error(), "404") {
+			// VPC itself was deleted
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Failed to read VPC CIDR",
+			fmt.Sprintf("An error occurred while reading VPC CIDR: %s. Details: %s", err.Error(), detail),
+		)
+		return
+	}
+
+	// Check if the CIDR still exists in the VPC's CIDR list
+	cidrFound := false
+	for _, cidr := range vpcData.Vpc.Cidrs {
+		if cidr.Cidr == state.Cidr.ValueString() {
+			cidrFound = true
+			break
+		}
+	}
+
+	if !cidrFound {
+		// CIDR no longer exists on the VPC, remove from state
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	// CIDR still exists, refresh state
+	state.Id = types.StringValue(state.Cidr.ValueString())
+
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *VpcCidrResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// TODO: Implement Update function
-	resp.Diagnostics.AddError(
-		"Update Not Implemented",
-		"VPC CIDR Update function is not yet implemented.",
+	resp.Diagnostics.AddWarning(
+		"Update not supported",
+		"VPC CIDR do not support Update operations. The resource will not be updated.",
 	)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *VpcCidrResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// TODO: Implement Delete function
-	resp.Diagnostics.AddError(
-		"Delete Not Implemented",
-		"VPC CIDR Delete function is not yet implemented.",
+	resp.Diagnostics.AddWarning(
+		"VPC CIDR cannot be removed",
+		"The VPC CIDR API does not support deletion. The CIDR block remains attached to the VPC; "+
+			"only the Terraform state entry has been removed. "+
+			"Remove the CIDR manually if it is no longer needed.",
 	)
+	// Nothing else to do — the framework removes the state automatically
+}
+
+// ImportState imports an existing VPC CIDR into Terraform state.
+func (r *VpcCidrResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, ",")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: vpcId,cidr, got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vpc_id"), parts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cidr"), parts[1])...)
 }

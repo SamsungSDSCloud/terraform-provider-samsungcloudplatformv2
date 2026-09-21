@@ -17,6 +17,7 @@ provider "samsungcloudplatformv2" {
 
 data "samsungcloudplatformv2_organization_unit_parents" "org_unit_parents" {
   unit_id = var.unit_id
+  organization_id = var.organization_id
 }
 
 output "parents" {
@@ -44,6 +45,11 @@ variable "organization_id" {
 
 - `unit_id` (String) Organization Unit ID. 
   - example: YOUR RESOURCE'S UNIT_ID
+
+### Optional
+
+- `organization_id` (String) Unique identifier of the organization. 
+  - example: YOUR RESOURCE'S ORGANIZATION_ID
 
 ### Read-Only
 

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -63,6 +63,11 @@ func (d *organizationUnitParentsDataSource) Schema(_ context.Context, _ datasour
 				Required: true,
 				Description: "Organization Unit ID. \n" +
 					"  - example : 'ou-c29a138f8f1d78e24dbfa8681fc2fc8' \n",
+			},
+			"organization_id": schema.StringAttribute{
+				Optional: true,
+				Description: "Unique identifier of the organization. \n" +
+					"  - example : 'o-x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5' \n",
 			},
 			"parents": schema.ListNestedAttribute{
 				Computed: true,
@@ -144,7 +149,7 @@ func (d *organizationUnitParentsDataSource) Read(ctx context.Context, req dataso
 	result, err := d.client.GetOrganizationUnitParents(
 		ctx,
 		data.UnitId.ValueString(),
-		"",
+		data.OrganizationId.ValueString(),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -199,8 +204,9 @@ func (d *organizationUnitParentsDataSource) Read(ctx context.Context, req dataso
 }
 
 type OrganizationUnitParentsDataSourceModel struct {
-	UnitId  types.String                 `tfsdk:"unit_id"`
-	Parents []OrganizationUnitParentItem `tfsdk:"parents"`
+	UnitId         types.String                 `tfsdk:"unit_id"`
+	OrganizationId types.String                 `tfsdk:"organization_id"`
+	Parents        []OrganizationUnitParentItem `tfsdk:"parents"`
 }
 
 // OrganizationUnitParentItem is the item in the list

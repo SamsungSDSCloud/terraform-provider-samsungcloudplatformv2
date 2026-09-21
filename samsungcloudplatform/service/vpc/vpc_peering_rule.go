@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -25,6 +25,7 @@ var (
 	_ resource.Resource                = &vpcVpcPeeringRuleResource{}
 	_ resource.ResourceWithConfigure   = &vpcVpcPeeringRuleResource{}
 	_ resource.ResourceWithImportState = &vpcVpcPeeringRuleResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcVpcPeeringRuleResource{}
 )
 
 // NewVpcVpcPeeringRuleResource is a helper function to simplify the provider implementation.
@@ -70,16 +71,25 @@ func (r *vpcVpcPeeringRuleResource) Schema(_ context.Context, _ resource.SchemaR
 				Description: "The identifier of the VPC peering.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("DestinationCidr"): schema.StringAttribute{
 				Description: "The destination IP address range in CIDR notation.\n  - Example : 192.168.1.0/24",
 				Required:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("DestinationVpcType"): schema.StringAttribute{
 				Description: "The type of the destination VPC.\n" +
 					"  - Example : REQUESTER_VPC | APPROVER_VPC\n" +
 					"  - Reference : VpcPeeringRuleDestinationVpcType",
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 			common.ToSnakeCase("Id"): schema.StringAttribute{
@@ -236,8 +246,10 @@ func (r *vpcVpcPeeringRuleResource) Create(ctx context.Context, req resource.Cre
 
 	plan.Id = types.StringValue(result.VpcPeeringRule.Id)
 	plan.VpcPeeringRule = vpcPeeringRuleValue
+	resp.State.Set(ctx, plan)
 
-	err = waitForVpcPeeringRuleStatus(ctx, r.client, plan.VpcPeeringId.ValueString(), result.VpcPeeringRule.Id, []string{}, []string{"ACTIVE"})
+	refreshFn := r.getVpcPeeringRuleRefreshFunc(ctx, plan.VpcPeeringId.ValueString(), result.VpcPeeringRule.Id)
+	err = client.WaitForResourceCreated(ctx, refreshFn)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating vpc peering rule",
@@ -245,8 +257,6 @@ func (r *vpcVpcPeeringRuleResource) Create(ctx context.Context, req resource.Cre
 		)
 		return
 	}
-
-	diags = resp.State.Set(ctx, plan)
 
 	// Refresh resource state
 	readReq := resource.ReadRequest{
@@ -363,8 +373,9 @@ func (r *vpcVpcPeeringRuleResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	err = waitForVpcPeeringRuleStatus(ctx, r.client, state.VpcPeeringId.ValueString(), rule.Id.ValueString(), []string{}, []string{"DELETED"})
-	if err != nil && !strings.Contains(err.Error(), "404") {
+	refreshFn := r.getVpcPeeringRuleRefreshFunc(ctx, state.VpcPeeringId.ValueString(), rule.Id.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting VPC peering rule",
 			"Error waiting for VPC peering rule to become deleted: "+err.Error(),
@@ -375,23 +386,54 @@ func (r *vpcVpcPeeringRuleResource) Delete(ctx context.Context, req resource.Del
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpcVpcPeeringRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// VPC peering rule does not support update operations
-	// This is a no-op implementation
 	resp.Diagnostics.AddWarning(
 		"Update not supported",
-		"VPC peering rule resources do not support update operations. The resource will not be updated.",
+		"VPC peering rule resources do not support in-place updates. To change configuration, recreate the resource.",
 	)
 }
 
-func waitForVpcPeeringRuleStatus(ctx context.Context, vpcClient *vpc.Client, vpcPeeringId string, ruleId string, pendingStates []string, targetStates []string) error {
-	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
-		data, status, err := vpcClient.GetVpcPeeringRule(ctx, vpcPeeringId, ruleId)
+func (r *vpcVpcPeeringRuleResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpc.VpcPeeringRuleResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpc.VpcPeeringRuleResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Tags cannot be updated — suppress the diff to avoid triggering Update.
+	// Structural fields (vpc_peering_id, destination_cidr, destination_vpc_type)
+	// are handled by RequiresReplace plan modifiers.
+	if !plan.Tags.Equal(state.Tags) {
+		resp.Diagnostics.AddWarning(
+			"Field changes not supported",
+			"Changing `tags` is not supported. To change tags, recreate the resource.",
+		)
+		plan.Tags = state.Tags
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
+	}
+}
+
+func (r *vpcVpcPeeringRuleResource) getVpcPeeringRuleRefreshFunc(ctx context.Context, vpcPeeringId, ruleId string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		data, _, err := r.client.GetVpcPeeringRule(ctx, vpcPeeringId, ruleId)
 		if err != nil {
-			if status == 404 {
-				return vpc.VpcPeeringRule{}, "DELETED", nil
-			}
 			return nil, "", err
 		}
 		return data, string(data.State), nil
-	}, -1, -1, -1, -1)
+	}
 }

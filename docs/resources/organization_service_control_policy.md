@@ -29,7 +29,6 @@ output "scp_policy" {
 
 variable "organization_id" {
   type        = string
-  default     = "ENTER YOUR RESOURCE'S ORGANIZATION_ID"
   description = "Organization ID"
 }
 
@@ -96,8 +95,8 @@ variable "policy_document" {
 
 - `description` (String) Policy Description. 
   - example : 'This is an example policy.'
-- `policy_id` (String) Service Control Policy ID. 
-  - example: YOUR RESOURCE'S POLICY_ID
+- `id` (String) Service Control Policy ID. 
+  - example: YOUR RESOURCE'S ID
 - `type` (String) Service Control Policy Type. 
   - example : 'MANAGED'
 

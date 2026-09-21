@@ -1,12 +1,11 @@
 variable "organization_id" {
   type        = string
-  default     = "ENTER YOUR RESOURCE'S ORGANIZATION_ID"
   description = "Organization ID"
 }
 
 variable "size" {
   type    = number
-  default = 3
+  default = 20
 }
 
 variable "page" {

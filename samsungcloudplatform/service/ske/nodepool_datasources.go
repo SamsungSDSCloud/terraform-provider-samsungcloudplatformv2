@@ -3,10 +3,11 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -119,6 +120,10 @@ func (d *skeNodepoolDataSources) Schema(_ context.Context, _ datasource.SchemaRe
 							Description: "Status\n  - example: Running",
 							Computed:    true,
 						},
+						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
+							Description: "SubnetId\n  - example: 023c57b14f11483689338d085e061492",
+							Computed:    true,
+						},
 						common.ToSnakeCase("VolumeType"): schema.SingleNestedAttribute{
 							Description: "VolumeType",
 							Computed:    true,
@@ -182,6 +187,9 @@ func (d *skeNodepoolDataSources) Read(ctx context.Context, req datasource.ReadRe
 
 	contents := data.Nodepools
 
+	// Initialize as empty slice so Terraform serializes [] not null when no nodepools exist
+	state.Nodepools = []ske.NodepoolSummary{}
+
 	// Map response body to model
 	for _, nodepool := range contents {
 		nodepoolState := ske.NodepoolSummary{
@@ -204,6 +212,7 @@ func (d *skeNodepoolDataSources) Read(ctx context.Context, req datasource.ReadRe
 				Id:          types.StringValue(nodepool.ServerType.Id),
 			},
 			Status: types.StringValue(nodepool.Status),
+			SubnetId: types.StringValue(nodepool.SubnetId),
 			VolumeType: ske.VolumeTypeSummary{
 				Id:   types.StringValue(nodepool.VolumeType.Id),
 				Name: types.StringValue(nodepool.VolumeType.Name),

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -100,11 +100,6 @@ func (d *organizationDataSources) Schema(_ context.Context, _ datasource.SchemaR
 							Description: "Unique identifier of the master account that manages the organization. \n" +
 								"  - example : '9f8e7d6c5b4a3z2y1x0w9v8u7t6s5r' \n",
 						},
-						"delegation_account_id": schema.StringAttribute{
-							Computed: true,
-							Description: "Delegation Account. \n" +
-								"  - example : '124e7d6c5b4a3z2y1x0w9v8u7t6s5r' \n",
-						},
 						"root_unit_id": schema.StringAttribute{
 							Computed: true,
 							Description: "Unique identifier of the root organizational unit. \n" +
@@ -195,16 +190,15 @@ func (d *organizationDataSources) Read(ctx context.Context, req datasource.ReadR
 	data.Organizations = []organization.OrganizationSummaryItem{}
 	for _, org := range result.Organizations {
 		data.Organizations = append(data.Organizations, organization.OrganizationSummaryItem{
-			Id:                  types.StringValue(org.Id),
-			Name:                types.StringValue(org.Name),
-			CreatedAt:           types.StringValue(org.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:           types.StringValue(org.CreatedBy),
-			ModifiedAt:          types.StringValue(org.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:          types.StringValue(org.ModifiedBy),
-			MasterAccountId:     types.StringValue(org.MasterAccountId),
-			DelegationAccountId: types.StringPointerValue(org.DelegationAccountId.Get()),
-			RootUnitId:          types.StringValue(org.RootUnitId),
-			UseScpYn:            types.BoolValue(org.UseScpYn),
+			Id:              types.StringValue(org.Id),
+			Name:            types.StringValue(org.Name),
+			CreatedAt:       types.StringValue(org.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:       types.StringValue(org.CreatedBy),
+			ModifiedAt:      types.StringValue(org.ModifiedAt.Format(time.RFC3339)),
+			ModifiedBy:      types.StringValue(org.ModifiedBy),
+			MasterAccountId: types.StringValue(org.MasterAccountId),
+			RootUnitId:      types.StringValue(org.RootUnitId),
+			UseScpYn:        types.BoolValue(org.UseScpYn),
 		})
 	}
 

@@ -1,16 +1,37 @@
-variable "budget_filter_name" {
-  type    = string
-  default = "name"
+variable "budget_id" {
+  type        = string
+  default     = "ENTER YOUR RESOURCE'S BUDGET_ID"
+  description = "Budget ID (optional)"
 }
 
-variable "budget_filter_values" {
-  type    = list(string)
-  default = ["budget_test"]
+variable "budget_name" {
+  type        = string
+  default     = null
+  description = "Budget name (optional)"
+}
+variable "search_name" {
+  type        = string
+  default     = null
+  description = "Seach name (optional)"
 }
 
-variable "budget_filter_use_regex" {
-  type    = bool
-  default = false
+variable "sort" {
+  type        = string
+  default     = null
+  description = "sort (optional)"
+}
+
+
+variable "page" {
+  type        = number
+  default     = 0
+  description = "page (optional)"
+}
+
+variable "size" {
+  type        = number
+  default     = 20
+  description = "count (optional)"
 }
 
 

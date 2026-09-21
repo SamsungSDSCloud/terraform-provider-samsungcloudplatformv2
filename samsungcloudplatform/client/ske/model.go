@@ -1,7 +1,7 @@
 package ske
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -25,15 +25,16 @@ type ClusterDataSourceIds struct {
 }
 
 type ClusterDataSource struct {
-	Id      types.String `tfsdk:"id"`
-	Cluster types.Object `tfsdk:"cluster"`
+	Id                        types.String `tfsdk:"id"`
+	Cluster                   types.Object `tfsdk:"cluster"`
+	DeletionProtectionEnabled types.Bool   `tfsdk:"deletion_protection_enabled"`
 }
 
 type Cluster struct {
 	Id                                    types.String                           `tfsdk:"id"`
 	Name                                  types.String                           `tfsdk:"name"`
 	AccountId                             types.String                           `tfsdk:"account_id"`
-	CloudLoggingEnabled                   types.Bool                             `tfsdk:"cloud_logging_enabled"`
+	AdditionalSubnetIdList                types.List                             `tfsdk:"additional_subnet_id_list"`
 	KubernetesVersion                     types.String                           `tfsdk:"kubernetes_version"`
 	ClusterNamespace                      types.String                           `tfsdk:"cluster_namespace"`
 	MaxNodeCount                          types.Int32                            `tfsdk:"max_node_count"`
@@ -44,17 +45,18 @@ type Cluster struct {
 	PublicEndpointUrl                     types.String                           `tfsdk:"public_endpoint_url"`
 	PublicKubeconfigDownloadYn            types.String                           `tfsdk:"public_kubeconfig_download_yn"`
 	PublicEndpointAccessControlIp         types.String                           `tfsdk:"public_endpoint_access_control_ip"`
-	Vpc                                   ExternalResource                       `tfsdk:"vpc"`
-	Subnet                                ExternalResource                       `tfsdk:"subnet"`
-	Volume                                ExternalResource                       `tfsdk:"volume"`
-	SecurityGroupList                     []ExternalResource                     `tfsdk:"security_group_list"`
-	ManagedSecurityGroup                  ExternalResource                       `tfsdk:"managed_security_group"`
+	Vpc                                   ExternalResourceId                       `tfsdk:"vpc"`
+	Subnet                                ExternalResourceId                       `tfsdk:"subnet"`
+	Volume                                ExternalResourceId                       `tfsdk:"volume"`
+	SecurityGroupList                     []ExternalResourceId                     `tfsdk:"security_group_list"`
+	ManagedSecurityGroup                  ExternalResourceId                       `tfsdk:"managed_security_group"`
 	CreatedAt                             types.String                           `tfsdk:"created_at"`
 	CreatedBy                             types.String                           `tfsdk:"created_by"`
 	ModifiedAt                            types.String                           `tfsdk:"modified_at"`
 	ModifiedBy                            types.String                           `tfsdk:"modified_by"`
 	Status                                types.String                           `tfsdk:"status"`
-	ServiceWatchLoggingEnabled            types.Bool                             `tfsdk:"service_watch_logging_enabled"` //v1.1
+	ServiceWatchLoggingEnabled            types.Bool                             `tfsdk:"service_watch_logging_enabled"`
+	LinkedResources                       []LinkedResource                       `tfsdk:"linked_resources"`
 }
 
 func (m Cluster) AttributeTypes() map[string]attr.Type {
@@ -62,7 +64,7 @@ func (m Cluster) AttributeTypes() map[string]attr.Type {
 		"id":                             types.StringType,
 		"name":                           types.StringType,
 		"account_id":                     types.StringType,
-		"cloud_logging_enabled":          types.BoolType,
+		"additional_subnet_id_list":      types.ListType{ElemType: types.StringType},
 		"kubernetes_version":             types.StringType,
 		"cluster_namespace":              types.StringType,
 		"max_node_count":                 types.Int32Type,
@@ -81,32 +83,27 @@ func (m Cluster) AttributeTypes() map[string]attr.Type {
 		"public_endpoint_access_control_ip": types.StringType,
 		"vpc": types.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"id":   types.StringType,
-				"name": types.StringType,
+				"id": types.StringType,
 			},
 		},
 		"subnet": types.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"id":   types.StringType,
-				"name": types.StringType,
+				"id": types.StringType,
 			},
 		},
 		"volume": types.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"id":   types.StringType,
-				"name": types.StringType,
+				"id": types.StringType,
 			},
 		},
 		"security_group_list": types.ListType{ElemType: types.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"id":   types.StringType,
-				"name": types.StringType,
+				"id": types.StringType,
 			},
 		}},
 		"managed_security_group": types.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"id":   types.StringType,
-				"name": types.StringType,
+				"id": types.StringType,
 			},
 		},
 		"created_at":  types.StringType,
@@ -116,23 +113,33 @@ func (m Cluster) AttributeTypes() map[string]attr.Type {
 		"status":      types.StringType,
 		// v1.1
 		"service_watch_logging_enabled": types.BoolType,
+		// v1.6
+		"linked_resources": types.ListType{ElemType: types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"id":   types.StringType,
+				"name": types.StringType,
+				"type": types.StringType,
+			},
+		}},
 	}
 }
 
 type ClusterResource struct {
-	Id                                    types.String                           `tfsdk:"id"`
-	Name                                  types.String                           `tfsdk:"name"`
-	CloudLoggingEnabled                   types.Bool                             `tfsdk:"cloud_logging_enabled"`
-	KubernetesVersion                     types.String                           `tfsdk:"kubernetes_version"`
-	PrivateEndpointAccessControlResources []PrivateEndpointAccessControlResource `tfsdk:"private_endpoint_access_control_resources"`
-	PublicEndpointAccessControlIp         types.String                           `tfsdk:"public_endpoint_access_control_ip"`
-	SecurityGroupIdList                   []types.String                         `tfsdk:"security_group_id_list"`
-	SubnetId                              types.String                           `tfsdk:"subnet_id"`
-	VolumeId                              types.String                           `tfsdk:"volume_id"`
-	VpcId                                 types.String                           `tfsdk:"vpc_id"`
-	ServiceWatchLoggingEnabled            types.Bool                             `tfsdk:"service_watch_logging_enabled"` //v1.1
-	Tags                                  types.Map                              `tfsdk:"tags"`                          // tags field 필드를 추가한다.
-	Cluster                               types.Object                           `tfsdk:"cluster"`
+	Id                                    types.String `tfsdk:"id"`
+	Name                                  types.String `tfsdk:"name"`
+	KubernetesVersion                     types.String `tfsdk:"kubernetes_version"`
+	PrivateEndpointAccessControlResources types.List   `tfsdk:"private_endpoint_access_control_resources"`
+	PublicEndpointAccessControlIp         types.String `tfsdk:"public_endpoint_access_control_ip"`
+	SecurityGroupIdList                   types.List   `tfsdk:"security_group_id_list"`
+	DefaultSubnetId                       types.String `tfsdk:"default_subnet_id"`
+	NfsVolumeId                           types.String `tfsdk:"nfs_volume_id"`
+	VpcId                                 types.String `tfsdk:"vpc_id"`
+	ServiceWatchLoggingEnabled            types.Bool   `tfsdk:"service_watch_logging_enabled"` //v1.1
+	Tags                                  types.Map    `tfsdk:"tags"`                          // tags field 필드를 추가한다.
+	Cluster                               types.Object `tfsdk:"cluster"`
+	AdditionalSubnetIdList                types.List   `tfsdk:"additional_subnet_id_list"`   // v1.6
+	DeletionProtectionEnabled             types.Bool   `tfsdk:"deletion_protection_enabled"` // v1.6
+	LinkedResources                       types.List   `tfsdk:"linked_resources"`            // v1.6
 	//LastUpdated                           types.String                           `tfsdk:"last_updated"`
 	//Region                                types.String                           `tfsdk:"region"` // region field 를 추가한다.
 }
@@ -141,6 +148,14 @@ type ClusterKubeconfigDataSource struct {
 	ClusterId      types.String `tfsdk:"cluster_id"`
 	KubeconfigType types.String `tfsdk:"kubeconfig_type"`
 	Kubeconfig     types.String `tfsdk:"kubeconfig"`
+}
+
+//------------ Cluster Subnets -------------------//
+
+type ClusterSubnetsResource struct {
+	Id                     types.String `tfsdk:"id"`
+	ClusterId              types.String `tfsdk:"cluster_id"`
+	AdditionalSubnetIdList types.Set    `tfsdk:"additional_subnet_id_list"`
 }
 
 type ClusterUserKubeconfigDataSource struct {
@@ -193,6 +208,7 @@ type NodepoolSummary struct {
 	KubernetesVersion   types.String      `tfsdk:"kubernetes_version"`
 	ServerType          ServerType        `tfsdk:"server_type"`
 	Status              types.String      `tfsdk:"status"`
+	SubnetId            types.String      `tfsdk:"subnet_id"`
 	VolumeType          VolumeTypeSummary `tfsdk:"volume_type"`
 }
 
@@ -384,8 +400,10 @@ type NodepoolImageSummary struct {
 	Volume                 *NodepoolImageVolume `tfsdk:"volume"`
 	ScpGpuDriver           types.String         `tfsdk:"scp_gpu_driver"`
 	ScpSupportedClassTypes []types.String       `tfsdk:"scp_supported_class_types"`
+	Visibility             types.String         `tfsdk:"visibility"`
+	Zone                   types.String         `tfsdk:"zone"`
 }
 
 type NodepoolImageVolume struct {
-	Size types.Int64 `tfsdk:"size"`
+	VolumeSize types.Int64 `tfsdk:"volume_size"`
 }

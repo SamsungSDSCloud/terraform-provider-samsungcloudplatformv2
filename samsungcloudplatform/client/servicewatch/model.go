@@ -268,6 +268,7 @@ type AlertResource struct {
 	MissingDataOption types.String  `tfsdk:"missing_data_option"`
 	Timestamp         types.String  `tfsdk:"timestamp"`
 	RecipientIds      types.List    `tfsdk:"recipient_ids"`
+	RecipientType     types.String  `tfsdk:"recipient_type"`
 	Tags              types.Map     `tfsdk:"tags"`
 	CreatedAt         types.String  `tfsdk:"created_at"`
 	CreatedBy         types.String  `tfsdk:"created_by"`
@@ -384,6 +385,7 @@ type EventRuleResource struct {
 	EventRuleId    types.String   `tfsdk:"event_rule_id"`
 	Name           types.String   `tfsdk:"name"`
 	RecipientIds   []types.String `tfsdk:"recipient_ids"`
+	RecipientType  types.String   `tfsdk:"recipient_type"`
 	ResourceTypeId types.String   `tfsdk:"resource_type_id"`
 	ServiceId      types.String   `tfsdk:"service_id"`
 	SrnList        []types.String `tfsdk:"srn_list"`

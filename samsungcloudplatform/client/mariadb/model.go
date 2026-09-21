@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
 )
 
 const ServiceType = "scp-mariadb"
@@ -37,6 +37,7 @@ type ClusterResource struct {
 	InstanceNamePrefix   types.String       `tfsdk:"instance_name_prefix"`
 	MaintenanceOption    *MaintenanceOption `tfsdk:"maintenance_option"`
 	Name                 types.String       `tfsdk:"name"`
+	OriginClusterId      types.String       `tfsdk:"origin_cluster_id"`
 	ServiceState         types.String       `tfsdk:"service_state"`
 	SubnetId             types.String       `tfsdk:"subnet_id"`
 	Tags                 types.Map          `tfsdk:"tags"`
@@ -71,6 +72,7 @@ type InitConfigOptionBase struct {
 	DatabaseName         types.String `tfsdk:"database_name"`
 	DatabasePort         types.Int32  `tfsdk:"database_port"`
 	DatabaseUserName     types.String `tfsdk:"database_user_name"`
+	OriginRegion         types.String `tfsdk:"origin_region"`
 }
 
 // InitConfigOption extends the base with the write-only field database_user_password
@@ -133,7 +135,10 @@ type UpdateHandler struct {
 // --------------- Engine Version ------------ //
 
 type EngineVersionDataSource struct {
-	Contents []EngineVersion `tfsdk:"contents"`
+	Contents         []EngineVersion `tfsdk:"contents"`
+	Id               types.String    `tfsdk:"id"`
+	ProductImageType types.String    `tfsdk:"product_image_type"`
+	EosIncluded      types.Bool      `tfsdk:"eos_included"`
 }
 
 type EngineVersion struct {

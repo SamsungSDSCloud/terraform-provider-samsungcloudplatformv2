@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/mariadb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/mariadb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -66,6 +66,11 @@ func (d *mariadbClusterDataSource) Schema(_ context.Context, _ datasource.Schema
 						MarkdownDescription: "DBaaS engine\n  - example: MariaDB",
 						Computed:            true,
 					},
+					common.ToSnakeCase("DbaasEngineVersionName"): schema.StringAttribute{
+						Description:         "DBaaS engine version name\n  - example: MariaDB 10.11.8",
+						MarkdownDescription: "DBaaS engine version name\n  - example: MariaDB 10.11.8",
+						Computed:            true,
+					},
 					common.ToSnakeCase("NatEnabled"): schema.BoolAttribute{
 						Description:         "NAT availability\n  - example: false",
 						MarkdownDescription: "NAT availability\n  - example: false",
@@ -108,6 +113,11 @@ func (d *mariadbClusterDataSource) Schema(_ context.Context, _ datasource.Schema
 							common.ToSnakeCase("DatabaseUserName"): schema.StringAttribute{
 								Description:         "Database user name\n  - example: mydb",
 								MarkdownDescription: "Database user name\n  - example: mydb",
+								Computed:            true,
+							},
+							common.ToSnakeCase("OriginRegion"): schema.StringAttribute{
+								Description:         "Origin region of the source cluster (set for restored/replica clusters)\n  - example: kr-west1",
+								MarkdownDescription: "Origin region of the source cluster (set for restored/replica clusters)\n  - example: kr-west1",
 								Computed:            true,
 							},
 							common.ToSnakeCase("BackupOption"): schema.SingleNestedAttribute{
@@ -263,6 +273,11 @@ func (d *mariadbClusterDataSource) Schema(_ context.Context, _ datasource.Schema
 						MarkdownDescription: "Origin cluster ID\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
 						Computed:            true,
 					},
+					common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
+						Description:         "Product image type\n  - example: MariaDB",
+						MarkdownDescription: "Product image type\n  - example: MariaDB",
+						Computed:            true,
+					},
 					common.ToSnakeCase("ProductType"): schema.StringAttribute{
 						Description:         "Product type\n  - example: MariaDB",
 						MarkdownDescription: "Product type\n  - example: MariaDB",
@@ -297,6 +312,11 @@ func (d *mariadbClusterDataSource) Schema(_ context.Context, _ datasource.Schema
 					common.ToSnakeCase("Timezone"): schema.StringAttribute{
 						Description:         "Timezone\n  - example: Asia/Seoul",
 						MarkdownDescription: "Timezone\n  - example: Asia/Seoul",
+						Computed:            true,
+					},
+					common.ToSnakeCase("VipPublicIpAddress"): schema.StringAttribute{
+						Description:         "(VIP) Public IP address\n  - example: 10.10.10.10",
+						MarkdownDescription: "(VIP) Public IP address\n  - example: 10.10.10.10",
 						Computed:            true,
 					},
 					common.ToSnakeCase("VipPublicIpId"): schema.StringAttribute{
@@ -401,6 +421,7 @@ func (d *mariadbClusterDataSource) Read(ctx context.Context, req datasource.Read
 		BackupOption:         BackupOption,
 		DatabaseName:         types.StringValue(data.InitConfigOption.DatabaseName),
 		DatabaseUserName:     types.StringValue(data.InitConfigOption.DatabaseUserName),
+		OriginRegion:         types.StringPointerValue(data.InitConfigOption.OriginRegion.Get()),
 		DatabasePort:         types.Int32PointerValue(data.InitConfigOption.DatabasePort.Get()),
 		DatabaseCharacterSet: types.StringPointerValue(data.InitConfigOption.DatabaseCharacterSet.Get()),
 	}

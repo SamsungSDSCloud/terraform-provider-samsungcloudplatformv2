@@ -27,6 +27,8 @@ resource "samsungcloudplatformv2_vpc_subnet" "subnet" {
   dhcp_ip_address    = var.dhcp_ip_address
   gateway_ip_address = var.gateway_ip_address
   tags               = var.tags
+  category               = var.category
+  primary_subnet_id               = var.primary_subnet_id
 }
 
 output "subnet_output" {
@@ -36,7 +38,7 @@ output "subnet_output" {
 
 variable "subnet_name" {
   type    = string
-  default = "testsubnet"
+  default = "yb-subnet-2"
 }
 
 variable "vpc_id" {
@@ -46,12 +48,12 @@ variable "vpc_id" {
 
 variable "subnet_type" {
   type    = string
-  default = "GENERAL"
+  default = "PUBLIC"
 }
 
 variable "subnet_cidr" {
   type    = string
-  default = "192.168.0.0/28"
+  default = "30.30.16.0/21"
 }
 
 variable "subnet_description" {
@@ -64,18 +66,12 @@ variable "subnet_allocation_pools" {
     start = string
     end   = string
   }))
-  default = [{
-    end   = "192.168.0.12"
-    start = "192.168.0.10"
-    }, {
-    end   = "192.168.0.4"
-    start = "192.168.0.3"
-  }]
+  default = null
 }
 
 variable "subnet_dns_nameservers" {
   type    = set(string)
-  default = ["8.8.8.8"]
+  default = null
 }
 
 variable "subnet_host_routes" {
@@ -83,18 +79,12 @@ variable "subnet_host_routes" {
     destination = string
     nexthop     = string
   }))
-  default = [{
-    destination = "192.168.24.0/24"
-    nexthop     = "11.11.11.11"
-    }, {
-    destination = "192.169.24.0/24"
-    nexthop     = "22.22.22.22"
-  }]
+  default = null
 }
 
 variable "dhcp_ip_address" {
   type    = string
-  default = null
+  default = "30.30.16.3"
 }
 
 variable "gateway_ip_address" {
@@ -103,10 +93,16 @@ variable "gateway_ip_address" {
 }
 
 variable "tags" {
-  type = map(string)
-  default = {
-    tf = "terraform"
-  }
+  type    = map(string)
+  default = null
+}
+variable "category" {
+  type    = string
+  default = "SECONDARY"
+}
+variable "primary_subnet_id" {
+  type    = string
+  default = "ENTER YOUR RESOURCE'S PRIMARY_SUBNET_ID"
 }
 ```
 
@@ -115,6 +111,8 @@ variable "tags" {
 
 ### Required
 
+- `category` (String) The Category of the subnet.
+  - example : PRIMARY | SECONDARY
 - `cidr` (String) The IP address range of the subnet in CIDR notation.
   - example : 192.168.0.0/24 
   - maxMask : /28
@@ -125,7 +123,7 @@ variable "tags" {
   - minLength : 3
   - pattern : ^[a-zA-Z0-9-]+$
 - `type` (String) The type of the subnet.
-  - example : GENERAL | LOCAL | VPC_ENDPOINT
+  - example : PUBLIC | PRIVATE | LOCAL | VPC_ENDPOINT
 - `vpc_id` (String) The identifier of the VPC that the subnet belongs to.
   - example: YOUR RESOURCE'S VPC_ID
 
@@ -144,6 +142,8 @@ variable "tags" {
   - example: 192.168.0.1
 - `host_routes` (Attributes List) The static host routes configured for the subnet.
   - example : [{ "destination": "192.168.24.0/24", "nexthop": "192.168.0.5" }] (see [below for nested schema](#nestedatt--host_routes))
+- `primary_subnet_id` (String) The Primary Subnet Id of the VPC that the subnet belongs to.
+  - example: YOUR RESOURCE'S PRIMARY_SUBNET_ID
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
@@ -162,10 +162,14 @@ variable "tags" {
   - example: 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
+- `secondary_subnet_ids` (List of String) The list of Secondary Subnet IDs of the VPC that the subnet belongs to.
+  - example: YOUR RESOURCE'S SECONDARY_SUBNET_IDS
 - `state` (String) The current lifecycle state of the subnet.
   - example : ACTIVE
 - `vpc_name` (String) The name of the VPC that the subnet belongs to.
   - example : VpcName
+- `zones` (List of String) The list of availability zones where the subnet is located.
+  - example : ["zone-1", "zone-2"]
 
 <a id="nestedatt--allocation_pools"></a>
 ### Nested Schema for `allocation_pools`

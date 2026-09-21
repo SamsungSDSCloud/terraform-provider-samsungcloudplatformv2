@@ -3,10 +3,10 @@ package parallelfilestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/parallelfilestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/parallelfilestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -169,7 +169,7 @@ func (d *parallelFileStorageVolumeDataSource) Read(ctx context.Context, request 
 	// AccessRule
 	getAccessRule, err := d.client.GetVolumeAccessRules(ctx, state.Id.ValueString())
 
-	var accessRules []parallelfilestorage.AccessRuleResource
+	accessRules := []parallelfilestorage.AccessRuleResource{}
 	if err != nil || getAccessRule == nil || len(getAccessRule.AccessRules) == 0 {
 		accessRules = []parallelfilestorage.AccessRuleResource{}
 	} else {

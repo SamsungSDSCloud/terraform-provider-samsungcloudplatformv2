@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/firewall/1.0"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpfirewall "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/firewall/1.0"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

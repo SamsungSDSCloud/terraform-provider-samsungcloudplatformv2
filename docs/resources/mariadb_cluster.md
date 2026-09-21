@@ -218,6 +218,8 @@ variable "service_watch_log_collection" {
 
 ### Optional
 
+- `origin_cluster_id` (String) Origin cluster ID to create this cluster from (restore/replica)
+  - example: YOUR RESOURCE'S ORIGIN_CLUSTER_ID
 - `service_watch_log_collection` (Boolean) ServiceWatchLogCollection
  - example: false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
@@ -260,6 +262,11 @@ Required:
   - maxLength: 30  
   - pattern: ^(?=.*[a-zA-Z])(?=.*[`\-[\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\S*[^\w\s]).{8,30} ("'제외)
 
+Read-Only:
+
+- `origin_region` (String) Origin region of the source cluster (set for restored/replica clusters)
+  - example: kr-west1
+
 <a id="nestedatt--init_config_option--backup_option"></a>
 ### Nested Schema for `init_config_option.backup_option`
 
@@ -288,7 +295,7 @@ Required:
 - `instances` (Attributes List) Instances (see [below for nested schema](#nestedatt--instance_groups--instances))
 - `role_type` (String) Role type 
   - example: 'ACTIVE' 
-  - pattern: ACTIVE (HaEnabled=False) / ACTIVE_STANDBY (HaEnabled=True)
+  - pattern: ACTIVE (HaEnabled=False) / ACTIVE_STANDBY (HaEnabled=True) / REPLICA
 - `server_type_name` (String) Server type name 
   - example: 'db1v1m2'
 
@@ -326,7 +333,7 @@ Required:
 
 - `role_type` (String) Role type 
   - example: 'ACTIVE' 
-  - pattern: ACTIVE / STANDBY
+  - pattern: ACTIVE / STANDBY / REPLICA
 
 Optional:
 

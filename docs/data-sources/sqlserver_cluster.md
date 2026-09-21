@@ -57,6 +57,8 @@ Read-Only:
   - example: YOUR RESOURCE'S CREATED_BY
 - `dbaas_engine` (String) DBaaS engine
   - example: Microsoft SQL Server
+- `dbaas_engine_version_name` (String) DBaaS engine version name
+  - example: Microsoft SQL Server 2019 Standard
 - `ha_enabled` (Boolean) HA availability
   - example: false
 - `id` (String) Identifier of the resource.
@@ -76,6 +78,8 @@ Read-Only:
   - example: false
 - `origin_cluster_id` (String) Origin cluster ID
   - example: YOUR RESOURCE'S ORIGIN_CLUSTER_ID
+- `product_image_type` (String) Product image type
+  - example: Microsoft SQL Server
 - `product_type` (String) Product type
   - example: Microsoft SQL Server
 - `role_type` (String) Role type
@@ -90,6 +94,8 @@ Read-Only:
   - example: YOUR RESOURCE'S SUBNET_ID
 - `timezone` (String) Timezone
   - example: Asia/Seoul
+- `vip_public_ip_address` (String) (VIP) Public IP address
+  - example: 10.10.10.10
 - `vip_public_ip_id` (String) (VIP) Public IP ID
   - example: YOUR RESOURCE'S VIP_PUBLIC_IP_ID
 - `virtual_ip_address` (String) Virtual IP address

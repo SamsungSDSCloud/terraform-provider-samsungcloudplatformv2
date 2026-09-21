@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	vpcV1Dot2 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpcV1Dot3 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -30,7 +30,7 @@ func NewVpcPublicipDataSource() datasource.DataSource {
 // vpcPublicipDataSource is the data source implementation.
 type vpcPublicipDataSource struct {
 	config  *scpsdk.Configuration
-	client  *vpcV1Dot2.Client
+	client  *vpcV1Dot3.Client
 	clients *client.SCPClient
 }
 
@@ -105,11 +105,17 @@ func (d *vpcPublicipDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
+			common.ToSnakeCase("Zone"): schema.ListAttribute{
+				ElementType: types.StringType,
+				Description: "The availability zone of the public ip. Multiple values can be specified.\n" +
+					"  - example : [\"kr-west1-a\", \"kr-west1-b\"]",
+				Optional: true,
+			},
 
 			// Output
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
 				Description: "The total number of publicIPs.\n" +
-                    "  - example : 2",
+					"  - example : 2",
 				Computed: true,
 			},
 			common.ToSnakeCase("Publicips"): schema.ListNestedAttribute{
@@ -134,7 +140,7 @@ func (d *vpcPublicipDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
 							Description: "The type of the public ip.\n" +
-                                "  - example : IGW | GGW | SIGW",
+								"  - example : IGW | GGW | SIGW",
 							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
@@ -182,6 +188,11 @@ func (d *vpcPublicipDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 							Computed: true,
 						},
+						common.ToSnakeCase("Zone"): schema.StringAttribute{
+							Description: "The availability zone of the public ip.\n" +
+								"  - example : kr-west1-a",
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -207,13 +218,13 @@ func (d *vpcPublicipDataSource) Configure(_ context.Context, req datasource.Conf
 		return
 	}
 
-	d.client = inst.Client.VpcV1Dot2
+	d.client = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *vpcPublicipDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpcV1Dot2.PublicipDataSource
+	var state vpcV1Dot3.PublicipDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -240,7 +251,7 @@ func (d *vpcPublicipDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// Map response body to model
 	for _, publicip := range data.Publicips {
-		publicipState := vpcV1Dot2.PublicIp{
+		publicipState := vpcV1Dot3.PublicipDS{
 			IpAddress:   types.StringValue(publicip.IpAddress),
 			CreatedAt:   types.StringValue(publicip.CreatedAt.Format(time.RFC3339)),
 			CreatedBy:   types.StringValue(publicip.CreatedBy),
@@ -251,6 +262,7 @@ func (d *vpcPublicipDataSource) Read(ctx context.Context, req datasource.ReadReq
 			Type:        types.StringValue(string(publicip.Type)),
 			AccountId:   types.StringValue(publicip.AccountId),
 			State:       types.StringValue(string(publicip.State)),
+			Zone:        types.StringValue(publicip.Zone),
 		}
 
 		// Handle nullable AttachedResourceType

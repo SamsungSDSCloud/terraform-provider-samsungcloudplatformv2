@@ -1,6 +1,5 @@
 variable "organization_id" {
   type        = string
-  default     = "ENTER YOUR RESOURCE'S ORGANIZATION_ID"
   description = "Organization ID"
 }
 

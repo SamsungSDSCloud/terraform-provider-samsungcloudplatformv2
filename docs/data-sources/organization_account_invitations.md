@@ -18,7 +18,7 @@ provider "samsungcloudplatformv2" {
 data "samsungcloudplatformv2_organization_account_invitations" "invitations" {
 }
 
-output "total_count" {
+output "count" {
   description = "Total Count"
   value       = data.samsungcloudplatformv2_organization_account_invitations.invitations.total_count
 }

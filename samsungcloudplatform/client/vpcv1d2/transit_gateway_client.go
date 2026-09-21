@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/vpc/1.2"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.2"
 )
 
 func (client *Client) GetTransitGatewayList(ctx context.Context, request TgwDataSource) (*vpc.TransitGatewayListResponseV1Dot2, *http.Response, error) {

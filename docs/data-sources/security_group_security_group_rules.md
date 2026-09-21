@@ -117,3 +117,27 @@ variable "service" {
 
 - `ids` (List of String) The list of Security Group Rule identifiers.
   - example: ['YOUR RESOURCE'S IDS']
+- `security_group_rules` (Attributes List) List of Security Group Rules. (see [below for nested schema](#nestedatt--security_group_rules))
+
+<a id="nestedatt--security_group_rules"></a>
+### Nested Schema for `security_group_rules`
+
+Read-Only:
+
+- `created_at` (String) The timestamp when the rule was created.
+- `created_by` (String) The user ID that created the rule.
+- `description` (String) A brief explanation or note about this rule.
+- `direction` (String) The direction of the traffic the rule applies to.
+- `ethertype` (String) The layer 3 protocol name.
+- `id` (String) The unique identifier of the Security Group Rule.
+- `modified_at` (String) The timestamp when the rule was last modified.
+- `modified_by` (String) The user ID that modified the rule.
+- `port_range_max` (Number) The maximum port number in the range the rule applies to.
+- `port_range_min` (Number) The minimum port number in the range the rule applies to.
+- `protocol` (String) The layer 4 protocol name, or NULL for ALL.
+- `remote_address_group_id` (String) The identifier of the remote address group.
+- `remote_address_group_name` (String) The name of the remote address group.
+- `remote_group_id` (String) The identifier of the remote security group.
+- `remote_group_name` (String) The name of the remote security group.
+- `remote_ip_prefix` (String) The remote IP address range in CIDR notation.
+- `security_group_id` (String) The identifier of the security group that the rule belongs to.

@@ -6,13 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/loadbalancer/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.3"
+	scploadbalancerv1d4 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.4"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -35,9 +38,10 @@ func NewLoadBalancerLbServerGroupResource() resource.Resource {
 
 // loadbalancerLbServerGroupResource is the data source implementation.
 type loadbalancerLbServerGroupResource struct {
-	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *loadbalancer.Client
+	clientv1d4 *loadbalancerv1d4.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -96,7 +100,7 @@ func (r *loadbalancerLbServerGroupResource) Schema(_ context.Context, _ resource
 					common.ToSnakeCase("LbMethod"): schema.StringAttribute{
 						Description: "The load balancing method.\n" +
 							"  - example : ROUND_ROBIN\n" +
-							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
+							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | SOURCE_IP_PORT_HASH | SOURCE_IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
 						Computed: true,
 					},
 					common.ToSnakeCase("LbName"): schema.StringAttribute{
@@ -112,7 +116,7 @@ func (r *loadbalancerLbServerGroupResource) Schema(_ context.Context, _ resource
 					common.ToSnakeCase("State"): schema.StringAttribute{
 						Description: "The current state of the LB Server Group.\n" +
 							"  - example : ACTIVE\n" +
-							"  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING\n",
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING | TERMINATING\n",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
@@ -182,7 +186,7 @@ func (r *loadbalancerLbServerGroupResource) Schema(_ context.Context, _ resource
 					common.ToSnakeCase("LbMethod"): schema.StringAttribute{
 						Description: "The load balancing method.\n" +
 							"  - example : ROUND_ROBIN\n" +
-							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
+							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | SOURCE_IP_PORT_HASH | SOURCE_IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
 						Optional: true,
 					},
 					common.ToSnakeCase("LbHealthCheckId"): schema.StringAttribute{
@@ -215,6 +219,7 @@ func (r *loadbalancerLbServerGroupResource) Configure(_ context.Context, req res
 	}
 
 	r.client = inst.Client.LoadBalancer
+	r.clientv1d4 = inst.Client.LoadBalancerV1d4
 	r.clients = inst.Client
 }
 
@@ -232,8 +237,22 @@ func (r *loadbalancerLbServerGroupResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	// Create new Lb Server Group
-	data, err := r.client.CreateLbServerGroup(ctx, plan)
+	lbServerGroup := plan.LbServerGroupCreate
+
+	lbServerGroupElement := scploadbalancerv1d4.LbServerGroupCreate{
+		Name:            lbServerGroup.Name.ValueString(),
+		VpcId:           lbServerGroup.VpcId.ValueString(),
+		SubnetId:        lbServerGroup.SubnetId.ValueString(),
+		Protocol:        scploadbalancerv1d4.LbServerGroupProtocol(lbServerGroup.Protocol.ValueString()),
+		LbMethod:        scploadbalancerv1d4.LbServerGroupLbMethod(lbServerGroup.LbMethod.ValueString()),
+		Description:     *scploadbalancerv1d4.NewNullableString(lbServerGroup.Description.ValueStringPointer()),
+		LbHealthCheckId: *scploadbalancerv1d4.NewNullableString(lbServerGroup.LbHealthCheckId.ValueStringPointer()),
+		Tags:            convertToTags(lbServerGroup.Tags.Elements()),
+	}
+
+	data, err := r.clientv1d4.CreateLbServerGroupV1d4(ctx, scploadbalancerv1d4.LbServerGroupCreateRequest{
+		LbServerGroup: lbServerGroupElement,
+	})
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -245,26 +264,53 @@ func (r *loadbalancerLbServerGroupResource) Create(ctx context.Context, req reso
 
 	plan.Id = types.StringValue(data.LbServerGroup.Id)
 
-	// Wait for ACTIVE state
-	if err := waitForLbServerGroupStatus(ctx, r.client, data.LbServerGroup.Id, []string{}, []string{"ACTIVE"}); err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Lb Server Group",
-			"Error waiting for Lb Server Group to become active: "+err.Error(),
-		)
-		return
+	// Map response body to schema and populate Computed attribute values
+	lbServerGroupModel := loadbalancerv1d4.LbServerGroupResourceDetail{
+		Name:            types.StringValue(data.LbServerGroup.Name),
+		Protocol:        types.StringValue(string(data.LbServerGroup.Protocol)),
+		LoadbalancerId:  types.StringPointerValue(data.LbServerGroup.LoadbalancerId.Get()),
+		LbName:          virtualserverutil.ToNullableStringValue(data.LbServerGroup.LbName.Get()),
+		LbMethod:        types.StringValue(string(data.LbServerGroup.LbMethod)),
+		LbHealthCheckId: virtualserverutil.ToNullableStringValue(data.LbServerGroup.LbHealthCheckId.Get()),
+		State:           types.StringValue(data.LbServerGroup.State),
+		VpcId:           types.StringValue(data.LbServerGroup.VpcId),
+		SubnetId:        types.StringValue(data.LbServerGroup.SubnetId),
+		AccountId:       types.StringValue(data.LbServerGroup.AccountId),
+		Description:     virtualserverutil.ToNullableStringValue(data.LbServerGroup.Description.Get()),
+		ModifiedBy:      types.StringValue(data.LbServerGroup.ModifiedBy),
+		ModifiedAt:      types.StringValue(data.LbServerGroup.ModifiedAt.Format(time.RFC3339)),
+		CreatedBy:       types.StringValue(data.LbServerGroup.CreatedBy),
+		CreatedAt:       types.StringValue(data.LbServerGroup.CreatedAt.Format(time.RFC3339)),
 	}
 
-	// Map response body to schema and populate Computed attribute values
-	lbServerGroupModel := createLbServerGroupModel(data)
 	lbServerGroupOjbectValue, diags := types.ObjectValueFrom(ctx, lbServerGroupModel.AttributeTypes(), lbServerGroupModel)
 	plan.LbServerGroup = lbServerGroupOjbectValue
 
-	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	refreshFn := r.getLbServerGroupRefreshFunc(ctx, data.LbServerGroup.Id)
+	err = client.WaitForResourceCreated(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating lbServerGroup ",
+			"Error waiting for lbServerGroup to become active: "+err.Error(),
+		)
+		return
+	}
+
+	readReq := resource.ReadRequest{
+		State: resp.State,
+	}
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, readReq, readResp)
+
+	resp.State = readResp.State
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -348,11 +394,12 @@ func (r *loadbalancerLbServerGroupResource) Update(ctx context.Context, req reso
 
 	diags = resp.State.Set(ctx, state)
 
-	err = waitForLbServerGroupStatus(ctx, r.client, data.LbServerGroup.Id, []string{}, []string{"ACTIVE"})
+	refreshFn := r.getLbServerGroupRefreshFunc(ctx, data.LbServerGroup.Id)
+	err = client.WaitForResourceUpdated(ctx, refreshFn)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating lb server group",
-			"Error waiting for lb server group to become active: "+err.Error(),
+			"Error Updating LbServerGroup",
+			"Error waiting for LbServerGroup to become ACTIVE: "+err.Error(),
 		)
 		return
 	}
@@ -389,11 +436,12 @@ func (r *loadbalancerLbServerGroupResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	err = waitForLbServerGroupStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"DELETED"})
-	if err != nil && !strings.Contains(err.Error(), "404") {
+	refreshFn := r.getLbServerGroupRefreshFunc(ctx, state.Id.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting LB Server Group",
-			"Error waiting for direct connect to become deleted: "+err.Error(),
+			"Error deleting LbServerGroup",
+			"Error waiting for LbServerGroup to become deleted: "+err.Error(),
 		)
 		return
 	}
@@ -422,12 +470,24 @@ func createLbServerGroupModel(data *scploadbalancer.LbServerGroupShowResponse) l
 	}
 }
 
-func waitForLbServerGroupStatus(ctx context.Context, loadbalancerClient *loadbalancer.Client, id string, pendingStates []string, targetStates []string) error {
-	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
-		info, err := loadbalancerClient.GetLbServerGroup(ctx, id)
+func convertToTags(elements map[string]attr.Value) []scploadbalancerv1d4.Tag {
+	var tags []scploadbalancerv1d4.Tag
+	for k, v := range elements {
+		tagObject := scploadbalancerv1d4.Tag{
+			Key:   k,
+			Value: v.(types.String).ValueString(),
+		}
+		tags = append(tags, tagObject)
+	}
+	return tags
+}
+
+func (r *loadbalancerLbServerGroupResource) getLbServerGroupRefreshFunc(ctx context.Context, id string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		data, err := r.client.GetLbServerGroup(ctx, id)
 		if err != nil {
 			return nil, "", err
 		}
-		return info, string(info.LbServerGroup.State), nil
-	}, -1, -1, -1, -1)
+		return data, data.LbServerGroup.State, nil
+	}
 }

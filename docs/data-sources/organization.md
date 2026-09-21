@@ -48,8 +48,6 @@ variable "id" {
   - example: YOUR RESOURCE'S CREATED_BY
 - `creator_name` (String) Name of the organization creator. 
   - example : 'John Doe na'
-- `delegation_account_id` (String) Delegation Account. 
-  - example: YOUR RESOURCE'S DELEGATION_ACCOUNT_ID
 - `master_account_email` (String) Email address of the master account that manages the organization. 
   - example : 'admin@example.com'
 - `master_account_id` (String) Unique identifier of the master account that manages the organization. 

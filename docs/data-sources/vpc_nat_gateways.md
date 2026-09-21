@@ -105,6 +105,8 @@ variable "state" {
 
 ### Optional
 
+- `multi_zone_enabled` (Boolean) Whether the NAT gateway is enabled for multi-zone.
+  - example : true
 - `name` (String) The name of the resource.
   - example : NatGatewayName
 - `nat_gateway_ip_address` (String) The IP address of the NAT gateway.
@@ -153,12 +155,12 @@ Read-Only:
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) The user id that last modified the resource.
   - example: YOUR RESOURCE'S MODIFIED_BY
+- `multi_zone_enabled` (Boolean) Whether the NAT gateway is enabled for multi-zone.
+  - example : true
 - `name` (String) The name of the NAT gateway.
   - example : NatGatewayName
-- `nat_gateway_ip_address` (String) The IP address of the NAT gateway.
-  - example : 192.167.0.5
-- `publicip_id` (String) The identifier of the public IP address.
-  - example: YOUR RESOURCE'S PUBLICIP_ID
+- `nat_gateway_ips` (Attributes List) A list of NAT gateway IP addresses.
+  - example : [{"ip_address": "192.167.0.5", "publicip_id": "12f56e27070248a6a240a497e43fbe18"}] (see [below for nested schema](#nestedatt--nat_gateways--nat_gateway_ips))
 - `state` (String) The current lifecycle state of the NAT gateway.
   - example : ACTIVE
 - `subnet_cidr` (String) The IP address range of the subnet in CIDR notation.
@@ -171,3 +173,13 @@ Read-Only:
   - example: YOUR RESOURCE'S VPC_ID
 - `vpc_name` (String) The name of the VPC that the NAT gateway belongs to.
   - example : vpcName
+
+<a id="nestedatt--nat_gateways--nat_gateway_ips"></a>
+### Nested Schema for `nat_gateways.nat_gateway_ips`
+
+Read-Only:
+
+- `ip_address` (String) The IP address of the NAT gateway.
+  - example : 192.167.0.5
+- `publicip_id` (String) The identifier of the public IP address.
+  - example: YOUR RESOURCE'S PUBLICIP_ID

@@ -2,10 +2,11 @@ package eventstreams
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
 )
 
 const ServiceType = "scp-eventstreams"
@@ -96,6 +97,7 @@ type ClusterDetail struct {
 	Name                      types.String             `tfsdk:"name"`
 	NatEnabled                types.Bool               `tfsdk:"nat_enabled"`
 	ProductType               types.String             `tfsdk:"product_type"`
+	RoleType                  types.String             `tfsdk:"role_type"`
 	ServiceState              types.String             `tfsdk:"service_state"`
 	SoftwareVersion           types.String             `tfsdk:"software_version"`
 	SubnetId                  types.String             `tfsdk:"subnet_id"`
@@ -117,7 +119,10 @@ type UpdateHandler struct {
 // --------------- Engine Version ------------ //
 
 type EngineVersionDataSource struct {
-	Contents []EngineVersion `tfsdk:"contents"`
+	Contents         []EngineVersion `tfsdk:"contents"`
+	Id               types.String    `tfsdk:"id"`
+	ProductImageType types.String    `tfsdk:"product_image_type"`
+	EosIncluded      types.Bool      `tfsdk:"eos_included"`
 }
 
 type EngineVersion struct {

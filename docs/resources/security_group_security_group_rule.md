@@ -108,6 +108,8 @@ variable "direction" {
   - constraints: None
 - `protocol` (String) The network protocol the rule applies to.
   - example : TCP
+- `remote_address_group_id` (String) Remote Address Group ID.
+  - example: YOUR RESOURCE'S REMOTE_ADDRESS_GROUP_ID
 - `remote_group_id` (String) The identifier of the remote security group the rule applies to.
   - example: YOUR RESOURCE'S REMOTE_GROUP_ID
 - `remote_ip_prefix` (String) The remote IP address range the rule applies to in CIDR notation.
@@ -122,6 +124,13 @@ variable "direction" {
 
 <a id="nestedatt--security_group_rule"></a>
 ### Nested Schema for `security_group_rule`
+
+Optional:
+
+- `remote_address_group_id` (String) Remote Address Group ID.
+  - example: YOUR RESOURCE'S REMOTE_ADDRESS_GROUP_ID
+- `remote_address_group_name` (String) Remote Address Group Name.
+  - example: RemoteAddressGroupName
 
 Read-Only:
 

@@ -3,15 +3,16 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -27,9 +28,9 @@ func NewLoadbalancerLbMemberDataSources() datasource.DataSource {
 
 // loadbalancerLbMemberDataSources is the data source implementation.
 type loadbalancerLbMemberDataSources struct {
-	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	clientv1d4 *loadbalancerv1d4.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -42,6 +43,10 @@ func (d *loadbalancerLbMemberDataSources) Schema(_ context.Context, _ datasource
 	resp.Schema = schema.Schema{
 		Description: "Get List of Lb Members.",
 		Attributes: map[string]schema.Attribute{
+			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
+				Description: "The total number of LB Members returned.",
+				Computed:    true,
+			},
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
 				Description: "The number of items per page.\n" +
 					"  - example : 20\n",
@@ -142,6 +147,11 @@ func (d *loadbalancerLbMemberDataSources) Schema(_ context.Context, _ datasource
 								"  - pattern : HEALTHY | UNHEALTHY | UNKNOWN\n",
 							Optional: true,
 						},
+						common.ToSnakeCase("ObjectAz"): schema.StringAttribute{
+							Description: "The availability zone of the member.\n" +
+								"  - example : zone-1\n",
+							Computed: true,
+						},
 						common.ToSnakeCase("ObjectId"): schema.StringAttribute{
 							Description: "The object ID.\n" +
 								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
@@ -198,13 +208,13 @@ func (d *loadbalancerLbMemberDataSources) Configure(_ context.Context, req datas
 		return
 	}
 
-	d.client = inst.Client.LoadBalancer
+	d.clientv1d4 = inst.Client.LoadBalancerV1d4
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *loadbalancerLbMemberDataSources) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) { // 아직 정의하지 않은 Read 메서드를 추가한다.
-	var state loadbalancer.LbMemberDataSource
+	var state loadbalancerv1d4.LbMemberDataSourceV1d4
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -212,7 +222,7 @@ func (d *loadbalancerLbMemberDataSources) Read(ctx context.Context, req datasour
 		return
 	}
 
-	data, err := d.client.GetLbMemberList(ctx, state)
+	data, err := d.clientv1d4.GetLbMembersV1d4(ctx, state)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Lb Members",
@@ -223,7 +233,7 @@ func (d *loadbalancerLbMemberDataSources) Read(ctx context.Context, req datasour
 
 	// Map response body to model
 	for _, lbMember := range data.Members {
-		lbMemberState := loadbalancer.LbMember{
+		lbMemberState := loadbalancerv1d4.LbMemberV1d4{
 			Id:              types.StringValue(lbMember.Id),
 			LbServerGroupId: types.StringValue(lbMember.LbServerGroupId),
 			Name:            types.StringValue(lbMember.Name),
@@ -234,6 +244,7 @@ func (d *loadbalancerLbMemberDataSources) Read(ctx context.Context, req datasour
 			ObjectType:      types.StringValue(string(lbMember.ObjectType)),
 			ObjectId:        virtualserverutil.ToNullableStringValue(lbMember.ObjectId.Get()),
 			HealthState:     types.StringValue(lbMember.HealthState),
+			ObjectAz:        virtualserverutil.ToNullableStringValue(lbMember.ObjectAz.Get()),
 			State:           types.StringValue(string(lbMember.State)),
 			CreatedAt:       types.StringValue(lbMember.CreatedAt.Format(time.RFC3339)),
 			CreatedBy:       types.StringValue(lbMember.CreatedBy),
@@ -243,6 +254,8 @@ func (d *loadbalancerLbMemberDataSources) Read(ctx context.Context, req datasour
 
 		state.LbMembers = append(state.LbMembers, lbMemberState)
 	}
+
+	state.TotalCount = types.Int32Value(data.Count)
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)

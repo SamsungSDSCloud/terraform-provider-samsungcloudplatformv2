@@ -2,10 +2,12 @@ package sqlserver
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/sqlserver/1.1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/sqlserver/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -48,9 +50,19 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context, productImageType string) (*sqlserver.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*sqlserver.EngineListResponse, error) {
 	req := client.sdkClient.SqlserverV1SqlserverMasterDataApiAPI.SqlserverListEngineVersions(ctx)
-	req = req.ProductImageType(sqlserver.ProductImageType(productImageType))
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(sqlserver.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -120,8 +132,11 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		License:              initConfigOption.License.ValueString(),
 	}
 
-	// AdConfig
-	if !initConfigOption.AdConfig.AdDomainName.IsNull() {
+	// AdConfig는 ad_enabled가 true일 때만 필요하다.
+	if initConfigOption.AdEnabled.ValueBool() {
+		if initConfigOption.AdConfig == nil {
+			return nil, fmt.Errorf("init_config_option.ad_config is required when init_config_option.ad_enabled is true")
+		}
 		adConfig := sqlserver.SqlserverAdConfigRequest{
 			AdDomainName:        initConfigOption.AdConfig.AdDomainName.ValueString(),
 			AdNetbiosName:       initConfigOption.AdConfig.AdNetbiosName.ValueString(),
@@ -133,23 +148,21 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 			adConfig.AdDnsServers = append(adConfig.AdDnsServers, dns.(types.String).ValueString())
 		}
 		convertedInitConfigOption.AdConfig = *sqlserver.NewNullableSqlserverAdConfigRequest(&adConfig)
+	} else if initConfigOption.AdConfig != nil {
+		return nil, fmt.Errorf("init_config_option.ad_config must not be set when init_config_option.ad_enabled is false")
 	}
-
-	// initconfig data 확인
-	//data, _ := json.MarshalIndent(convertedInitConfigOption, "", "  ")
-	//fmt.Println(string(data))
 
 	// InstanceGroups
 	var convertedInstanceGroups []sqlserver.SqlserverInstanceGroupRequest
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
 	for _, instanceGroup := range igVals {
-		var convertedBlockStorage []sqlserver.BlockStorageGroupRequest
+		var convertedBlockStorage []sqlserver.SqlserverBlockStorageGroupRequest
 		var bsVals []database.BlockStorageGroup
 		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
 		for _, blockStorage := range bsVals {
-			convertedBlockStorage = append(convertedBlockStorage, sqlserver.BlockStorageGroupRequest{
-				RoleType:   sqlserver.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
+			convertedBlockStorage = append(convertedBlockStorage, sqlserver.SqlserverBlockStorageGroupRequest{
+				RoleType:   sqlserver.OsDataBlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: sqlserver.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
@@ -275,6 +288,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, archiveFr
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.SqlserverV1SqlserverBackupApiAPI.SqlserverUnsetBackup(ctx, clusterId)
 
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(sqlserver.OtpSessionIdRequest{
+		SessionId: *sqlserver.NewNullableString(nil),
+	})
+
 	_, _, err := req.Execute()
 	return err
 }
@@ -307,10 +325,18 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 	return err
 }
 
+// AddBlockStorages는 기존 instance group에 블록 스토리지를 추가한다.
+// SDK가 SqlserverExtraBlockStorageGroupRoleType(DATA 단일 값) 타입을 제공하지만,
+// roleType은 Terraform 설정에서 온 런타임 문자열이라 형변환만으로는 검증되지 않는다.
+// 따라서 변환 전에 허용 값인지 직접 확인한다.
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
+	if !database.ContainsRoleType(database.BSRoleTypesExtraSqlserver, roleType) {
+		return fmt.Errorf("invalid role_type %q for sqlserver block storage addition (allowed: %s)", roleType, strings.Join(database.BSRoleTypesExtraSqlserver, ", "))
+	}
+
 	req := client.sdkClient.SqlserverV1SqlserverInstancesApiAPI.SqlserverAddBlockStorages(ctx, instanceGroupId)
 	reqState := &sqlserver.SqlserverAddBlockStoragesRequest{
-		RoleType:   sqlserver.BlockStorageGroupRoleType(roleType),
+		RoleType:   sqlserver.SqlserverExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: sqlserver.VolumeType(volumeType).Ptr(),
 	}
@@ -349,9 +375,9 @@ func MapInstanceGroupResponses(sdkResp []sqlserver.SqlserverInstanceGroupRespons
 
 			instances[j] = database.InstanceResponse{
 				Name:             it.Name,
+				PublicIpId:       pubIP,
 				RoleType:         string(it.RoleType),
 				ServiceIpAddress: serviceIP,
-				PublicIpId:       pubIP,
 			}
 		}
 
@@ -365,4 +391,12 @@ func MapInstanceGroupResponses(sdkResp []sqlserver.SqlserverInstanceGroupRespons
 	}
 
 	return result
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*sqlserver.InstanceDetailResponse, error) {
+	req := client.sdkClient.SqlserverV1SqlserverInstancesApiAPI.SqlserverShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
 }

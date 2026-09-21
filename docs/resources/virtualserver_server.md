@@ -180,8 +180,6 @@ variable "zone" {
   - note: For GPU Server, only GPU standard images (scp_image_type=gpu_standard, gpu_custom) can be used.
 - `lock` (Boolean) Lock status. When locked, most user operations are blocked.
   - example: false
-- `metadata` (Map of String) Metadata. Specifies key-value pairs to store on the server.
-  - example: {"key": "value"}
 - `partition_number` (Number) Partition number. Only used when server group type is partition.
   - example: 1
 - `product_category` (String) Product category.
@@ -197,6 +195,7 @@ variable "zone" {
 - `state` (String) Server state.
   - example: ACTIVE
   - Available values: ACTIVE, SHUTOFF
+  - Only ACTIVE is allowed when creating a server. To stop a server, create it first and then change this value to SHUTOFF.
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
@@ -213,6 +212,9 @@ variable "zone" {
 - `disk_config` (String) Disk configuration mode.
 - `id` (String) Resource ID.
 - `launch_configuration_id` (String) Launch Configuration ID. Only has value for servers created by Auto Scaling Group.
+- `metadata` (Map of String) Metadata. Key-value pairs the platform stores on the server.
+  - Read-only. The platform manages these entries and adds its own (e.g. `HA_Enabled`),
+    so they cannot be set from configuration. Use `user_data` or `tags` instead.
 - `modified_at` (String) Modification timestamp.
 - `planned_compute_os_type` (String) Planned compute OS type.
 - `vpc_id` (String) VPC ID.

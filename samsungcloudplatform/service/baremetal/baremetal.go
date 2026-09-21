@@ -10,13 +10,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/baremetal"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/baremetal"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	scpbaremetal1d2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/baremetal/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/baremetal"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpbaremetal1d2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/baremetal/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -195,12 +195,12 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 				Required:  true,
 				WriteOnly: true,
 				Description: "OS user password.\n" +
-					"  - example: P@ssword1!2\n" +
+					"  - example: P@sswrd1!2\n" +
 					"  - maxLength: 20\n" +
 					"  - minLength: 9\n" +
 					"  - pattern: ^[A-Za-z0-9@$!%*#&]+$",
 				MarkdownDescription: "OS user password.\n" +
-					"  - example: P@ssword1!2\n" +
+					"  - example: P@sswrd1!2\n" +
 					"  - maxLength: 20\n" +
 					"  - minLength: 9\n" +
 					"  - pattern: ^[A-Za-z0-9@$!%*#&]+$",
@@ -363,14 +363,14 @@ func BaremetalResourceSchema(ctx context.Context) schema.Schema {
 				Required: true,
 				Description: "Detailed settings for each server\n" +
 					"  - example: [{bare_metal_server_name='bm-server', server_type_id='83c3c73d457345e3829ee6d5557c0011', nat_enabled='false'}]\n" +
-					"  - maxLength: 5\n" +
+					"  - maxLength: 20\n" +
 					"  - minLength: 1\n",
 				MarkdownDescription: "Detailed settings for each server\n" +
 					"  - example: [{bare_metal_server_name='bm-server', server_type_id='YOUR RESOURCE'S SERVER_TYPE_ID', nat_enabled='false'}]\n" +
-					"  - maxLength: 5\n" +
+					"  - maxLength: 20\n" +
 					"  - minLength: 1\n",
 				Validators: []validator.List{
-					listvalidator.SizeBetween(1, 5),
+					listvalidator.SizeBetween(1, 20),
 				},
 			},
 			"subnet_id": schema.StringAttribute{

@@ -3,11 +3,11 @@ package eventstreams
 import (
 	"context"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
-	eventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/library/eventstreams/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	eventstreams "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/eventstreams/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
 )
 
 type Client struct {
@@ -46,8 +46,19 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*eventstreams.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*eventstreams.EngineListResponse, error) {
 	req := client.sdkClient.EventstreamsV1EventStreamsMasterDataApiAPI.EventstreamsListEngineVersions(ctx)
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(eventstreams.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -84,36 +95,36 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []eventstreams.InstanceGroupRequest
+	var convertedInstanceGroups []eventstreams.EventStreamsInstanceGroupRequest
 	var igVals []database.InstanceGroup
 	request.InstanceGroups.ElementsAs(context.Background(), &igVals, false)
 	for _, instanceGroup := range igVals {
-		var convertedBlockStorage []eventstreams.BlockStorageGroupRequest
+		var convertedBlockStorage []eventstreams.EventStreamsBlockStorageGroupRequest
 		var bsVals []database.BlockStorageGroup
 		instanceGroup.BlockStorageGroups.ElementsAs(context.Background(), &bsVals, false)
 		for _, blockStorage := range bsVals {
-			convertedBlockStorage = append(convertedBlockStorage, eventstreams.BlockStorageGroupRequest{
-				RoleType:   eventstreams.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
+			convertedBlockStorage = append(convertedBlockStorage, eventstreams.EventStreamsBlockStorageGroupRequest{
+				RoleType:   eventstreams.OsDataBlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: eventstreams.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
 		}
 
-		var convertedInstance []eventstreams.InstanceRequest
+		var convertedInstance []eventstreams.EventStreamsInstanceRequest
 		var instVals []database.Instance
 		instanceGroup.Instances.ElementsAs(context.Background(), &instVals, false)
 		for _, instance := range instVals {
-			convertedInstance = append(convertedInstance, eventstreams.InstanceRequest{
-				RoleType:         eventstreams.InstanceRoleType(instance.RoleType.ValueString()),
+			convertedInstance = append(convertedInstance, eventstreams.EventStreamsInstanceRequest{
+				RoleType:         eventstreams.EventStreamsInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *eventstreams.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *eventstreams.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, eventstreams.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, eventstreams.EventStreamsInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           eventstreams.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           eventstreams.EventStreamsInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -254,24 +265,19 @@ func MapInstanceGroupResponses(sdkResp []eventstreams.InstanceGroupResponse) []d
 
 		instances := make([]database.InstanceResponse, len(ig.Instances))
 		for j, it := range ig.Instances {
-			var pubIP, serviceIP, pubIPAddr string
+			var pubIP, serviceIP string
 			if it.ServiceIpAddress.Get() != nil {
 				serviceIP = *it.ServiceIpAddress.Get()
 			}
 			if it.PublicIpId.Get() != nil {
 				pubIP = *it.PublicIpId.Get()
 			}
-			if it.PublicIpAddress.Get() != nil {
-				pubIPAddr = *it.PublicIpAddress.Get()
-			}
 
 			instances[j] = database.InstanceResponse{
 				Name:             it.Name,
-				PublicIpAddress:  pubIPAddr,
 				PublicIpId:       pubIP,
 				RoleType:         string(it.RoleType),
 				ServiceIpAddress: serviceIP,
-				ServiceState:     string(it.ServiceState),
 			}
 		}
 
@@ -285,4 +291,12 @@ func MapInstanceGroupResponses(sdkResp []eventstreams.InstanceGroupResponse) []d
 	}
 
 	return result
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*eventstreams.InstanceDetailResponse, error) {
+	req := client.sdkClient.EventstreamsV1EventStreamsInstancesApiAPI.EventstreamsShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
 }

@@ -3,14 +3,76 @@ package servicewatch_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
+
+const testAccAlertAddress = "samsungcloudplatformv2_servicewatch_alert.alert"
+
+// testAccAlertRecipients reads the notification recipients to exercise from the
+// environment, since valid ids are account specific. The recipient block is left out
+// of the configuration when SCP_TF_TEST_RECIPIENT_IDS is unset, so the rest of the
+// alert test still runs.
+//
+//	SCP_TF_TEST_RECIPIENT_IDS   comma separated recipient ids
+//	SCP_TF_TEST_RECIPIENT_TYPE  USER (default) or GROUP
+func testAccAlertRecipients() ([]string, string) {
+	raw := os.Getenv("SCP_TF_TEST_RECIPIENT_IDS")
+	if raw == "" {
+		return nil, ""
+	}
+
+	ids := make([]string, 0)
+	for _, id := range strings.Split(raw, ",") {
+		if id = strings.TrimSpace(id); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) == 0 {
+		return nil, ""
+	}
+
+	recipientType := os.Getenv("SCP_TF_TEST_RECIPIENT_TYPE")
+	if recipientType == "" {
+		recipientType = "USER"
+	}
+	return ids, recipientType
+}
+
+// testAccAlertRecipientBlock renders the recipient attributes, or nothing when unset.
+func testAccAlertRecipientBlock() string {
+	ids, recipientType := testAccAlertRecipients()
+	if len(ids) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("recipient_ids = %s\n\t\t\t\t  recipient_type = %q",
+		hclStringList(ids), recipientType)
+}
+
+func testAccAlertRecipientChecks() []resource.TestCheckFunc {
+	ids, recipientType := testAccAlertRecipients()
+	if len(ids) == 0 {
+		return nil
+	}
+
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(testAccAlertAddress, "recipient_type", recipientType),
+		resource.TestCheckResourceAttr(testAccAlertAddress, "recipient_ids.#", strconv.Itoa(len(ids))),
+	}
+	for i, id := range ids {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(testAccAlertAddress, fmt.Sprintf("recipient_ids.%d", i), id))
+	}
+	return checks
+}
 
 func TestAccAlertResourceTest(t *testing.T) {
 	alertName := fmt.Sprintf("test-acc-alert-%s", time.Now().Format("20060102_150405"))
@@ -25,12 +87,14 @@ func TestAccAlertResourceTest(t *testing.T) {
 				Config: testAccAlertCreate(alertName, "test-acc alert",
 					map[string]string{
 						"test-acc-key": "test-acc-value"}),
+				Check: resource.ComposeAggregateTestCheckFunc(testAccAlertRecipientChecks()...),
 			},
 			{
 				// step2. Alert Update (Description, Evaluation Method)
 				Config: testAccAlertUpdate(alertName, "test-acc alert modified", "Y",
 					map[string]string{
 						"test-acc-key": "test-acc-value"}),
+				Check: resource.ComposeAggregateTestCheckFunc(testAccAlertRecipientChecks()...),
 			},
 			{
 				// step3. Alert Update (Activate)
@@ -41,6 +105,15 @@ func TestAccAlertResourceTest(t *testing.T) {
 			// step4. Delete Alert
 		},
 	})
+}
+
+// hclStringList renders a Go slice as an HCL list literal.
+func hclStringList(items []string) string {
+	quoted := make([]string, 0, len(items))
+	for _, item := range items {
+		quoted = append(quoted, fmt.Sprintf("%q", item))
+	}
+	return "[" + strings.Join(quoted, ", ") + "]"
 }
 
 func testAccAlertCreate(name string,
@@ -65,9 +138,10 @@ func testAccAlertCreate(name string,
 				  operator = "GTE"
 				  threshold = 10
 				  missing_data_option = "IGNORE"
+				  %s
 				  tags = %s
 			}
-	`, name, description, tagsJson)
+	`, name, description, testAccAlertRecipientBlock(), tagsJson)
 }
 
 func testAccAlertUpdate(name string,
@@ -94,7 +168,8 @@ func testAccAlertUpdate(name string,
 				  upper_bound = 20
 				  lower_bound = 10
 				  missing_data_option = "IGNORE"
+				  %s
 				  tags = %s
 			}
-	`, name, description, activatedYn, tagsJson)
+	`, name, description, activatedYn, testAccAlertRecipientBlock(), tagsJson)
 }

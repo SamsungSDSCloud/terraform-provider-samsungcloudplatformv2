@@ -13,6 +13,11 @@ variable "recipient_ids" {
   default = []
 }
 
+variable "recipient_type" {
+  type    = string
+  default = "USER"
+}
+
 variable "service_id" {
   type    = string
   default = "ENTER YOUR RESOURCE'S SERVICE_ID"

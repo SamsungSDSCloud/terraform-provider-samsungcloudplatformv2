@@ -3,16 +3,17 @@ package securitygroup
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/securitygroup"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/securitygroupv1d1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	_ "github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	_ "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -29,7 +30,7 @@ func NewSecurityGroupRuleDataSource() datasource.DataSource {
 // securityGroupDataSource is the data source implementation.
 type securityGroupRuleDataSource struct {
 	config  *scpsdk.Configuration
-	client  *securitygroup.Client
+	client  *securitygroupv1d1.Client
 	clients *client.SCPClient
 }
 
@@ -63,22 +64,22 @@ func (d *securityGroupRuleDataSource) Schema(_ context.Context, _ datasource.Sch
 							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
 						Computed: true,
 					},
-					common.ToSnakeCase("ethertype"): schema.StringAttribute{
+					common.ToSnakeCase("Ethertype"): schema.StringAttribute{
 						Description: "The Ethernet protocol type the rule applies to.\n" +
 							"  - example: IPv4",
 						Computed: true,
 					},
-					common.ToSnakeCase("protocol"): schema.StringAttribute{
+					common.ToSnakeCase("Protocol"): schema.StringAttribute{
 						Description: "The network protocol the rule applies to.\n" +
 							"  - example: TCP",
 						Computed: true,
 					},
-					common.ToSnakeCase("portRangeMin"): schema.Int32Attribute{
+					common.ToSnakeCase("PortRangeMin"): schema.Int32Attribute{
 						Description: "The minimum port number of the rule's port range.\n" +
 							"  - example: 5",
 						Computed: true,
 					},
-					common.ToSnakeCase("portRangeMax"): schema.Int32Attribute{
+					common.ToSnakeCase("PortRangeMax"): schema.Int32Attribute{
 						Description: "The maximum port number of the rule's port range.\n" +
 							"  - example: 10",
 						Computed: true,
@@ -96,6 +97,16 @@ func (d *securityGroupRuleDataSource) Schema(_ context.Context, _ datasource.Sch
 					common.ToSnakeCase("RemoteGroupName"): schema.StringAttribute{
 						Description: "The name of the remote security group the rule applies to.\n" +
 							"  - example: sg-db-prod",
+						Computed: true,
+					},
+					common.ToSnakeCase("RemoteAddressGroupId"): schema.StringAttribute{
+						Description: "The identifier of the remote address group the rule applies to.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
+					},
+					common.ToSnakeCase("RemoteAddressGroupName"): schema.StringAttribute{
+						Description: "The name of the remote address group the rule applies to.\n" +
+							"  - example: ag-web-prod",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
@@ -152,13 +163,13 @@ func (d *securityGroupRuleDataSource) Configure(_ context.Context, req datasourc
 		return
 	}
 
-	d.client = inst.Client.SecurityGroup
+	d.client = inst.Client.SecurityGroupV1d1
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *securityGroupRuleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) { // 아직 정의하지 않은 Read 메서드를 추가한다.
-	var state securitygroup.SecurityGroupRuleDataSource
+	var state securitygroupv1d1.SecurityGroupRuleDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -177,22 +188,24 @@ func (d *securityGroupRuleDataSource) Read(ctx context.Context, req datasource.R
 
 	securityGroupRuleElement := data.SecurityGroupRule
 	// Map response body to model
-	securityGroupRuleModel := securitygroup.SecurityGroupRule{
-		Id:              types.StringValue(securityGroupRuleElement.Id),
-		SecurityGroupId: types.StringValue(securityGroupRuleElement.SecurityGroupId),
-		Ethertype:       types.StringPointerValue(securityGroupRuleElement.Ethertype.Get()),
-		Protocol:        types.StringPointerValue(securityGroupRuleElement.Protocol.Get()),
-		PortRangeMin:    types.Int32PointerValue(securityGroupRuleElement.PortRangeMin.Get()),
-		PortRangeMax:    types.Int32PointerValue(securityGroupRuleElement.PortRangeMax.Get()),
-		RemoteIpPrefix:  types.StringPointerValue(securityGroupRuleElement.RemoteIpPrefix.Get()),
-		RemoteGroupId:   types.StringPointerValue(securityGroupRuleElement.RemoteGroupId.Get()),
-		RemoteGroupName: types.StringPointerValue(securityGroupRuleElement.RemoteGroupName.Get()),
-		Description:     types.StringPointerValue(securityGroupRuleElement.Description.Get()),
-		Direction:       types.StringValue(string(securityGroupRuleElement.Direction)),
-		CreatedAt:       types.StringValue(securityGroupRuleElement.CreatedAt.Format(time.RFC3339)),
-		CreatedBy:       types.StringValue(securityGroupRuleElement.CreatedBy),
-		ModifiedAt:      types.StringValue(securityGroupRuleElement.ModifiedAt.Format(time.RFC3339)),
-		ModifiedBy:      types.StringValue(securityGroupRuleElement.ModifiedBy),
+	securityGroupRuleModel := securitygroupv1d1.SecurityGroupRule{
+		Id:                     types.StringValue(securityGroupRuleElement.Id),
+		SecurityGroupId:        types.StringValue(securityGroupRuleElement.SecurityGroupId),
+		Ethertype:              types.StringPointerValue(securityGroupRuleElement.Ethertype.Get()),
+		Protocol:               types.StringPointerValue(securityGroupRuleElement.Protocol.Get()),
+		PortRangeMin:           types.Int32PointerValue(securityGroupRuleElement.PortRangeMin.Get()),
+		PortRangeMax:           types.Int32PointerValue(securityGroupRuleElement.PortRangeMax.Get()),
+		RemoteIpPrefix:         types.StringPointerValue(securityGroupRuleElement.RemoteIpPrefix.Get()),
+		RemoteGroupId:          types.StringPointerValue(securityGroupRuleElement.RemoteGroupId.Get()),
+		RemoteGroupName:        types.StringPointerValue(securityGroupRuleElement.RemoteGroupName.Get()),
+		RemoteAddressGroupId:   types.StringPointerValue(securityGroupRuleElement.RemoteAddressGroupId.Get()),
+		RemoteAddressGroupName: types.StringPointerValue(securityGroupRuleElement.RemoteAddressGroupName.Get()),
+		Description:            types.StringPointerValue(securityGroupRuleElement.Description.Get()),
+		Direction:              types.StringValue(string(securityGroupRuleElement.Direction)),
+		CreatedAt:              types.StringValue(securityGroupRuleElement.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:              types.StringValue(securityGroupRuleElement.CreatedBy),
+		ModifiedAt:             types.StringValue(securityGroupRuleElement.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:             types.StringValue(securityGroupRuleElement.ModifiedBy),
 	}
 	securityGroupObjectValue, _ := types.ObjectValueFrom(ctx, securityGroupRuleModel.AttributeTypes(), securityGroupRuleModel)
 	state.SecurityGroupRule = securityGroupObjectValue

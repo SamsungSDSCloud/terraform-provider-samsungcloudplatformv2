@@ -72,3 +72,10 @@ const (
 	DescUseMaintenanceOption     = "Use maintenance option \n"
 	DescVolumeType               = "Volume type \n"
 )
+
+// RdbInstance(Group)RoleType이 REPLICA를 허용하는 서비스(mariadb, postgresql, epas)용 변형.
+// 기존 상수는 REPLICA를 지원하지 않는 서비스가 계속 사용한다.
+const (
+	DescPatternActiveStandbyReplica   = "  - pattern: ACTIVE / STANDBY / REPLICA \n"
+	DescPatternActiveStandbyHaReplica = "  - pattern: ACTIVE (HaEnabled=False) / ACTIVE_STANDBY (HaEnabled=True) / REPLICA \n"
+)

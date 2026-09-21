@@ -22,7 +22,6 @@ resource "samsungcloudplatformv2_filestorage_volume" "volume" {
   cifs_password = var.cifs_password
   file_unit_recovery_enabled = var.file_unit_recovery_enabled
   tags = var.tags
-  access_rules = var.access_rules
   zone = var.zone
 }
 
@@ -53,14 +52,6 @@ variable "cifs_password" {
 variable "file_unit_recovery_enabled" {
   type    = bool
   default = false
-}
-
-variable "access_rules" {
-  type = list(object({
-    object_type = string,
-    object_id   = string
-  }))
-  default = []
 }
 
 variable "tags" {
@@ -97,7 +88,6 @@ variable "zone" {
 
 ### Optional
 
-- `access_rules` (Attributes Set) List of AccessRule (see [below for nested schema](#nestedatt--access_rules))
 - `cifs_password` (String) Cifs Password 
   - example: YOUR RESOURCE'S CIFS_PASSWORD
   - maxLength: 20  
@@ -129,14 +119,3 @@ variable "zone" {
 - `purpose` (String) The designated purpose or workload type of the volume (e.g., general, backup). 
   - example : 'none'
 - `state` (String) The current lifecycle state of the volume. Valid values: creating, available, error, deleting.
-
-<a id="nestedatt--access_rules"></a>
-### Nested Schema for `access_rules`
-
-Optional:
-
-- `object_id` (String) Object Id 
-  - example: YOUR RESOURCE'S OBJECT_ID
-- `object_type` (String) Object Type 
-  - example : 'VM' 
-  - pattern: `^(VM|BM|GPU|GPU_NODE|ENDPOINT)$`

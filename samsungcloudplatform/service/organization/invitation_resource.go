@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v5/samsungcloudplatform/client/organization"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v5/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/organization"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -46,6 +47,9 @@ func (r *invitationResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "Unique identifier of the organization. \n" +
 					"  - example : 'o-x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5' \n",
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"target_login_ids": schema.ListAttribute{
 				Description: "Invitation Receiver Account Email List. \n" +
@@ -125,10 +129,6 @@ func (r *invitationResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	orgId := planData.OrganizationId.ValueString()
-	if orgId == "" {
-		orgId = "default"
-	}
-	planData.OrganizationId = types.StringValue(orgId)
 
 	result, err := r.client.CreateInvitation(ctx, planData)
 	if err != nil {
@@ -355,7 +355,7 @@ func (r *invitationResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 func (r *invitationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.Split(req.ID, ":")
-	if len(parts) < 1 {
+	if req.ID == "" || parts[0] == "" {
 		resp.Diagnostics.AddError(
 			"Invalid import format",
 			"Expected format: organization_id:login_id1,login_id2,...",
@@ -392,8 +392,12 @@ func (r *invitationResource) ImportState(ctx context.Context, req resource.Impor
 
 func waitForInvitationReady(ctx context.Context, orgClient *organization.Client, loginId string, orgId string) error {
 	return client.WaitForStatus(ctx, nil, []string{}, []string{"INVITING"}, func() (interface{}, string, error) {
+		orgIdValue := types.StringNull()
+		if orgId != "" {
+			orgIdValue = types.StringValue(orgId)
+		}
 		request := organization.OrganizationInvitationsDataSource{
-			OrganizationId: types.StringValue(orgId),
+			OrganizationId: orgIdValue,
 		}
 		result, err := orgClient.GetOrganizationInvitations(ctx, request)
 		if err != nil {

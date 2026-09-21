@@ -9,4 +9,5 @@ data "samsungcloudplatformv2_vpc_transit_gateways" "vpctransitgateway" {
   sort                      = var.sort
   page                      = var.page
   state                     = var.state
+  uplink_zone_state         = var.uplink_zone_state
 }

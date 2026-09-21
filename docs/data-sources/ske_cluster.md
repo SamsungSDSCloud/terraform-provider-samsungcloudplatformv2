@@ -43,6 +43,8 @@ variable "id" {
 
 - `cluster` (Attributes) Cluster
  - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_cluster#nested-schema-for-cluster (see [below for nested schema](#nestedatt--cluster))
+- `deletion_protection_enabled` (Boolean) Cluster Deletion Protection Enabled
+  - example: true
 
 <a id="nestedatt--cluster"></a>
 ### Nested Schema for `cluster`
@@ -51,8 +53,7 @@ Read-Only:
 
 - `account_id` (String) Account ID
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `cloud_logging_enabled` (Boolean) Cloud Logging Enabled
-  - example: true
+- `additional_subnet_id_list` (List of String) List of additional subnet IDs associated with the cluster.
 - `cluster_namespace` (String) Cluster Namespace
   - example: sample-cluster-12345
 - `created_at` (String) Created At
@@ -66,8 +67,10 @@ Read-Only:
   - pattern: v1.31.X|v1.32.X|v1.33.X|v1.34.X
   - example: v1.34.3
   - Use the samsungcloudplatformv2_ske_kubernetes_versions data source to query the SKE service for all Kubernetes versions supported. (ex v1.31.X|v1.32.X|v1.33.X|v1.34.X)
+- `linked_resources` (Attributes List) List of linked resources associated with the cluster
+  - example: {id='res-12345678', name='my-resource', type='fs'} (see [below for nested schema](#nestedatt--cluster--linked_resources))
 - `managed_security_group` (Attributes) Managed Security Group
-  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--managed_security_group))
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f'} (see [below for nested schema](#nestedatt--cluster--managed_security_group))
 - `max_node_count` (Number) Cluster Max Node Count
   - example: 5
 - `modified_at` (String) Modified At
@@ -93,18 +96,32 @@ Read-Only:
   - pattern: Y|N
   - example: N
 - `security_group_list` (Attributes List) Connected Security Group List
-  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--security_group_list))
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f'} (see [below for nested schema](#nestedatt--cluster--security_group_list))
 - `service_watch_logging_enabled` (Boolean) Service Watch Enabled
   - example: true
 - `status` (String) Cluster Status
   - pattern: RUNNING|CREATING|UPDATING|DELETING
   - example: RUNNING
 - `subnet` (Attributes) Subnet of Cluster
-  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--subnet))
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f'} (see [below for nested schema](#nestedatt--cluster--subnet))
 - `volume` (Attributes) Connected File Storage
-  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--volume))
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f'} (see [below for nested schema](#nestedatt--cluster--volume))
 - `vpc` (Attributes) VPC of Cluster
-  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name'} (see [below for nested schema](#nestedatt--cluster--vpc))
+  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f'} (see [below for nested schema](#nestedatt--cluster--vpc))
+
+<a id="nestedatt--cluster--linked_resources"></a>
+### Nested Schema for `cluster.linked_resources`
+
+Read-Only:
+
+- `id` (String) Linked Resource ID
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Linked Resource Name
+  - example: my-resource
+- `type` (String) Linked Resource Type (fs/obs)
+  - pattern: fs|obs
+  - example: fs
+
 
 <a id="nestedatt--cluster--managed_security_group"></a>
 ### Nested Schema for `cluster.managed_security_group`
@@ -113,8 +130,6 @@ Read-Only:
 
 - `id` (String) Managed Security Group ID
   - example: YOUR RESOURCE'S ID
-- `name` (String) Managed Security Group Name
-  - example: sample-name
 
 
 <a id="nestedatt--cluster--private_endpoint_access_control_resources"></a>
@@ -138,8 +153,6 @@ Read-Only:
 
 - `id` (String) Security Group ID
   - example: YOUR RESOURCE'S ID
-- `name` (String) Security Group Name
-  - example: sample-name
 
 
 <a id="nestedatt--cluster--subnet"></a>
@@ -149,8 +162,6 @@ Read-Only:
 
 - `id` (String) Subnet ID
   - example: YOUR RESOURCE'S ID
-- `name` (String) Subnet Name
-  - example: sample-name
 
 
 <a id="nestedatt--cluster--volume"></a>
@@ -158,10 +169,8 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) Volume ID
+- `id` (String) NFS Volume ID
   - example: YOUR RESOURCE'S ID
-- `name` (String) Volume Name
-  - example: sample-name
 
 
 <a id="nestedatt--cluster--vpc"></a>
@@ -171,5 +180,3 @@ Read-Only:
 
 - `id` (String) VPC ID
   - example: YOUR RESOURCE'S ID
-- `name` (String) VPC Name
-  - example: sample-name

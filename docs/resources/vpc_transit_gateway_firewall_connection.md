@@ -42,44 +42,13 @@ variable "transit_gateway_id" {
 
 ### Read-Only
 
-- `transit_gateway` (Attributes) Transit Gateway (see [below for nested schema](#nestedatt--transit_gateway))
+- `transit_gateway_firewall_connection` (Attributes) Transit Gateway Firewall Connection (see [below for nested schema](#nestedatt--transit_gateway_firewall_connection))
 
-<a id="nestedatt--transit_gateway"></a>
-### Nested Schema for `transit_gateway`
+<a id="nestedatt--transit_gateway_firewall_connection"></a>
+### Nested Schema for `transit_gateway_firewall_connection`
 
 Read-Only:
 
-- `account_id` (String) The identifier of the account that owns the transit gateway.
-  - example: YOUR RESOURCE'S ACCOUNT_ID
-- `bandwidth` (Number) The bandwidth capacity of the connection.
-  - example: 1
-- `created_at` (String) The timestamp when the transit gateway was created in ISO 8601 format.
-  - example : 2024-05-17T00:23:17Z
-- `created_by` (String) The user id that created the transit gateway.
-  - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Enter a brief explanation or note about this transit gateway. This help identify the purpose or usage of the resource.
-  - example : TransitGateway Description
 - `firewall_connection_state` (String) Firewall Connection State
   - enum: ATTACHING | ACTIVE | DETACHING | DELETED | INACTIVE | ERROR
   - example: INACTIVE
-- `firewall_id` (String) Firewall ID
-  - example: YOUR RESOURCE'S FIREWALL_ID
-- `firewall_ids` (String) List of firewall IDs
-  - example: ['YOUR RESOURCE'S FIREWALL_IDS']
-- `id` (String) The unique identifier of the transit gateway.
-  - example: YOUR RESOURCE'S ID
-- `modified_at` (String) The timestamp when the transit gateway was last modified in ISO 8601 format.
-  - example : 2024-05-17T00:23:17Z
-- `modified_by` (String) The user id that modified the transit gateway.
-  - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) The name of the transit gateway.
-  - minLength: 3
-  - maxLength: 20
-  - pattern: ^[a-zA-Z0-9-]*$
-  - example: TransitGatewayName
-- `state` (String) The current lifecycle state of the transit gateway.
-  - enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING
-  - example: ACTIVE
-- `uplink_enabled` (Boolean) Whether the uplink is enabled.
-  - default: false
-  - example: false
