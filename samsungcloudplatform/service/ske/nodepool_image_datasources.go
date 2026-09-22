@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/ske"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -135,12 +135,22 @@ func (d *skeNodepoolImageDataSources) Schema(_ context.Context, _ datasource.Sch
 							Computed:            true,
 							Optional:            true,
 							Attributes: map[string]schema.Attribute{
-								common.ToSnakeCase("Size"): schema.Int64Attribute{
+								common.ToSnakeCase("VolumeSize"): schema.Int64Attribute{
 									Description:         "Volume Size\n  - example: 100",
 									MarkdownDescription: "Volume Size\n  - example: 100",
 									Computed:            true,
 								},
 							},
+						},
+						common.ToSnakeCase("Visibility"): schema.StringAttribute{
+							Description:         "Image visibility\n  - example: public",
+							MarkdownDescription: "Image visibility\n  - example: public",
+							Computed:            true,
+						},
+						common.ToSnakeCase("Zone"): schema.StringAttribute{
+							Description:         "Availability zone\n  - example: kr-west1-a",
+							MarkdownDescription: "Availability zone\n  - example: kr-west1-a",
+							Computed:            true,
 						},
 					},
 				},
@@ -205,6 +215,8 @@ func (d *skeNodepoolImageDataSources) Read(ctx context.Context, req datasource.R
 			Volume:                 d.makeVolume(nodepoolImage.Volume),
 			ScpGpuDriver:           types.StringPointerValue(nodepoolImage.ScpGpuDriver.Get()),
 			ScpSupportedClassTypes: d.makeScpSupportedClassType(nodepoolImage.ScpSupportedClassTypes),
+			Visibility:             types.StringPointerValue(nodepoolImage.Visibility.Get()),
+			Zone:                   types.StringPointerValue(nodepoolImage.Zone.Get()),
 		}
 		state.NodepoolImages = append(state.NodepoolImages, nodepoolImageState)
 	}
@@ -218,21 +230,42 @@ func (d *skeNodepoolImageDataSources) Read(ctx context.Context, req datasource.R
 }
 
 func (d *skeNodepoolImageDataSources) makeVolume(volume map[string]interface{}) *ske.NodepoolImageVolume {
-	volume_size := volume["size"]
-	if volume_size == nil {
+	volumeSize := volume["volume_size"]
+	if volumeSize == nil {
 		return &ske.NodepoolImageVolume{
-			Size: types.Int64PointerValue(nil),
+			VolumeSize: types.Int64PointerValue(nil),
+		}
+	}
+	// API returns volume_size as float64 (JSON number)
+	var size int64
+	switch v := volumeSize.(type) {
+	case float64:
+		size = int64(v)
+	case int64:
+		size = v
+	default:
+		return &ske.NodepoolImageVolume{
+			VolumeSize: types.Int64PointerValue(nil),
 		}
 	}
 	return &ske.NodepoolImageVolume{
-		Size: types.Int64PointerValue(volume_size.(*int64)),
+		VolumeSize: types.Int64PointerValue(&size),
 	}
 }
 
 func (d *skeNodepoolImageDataSources) makeScpSupportedClassType(scpSupportedClassTypes []interface{}) []types.String {
 	var scpSupportedClassTypesModel []types.String
 	for _, scpSupportedClassType := range scpSupportedClassTypes {
-		scpSupportedClassTypesModel = append(scpSupportedClassTypesModel, types.StringPointerValue(scpSupportedClassType.(*string)))
+		switch v := scpSupportedClassType.(type) {
+		case string:
+			scpSupportedClassTypesModel = append(scpSupportedClassTypesModel, types.StringValue(v))
+		case *string:
+			if v != nil {
+				scpSupportedClassTypesModel = append(scpSupportedClassTypesModel, types.StringPointerValue(v))
+			}
+		default:
+			scpSupportedClassTypesModel = append(scpSupportedClassTypesModel, types.StringNull())
+		}
 	}
 	return scpSupportedClassTypesModel
 }

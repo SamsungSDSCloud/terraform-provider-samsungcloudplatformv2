@@ -33,9 +33,6 @@ variable "kubernetes_version" {
   default = []
 }
 
-
-
-
 variable "clusters_region" {
   type    = string
   default = "kr-west1"

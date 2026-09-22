@@ -3,26 +3,32 @@ package vpc
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.1"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpc"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.1"
+	scpvpcv1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
-	"time"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcInternetGatewayResource{}
-	_ resource.ResourceWithConfigure = &vpcInternetGatewayResource{}
+	_ resource.Resource                = &vpcInternetGatewayResource{}
+	_ resource.ResourceWithConfigure   = &vpcInternetGatewayResource{}
+	_ resource.ResourceWithImportState = &vpcInternetGatewayResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcInternetGatewayResource{}
 )
 
 // NewVpcInternetGatewayResource is a helper function to simplify the provider implementation.
@@ -32,9 +38,10 @@ func NewVpcInternetGatewayResource() resource.Resource {
 
 // vpcInternetGatewayResource is the data source implementation.
 type vpcInternetGatewayResource struct {
-	config  *scpsdk.Configuration
-	client  *vpc.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *vpc.Client
+	clientv1d3 *vpcv1d3.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -45,46 +52,50 @@ func (r *vpcInternetGatewayResource) Metadata(_ context.Context, req resource.Me
 // Schema defines the schema for the data source.
 func (r *vpcInternetGatewayResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "internet gateway",
+		Description: "Internet Gateway resource for Internet traffic from vpc.",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the internet gateway.\n" +
+					"  - example : 023c57b14f11483689338d085e061492",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Type \n" +
+				Description: "The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.\n" +
 					"  - example : IGW | GGW | SIGW",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
-					"  - example : Internet Gateway description\n" +
+				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+					"  - example : Internet Gateway Description\n" +
 					"  - maxLength : 50",
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("Loggable"): schema.BoolAttribute{
-				Description: "Loggable \n" +
+				Description: "Whether logging is enabled for the NAT.(NAT logging Enable : true, NAT logging Diable : false) \n" +
 					"  - example : true | false",
 				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("FirewallEnabled"): schema.BoolAttribute{
-				Description: "Firewall Enabled \n" +
+				Description: "Whether the firewall is enabled for the internet gateway.(Enable : true, Disable : false)\n" +
 					"  - example : true | false",
 				Optional: true,
 			},
 			common.ToSnakeCase("FirewallLoggable"): schema.BoolAttribute{
-				Description: "Firewall Loggable \n" +
+				Description: "Whether firewall logging is enabled for the internet gateway.(Enable : true, Disable : false)\n" +
 					"  - example : true | false",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
+				Description: "The identifier of the VPC that the internet gateway belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Required: true,
 			},
@@ -93,60 +104,79 @@ func (r *vpcInternetGatewayResource) Schema(_ context.Context, _ resource.Schema
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the internet gateway.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the internet gateway.\n" +
+							"  - example : my-internet-gateway",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the internet gateway.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Computed:    true,
+						Description: "The type of the internet gateway.GGW is only supported on SCP for Samsung. SIGW is only supported on SCP for Enterprise.\n" +
+							"  - example : IGW | GGW | SIGW",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : Internet Gateway Description",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Computed:    true,
+						Description: "The identifier of the VPC that the internet gateway belongs to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "VpcName",
-						Computed:    true,
+						Description: "The name of the VPC that the internet gateway belongs to.\n" +
+							"  - example : vpcName",
+						Computed: true,
 					},
 					common.ToSnakeCase("Loggable"): schema.BoolAttribute{
-						Description: "Loggable",
-						Computed:    true,
+						Description: "Whether logging is enabled for the NAT.(NAT logging Enable : true, NAT logging Diable : false)\n" +
+							"  - example : true",
+						Computed: true,
+					},
+					common.ToSnakeCase("MultiZoneEnabled"): schema.BoolAttribute{
+						Description: "Whether MultiAZ is enabled for the internet gateway.(MultiAZ 사용여부)\n" +
+							"  - example : true",
+						Computed: true,
 					},
 					common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-						Description: "FirewallId",
-						Computed:    true,
+						Description: "The identifier of the firewall associated with the internet gateway.\n" +
+							"  - example : 68db67f78abd405da98a6056a8ee42af",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current lifecycle state of the internet gateway.\n" +
+							"  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR",
+						Computed: true,
 					},
 				},
 			},
@@ -173,13 +203,14 @@ func (r *vpcInternetGatewayResource) Configure(_ context.Context, req resource.C
 	}
 
 	r.client = inst.Client.Vpc
+	r.clientv1d3 = inst.Client.VpcV1Dot3
 	r.clients = inst.Client
 }
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan vpc.InternetGatewayResource
+	var plan vpcv1d3.InternetGatewayResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -187,7 +218,7 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Create new internet gateway
-	data, err := r.client.CreateInternetGateway(ctx, plan)
+	data, err := r.clientv1d3.CreateInternetGateway(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -200,15 +231,25 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(data.InternetGateway.Id)
 
-	igwModel := createInternetGatewayModel(data)
+	igwModel := createInternetGatewayModelV1d3(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.InternetGateway = igwObjectValue
+
+	// Description might be default to "" in API response
+	plan.Description = igwModel.Description
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	err = waitForInternetGatewayStatus(ctx, r.client, data.InternetGateway.Id, []string{}, []string{"ACTIVE"})
+	err = waitForInternetGatewayStatusV1d3(ctx, r.clientv1d3, data.InternetGateway.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating internet gateway",
@@ -231,7 +272,7 @@ func (r *vpcInternetGatewayResource) Create(ctx context.Context, req resource.Cr
 // Read refreshes the Terraform state with the latest data.
 func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state vpc.InternetGatewayResource
+	var state vpcv1d3.InternetGatewayResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -239,8 +280,12 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 	}
 
 	// Get refreshed order value from internet gateway
-	data, err := r.client.GetInternetGateway(ctx, state.Id.ValueString())
+	data, err := r.clientv1d3.GetInternetGateway(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading internet gateway",
@@ -248,10 +293,27 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
+		)
+		return
+	}
 
-	igwModel := createInternetGatewayModel(data)
+	// Refresh input attributes from API response
+	state.Type = types.StringValue(string(data.InternetGateway.Type))
+	state.Description = types.StringPointerValue(data.InternetGateway.Description.Get())
+	state.Loggable = types.BoolValue(data.InternetGateway.GetLoggable())
+	state.VpcId = types.StringValue(data.InternetGateway.VpcId)
+
+	igwModel := createInternetGatewayModelV1d3(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.InternetGateway = igwObjectValue
 
 	// Set refreshed state
@@ -265,7 +327,7 @@ func (r *vpcInternetGatewayResource) Read(ctx context.Context, req resource.Read
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state vpc.InternetGatewayResource
+	var state vpcv1d3.InternetGatewayResource
 	diags := req.Plan.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -273,7 +335,7 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Update existing order
-	_, err := r.client.UpdateInternetGateway(ctx, state.Id.ValueString(), state)
+	_, err := r.clientv1d3.UpdateInternetGateway(ctx, state.Id.ValueString(), state)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -284,7 +346,7 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Fetch updated items from GetInternetGateway as UpdateInternetGateway items are not populated.
-	data, err := r.client.GetInternetGateway(ctx, state.Id.ValueString())
+	data, err := r.clientv1d3.GetInternetGateway(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -294,10 +356,18 @@ func (r *vpcInternetGatewayResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	igwModel := createInternetGatewayModel(data)
+	igwModel := createInternetGatewayModelV1d3(data)
 
 	igwObjectValue, diags := types.ObjectValueFrom(ctx, igwModel.AttributeTypes(), igwModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.InternetGateway = igwObjectValue
+	state.Loggable = types.BoolValue(data.InternetGateway.GetLoggable())
+
+	// Description might be default to "" in API response
+	state.Description = igwModel.Description
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -364,5 +434,148 @@ func waitForInternetGatewayStatus(ctx context.Context, vpcClient *vpc.Client, id
 			return nil, "", err
 		}
 		return info, string(info.InternetGateway.State), nil
-	})
+	}, -1, -1, -1, -1)
+}
+
+func (r *vpcInternetGatewayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 1 || parts[0] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: internet_gateway_id, got: %q", req.ID),
+		)
+		return
+	}
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[0]))
+}
+
+func createInternetGatewayModelV1d3(data *scpvpcv1d3.InternetGatewayShowResponseV1Dot3) vpcv1d3.InternetGateway {
+	igw := data.InternetGateway
+	return vpcv1d3.InternetGateway{
+		Id:               types.StringValue(igw.Id),
+		Name:             types.StringValue(igw.Name),
+		AccountId:        types.StringValue(igw.AccountId),
+		Description:      types.StringPointerValue(igw.Description.Get()),
+		VpcId:            types.StringValue(igw.VpcId),
+		VpcName:          types.StringValue(igw.VpcName),
+		Type:             types.StringValue(string(igw.Type)),
+		Loggable:         types.BoolValue(igw.GetLoggable()),
+		MultiZoneEnabled: types.BoolValue(igw.GetMultiZoneEnabled()),
+		FirewallId:       types.StringPointerValue(igw.FirewallId.Get()),
+		CreatedAt:        types.StringValue(igw.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:        types.StringValue(igw.CreatedBy),
+		ModifiedAt:       types.StringValue(igw.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:       types.StringValue(igw.ModifiedBy),
+		State:            types.StringValue(string(igw.State)),
+	}
+}
+
+func waitForInternetGatewayStatusV1d3(ctx context.Context, vpcClient *vpcv1d3.Client, id string, pendingStates []string, targetStates []string) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, err := vpcClient.GetInternetGateway(ctx, id)
+		if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.InternetGateway.State), nil
+	}, -1, -1, -1, -1)
+}
+
+func (r *vpcInternetGatewayResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpcv1d3.InternetGatewayResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpcv1d3.InternetGatewayResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fields that cannot be updated via the API — check each for changes
+	type fieldCheck struct {
+		name    string
+		changed bool
+	}
+	checks := []fieldCheck{
+		{"type", !plan.Type.Equal(state.Type)},
+		{"firewall_enabled", !plan.FirewallEnabled.Equal(state.FirewallEnabled)},
+		{"firewall_loggable", !plan.FirewallLoggable.Equal(state.FirewallLoggable)},
+		{"vpc_id", !plan.VpcId.Equal(state.VpcId)},
+		{"tags", !plan.Tags.Equal(state.Tags)},
+	}
+
+	for _, f := range checks {
+		if f.changed {
+			resp.Diagnostics.AddError(
+				"Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual resource. To change %s, recreate the resource.", f.name, f.name),
+			)
+		}
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Reconstruct internet_gateway: merge stable fields from state, leave rest as unknown.
+	// This prevents id, account_id, created_at, created_by from showing as (known after apply).
+	if !state.InternetGateway.IsNull() && !state.InternetGateway.IsUnknown() {
+		var stateIg vpcv1d3.InternetGateway
+		resp.Diagnostics.Append(state.InternetGateway.As(ctx, &stateIg, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Only mark modified_at/modified_by as unknown when description or loggable actually changes
+		descriptionChanged := !plan.Description.Equal(state.Description)
+		loggableChanged := !plan.Loggable.Equal(state.Loggable)
+		changed := descriptionChanged || loggableChanged
+
+		mergedIg := vpcv1d3.InternetGateway{
+			Id:               stateIg.Id,
+			Name:             stateIg.Name,
+			AccountId:        stateIg.AccountId,
+			Type:             stateIg.Type,
+			VpcId:            stateIg.VpcId,
+			VpcName:          stateIg.VpcName,
+			Loggable:         plan.Loggable,
+			FirewallId:       stateIg.FirewallId,
+			MultiZoneEnabled: stateIg.MultiZoneEnabled,
+			CreatedAt:        stateIg.CreatedAt,
+			CreatedBy:        stateIg.CreatedBy,
+			State:            stateIg.State,
+			Description:      plan.Description,
+		}
+
+		if changed {
+			mergedIg.ModifiedAt = types.StringUnknown()
+			mergedIg.ModifiedBy = types.StringUnknown()
+		} else {
+			mergedIg.ModifiedAt = stateIg.ModifiedAt
+			mergedIg.ModifiedBy = stateIg.ModifiedBy
+		}
+
+		mergedObj, diags := types.ObjectValueFrom(ctx, mergedIg.AttributeTypes(), mergedIg)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		plan.InternetGateway = mergedObj
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
 }

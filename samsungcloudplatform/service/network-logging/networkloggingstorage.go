@@ -3,10 +3,13 @@ package network_logging
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/networklogging"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/networklogging"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -14,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -46,18 +48,20 @@ func (r *networkLoggingNetworkLoggingStorageResource) Schema(_ context.Context, 
 		Description: "Network logging storage",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
+				Description: "Identifier of the Resource. \n" +
+				    "  - example : 026ee708da3748a28fca4b8fed43d7ce",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "AccountId",
+				Description: "Identifier of the Account. \n" +
+			    	"  - example : 232a7dbfb3df46ae81dc11a59fc058b0",
 				Computed:    true,
 			},
 			common.ToSnakeCase("ResourceType"): schema.StringAttribute{
-				Description: "ResourceType \n" +
+				Description: "Type of the Resource. \n" +
 					"  - example : FIREWALL | SECURITY_GROUP | NAT",
 				Required: true,
 				Validators: []validator.String{
@@ -65,24 +69,28 @@ func (r *networkLoggingNetworkLoggingStorageResource) Schema(_ context.Context, 
 				},
 			},
 			common.ToSnakeCase("BucketName"): schema.StringAttribute{
-				Description: "BucketName \n" +
+				Description: "Name of the Bucket. \n" +
 				    "  - example : bucket_name",
 				Required:    true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "CreatedAt",
+				Description: "The timestamp when the resource was created, in ISO 8601 format. \n" +
+                   	"  - example : 2024-05-17T00:23:17Z",
 				Computed:    true,
 			},
 			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description: "CreatedBy",
+				Description: "The user id that created the resource. \n" +
+                  	"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 				Computed:    true,
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-				Description: "ModifiedAt",
+				Description: "The timestamp when the resource was last modified, in ISO 8601 format. \n" +
+                   	"  - example : 2024-05-17T00:23:17Z",
 				Computed:    true,
 			},
 			common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-				Description: "ModifiedBy",
+				Description: "The user id that last modified the resource. \n" +
+                    "  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 				Computed:    true,
 			},
 		},
@@ -130,6 +138,13 @@ func (r *networkLoggingNetworkLoggingStorageResource) Create(ctx context.Context
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error creating network logging storage",
+			"Empty response from API",
+		)
+		return
+	}
 
 	networkLoggingStorage := data.NetworkLoggingStorage
 
@@ -152,10 +167,12 @@ func (r *networkLoggingNetworkLoggingStorageResource) Create(ctx context.Context
 
 // Read refreshes the Terraform state with the latest data.
 func (r *networkLoggingNetworkLoggingStorageResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	// Non-compliant: Empty function
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *networkLoggingNetworkLoggingStorageResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	// Non-compliant: Empty function
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -171,6 +188,9 @@ func (r *networkLoggingNetworkLoggingStorageResource) Delete(ctx context.Context
 	// Delete existing network logging storage
 	err := r.client.DeleteNetworkLoggingStorage(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return // already deleted externally
+		}
 		resp.Diagnostics.AddError(
 			"Error Deleting network logging storage",
 			"Could not delete network logging storage, unexpected error: "+err.Error(),

@@ -68,8 +68,11 @@ variable "QueryEndDt" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
 
 
 <a id="nestedatt--events"></a>

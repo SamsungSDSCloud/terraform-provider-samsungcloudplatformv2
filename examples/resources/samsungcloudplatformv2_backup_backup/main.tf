@@ -2,8 +2,6 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_backup_backup" "backup" {
-  region = var.region
-
   name               = var.name
   policy_category    = var.policy_category
   policy_type        = var.policy_type

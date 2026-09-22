@@ -31,6 +31,7 @@ resource "samsungcloudplatformv2_sqlserver_cluster" "cluster" {
   maintenance_option      = var.maintenance_option
   vip_public_ip_id        = var.vip_public_ip_id
   virtual_ip_address      = var.virtual_ip_address
+  service_watch_log_collection = var.service_watch_log_collection
 }
 
 
@@ -60,6 +61,15 @@ variable "ha_enabled" {
 
 variable "init_config_option" {
   type = object({
+    ad_config = object({
+      ad_dns_servers        = set(string)
+      ad_domain_name        = string
+      ad_netbios_name       = string
+      ad_user_id            = string
+      ad_user_password      = string
+      failover_cluster_name = string
+    })
+    ad_enabled             = bool
     audit_enabled          = bool
     database_collation     = string
     database_port          = number
@@ -79,6 +89,15 @@ variable "init_config_option" {
     }))
   })
   default = {
+    ad_config = {
+      ad_dns_servers        = ["192.168.35.218"]
+      ad_domain_name        = "scp.dev2"
+      ad_netbios_name       = "SCP"
+      ad_user_id            = "ENTER YOUR RESOURCE'S AD_USER_ID"
+      ad_user_password      = "ENTER YOUR RESOURCE'S AD_USER_PASSWORD"
+      failover_cluster_name = "Chlwjrghk001"
+    }
+    ad_enabled    = true
     audit_enabled = false
     backup_option = {
       archive_frequency_minute = null
@@ -89,7 +108,7 @@ variable "init_config_option" {
     database_collation     = "SQL_Latin1_General_CP1_CI_AS"
     database_port          = 2866
     database_service_name  = "Sqlserver"
-    database_user_name     = "sqlserver"
+    database_user_name     = "sdsv"
     database_user_password = "ENTER YOUR RESOURCE'S DATABASE_USER_PASSWORD"
     databases = [{
       database_name = "sqlserver"
@@ -159,10 +178,10 @@ variable "maintenance_option" {
     use_maintenance_option = bool
   })
   default = {
-    period_hour            = "0.5"
-    starting_day_of_week   = "MON"
-    starting_time          = "0000"
-    use_maintenance_option = true
+    period_hour            = null
+    starting_day_of_week   = null
+    starting_time          = null
+    use_maintenance_option = null
   }
 }
 
@@ -173,7 +192,7 @@ variable "vip_public_ip_id" {
 
 variable "virtual_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "service_state" {
@@ -186,6 +205,11 @@ variable "tags" {
   default = {
     key = "value"
   }
+}
+
+variable "service_watch_log_collection" {
+  type    = bool
+  default = false
 }
 ```
 
@@ -218,27 +242,38 @@ variable "tags" {
 - `service_state` (String) Service state 
   - example : 'RUNNING' (Create,Start) / 'STOPPED' (Stop)
 - `subnet_id` (String) Subnet ID
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `timezone` (String) Timezone 
   - example: 'Asia/Seoul'
 
 ### Optional
 
+- `service_watch_log_collection` (Boolean) ServiceWatchLogCollection
+ - example: false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 - `vip_public_ip_id` (String) VIP Public IP ID (Required when NatEnabled=True & HaEnabled=True)
+  - example: YOUR RESOURCE'S VIP_PUBLIC_IP_ID
 - `virtual_ip_address` (String) Virtual IP address
+  - example: 192.168.4.30
 
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `origin_cluster_id` (String) Origin Cluster Id.
+  - example: YOUR RESOURCE'S ORIGIN_CLUSTER_ID
 
 <a id="nestedatt--init_config_option"></a>
 ### Nested Schema for `init_config_option`
 
 Required:
 
+- `ad_enabled` (Boolean) AdEnabled
+  - example: false
 - `audit_enabled` (Boolean) Audit Log Setting
+  - example: true
 - `backup_option` (Attributes) Backup option (see [below for nested schema](#nestedatt--init_config_option--backup_option))
 - `database_collation` (String) Database collation 
   - allowed values: 'SQL_Latin1_General_CP1_CI_AS','Korean_Wansung_CS_AS','Chinese_PRC_CI_AS'
@@ -257,9 +292,19 @@ Required:
 - `database_user_password` (String) Database user password 
   - minLength: 8  
   - maxLength: 30  
-  - pattern: ^(?=.*[a-zA-Z])(?=.*[`\-[\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\S*[^\w\s]).{8,30} ("'제외)
+  - pattern: ^(?=.*[a-zA-Z])(?=.*[`\-[\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\S*[^\w\s]).{8,30} ("'exclude)
 - `databases` (Attributes List) Databases (see [below for nested schema](#nestedatt--init_config_option--databases))
 - `license` (String) License
+  - example: license
+
+Optional:
+
+- `ad_config` (Attributes) AdConfig (see [below for nested schema](#nestedatt--init_config_option--ad_config))
+
+Read-Only:
+
+- `origin_region` (String) Origin Region
+ -example: kr-west1
 
 <a id="nestedatt--init_config_option--backup_option"></a>
 ### Nested Schema for `init_config_option.backup_option`
@@ -293,6 +338,26 @@ Required:
   - maxLength: 20  
   - pattern: ^[a-zA-Z][a-zA-Z0-9]*$
 - `drive_letter` (String) Drive Letter
+  - example: C
+
+
+<a id="nestedatt--init_config_option--ad_config"></a>
+### Nested Schema for `init_config_option.ad_config`
+
+Optional:
+
+- `ad_dns_servers` (Set of String) AD DNS Servers
+  - example: 192.168.10.10
+- `ad_domain_name` (String) AD Domain Name
+  - example: test
+- `ad_netbios_name` (String) AD NetBIOS Name
+  - example: test
+- `ad_user_id` (String) AD User ID
+  - example: YOUR RESOURCE'S AD_USER_ID
+- `ad_user_password` (String) AD User Password 
+  - example: YOUR RESOURCE'S AD_USER_PASSWORD
+- `failover_cluster_name` (String) Failover Cluster Name
+  - example: testcluster
 
 
 
@@ -305,13 +370,14 @@ Required:
 - `instances` (Attributes List) Instances (see [below for nested schema](#nestedatt--instance_groups--instances))
 - `role_type` (String) Role type 
   - example: 'ACTIVE' 
-  - pattern: ACTIVE (HaEnabled=False) / ACTIVE_STANDBY (HaEnabled=True)
+  - pattern: ACTIVE (HaEnabled=False) / PRIMARY_SECONDARY (HaEnabled=True)
 - `server_type_name` (String) Server type name 
   - example: 'db1v2m4'
 
 Read-Only:
 
-- `id` (String) Id
+- `id` (String) Instance group ID.
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--instance_groups--block_storage_groups"></a>
 ### Nested Schema for `instance_groups.block_storage_groups`
@@ -329,8 +395,10 @@ Required:
 
 Read-Only:
 
-- `id` (String) Id
-- `name` (String) Name
+- `id` (String) Block storage group ID
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Block storage group name
+  - example: cluster-Disk-00
 
 
 <a id="nestedatt--instance_groups--instances"></a>
@@ -339,17 +407,20 @@ Read-Only:
 Required:
 
 - `role_type` (String) Role type 
-  - example: 'ACTIVE' 
-  - pattern: ACTIVE / STANDBY
+  - example: 'PRIMARY' 
+  - pattern: ACTIVE / PRIMARY / SECONDARY
 
 Optional:
 
 - `public_ip_id` (String) Public IP ID (Required when NatEnabled=True & HaEnabled=False)
+  - example: YOUR RESOURCE'S PUBLIC_IP_ID
 - `service_ip_address` (String) User subnet IP address
+  - example: 192.168.4.22
 
 Read-Only:
 
-- `name` (String) Name
+- `name` (String) Instance name
+  - example: test001
 
 
 

@@ -3,10 +3,10 @@ package tag
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/resourcemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/resourcemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -129,20 +129,25 @@ func getPrimaryRegion(clients *client.SCPClient) (string, error) {
 	return "", fmt.Errorf("failed to get region")
 }
 
-func GetSRN(clients *client.SCPClient, serviceName string, resourceType string, resourceIdentifier string) (string, error) {
+func GetSRN(clients *client.SCPClient, serviceName string, resourceType string, resourceIdentifier string, isGlobal bool) (string, error) {
 	offering, err := getOffering(clients.Iam.Config.AuthUrl)
 	if err != nil {
 		return "", err
 	}
 
-	accountId, err := clients.Iam.GetAccountId()
-	if err != nil {
-		return "", err
-	}
+	accountId := ""
+	region := ""
 
-	region, err := getPrimaryRegion(clients)
-	if err != nil {
-		return "", err
+	if !isGlobal {
+		accountId, err = clients.Iam.GetAccountId()
+		if err != nil {
+			return "", err
+		}
+
+		region, err = getPrimaryRegion(clients)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	srnFormat := "srn:%s::%s:%s::%s:%s/%s"
@@ -152,8 +157,8 @@ func GetSRN(clients *client.SCPClient, serviceName string, resourceType string, 
 	return encodedSrn, nil
 }
 
-func UpdateTags(clients *client.SCPClient, serviceName string, resourceType string, resourceIdentifier string, tagElements map[string]attr.Value) (types.Map, error) {
-	srn, err := GetSRN(clients, serviceName, resourceType, resourceIdentifier)
+func UpdateTags(clients *client.SCPClient, serviceName string, resourceType string, resourceIdentifier string, tagElements map[string]attr.Value, isGlobal bool) (types.Map, error) {
+	srn, err := GetSRN(clients, serviceName, resourceType, resourceIdentifier, isGlobal)
 	if err != nil {
 		return types.Map{}, err
 	}
@@ -166,8 +171,8 @@ func UpdateTags(clients *client.SCPClient, serviceName string, resourceType stri
 	return tagsMap, nil
 }
 
-func GetTags(clients *client.SCPClient, serviceName string, resourceType string, resourceIdentifier string) (types.Map, error) {
-	srn, err := GetSRN(clients, serviceName, resourceType, resourceIdentifier)
+func GetTags(clients *client.SCPClient, serviceName string, resourceType string, resourceIdentifier string, isGlobal bool) (types.Map, error) {
+	srn, err := GetSRN(clients, serviceName, resourceType, resourceIdentifier, isGlobal)
 	if err != nil {
 		return types.Map{}, err
 	}

@@ -387,12 +387,12 @@ type PolicyDatasourceDetail struct {
 }
 
 type PolicyResource struct {
-	Id            types.String          `tfsdk:"id"`
-	PolicyName    types.String          `tfsdk:"policy_name"`
-	Description   types.String          `tfsdk:"description"`
-	Tags          types.Map             `tfsdk:"tags"`
-	PolicyVersion PolicyVersionResource `tfsdk:"policy_version"`
-	Policy        types.Object          `tfsdk:"policy"`
+	Id            types.String           `tfsdk:"id"`
+	PolicyName    types.String           `tfsdk:"policy_name"`
+	Description   types.String           `tfsdk:"description"`
+	Tags          types.Map              `tfsdk:"tags"`
+	PolicyVersion *PolicyVersionResource `tfsdk:"policy_version"`
+	Policy        types.Object           `tfsdk:"policy"`
 }
 
 type PolicyVersionResource struct {

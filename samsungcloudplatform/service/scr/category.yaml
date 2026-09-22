@@ -1,0 +1,9 @@
+category:
+  scr_container_registry: Container Registry
+  scr_container_registries: Container Registry
+  scr_image: Container Registry
+  scr_images: Container Registry
+  scr_repository: Container Registry
+  scr_repositories: Container Registry
+  scr_tags: Container Registry
+  scr_tagses: Container Registry

@@ -116,11 +116,15 @@ Read-Only:
   - example: ND_570.195.03
 - `scp_supported_class_types` (List of String) List of supported class types for GPU SKE image
   - example: [GPU-A100-1]
+- `visibility` (String) Image visibility
+  - example: public
+- `zone` (String) Availability zone
+  - example: kr-west1-a
 
 <a id="nestedatt--nodepool_images--volume"></a>
 ### Nested Schema for `nodepool_images.volume`
 
 Read-Only:
 
-- `size` (Number) Volume Size
+- `volume_size` (Number) Volume Size
   - example: 100

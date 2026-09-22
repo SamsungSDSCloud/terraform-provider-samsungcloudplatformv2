@@ -3,15 +3,16 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -28,7 +29,7 @@ func NewLoadbalancerLoadbalancerDataSources() datasource.DataSource {
 // loadbalancerLoadbalancerDataSources is the data source implementation.
 type loadbalancerLoadbalancerDataSources struct {
 	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
+	client  *loadbalancerv1d4.Client
 	clients *client.SCPClient
 }
 
@@ -43,97 +44,135 @@ func (d *loadbalancerLoadbalancerDataSources) Schema(_ context.Context, _ dataso
 		Description: "Get List of Loadbalancers.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Optional:    true,
+				Description: "The number of items per page.\n" +
+					"  - example : 20\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "The page number for pagination.\n" +
+					"  - example : 0\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.\n" +
+					"  - example : created_at:desc\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "The name of the LoadBalancer.\n" +
+					"  - example : LoadBalancer01\n" +
+					"  - minLength : 1\n" +
+					"  - maxLength : 63\n" +
+					"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServiceIp"): schema.StringAttribute{
-				Description: "ServiceIp",
-				Optional:    true,
+				Description: "The service IP address of the LoadBalancer.\n" +
+					"  - example : 192.168.1.100\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "SubnetId",
-				Optional:    true,
+				Description: "The subnet ID where the resource is located.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VpcId",
-				Optional:    true,
+				Description: "The VPC ID where the resource is located.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Loadbalancers"): schema.ListNestedAttribute{
-				Description: "A list of Loadbalancers.",
+				Description: "List of LoadBalancers.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Optional:    true,
+							Description: "The unique identifier of the LoadBalancer.\n" +
+								"  - example : 46c681018e33453085ca7c8db54e0076\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Optional:    true,
+							Description: "The name of the LoadBalancer.\n" +
+								"  - example : LoadBalancer01\n" +
+								"  - minLength : 1\n" +
+								"  - maxLength : 63\n" +
+								"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("ServiceIp"): schema.StringAttribute{
-							Description: "ServiceIp",
-							Optional:    true,
+							Description: "The service IP address.\n" +
+								"  - example : 192.168.1.100\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("SourceNatIp"): schema.StringAttribute{
-							Description: "SourceNatIp",
-							Optional:    true,
+							Description: "The source NAT IP address.\n" +
+								"  - example : 192.168.1.101\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Optional:    true,
+							Description: "The current state of the Load Balancer.\n" +
+								"  - example : ACTIVE\n" +
+								"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("ListenerCount"): schema.Int32Attribute{
-							Description: "ListenerCount",
-							Optional:    true,
+							Description: "The number of listeners attached to the LoadBalancer.\n" +
+								"  - example : 2\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("PublicNatEnabled"): schema.BoolAttribute{
-							Description: "PublicNatEnabled",
-							Optional:    true,
+							Description: "Whether public NAT is enabled.\n" +
+								"  - example : true\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("LayerType"): schema.StringAttribute{
-							Description: "LayerType",
-							Optional:    true,
+							Description: "The layer type of the Load Balancer.\n" +
+								"  - example : L7\n" +
+								"  - pattern : L4 | L7\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-							Description: "SubnetId",
-							Optional:    true,
+							Description: "The subnet ID where the resource is located.\n" +
+								"  - example : 46c681018e33453085ca7c8db54e0076\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "VpcId",
-							Optional:    true,
+							Description: "The VPC ID where the resource is located.\n" +
+								"  - example : 46c681018e33453085ca7c8db54e0076\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("FirewallId"): schema.StringAttribute{
-							Description: "FirewallId",
-							Optional:    true,
+							Description: "The firewall ID associated with the LoadBalancer.\n" +
+								"  - example : 46c681018e33453085ca7c8db54e0076\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "created at",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-01-01T00:00:00Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "created by",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 46c681018e33453085ca7c8db54e0076\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "modified at",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-01-01T00:00:00Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "modified by",
-							Computed:    true,
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 46c681018e33453085ca7c8db54e0076\n",
+							Computed: true,
+						},
+						common.ToSnakeCase("Zones"): schema.ListAttribute{
+							ElementType: types.StringType,
+							Description: "The list of availability zones where the subnet is located.\n" +
+								"  - example : [\"zone-1\", \"zone-2\"]",
+							MarkdownDescription: "The list of availability zones where the subnet is located.\n" +
+								"  - example : [\"zone-1\", \"zone-2\"]",
+							Computed: true,
 						},
 					},
 				},
@@ -160,13 +199,13 @@ func (d *loadbalancerLoadbalancerDataSources) Configure(_ context.Context, req d
 		return
 	}
 
-	d.client = inst.Client.LoadBalancer
+	d.client = inst.Client.LoadBalancerV1d4
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *loadbalancerLoadbalancerDataSources) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state loadbalancer.LoadbalancerDataSource
+	var state loadbalancerv1d4.LoadbalancerDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -185,7 +224,7 @@ func (d *loadbalancerLoadbalancerDataSources) Read(ctx context.Context, req data
 
 	// Map response body to model
 	for _, loadbalancerElement := range data.Loadbalancers {
-		loadbalancerState := loadbalancer.Loadbalancer{
+		loadbalancerState := loadbalancerv1d4.Loadbalancer{
 			Id:               types.StringValue(loadbalancerElement.Id),
 			Name:             virtualserverutil.ToNullableStringValue(loadbalancerElement.Name.Get()),
 			ServiceIp:        virtualserverutil.ToNullableStringValue(loadbalancerElement.ServiceIp.Get()),
@@ -201,6 +240,7 @@ func (d *loadbalancerLoadbalancerDataSources) Read(ctx context.Context, req data
 			CreatedBy:        types.StringValue(loadbalancerElement.CreatedBy),
 			ModifiedAt:       types.StringValue(loadbalancerElement.ModifiedAt.Format(time.RFC3339)),
 			ModifiedBy:       types.StringValue(loadbalancerElement.ModifiedBy),
+			Zones:            convertList(loadbalancerElement.Zones),
 		}
 
 		state.Loadbalancers = append(state.Loadbalancers, loadbalancerState)

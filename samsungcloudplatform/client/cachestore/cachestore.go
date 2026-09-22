@@ -2,9 +2,12 @@ package cachestore
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/cachestore/1.0"
+
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	cachestore "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/cachestore/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
 )
 
 type Client struct {
@@ -43,13 +46,20 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*cachestore.EngineListResponse, error) {
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*cachestore.EngineListResponse, error) {
 	req := client.sdkClient.CachestoreV1CacheStoreMasterDataApiAPI.CachestoreListEngineVersions(ctx)
-
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(cachestore.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 	resp, _, err := req.Execute()
 	return resp, err
 }
-
 
 // create (ctx, clusterResource) - (asyncResponse)
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*cachestore.AsyncResponse, error) {
@@ -58,7 +68,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	// AllowableIpAddresses
 	var allowableIpAddresses []string
 
-	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown(){
+	if request.AllowableIpAddresses.IsNull() || request.AllowableIpAddresses.IsUnknown() {
 		allowableIpAddresses = []string{}
 	} else {
 		for _, elem := range request.AllowableIpAddresses.Elements() {
@@ -83,35 +93,46 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	var convertedInitConfigOption = cachestore.RedisInitConfigOption{
 		BackupOption:         *cachestore.NewNullableBackupOption(convertedBackupOption),
 		DatabasePort:         *cachestore.NewNullableInt32(initConfigOption.DatabasePort.ValueInt32Pointer()),
-		DatabaseUserPassword: *cachestore.NewNullableString(initConfigOption.DatabaseUserPassword.ValueStringPointer()),
+		DatabaseUserPassword: initConfigOption.DatabaseUserPassword.ValueString(),
 	}
 
 	// InstanceGroups
 	var convertedInstanceGroups []cachestore.RedisInstanceGroupRequest
-	for _, instanceGroup := range request.InstanceGroups {
+	for _, igElem := range request.InstanceGroups.Elements() {
+		igObj := igElem.(types.Object)
+		ig := database.InstanceGroup{
+			Id:                 igObj.Attributes()["id"].(types.String),
+			RoleType:           igObj.Attributes()["role_type"].(types.String),
+			ServerTypeName:     igObj.Attributes()["server_type_name"].(types.String),
+			BlockStorageGroups: igObj.Attributes()["block_storage_groups"].(types.List),
+			Instances:          igObj.Attributes()["instances"].(types.List),
+		}
+
 		var convertedBlockStorage []cachestore.RedisBlockStorageGroupRequest
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
+		for _, bsElem := range ig.BlockStorageGroups.Elements() {
+			bsObj := bsElem.(types.Object)
 			convertedBlockStorage = append(convertedBlockStorage, cachestore.RedisBlockStorageGroupRequest{
-				RoleType:   cachestore.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
-				SizeGb:     blockStorage.SizeGb.ValueInt32(),
-				VolumeType: cachestore.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
+				RoleType:   cachestore.OsDataBlockStorageGroupRoleType(bsObj.Attributes()["role_type"].(types.String).ValueString()),
+				SizeGb:     bsObj.Attributes()["size_gb"].(types.Int32).ValueInt32(),
+				VolumeType: cachestore.VolumeType(bsObj.Attributes()["volume_type"].(types.String).ValueString()).Ptr(),
 			})
 		}
 
-		var convertedInstance []cachestore.InstanceRequest
-		for _, instance := range instanceGroup.Instances {
-			convertedInstance = append(convertedInstance, cachestore.InstanceRequest{
-				RoleType:         cachestore.InstanceRoleType(instance.RoleType.ValueString()),
-				ServiceIpAddress: *cachestore.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
-				PublicIpId:       *cachestore.NewNullableString(instance.PublicIpId.ValueStringPointer()),
+		var convertedInstance []cachestore.CachestoreInstanceRequest
+		for _, instElem := range ig.Instances.Elements() {
+			instObj := instElem.(types.Object)
+			convertedInstance = append(convertedInstance, cachestore.CachestoreInstanceRequest{
+				RoleType:         cachestore.CacheStoreInstanceRoleType(instObj.Attributes()["role_type"].(types.String).ValueString()),
+				ServiceIpAddress: *cachestore.NewNullableString(instObj.Attributes()["service_ip_address"].(types.String).ValueStringPointer()),
+				PublicIpId:       *cachestore.NewNullableString(instObj.Attributes()["public_ip_id"].(types.String).ValueStringPointer()),
 			})
 		}
 
 		convertedInstanceGroups = append(convertedInstanceGroups, cachestore.RedisInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           cachestore.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
-			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
+			RoleType:           cachestore.CacheStoreInstanceGroupRoleType(ig.RoleType.ValueString()),
+			ServerTypeName:     ig.ServerTypeName.ValueString(),
 		})
 	}
 
@@ -140,39 +161,43 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.RedisClusterCreateRequest(cachestore.RedisClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		ReplicaCount:         *cachestore.NewNullableInt32(request.ReplicaCount.ValueInt32Pointer()),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *cachestore.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
+	req = req.RedisClusterCreateRequestV1Dot1(cachestore.RedisClusterCreateRequestV1Dot1{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		ReplicaCount:              request.ReplicaCount.ValueInt32Pointer(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *cachestore.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		ServiceWatchLogCollection: *cachestore.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull()
 
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*cachestore.RedisClusterDetailResponse, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*cachestore.RedisClusterDetailResponseV1Dot1, int, error) {
 	req := client.sdkClient.CachestoreV1CacheStoreClustersApiAPI.CachestoreShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {
@@ -208,6 +233,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, startingT
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.CachestoreV1CacheStoreBackupApiAPI.CachestoreUnsetBackup(ctx, clusterId)
 
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(cachestore.OtpSessionIdRequest{
+		SessionId: *cachestore.NewNullableString(nil),
+	})
+
 	_, _, err := req.Execute()
 	return err
 }
@@ -238,4 +268,60 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 	req = req.ResizeBlockStorageGroupRequest(*reqState)
 	_, _, err := req.Execute()
 	return err
+}
+
+func MapInstanceGroupResponses(sdkResp []cachestore.RedisInstanceGroupResponse) []database.InstanceGroupResponse {
+	if sdkResp == nil {
+		return nil
+	}
+
+	result := make([]database.InstanceGroupResponse, len(sdkResp))
+	for i, ig := range sdkResp {
+		bsGroups := make([]database.BlockStorageGroupResponse, len(ig.BlockStorageGroups))
+		for j, bs := range ig.BlockStorageGroups {
+			bsGroups[j] = database.BlockStorageGroupResponse{
+				Id:         bs.Id,
+				Name:       bs.Name,
+				RoleType:   string(bs.RoleType),
+				SizeGb:     bs.SizeGb,
+				VolumeType: string(bs.VolumeType),
+			}
+		}
+
+		instances := make([]database.InstanceResponse, len(ig.Instances))
+		for j, it := range ig.Instances {
+			var pubIP, serviceIP string
+			if it.ServiceIpAddress.Get() != nil {
+				serviceIP = *it.ServiceIpAddress.Get()
+			}
+			if it.PublicIpId.Get() != nil {
+				pubIP = *it.PublicIpId.Get()
+			}
+
+			instances[j] = database.InstanceResponse{
+				Name:             it.Name,
+				PublicIpId:       pubIP,
+				RoleType:         string(it.RoleType),
+				ServiceIpAddress: serviceIP,
+			}
+		}
+
+		result[i] = database.InstanceGroupResponse{
+			BlockStorageGroups: bsGroups,
+			Id:                 ig.Id,
+			Instances:          instances,
+			RoleType:           string(ig.RoleType),
+			ServerTypeName:     ig.ServerTypeName,
+		}
+	}
+
+	return result
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*cachestore.InstanceDetailResponse, error) {
+	req := client.sdkClient.CachestoreV1CacheStoreInstancesApiAPI.CachestoreShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
 }

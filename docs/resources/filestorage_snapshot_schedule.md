@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_filestorage_snapshot_schedule Resource - samsungcloudplatformv2"
 subcategory: File Storage Snapshot Schedule
 description: |-
-  Lists of SnapshotSchedules.
+  Manages a File Storage Snapshot Schedule on Samsung Cloud Platform.
 ---
 
 # samsungcloudplatformv2_filestorage_snapshot_schedule (Resource)
 
-Lists of SnapshotSchedules.
+Manages a File Storage Snapshot Schedule on Samsung Cloud Platform.
 
 ## Example Usage
 
@@ -68,20 +68,20 @@ variable "snapshot_schedule" {
 ### Read-Only
 
 - `snapshot_policy_enabled` (Boolean) Snapshot Policy Enabled 
-  - example : 'true'
+  - example : true
 
 <a id="nestedatt--snapshot_schedule"></a>
 ### Nested Schema for `snapshot_schedule`
 
 Optional:
 
-- `day_of_week` (String) Day Of Week 
+- `day_of_week` (String) The day of the week for the snapshot schedule (e.g., MON, TUE). Required if frequency is WEEKLY. 
   - example : 'MON' 
   - pattern: `^(SUN|MON|TUE|WED|THU|FRI|SAT)$`
-- `frequency` (String) Frequency 
+- `frequency` (String) The frequency of the snapshot schedule (e.g., DAILY, WEEKLY). 
   - example : 'DAILY' 
   - pattern: `^(WEEKLY|DAILY)$`
-- `hour` (String) Hour 
+- `hour` (String) The hour of the day (0-23) when the snapshot is taken. 
   - example : '0' 
   - maximum : 23 
   - minimum : 0  
@@ -89,4 +89,5 @@ Optional:
 
 Read-Only:
 
-- `id` (String) ID
+- `id` (String) The unique identifier of the snapshot schedule. 
+  - example: YOUR RESOURCE'S ID

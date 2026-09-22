@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_transit_gateway_uplink_rule Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  vpc
+  The uplink rule of the VPC Transit Gateway
 ---
 
 # samsungcloudplatformv2_vpc_transit_gateway_uplink_rule (Resource)
 
-vpc
+The uplink rule of the VPC Transit Gateway
 
 ## Example Usage
 
@@ -54,32 +54,38 @@ variable "transit_gateway_id" {
 
 ### Required
 
-- `destination_cidr` (String) Destination CIDR
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
   - example: 192.167.5.0/24
-- `destination_type` (String) - enum: ["TGW","ON_PREMISE"]
-- `transit_gateway_id` (String) Transit Gateway ID
+- `destination_type` (String) The type of the destination.
+  - enum: TGW | ON_PREMISE
+  - example:TGW
+- `transit_gateway_id` (String) The identifier of the transit gateway that the uplink rule belongs to.
   - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
 
 ### Optional
 
-- `description` (String) Description
+- `description` (String) Enter a brief explanation or note about this uplink rule. This help identify the purpose or usage of the resource.
   - maxLength: 50
-  - example: Routing Rule Description
+  - example: Uplink Rule Description
 
 ### Read-Only
 
-- `transit_gateway_rule` (Attributes) (see [below for nested schema](#nestedatt--transit_gateway_rule))
+- `transit_gateway_rule` (Attributes) The rule of the transit gateway. (see [below for nested schema](#nestedatt--transit_gateway_rule))
 
 <a id="nestedatt--transit_gateway_rule"></a>
 ### Nested Schema for `transit_gateway_rule`
 
 Read-Only:
 
-- `description` (String) Description
-  - example: Routing Rule Description
-- `destination_cidr` (String) Destination CIDR
+- `description` (String) Enter a brief explanation or note about this transit gateway rule. This help identify the purpose or usage of the resource.
+  - example: Transit gateway rule Description
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
   - example: 192.167.5.0/24
-- `destination_type` (String) - enum: ["TGW","ON_PREMISE"]
-- `id` (String) Routing Rule ID
+- `destination_type` (String) The type of the destination.
+  - enum: ["TGW","ON_PREMISE"]
+  - example : TGW
+- `id` (String) The unique identifier of the transit gateway rule.
   - example: YOUR RESOURCE'S ID
-- `state` (String) - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR"]
+- `state` (String) The current lifecycle state of the transit gateway rule.
+  - enum: ["CREATING","ACTIVE","DELETING","DELETED","ERROR"]
+  - example:ACTIVE

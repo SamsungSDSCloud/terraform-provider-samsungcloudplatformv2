@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_gslb_gslbs Data Source - samsungcloudplatformv2"
 subcategory: GSLB
 description: |-
-  list of gslb.
+  Gets a list of Global Server Load Balancers.
 ---
 
 # samsungcloudplatformv2_gslb_gslbs (Data Source)
 
-list of gslb.
+Gets a list of Global Server Load Balancers.
 
 ## Example Usage
 
@@ -35,32 +35,48 @@ variable "size" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
-- `state` (String) State
+- `name` (String) The name to filter GSLBs.
+  - example : example.gslb.e.samsungsdscloud.com
+- `page` (Number) The page number for pagination.
+  - example : 0
+- `size` (Number) The number of items per page.
+  - example : 20
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : createdAt:asc
+- `state` (String) The state to filter GSLBs (e.g., ACTIVE, CREATING, EDITING, ERROR, DELETING).
+  - example : ACTIVE
 
 ### Read-Only
 
-- `gslbs` (Attributes List) A list of Gslbs. (see [below for nested schema](#nestedatt--gslbs))
+- `gslbs` (Attributes List) A list of Global Server Load Balancers. (see [below for nested schema](#nestedatt--gslbs))
 
 <a id="nestedatt--gslbs"></a>
 ### Nested Schema for `gslbs`
 
 Optional:
 
-- `algorithm` (String) Algorithm
-- `description` (String) Description
-- `env_usage` (String) EnvUsage
-- `id` (String) Id
-- `linked_resource_count` (Number) LinkedResourceCount
-- `name` (String) Name
-- `state` (String) State
+- `algorithm` (String) The load balancing algorithm for GSLB traffic distribution (e.g., ROUND_ROBIN, RATIO).
+  - example : ROUND_ROBIN
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Example Description for GSLB
+- `env_usage` (String) The environment usage type for the GSLB (e.g., PUBLIC).
+  - example : PUBLIC
+- `id` (String) The unique identifier of the GSLB.
+  - example: YOUR RESOURCE'S ID
+- `linked_resource_count` (Number) The number of resources linked to this GSLB.
+  - example : 2
+- `name` (String) The name of the GSLB.
+  - example : example.gslb.e.samsungsdscloud.com
+- `state` (String) The current state of the GSLB (e.g., ACTIVE, CREATING, EDITING, ERROR, DELETING).
+  - example : ACTIVE
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

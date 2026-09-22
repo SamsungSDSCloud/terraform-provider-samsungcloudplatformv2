@@ -1,8 +1,12 @@
 category:
   ske_cluster: Kubernetes Engine
+  ske_cluster_subnets: Kubernetes Engine
   ske_clusters: Kubernetes Engine
   ske_kubernetes_versions: Kubernetes Engine
   ske_nodepool: Kubernetes Engine
   ske_nodepools: Kubernetes Engine
   ske_nodepoolnodes: Kubernetes Engine
   ske_nodepool_images: Kubernetes Engine
+  ske_cluster_nfs_volume: Kubernetes Engine
+  ske_cluster_deletion_protection: Kubernetes Engine
+  ske_cluster_linked_resources: Kubernetes Engine

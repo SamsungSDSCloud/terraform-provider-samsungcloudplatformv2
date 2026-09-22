@@ -1,4 +1,5 @@
 provider "samsungcloudplatformv2" {
+  default_region = "kr-west1"
 }
 
 resource "samsungcloudplatformv2_multinodegpucluster_gpunode" "gpunode" {
@@ -10,7 +11,9 @@ resource "samsungcloudplatformv2_multinodegpucluster_gpunode" "gpunode" {
   server_details         = var.server_details
   server_type_id         = var.server_type_id
   subnet_id              = var.subnet_id
+  init_script            = var.init_script
   vpc_id                 = var.vpc_id
+  lock_enabled           = var.lock_enabled
   tags                   = var.tags
   timeouts {
     create = var.create_timeouts

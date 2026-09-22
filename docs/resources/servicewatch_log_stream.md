@@ -40,27 +40,39 @@ variable "name" {
 
 ### Required
 
-- `log_group_id` (String) Log group ID
-- `name` (String) Log stream Name
+- `log_group_id` (String) The unique identifier of the log group.
+ - example: YOUR RESOURCE'S LOG_GROUP_ID
+- `name` (String) Log stream Name.
+ - example : testls01
 
 ### Optional
 
-- `log_stream` (Attributes) Log stream (see [below for nested schema](#nestedatt--log_stream))
+- `log_stream` (Attributes) List of log stream.
+ - example : {"id": "b0fc99a46a2c44b8b22739b130853dd8", "name": "testls01"} (see [below for nested schema](#nestedatt--log_stream))
 
 ### Read-Only
 
-- `id` (String) Log stream ID
+- `id` (String) The unique identifier of the log stream.
+ - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--log_stream"></a>
 ### Nested Schema for `log_stream`
 
 Read-Only:
 
-- `collect_yn` (String) Whether to collect logs or not
-- `created_at` (String) Created date time
-- `created_by` (String) Creator ID
-- `id` (String) Log stream ID
-- `log_group_id` (String) Log group ID
-- `modified_at` (String) Modified date time
-- `modified_by` (String) Modifier ID
-- `name` (String) Log stream name
+- `collect_yn` (String) Whether to collect logs or not.
+ - example : Y
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+ - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) Log stream ID.
+ - example: YOUR RESOURCE'S ID
+- `log_group_id` (String) The unique identifier of the log group.
+ - example: YOUR RESOURCE'S LOG_GROUP_ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+ - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) Log stream name.
+ - example : testls01

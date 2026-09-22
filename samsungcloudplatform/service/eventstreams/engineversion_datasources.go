@@ -2,10 +2,11 @@ package eventstreams
 
 import (
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/eventstreams"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/eventstreams"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,42 +36,65 @@ func (d *eventstreamsEngineVersionDataSources) Schema(_ context.Context, _ datas
 	resp.Schema = schema.Schema{
 		Description: "List of Engine Versions.",
 		Attributes: map[string]schema.Attribute{
+			common.ToSnakeCase("Id"): schema.StringAttribute{
+				Description:         "Engine version ID to filter by\n  - example: d058dc79a86842f9b558933e9d285b9f",
+				MarkdownDescription: "Engine version ID to filter by\n  - example: d058dc79a86842f9b558933e9d285b9f",
+				Optional:            true,
+			},
+			common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
+				Description:         "Product image type\n  - example: Kafka",
+				MarkdownDescription: "Product image type\n  - example: Kafka",
+				Optional:            true,
+			},
+			common.ToSnakeCase("EosIncluded"): schema.BoolAttribute{
+				Description:         "Whether to include end-of-service versions\n  - example: false",
+				MarkdownDescription: "Whether to include end-of-service versions\n  - example: false",
+				Optional:            true,
+			},
 			common.ToSnakeCase("Contents"): schema.ListNestedAttribute{
 				Description: "A detail of Engine Version.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("EndOfService"): schema.BoolAttribute{
-							Description: "EndOfService",
-							Required:    true,
+							Description:         "End of Service\n  - example: false",
+							MarkdownDescription: "End of Service\n  - example: false",
+							Required:            true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Required:    true,
+							Description:         "Engine version ID\n  - example: c51ea6c20957496eb97b9d605b0059ab",
+							MarkdownDescription: "Engine version ID\n  - example: c51ea6c20957496eb97b9d605b0059ab",
+							Required:            true,
 						},
 						common.ToSnakeCase("MajorVersion"): schema.StringAttribute{
-							Description: "MajorVersion",
-							Optional:    true,
+							Description:         "Software major version\n  - example: 3",
+							MarkdownDescription: "Software major version\n  - example: 3",
+							Optional:            true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Required:    true,
+							Description:         "Engine version name\n  - example: Kafka 3.9.2",
+							MarkdownDescription: "Engine version name\n  - example: Kafka 3.9.2",
+							Required:            true,
 						},
 						common.ToSnakeCase("OsType"): schema.StringAttribute{
-							Description: "OsType",
-							Required:    true,
+							Description:         "OS type\n  - example: RHEL",
+							MarkdownDescription: "OS type\n  - example: RHEL",
+							Required:            true,
 						},
 						common.ToSnakeCase("OsVersion"): schema.StringAttribute{
-							Description: "OsVersion",
-							Optional:    true,
+							Description:         "OS version\n  - example: 8.5",
+							MarkdownDescription: "OS version\n  - example: 8.5",
+							Optional:            true,
 						},
 						common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
-							Description: "ProductImageType",
-							Required:    true,
+							Description:         "Product image type\n  - example: Kafka",
+							MarkdownDescription: "Product image type\n  - example: Kafka",
+							Required:            true,
 						},
 						common.ToSnakeCase("SoftwareVersion"): schema.StringAttribute{
-							Description: "SoftwareVersion",
-							Required:    true,
+							Description:         "Software version\n  - example: 3.9.2",
+							MarkdownDescription: "Software version\n  - example: 3.9.2",
+							Required:            true,
 						},
 					},
 				},
@@ -106,7 +130,13 @@ func (d *eventstreamsEngineVersionDataSources) Read(ctx context.Context, req dat
 		return
 	}
 
-	data, err := d.client.GetEngineVersionList(ctx)
+	var eosIncluded *bool
+	if !state.EosIncluded.IsNull() && !state.EosIncluded.IsUnknown() {
+		v := state.EosIncluded.ValueBool()
+		eosIncluded = &v
+	}
+
+	data, err := d.client.GetEngineVersionList(ctx, state.Id.ValueString(), state.ProductImageType.ValueString(), eosIncluded)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read EngineVersion",

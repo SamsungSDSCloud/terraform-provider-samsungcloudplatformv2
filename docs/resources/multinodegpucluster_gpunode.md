@@ -2,17 +2,18 @@
 page_title: "samsungcloudplatformv2_multinodegpucluster_gpunode Resource - samsungcloudplatformv2"
 subcategory: Multi-node GPU Cluster
 description: |-
-  GPU Node
+  GPU Node Resource
 ---
 
 # samsungcloudplatformv2_multinodegpucluster_gpunode (Resource)
 
-GPU Node
+GPU Node Resource
 
 ## Example Usage
 
 ```terraform
 provider "samsungcloudplatformv2" {
+  default_region = "kr-west1"
 }
 
 resource "samsungcloudplatformv2_multinodegpucluster_gpunode" "gpunode" {
@@ -24,13 +25,16 @@ resource "samsungcloudplatformv2_multinodegpucluster_gpunode" "gpunode" {
   server_details         = var.server_details
   server_type_id         = var.server_type_id
   subnet_id              = var.subnet_id
+  init_script            = var.init_script
   vpc_id                 = var.vpc_id
+  lock_enabled           = var.lock_enabled
   tags                   = var.tags
   timeouts {
     create = var.create_timeouts
     delete = var.delete_timeouts
   }
 }
+
 
 
 output "gpunode_output" {
@@ -97,9 +101,11 @@ variable "subnet_id" {
 variable "server_details" {
   type = list(object({
     state = string
+    zone  = string
   }))
   default = [{
     state = "RUNNING"
+    zone  = "kr-west1-a"
   }]
 }
 
@@ -131,8 +137,10 @@ variable "delete_timeouts" {
 
 ### Required
 
-- `cluster_fabric_details` (Attributes) Cluster Fabric 상세 (see [below for nested schema](#nestedatt--cluster_fabric_details))
-- `gpu_node_name_prefix` (String) GPU Node name start with a lowercase, and enter 3 to 24 using lowercase, number and -. (It does not end with -.)  - example: gpunode-1
+- `cluster_fabric_details` (Attributes) Cluster Fabric Details  
+  - example: {cluster_fabric_id='YOUR RESOURCE'S CLUSTER_FABRIC_ID', cluster_fabric_name='cluster001', node_pool_id='YOUR RESOURCE'S NODE_POOL_ID'} (see [below for nested schema](#nestedatt--cluster_fabric_details))
+- `gpu_node_name_prefix` (String) GPU Node name start with a lowercase, and enter 3 to 24 using lowercase, number and -. (It does not end with -.)
+  - example: gpunode-1
   - minLength: 3
   - maxLength(for linux): 24
   - pattern(for linux): ^[a-z][a-z0-9-]{1,22}[a-z0-9]$
@@ -145,9 +153,10 @@ variable "delete_timeouts" {
   - pattern: ^[A-Za-z0-9@$!%*#&]+$
 - `region_id` (String) Region ID
   - example: YOUR RESOURCE'S REGION_ID
-- `server_details` (Attributes List) Detailed settings for each server, 2 or more server on creation
+- `server_details` (Attributes List) Detailed settings for each server, 2 or more servers on new fabric creation
+  - example: [{state: 'RUNNING', zone: 'kr-west1-a'}, {state: 'RUNNING', zone: 'kr-west1-a'}]
   - maxLength: 5
-  - minLength: 2 (see [below for nested schema](#nestedatt--server_details))
+  - minLength: 1 (see [below for nested schema](#nestedatt--server_details))
 - `server_type_id` (String) Server Type ID
   - example: YOUR RESOURCE'S SERVER_TYPE_ID
 - `subnet_id` (String) Subnet ID
@@ -159,10 +168,11 @@ variable "delete_timeouts" {
 
 - `init_script` (String) Init Script
   - maxLength: 16384
-  - example: init script
+  - example: #!/bin/bash\necho 'Hello World!'
 - `lock_enabled` (Boolean) Use Lock
   - example: true
 - `os_user_id` (String) OS User Id. When linux image value must be 'root'
+  - example: YOUR RESOURCE'S OS_USER_ID
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
@@ -205,12 +215,17 @@ Required:
 
 Optional:
 
-- `cluster_fabric_id` (String) Cluster Fabric ID
+- `cluster_fabric_id` (String) Cluster Fabric ID. Enter the target cluster's ID to add GPU Nodes to an existing cluster, or omit it to create a new cluster.
  - example: YOUR RESOURCE'S CLUSTER_FABRIC_ID
 
 
 <a id="nestedatt--server_details"></a>
 ### Nested Schema for `server_details`
+
+Required:
+
+- `zone` (String) Zone
+  - example: kr-west1-a
 
 Optional:
 
@@ -220,7 +235,8 @@ Optional:
 
 Read-Only:
 
-- `gpu_node_name` (String) GPU Node name in format prefix-###.  - example: gpunode-001
+- `gpu_node_name` (String) GPU Node name in format prefix-###.
+  - example: gpunode-001
 - `id` (String) GPU Node ID
   - example: YOUR RESOURCE'S ID
 - `ip_address` (String) subnet IP address

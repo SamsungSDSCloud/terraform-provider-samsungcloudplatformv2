@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -43,53 +43,74 @@ func (d *serviceWatchDashboardDataSources) Schema(_ context.Context, _ datasourc
 		Description: "Dashboard Data Sources",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Dashboard name",
-				Optional:    true,
+				Description: "The name of dashboard.\n" +
+					" - example : Production-Web-Servers\n" +
+					" - minLength: 3\n" +
+					" - maxLength: 512\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("NameLike"): schema.StringAttribute{
-				Description: "Wildcard search for dashboard names",
-				Optional:    true,
+				Description: "Wildcard search for dashboard names.\n" +
+					" - example : Production\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("FavoriteEnabled"): schema.BoolAttribute{
-				Description: "Whether it is a favorite dashboard",
-				Optional:    true,
+				Description: "Whether it is a favorite dashboard.\n" +
+					" - example : true\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Dashboard type",
-				Optional:    true,
+				Description: "Dashboard type.\n" +
+					" - example : Custom\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServiceCode"): schema.StringAttribute{
-				Description: "Associated service code",
-				Optional:    true,
+				Description: "Associated service code.\n" +
+					" - example : scp-compute\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Dashboards"): schema.ListNestedAttribute{
-				Description: "Dashboards",
-				Computed:    true,
+				Description: "List of dashboards.\n" +
+					" - example : [{\"id\": \"b48e730a70e74f6aa3d2555000b5c22b\", \"name\": \"Production-Web-Servers\"}]\n",
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Dashboard ID",
-							Computed:    true,
+							Description: "The unique identifier of the dashboard.\n" +
+								" - example : b48e730a70e74f6aa3d2555000b5c22b\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Dashboard name",
-							Computed:    true,
+							Description: "The name of the dashboard.\n" +
+								" - example : Production-Web-Servers\n" +
+								" - minLength: 3\n" +
+								" - maxLength: 512\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Dashboard type",
-							Computed:    true,
+							Description: "Dashboard type.\n" +
+								" - example : Custom\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("FavoriteEnabled"): schema.BoolAttribute{
-							Description: "Whether it is a favorite dashboard",
-							Computed:    true,
+							Description: "Whether it is a favorite dashboard.\n" +
+								" - example : true\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "Created date time",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								" - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "Modified date time",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								" - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
+						},
+						common.ToSnakeCase("NamespaceCode"): schema.StringAttribute{
+							Description: "Namespace code of the dashboard.\n" +
+								" - example : kr-west1\n",
+							Computed: true,
 						},
 					},
 				},
@@ -148,6 +169,7 @@ func (d *serviceWatchDashboardDataSources) Read(ctx context.Context, req datasou
 				Name:            types.StringValue(dashboard.GetName()),
 				Type:            types.StringValue(dashboard.GetType()),
 				FavoriteEnabled: types.BoolValue(dashboard.GetFavoriteEnabled()),
+				NamespaceCode:   nullableStringTypes(dashboard.GetNamespaceCodeOk()),
 				CreatedAt:       types.StringValue(dashboard.GetCreatedAt().Format(TimeFormatDisplay)),
 				ModifiedAt:      types.StringValue(dashboard.GetModifiedAt().Format(TimeFormatDisplay)),
 			}

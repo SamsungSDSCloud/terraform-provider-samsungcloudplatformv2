@@ -25,7 +25,7 @@ variable "name" {
 
 variable "description" {
   type    = string
-  default = "test_123"
+  default = "update description for testing"
 }
 
 variable "tags" {
@@ -34,5 +34,6 @@ variable "tags" {
     vpn_tag_key = "vpn_tag_value"
   }
 }
+
 
 

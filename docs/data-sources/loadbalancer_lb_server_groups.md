@@ -61,35 +61,63 @@ variable "subnet_id" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `protocol` (List of String) Protocol
-- `size` (Number) Size
-- `sort` (String) Sort
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `name` (String) The name of the LB Server Group.
+  - example : ServerGroup01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `page` (Number) The page number.
+  - example : 0
+- `protocol` (List of String) The protocol used for the server group.
+  - example : TCP
+  - pattern : TCP | UDP
+- `size` (Number) The number of items per page.
+  - example : 20
+- `sort` (String) The sort order.
+  - example : name:asc
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
-- `lb_server_groups` (Attributes List) A list of Lb Server Groups. (see [below for nested schema](#nestedatt--lb_server_groups))
+- `lb_server_groups` (Attributes List) List of LB Server Groups. (see [below for nested schema](#nestedatt--lb_server_groups))
 
 <a id="nestedatt--lb_server_groups"></a>
 ### Nested Schema for `lb_server_groups`
 
 Optional:
 
-- `id` (String) Id
-- `lb_name` (String) LbName
-- `lb_server_group_member_count` (Number) LbServerGroupMemberCount
-- `loadbalancer_id` (String) LoadbalancerId
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `state` (String) State
-- `vpc_id` (String) VpcId
+- `id` (String) The unique identifier of the LB Server Group.
+  - example: YOUR RESOURCE'S ID
+- `lb_name` (String) The name of the LoadBalancer.
+  - example : LoadBalancer01
+- `lb_server_group_member_count` (Number) The number of members in the LB Server Group.
+  - example : 3
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the server group.
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
+- `name` (String) The name of the LB Server Group.
+  - example : ServerGroup01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol for the server group.
+  - example : TCP
+  - pattern : TCP | UDP
+- `state` (String) The current state of the LB Server Group.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING
+- `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

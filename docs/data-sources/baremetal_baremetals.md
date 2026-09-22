@@ -80,7 +80,7 @@ variable "baremetals_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `policy_ip` (String) Policy IP
+- `policy_ip` (String) Baremetal Server IP
   - example: 192.168.0.1
 - `server_name` (String) Bare Metal Server name
   - example: bmserver-001
@@ -92,6 +92,7 @@ variable "baremetals_filter_use_regex" {
 ### Read-Only
 
 - `ids` (List of String) Bare Metal Server ID List
+  - example: ['YOUR RESOURCE'S IDS']
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -99,5 +100,8 @@ variable "baremetals_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

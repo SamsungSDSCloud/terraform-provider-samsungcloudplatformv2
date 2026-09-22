@@ -2,8 +2,10 @@ package mysql
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/mysql/1.1"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	mysql "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/mysql/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -45,9 +47,28 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*mysql.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*mysql.EngineListResponse, error) {
 	req := client.sdkClient.MysqlV1MysqlMasterDataApiAPI.MysqlListEngineVersions(ctx)
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(mysql.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*mysql.InstanceDetailResponse, error) {
+	req := client.sdkClient.MysqlV1MysqlInstancesApiAPI.MysqlShowInstance(ctx, clusterId, instanceName)
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -92,30 +113,36 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []mysql.InstanceGroupRequest
-	for _, instanceGroup := range request.InstanceGroups {
-		var convertedBlockStorage []mysql.BlockStorageGroupRequest
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			convertedBlockStorage = append(convertedBlockStorage, mysql.BlockStorageGroupRequest{
+	var convertedInstanceGroups []mysql.RdbInstanceGroupRequest
+	var igVals []database.InstanceGroup
+	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
+	for _, instanceGroup := range igVals {
+		var convertedBlockStorage []mysql.RdbBlockStorageGroupRequest
+		var bsVals []database.BlockStorageGroup
+		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
+		for _, blockStorage := range bsVals {
+			convertedBlockStorage = append(convertedBlockStorage, mysql.RdbBlockStorageGroupRequest{
 				RoleType:   mysql.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: mysql.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
 		}
 
-		var convertedInstance []mysql.InstanceRequest
-		for _, instance := range instanceGroup.Instances {
-			convertedInstance = append(convertedInstance, mysql.InstanceRequest{
-				RoleType:         mysql.InstanceRoleType(instance.RoleType.ValueString()),
+		var convertedInstance []mysql.RdbInstanceRequest
+		var instVals []database.Instance
+		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
+		for _, instance := range instVals {
+			convertedInstance = append(convertedInstance, mysql.RdbInstanceRequest{
+				RoleType:         mysql.RdbInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *mysql.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *mysql.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, mysql.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, mysql.RdbInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           mysql.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           mysql.RdbInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -146,38 +173,43 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	req = req.MysqlClusterCreateRequestV1Dot1(mysql.MysqlClusterCreateRequestV1Dot1{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *mysql.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		VipPublicIpId:        *mysql.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
-		VirtualIpAddress:     *mysql.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		OriginClusterId:           *mysql.NewNullableString(request.OriginClusterId.ValueStringPointer()),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *mysql.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		VipPublicIpId:             *mysql.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
+		VirtualIpAddress:          *mysql.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		ServiceWatchLogCollection: *mysql.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull() && initConfigOption.BackupOption.ArchiveFrequencyMinute.IsNull()
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*mysql.MysqlClusterDetailResponseV1Dot1, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*mysql.MysqlClusterDetailResponseV1Dot1, int, error) {
 	req := client.sdkClient.MysqlV1MysqlClustersApiAPI.MysqlShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {
@@ -217,13 +249,61 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
 	req := client.sdkClient.MysqlV1MysqlInstancesApiAPI.MysqlAddBlockStorages(ctx, instanceGroupId)
 	reqState := &mysql.AddBlockStoragesRequest{
-		RoleType:   mysql.BlockStorageGroupRoleType(roleType),
+		RoleType:   mysql.ExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: mysql.VolumeType(volumeType).Ptr(),
 	}
 	req = req.AddBlockStoragesRequest(*reqState)
 	_, _, err := req.Execute()
 	return err
+}
+
+func MapInstanceGroupResponses(sdkResp []mysql.InstanceGroupResponse) []database.InstanceGroupResponse {
+	if sdkResp == nil {
+		return nil
+	}
+
+	result := make([]database.InstanceGroupResponse, len(sdkResp))
+	for i, ig := range sdkResp {
+		bsGroups := make([]database.BlockStorageGroupResponse, len(ig.BlockStorageGroups))
+		for j, bs := range ig.BlockStorageGroups {
+			bsGroups[j] = database.BlockStorageGroupResponse{
+				Id:         bs.Id,
+				Name:       bs.Name,
+				RoleType:   string(bs.RoleType),
+				SizeGb:     bs.SizeGb,
+				VolumeType: string(bs.VolumeType),
+			}
+		}
+
+		instances := make([]database.InstanceResponse, len(ig.Instances))
+		for j, it := range ig.Instances {
+			var pubIP, serviceIP string
+			if it.ServiceIpAddress.Get() != nil {
+				serviceIP = *it.ServiceIpAddress.Get()
+			}
+			if it.PublicIpId.Get() != nil {
+				pubIP = *it.PublicIpId.Get()
+			}
+
+			instances[j] = database.InstanceResponse{
+				Name:             it.Name,
+				PublicIpId:       pubIP,
+				RoleType:         string(it.RoleType),
+				ServiceIpAddress: serviceIP,
+			}
+		}
+
+		result[i] = database.InstanceGroupResponse{
+			BlockStorageGroups: bsGroups,
+			Id:                 ig.Id,
+			Instances:          instances,
+			RoleType:           string(ig.RoleType),
+			ServerTypeName:     ig.ServerTypeName,
+		}
+	}
+
+	return result
 }
 
 func (client *Client) SetBackup(ctx context.Context, clusterId string, archiveFrequencyMinute string, startingTimeHour string, retentionPeriodDay string) error {
@@ -241,6 +321,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, archiveFr
 
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.MysqlV1MysqlBackupApiAPI.MysqlUnsetBackup(ctx, clusterId)
+
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(mysql.OtpSessionIdRequest{
+		SessionId: *mysql.NewNullableString(nil),
+	})
 
 	_, _, err := req.Execute()
 	return err

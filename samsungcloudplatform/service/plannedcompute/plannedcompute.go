@@ -3,16 +3,17 @@ package billing
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/billing" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/region"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/billing" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,12 +23,18 @@ import (
 )
 
 var (
-	_ resource.Resource              = &billingPlannedComputeResource{}
-	_ resource.ResourceWithConfigure = &billingPlannedComputeResource{}
+	_ resource.Resource                = &billingPlannedComputeResource{}
+	_ resource.ResourceWithConfigure   = &billingPlannedComputeResource{}
+	_ resource.ResourceWithImportState = &billingPlannedComputeResource{}
 )
 
 func NewBillingPlannedComputeResource() resource.Resource {
 	return &billingPlannedComputeResource{}
+}
+
+// ImportState implements resource.ResourceWithImportState.
+func (r *billingPlannedComputeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 type billingPlannedComputeResource struct {
@@ -46,155 +53,190 @@ func (r *billingPlannedComputeResource) Schema(_ context.Context, _ resource.Sch
 	resp.Schema = schema.Schema{
 		Description: "Planned compute",
 		Attributes: map[string]schema.Attribute{
-			"region": region.ResourceSchema(),
-			"tags":   tag.ResourceSchema(),
+			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Identifier of the resource.\n  - example: 83c3c73d457345e3829ee6d5557c0011",
+				MarkdownDescription: "Identifier of the resource.\n  - example: 83c3c73d457345e3829ee6d5557c0011",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "Timestamp of the last Terraform update of the Resource Group",
-				Computed:    true,
+				Description:         "Timestamp of the last Terraform update of the Resource Group\n  - example: 2024-06-24T14:02:10Z",
+				MarkdownDescription: "Timestamp of the last Terraform update of the Resource Group\n  - example: 2024-06-24T14:02:10Z",
+				Computed:            true,
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "AccountId",
-				Optional:    true,
+				Description:         "AccountId\n  - example: f5c8e56a4d9b49a8bd89e14758a32d53",
+				MarkdownDescription: "AccountId\n  - example: f5c8e56a4d9b49a8bd89e14758a32d53",
+				Optional:             true,
 			},
 			common.ToSnakeCase("ContractType"): schema.StringAttribute{
-				Description: "ContractType",
-				Optional:    true,
+				Description:         "ContractType\n  - example: 01",
+				MarkdownDescription: "ContractType\n  - example: 01",
+				Optional:             true,
 			},
 			common.ToSnakeCase("OsType"): schema.StringAttribute{
-				Description: "OsType",
-				Optional:    true,
+				Description:         "OsType\n  - example: rhel",
+				MarkdownDescription: "OsType\n  - example: rhel",
+				Optional:             true,
 			},
 			common.ToSnakeCase("ServerType"): schema.StringAttribute{
-				Description: "ServerType",
-				Optional:    true,
+				Description:         "ServerType\n  - example: s1v1m2",
+				MarkdownDescription: "ServerType\n  - example: s1v1m2",
+				Optional:             true,
 			},
 			common.ToSnakeCase("ServiceId"): schema.StringAttribute{
-				Description: "ServiceId",
-				Optional:    true,
+				Description:         "ServiceId\n  - example: VIRTUAL_SERVER",
+				MarkdownDescription: "ServiceId\n  - example: VIRTUAL_SERVER",
+				Optional:             true,
 			},
 			common.ToSnakeCase("ServiceName"): schema.StringAttribute{
-				Description: "ServiceName",
-				Optional:    true,
+				Description:         "ServiceName\n  - example: Virtual Server",
+				MarkdownDescription: "ServiceName\n  - example: Virtual Server",
+				Optional:             true,
 			},
 			common.ToSnakeCase("Action"): schema.StringAttribute{
-				Description: "Action",
-				Optional:    true,
+				Description:         "Action\n  - example: EXTEND_APPLY",
+				MarkdownDescription: "Action\n  - example: EXTEND_APPLY",
+				Optional:             true,
 			},
 			common.ToSnakeCase("PlannedCompute"): schema.SingleNestedAttribute{
-				Description: "PlannedCompute",
-				Computed:    true,
+				Description:         "PlannedCompute\n  - example: {account_id='f5c8e56a4d9b49a8bd89e14758a32d53', contract_id='C1234567', contract_type='01', state='ACTIVE'}",
+				MarkdownDescription: "PlannedCompute\n  - example: {account_id='f5c8e56a4d9b49a8bd89e14758a32d53', contract_id='C1234567', contract_type='01', state='ACTIVE'}",
+				Computed:             true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID",
-						Computed:    true,
+						Description:         "Account ID\n  - example: f5c8e56a4d9b49a8bd89e14758a32d53",
+						MarkdownDescription: "Account ID\n  - example: f5c8e56a4d9b49a8bd89e14758a32d53",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ContractId"): schema.StringAttribute{
-						Description: "Contract ID",
-						Computed:    true,
+						Description:         "Contract ID\n  - example: C1234567",
+						MarkdownDescription: "Contract ID\n  - example: C1234567",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ContractType"): schema.StringAttribute{
-						Description: "Contract Type",
-						Computed:    true,
+						Description:         "Contract Type\n  - example: 01",
+						MarkdownDescription: "Contract Type\n  - example: 01",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created at",
-						Computed:    true,
+						Description:         "Created at\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Created at\n  - example: 2024-05-17T00:23:17Z",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created by",
-						Computed:    true,
+						Description:         "Created by\n  - example: ef716e80-1fac-4faa-892d-0132fc7f5583",
+						MarkdownDescription: "Created by\n  - example: ef716e80-1fac-4faa-892d-0132fc7f5583",
+						Computed:            true,
 					},
 					common.ToSnakeCase("DeleteYn"): schema.StringAttribute{
-						Description: "Delete Y/N",
-						Computed:    true,
+						Description:         "Delete Y/N\n  - example: N",
+						MarkdownDescription: "Delete Y/N\n  - example: N",
+						Computed:            true,
 					},
 					common.ToSnakeCase("EndDate"): schema.StringAttribute{
-						Description: "End date",
-						Computed:    true,
+						Description:         "End date\n  - example: 2025-05-17",
+						MarkdownDescription: "End date\n  - example: 2025-05-17",
+						Computed:            true,
 					},
 					common.ToSnakeCase("FirstContractStartAt"): schema.StringAttribute{
-						Description: "First contract start at",
-						Computed:    true,
+						Description:         "First contract start at\n  - example: 2023-05-17",
+						MarkdownDescription: "First contract start at\n  - example: 2023-05-17",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Planned compute ID",
-						Computed:    true,
+						Description:         "Planned compute ID\n  - example: 83c3c73d457345e3829ee6d5557c0011",
+						MarkdownDescription: "Planned compute ID\n  - example: 83c3c73d457345e3829ee6d5557c0011",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified at",
-						Computed:    true,
+						Description:         "Modified at\n  - example: 2024-06-24T14:02:10Z",
+						MarkdownDescription: "Modified at\n  - example: 2024-06-24T14:02:10Z",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified by",
-						Computed:    true,
+						Description:         "Modified by\n  - example: ef716e80-1fac-4faa-892d-0132fc7f5583",
+						MarkdownDescription: "Modified by\n  - example: ef716e80-1fac-4faa-892d-0132fc7f5583",
+						Computed:            true,
 					},
 					common.ToSnakeCase("NextContractType"): schema.StringAttribute{
-						Description: "Next contract type",
-						Computed:    true,
+						Description:         "Next contract type\n  - example: 03",
+						MarkdownDescription: "Next contract type\n  - example: 03",
+						Computed:            true,
 					},
 					common.ToSnakeCase("NextEndDate"): schema.StringAttribute{
-						Description: "Next end date",
-						Computed:    true,
+						Description:         "Next end date\n  - example: 2026-05-17",
+						MarkdownDescription: "Next end date\n  - example: 2026-05-17",
+						Computed:            true,
 					},
 					common.ToSnakeCase("NextStartDate"): schema.StringAttribute{
-						Description: "Next end date",
-						Computed:    true,
+						Description:         "Next start date\n  - example: 2025-05-18",
+						MarkdownDescription: "Next start date\n  - example: 2025-05-18",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OsName"): schema.StringAttribute{
-						Description: "OS name",
-						Computed:    true,
+						Description:         "OS name\n  - example: RHEL",
+						MarkdownDescription: "OS name\n  - example: RHEL",
+						Computed:            true,
 					},
 					common.ToSnakeCase("OsType"): schema.StringAttribute{
-						Description: "OS type",
-						Computed:    true,
+						Description:         "OS type\n  - example: rhel",
+						MarkdownDescription: "OS type\n  - example: rhel",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Region"): schema.StringAttribute{
-						Description: "Region",
-						Computed:    true,
+						Description:         "Region\n  - example: kr-west1",
+						MarkdownDescription: "Region\n  - example: kr-west1",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ResourceName"): schema.StringAttribute{
-						Description: "Resource name",
-						Computed:    true,
+						Description:         "Resource name\n  - example: Planned-compute-01",
+						MarkdownDescription: "Resource name\n  - example: Planned-compute-01",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ResourceType"): schema.StringAttribute{
-						Description: "Resource type",
-						Computed:    true,
+						Description:         "Resource type\n  - example: BARE_METAL",
+						MarkdownDescription: "Resource type\n  - example: BARE_METAL",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ServerType"): schema.StringAttribute{
-						Description: "Server type",
-						Computed:    true,
+						Description:         "Server type\n  - example: s1v1m2",
+						MarkdownDescription: "Server type\n  - example: s1v1m2",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ServerTypeDescription"): schema.MapAttribute{
-						Description: "Server type description",
-						Computed:    true,
-						ElementType: types.StringType,
+						Description:         "Server type description\n  - example: {\"cpu\": \"16 Cores\"| \"memory\": \"64 GB\"}",
+						MarkdownDescription: "Server type description\n  - example: {\"cpu\": \"16 Cores\"| \"memory\": \"64 GB\"}",
+						Computed:            true,
+						ElementType:         types.StringType,
 					},
 					common.ToSnakeCase("ServiceId"): schema.StringAttribute{
-						Description: "Service ID",
-						Computed:    true,
+						Description:         "Service ID\n  - example: VIRTUAL_SERVER",
+						MarkdownDescription: "Service ID\n  - example: VIRTUAL_SERVER",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ServiceName"): schema.StringAttribute{
-						Description: "Service Name",
-						Computed:    true,
+						Description:         "Service Name\n  - example: Virtual Server",
+						MarkdownDescription: "Service Name\n  - example: Virtual Server",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Srn"): schema.StringAttribute{
-						Description: "srn",
-						Computed:    true,
+						Description:         "srn\n  - example: srn:e::26affb52e16944038a0cd2cc26060e1c:kr1-west1::compute:instance/INSTANCE-UPOg3Z6ZqyiMM0QyC3sI2m",
+						MarkdownDescription: "srn\n  - example: srn:e::26affb52e16944038a0cd2cc26060e1c:kr1-west1::compute:instance/INSTANCE-UPOg3Z6ZqyiMM0QyC3sI2m",
+						Computed:            true,
 					},
 					common.ToSnakeCase("StartDate"): schema.StringAttribute{
-						Description: "Start date",
-						Computed:    true,
+						Description:         "Start date\n  - example: 2024-05-17",
+						MarkdownDescription: "Start date\n  - example: 2024-05-17",
+						Computed:            true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description:         "State\n  - example: ACTIVE",
+						MarkdownDescription: "State\n  - example: ACTIVE",
+						Computed:            true,
 					},
 				},
 			},
@@ -255,10 +297,6 @@ func (r *billingPlannedComputeResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	if !plan.Region.IsNull() {
-		r.client.Config.Region = plan.Region.ValueString()
-	}
-
 	data, err := r.client.CreatePlannedCompute(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
@@ -277,6 +315,31 @@ func (r *billingPlannedComputeResource) Create(ctx context.Context, req resource
 		idString = ""
 	}
 	plan.Id = types.StringValue(idString)
+
+	// ID가 유효한 경우에만 폴링
+	if idString != "" {
+		// 생성 후 리소스가 준비될 때까지 대기
+		err = r.waitForPlannedComputeReady(ctx, idString, 60*time.Second)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error waiting for planned compute",
+				"Planned compute was created but failed to become ready: "+err.Error(),
+			)
+			return
+		}
+
+		// 최신 상태 다시 조회
+		data, err = r.client.GetPlannedCompute(ctx, idString)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				"Error reading planned compute after creation",
+				"Could not read Planned Compute ID "+idString+": "+err.Error()+"\nReason: "+detail,
+			)
+			return
+		}
+		plannedCompute = data.PlannedCompute
+	}
 
 	serverTypeDesc, diags := convertMapStringInterfaceToTypesMap(plannedCompute.GetServerTypeDescription())
 
@@ -330,10 +393,15 @@ func (r *billingPlannedComputeResource) Read(ctx context.Context, req resource.R
 
 	data, err := r.client.GetPlannedCompute(ctx, state.Id.ValueString())
 	if err != nil {
+		// 404 Not Found - 리소스가 외부에서 삭제된 경우 Terraform 상태에서 제거
+		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error Reading Resource Group",
-			"Could not read Resource Group ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			"Error Reading Planned Compute",
+			"Could not read Planned Compute ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
@@ -458,5 +526,43 @@ func (r *billingPlannedComputeResource) Delete(ctx context.Context, req resource
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+}
+
+// waitForPlannedComputeReady waits for the planned compute to be in ready state.
+func (r *billingPlannedComputeResource) waitForPlannedComputeReady(ctx context.Context, id string, timeout time.Duration) error {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-timer.C:
+			return fmt.Errorf("timeout waiting for planned compute %s to be ready", id)
+		case <-ticker.C:
+			data, err := r.client.GetPlannedCompute(ctx, id)
+			if err != nil {
+				// 404 Not Found - 생성 중일 수 있음, 계속 대기
+				if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+					continue
+				}
+				// 일시적 오류는 무시하고 계속 폴링 (네트워크 문제 등)
+				if client.IsTransientError(err) {
+					continue
+				}
+				// 그 외의 영구적인 오류는 반환
+				return err
+			}
+
+			// 상태 확인 - 실제 API 응답에 맞게 수정 필요
+			state := data.PlannedCompute.GetState()
+			if state == "ACTIVE" || state == "RUNNING" || state == "Ready" || state == "CREATED" {
+				return nil
+			}
+		}
 	}
 }

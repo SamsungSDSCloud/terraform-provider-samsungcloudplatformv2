@@ -28,4 +28,9 @@ variable "vpc_id" {
   default = "ENTER YOUR RESOURCE'S VPC_ID"
 }
 
+variable "zone" {
+  type    = string
+  default = ""
+}
+
 

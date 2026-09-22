@@ -45,7 +45,8 @@ variable "static_nat" {
 
 ### Required
 
-- `loadbalancer_id` (String) LoadbalancerId
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the Private NAT IP.
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
 
 ### Optional
 
@@ -54,6 +55,7 @@ variable "static_nat" {
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
+  - example: YOUR RESOURCE'S ID
 - `loadbalancer_private_nat_ip` (Attributes) A detail of private NAT. (see [below for nested schema](#nestedatt--loadbalancer_private_nat_ip))
 
 <a id="nestedatt--private_static_nat_create"></a>
@@ -61,8 +63,10 @@ variable "static_nat" {
 
 Optional:
 
-- `private_nat_id` (String) PrivateNatId
-- `private_nat_ip_id` (String) PrivateNatIpId
+- `private_nat_id` (String) The private NAT ID.
+  - example: YOUR RESOURCE'S PRIVATE_NAT_ID
+- `private_nat_ip_id` (String) The private NAT IP ID.
+  - example: YOUR RESOURCE'S PRIVATE_NAT_IP_ID
 
 
 <a id="nestedatt--loadbalancer_private_nat_ip"></a>
@@ -70,12 +74,22 @@ Optional:
 
 Optional:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `external_ip_address` (String) ExternalIpAddress
-- `id` (String) Id
-- `internal_ip_address` (String) InternalIpAddress
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `private_nat_ip_id` (String) PrivateNatIpId
-- `state` (String) State
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `external_ip_address` (String) The external IP address.
+  - example : 192.168.0.1
+- `id` (String) The unique identifier of the Private NAT IP.
+  - example: YOUR RESOURCE'S ID
+- `internal_ip_address` (String) The internal IP address.
+  - example : 10.0.0.1
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `private_nat_ip_id` (String) The private NAT IP ID.
+  - example: YOUR RESOURCE'S PRIVATE_NAT_IP_ID
+- `state` (String) The current state of the Private NAT IP.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR

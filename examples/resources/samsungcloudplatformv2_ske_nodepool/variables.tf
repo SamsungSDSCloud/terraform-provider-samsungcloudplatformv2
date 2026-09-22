@@ -147,4 +147,20 @@ variable "scp_gpu_driver" {
   default = null
 }
 
+variable "preferred_ips" {
+  type    = string
+  default = null
+}
+
+variable "subnet_id" {
+  type    = string
+  default = "ENTER YOUR RESOURCE'S SUBNET_ID"
+}
+
+variable "zone" {
+  type    = string
+  default = "kr-west1-a"
+}
+
+
 

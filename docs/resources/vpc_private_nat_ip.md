@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_private_nat_ip Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  Private NAT IP.
+  Ip resource for Private NAT.
 ---
 
 # samsungcloudplatformv2_vpc_private_nat_ip (Resource)
 
-Private NAT IP.
+Ip resource for Private NAT.
 
 ## Example Usage
 
@@ -48,20 +48,21 @@ variable "private_nat_ip_description" {
 
 ### Required
 
-- `ip_address` (String) IP address 
+- `ip_address` (String) The IP address assigned to the private NAT.
   - example : 192.168.10.0
-- `private_nat_id` (String) Private NAT ID 
+- `private_nat_id` (String) The identifier of the private NAT that the resource belongs to.
   - example: YOUR RESOURCE'S PRIVATE_NAT_ID
 
 ### Optional
 
-- `description` (String) Description
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
   - example : Private NAT IP description
   - maxLength : 50
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
 - `private_nat_ip` (Attributes) Private NAT IP (see [below for nested schema](#nestedatt--private_nat_ip))
 
 <a id="nestedatt--private_nat_ip"></a>
@@ -69,16 +70,29 @@ variable "private_nat_ip_description" {
 
 Read-Only:
 
-- `attached_resource_id` (String) AttachedResourceId
-- `attached_resource_name` (String) AttachedResourceName
-- `attached_resource_type` (String) AttachedResourceType
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `ip_address` (String) IpAddress
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `private_nat_id` (String) PrivateNatId
-- `private_nat_name` (String) PrivateNatName
-- `state` (String) State
+- `attached_resource_id` (String) The identifier of the resource that this private NAT ip is attached to.
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
+- `attached_resource_name` (String) The name of the resource that this private NAT ip is attached to.
+  - example : resourceName
+- `attached_resource_type` (String) The type of the resource that this private NAT ip is attached to.
+  - example : VM
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : resourceDescription
+- `id` (String) The unique identifier of the private NAT ip.
+  - example: YOUR RESOURCE'S ID
+- `ip_address` (String) The IP address assigned to the private NAT.
+  - example : 192.168.10.0
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `private_nat_id` (String) The identifier of the private NAT that the private NAT ip belongs to.
+  - example: YOUR RESOURCE'S PRIVATE_NAT_ID
+- `private_nat_name` (String) The name of the private NAT that the private NAT ip belongs to.
+  - example : privatenatName
+- `state` (String) The current lifecycle state of the private NAT ip.
+  - example : ACTIVE

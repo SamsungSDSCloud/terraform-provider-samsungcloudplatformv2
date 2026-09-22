@@ -37,27 +37,43 @@ variable "name" {
 
 ### Optional
 
-- `ids` (String) List of Log group IDs
-- `name` (String) Log group name (between 3 and 512 characters)
-- `retention_periods` (List of Number) List of Log group retention periods
+- `ids` (String) List of Log group IDs.
+ - example: YOUR RESOURCE'S IDS
+- `name` (String) The name of log group.
+ - example : testlg01
+ - minLength: 3
+ - maxLength: 512
+- `retention_periods` (List of Number) List of Log group retention periods.
+ - example : [365]
 
 ### Read-Only
 
-- `log_groups` (Attributes List) List of Log groups (see [below for nested schema](#nestedatt--log_groups))
+- `log_groups` (Attributes List) List of Log groups.
+ - example : [{"id": "bce52822147744b4afe0187164caa2e8", "name": "testlg01"}] (see [below for nested schema](#nestedatt--log_groups))
 
 <a id="nestedatt--log_groups"></a>
 ### Nested Schema for `log_groups`
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `created_at` (String) Created date time
-- `created_by` (String) Creator ID
-- `id` (String) Log group ID
-- `modified_at` (String) Modified date time
-- `modified_by` (String) Modifier ID
-- `name` (String) Log group name
-- `retention_period` (Number) Log group retention period
-- `retention_period_name` (String) Log group retention period name
-- `status` (String) Log group status
-Allowed values: ACTIVE, DELETING, DELETED
+- `account_id` (String) The unique identifier of the account.
+ - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+ - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) The unique identifier of the log group.
+ - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+ - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+ - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of log group.
+ - example : testlg01
+- `retention_period` (Number) Log group retention period.
+ - example : 365
+- `retention_period_name` (String) Log group retention period name.
+ - example : 1 year
+- `status` (String) Log group status.
+Allowed values: ACTIVE, DELETING, DELETED.
+ - example : ACTIVE

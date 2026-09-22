@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_certificate_manager_self_sign Resource - samsungcloudplatformv2"
 subcategory: Certificate Manager
 description: |-
-  certificate manager
+  Manages a self-signed SSL/TLS certificate in the Certificate Manager service. This resource creates a self-signed certificate by specifying certificate parameters such as Common Name (CN), organization, and validity period. Self-signed certificates are useful for internal testing and development purposes. Note: Self-signed certificates are not signed by a trusted Certificate Authority and will trigger browser warnings.
 ---
 
 # samsungcloudplatformv2_certificate_manager_self_sign (Resource)
 
-certificate manager
+Manages a self-signed SSL/TLS certificate in the Certificate Manager service. This resource creates a self-signed certificate by specifying certificate parameters such as Common Name (CN), organization, and validity period. Self-signed certificates are useful for internal testing and development purposes. Note: Self-signed certificates are not signed by a trusted Certificate Authority and will trigger browser warnings.
 
 ## Example Usage
 
@@ -16,15 +16,15 @@ provider "samsungcloudplatformv2" {
 }
 
 resource "samsungcloudplatformv2_certificate_manager_self_sign" "certificatemanager01" {
-  cn             = var.cn
-  name                  = var.name
-  not_after_dt           = var.not_after_dt
-  not_before_dt                = var.not_before_dt
-  organization                = var.organization
-  region                = var.region
-  tags                  = var.tags
-  recipients            = var.recipients
-  timezone              = var.timezone
+  cn            = var.cn
+  name          = var.name
+  not_after_dt  = var.not_after_dt
+  not_before_dt = var.not_before_dt
+  organization  = var.organization
+  region        = var.region
+  tags          = var.tags
+  recipients    = var.recipients
+  timezone      = var.timezone
 }
 
 
@@ -72,7 +72,7 @@ variable "recipients" {
   default = [{
     region    = "Asia/Seoul"
     user_id   = "ENTER YOUR RESOURCE'S USER_ID"
-    user_name = "rk.dthung1@partner.samsung.com"
+    user_name = "userA@samsung.com"
   }]
 }
 
@@ -90,49 +90,49 @@ variable "tags" {
 
 ### Required
 
-- `cn` (String) Certificate Common Name
-  - Example: test.go.kr
-- `name` (String) Certificate Name
-  - Example: test-certificate
-- `not_after_dt` (String) Certificate Expire Date
-  - Example: 20251212
-- `not_before_dt` (String) Certificate Start Date
-  - Example: 20250101
-- `organization` (String) Certificate Organization Name
-  - Example: samsungSDS
-- `region` (String) Name of region
-  - Example: west1
-- `timezone` (String) Timezone
-  - Example: Asia/Seoul
+- `cn` (String) Certificate Common Name.
+  - example : 'test.go.kr'
+- `name` (String) Certificate Name.
+  - example : 'test-certificate'
+- `not_after_dt` (String) Certificate Expire Date.
+  - example : '20251212'
+- `not_before_dt` (String) Certificate Start Date.
+  - example : '20250101'
+- `organization` (String) Certificate Organization Name.
+  - example : 'samsungSDS'
+- `region` (String) Name of region.
+  - example : 'west1'
+- `timezone` (String) Timezone indentifier.
+  - example : 'Asia/Seoul'
 
 ### Optional
 
-- `recipients` (List of Map of String) Expired certificates Recipients
+- `recipients` (List of Map of String) List of recipients who will receive notifications about certificate expiration. Each recipient is a map containing user information. Useful for ensuring timely renewal before certificate expires. Format: [{'region': 'region-name', 'user_id': 'user-id', 'user_name': 'user-name'}].
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `certificate` (Attributes) Certificate (see [below for nested schema](#nestedatt--certificate))
-- `id` (String) Identifier of the resource.
+- `certificate` (Attributes) Certificate detail (see [below for nested schema](#nestedatt--certificate))
+- `id` (String) Unique identifier of the self-signed certificate. Automatically generated upon successful creation. Use this ID to reference the certificate in other resources or data sources.
 
 <a id="nestedatt--certificate"></a>
 ### Nested Schema for `certificate`
 
 Read-Only:
 
-- `cert_kind` (String) Certificate type
-  - Example: DEV
-- `cn` (String) Certificate Common Name
-  - Example: test.go.kr
-- `id` (String) ID
-  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
-- `name` (String) Certificate Name
-  - Example: test-certificate
-- `not_after_dt` (String) Certificate Expire Date
-  - Example: 2026-02-07T18:07:59
-- `not_before_dt` (String) Certificate Start Date
-  - Example: 2025-02-08T18:07:00
-- `state` (String) Certificate State
-  - Example: VALID
+- `cert_kind` (String) Certificate type.
+  - example : 'DEV'
+- `cn` (String) Certificate Common Name.
+  - example : 'test.go.kr'
+- `id` (String) Certificate ID.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Certificate Name.
+  - example : 'test-certificate'
+- `not_after_dt` (String) Certificate Expire Date.
+  - example : '2026-02-07T18:07:59'
+- `not_before_dt` (String) Certificate Start Date.
+  - example : '2025-02-08T18:07:00'
+- `state` (String) Certificate State.
+  - example : 'VALID'

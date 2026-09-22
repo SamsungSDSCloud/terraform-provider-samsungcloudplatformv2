@@ -210,6 +210,10 @@ variable "lb_listener_https" {
       client_cert_level = string
       server_cert_level = string
     })
+    sni_certificate = list(object({
+      sni_cert_id = string
+      domain_name = string
+    }))
     url_handler = list(object({
       url_pattern     = string
       server_group_id = string
@@ -227,42 +231,38 @@ variable "lb_listener_https" {
     routing_action    = string
     condition_type    = string
     idle_timeout      = number
-    hsts_max_age      = number
+    support_http2     = bool
+    tags              = map(string)
   })
   default = {
     condition_type        = "URL_PATH"
-    description           = "aa2"
-    hsts_max_age          = null
+    description           = "update"
+    hsts_config           = null
     https_redirection     = null
-    idle_timeout          = 240
+    idle_timeout          = 60
     insert_client_ip      = null
     loadbalancer_id       = "ENTER YOUR RESOURCE'S LOADBALANCER_ID"
-    name                  = "terraform-https"
-    persistence           = "source-ip"
-    protocol              = "HTTPS"
-    response_timeout      = null
+    name                  = "sdsvtes4"
+    persistence           = "COOKIE"
+    protocol              = "HTTP"
+    response_timeout      = 11
     routing_action        = "LB_SERVER_GROUP"
     server_group_id       = "ENTER YOUR RESOURCE'S SERVER_GROUP_ID"
-    service_port          = 34124
-    session_duration_time = null
-    ssl_certificate = {
-      client_cert_id    = "ENTER YOUR RESOURCE'S CLIENT_CERT_ID"
-      client_cert_level = "HIGH"
-      server_cert_level = null
-    }
+    service_port          = 2
+    session_duration_time = 12
+    sni_certificate       = null
+    ssl_certificate       = null
+    support_http2         = true
+    tags                  = null
     url_handler = [{
       seq             = 0
       server_group_id = "ENTER YOUR RESOURCE'S SERVER_GROUP_ID"
       url_pattern     = "default"
-      }, {
-      seq             = 1
-      server_group_id = "ENTER YOUR RESOURCE'S SERVER_GROUP_ID"
-      url_pattern     = "/"
     }]
     url_redirection   = null
-    x_forwarded_for   = false
-    x_forwarded_port  = false
-    x_forwarded_proto = false
+    x_forwarded_for   = true
+    x_forwarded_port  = true
+    x_forwarded_proto = true
   }
 }
 
@@ -361,12 +361,11 @@ variable "lb_listener_tcp" {
     routing_action    = string
     condition_type    = string
     idle_timeout      = number
-    hsts_max_age      = number
+    support_http2     = bool
   })
   default = {
     condition_type        = null
     description           = "aa2"
-    hsts_max_age          = null
     https_redirection     = null
     idle_timeout          = null
     insert_client_ip      = null
@@ -380,6 +379,7 @@ variable "lb_listener_tcp" {
     service_port          = 34125
     session_duration_time = 120
     ssl_certificate       = null
+    support_http2         = false
     url_handler           = null
     url_redirection       = null
     x_forwarded_for       = null
@@ -476,6 +476,88 @@ variable "update_sni_certificate" {
     x_forwarded_for   = false
     x_forwarded_port  = false
     x_forwarded_proto = false
+  }
+}
+
+variable "lb_listener_certificate" {
+  description = "Certificate fields for updating LB Listener via SetLbListenerCertificate API (LbListenerCertificateBase)"
+  type = object({
+    ssl_certificate = object({
+      client_cert_id    = string
+      client_cert_level = string
+      server_cert_level = string
+    })
+    sni_certificate = list(object({
+      sni_cert_id = string
+      domain_name = string
+    }))
+  })
+  default = {
+    sni_certificate = null
+    ssl_certificate = null
+  }
+}
+
+variable "lb_listener_rule" {
+  description = "Rule fields for updating LB Listener via SetLbListenerRule API (LbListenerRuleBase)"
+  type = object({
+    condition_type  = string
+    server_group_id = string
+    url_redirection = string
+    https_redirection = object({
+      protocol      = string
+      port          = string
+      response_code = string
+    })
+    url_handler = list(object({
+      url_pattern     = string
+      server_group_id = string
+      seq             = number
+    }))
+  })
+  default = {
+    condition_type    = "URL_PATH"
+    https_redirection = null
+    server_group_id   = "ENTER YOUR RESOURCE'S SERVER_GROUP_ID"
+    url_handler = [{
+      seq             = 0
+      server_group_id = "ENTER YOUR RESOURCE'S SERVER_GROUP_ID"
+      url_pattern     = "default"
+    }]
+    url_redirection = null
+  }
+}
+
+variable "lb_listener_resource" {
+  description = "Resource fields for updating LB Listener via SetLbListenerResource API (LbListenerDistinctBase)"
+  type = object({
+    description           = string
+    insert_client_ip      = bool
+    persistence           = string
+    response_timeout      = number
+    session_duration_time = number
+    idle_timeout          = number
+    support_http2         = bool
+    x_forwarded_for       = bool
+    x_forwarded_port      = bool
+    x_forwarded_proto     = bool
+    hsts_config = object({
+      include_sub_domains = bool
+      max_age             = number
+    })
+  })
+  default = {
+    description           = "update"
+    hsts_config           = null
+    idle_timeout          = null
+    insert_client_ip      = null
+    persistence           = null
+    response_timeout      = 115
+    session_duration_time = 110
+    support_http2         = true
+    x_forwarded_for       = true
+    x_forwarded_port      = true
+    x_forwarded_proto     = true
   }
 }
 

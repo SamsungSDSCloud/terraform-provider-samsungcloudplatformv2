@@ -2,12 +2,17 @@
 page_title: "samsungcloudplatformv2_virtualserver_images Data Source - samsungcloudplatformv2"
 subcategory: Image
 description: |-
-  list of images.
+  Retrieves a list of images.
+  GPU Image:
+  For GPU Server, use images with scp_image_type of gpu_standard or gpu_custom.
 ---
 
 # samsungcloudplatformv2_virtualserver_images (Data Source)
 
-list of images.
+Retrieves a list of images.
+
+**GPU Image:**
+- For GPU Server, use images with `scp_image_type` of `gpu_standard` or `gpu_custom`.
 
 ## Example Usage
 
@@ -86,16 +91,25 @@ variable "images_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `name` (String) Name
-- `os_distro` (String) OS Distro
-- `scp_image_type` (String) SCP Image type
-- `scp_original_image_type` (String) SCP Original Image type
-- `status` (String) Status
-- `visibility` (String) Visibility
+- `name` (String) Image name.
+  - example: ubuntu-22.04
+- `os_distro` (String) OS distribution.
+  - example: ubuntu
+  - Available values: alma, centos, rhel, rocky, ubuntu, windows, oracle
+- `scp_image_type` (String) SCP image type.
+  - example: standard
+  - Available values: standard, custom, gpu_standard, gpu_custom
+- `scp_original_image_type` (String) SCP original image type.
+  - example: standard
+- `status` (String) Image status.
+  - example: active
+- `visibility` (String) Image visibility.
+  - example: private
+  - Available values: , shared, private
 
 ### Read-Only
 
-- `ids` (List of String) Image ID List
+- `ids` (List of String) List of image IDs.
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -103,5 +117,8 @@ variable "images_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_health_checks Data Source - samsungcloudplatformv2"
 subcategory: LB Health Check
 description: |-
-  Get List of Lb Health Checks.
+  List all LB Health Checks.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_health_checks (Data Source)
 
-Get List of Lb Health Checks.
+List all LB Health Checks.
 
 ## Example Usage
 
@@ -56,12 +56,22 @@ variable "subnet_id" {
 
 ### Optional
 
-- `name` (String) Name
-- `page` (Number) Page
-- `protocol` (List of String) Protocol
-- `size` (Number) Size
-- `sort` (String) Sort
-- `subnet_id` (String) SubnetId
+- `name` (String) The name of the LB Health Check.
+  - example : HealthCheck01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `page` (Number) The page number.
+  - example : 0
+- `protocol` (List of String) The protocol used for the health check.
+  - example : HTTP
+  - pattern : TCP | HTTP | HTTPS
+- `size` (Number) The number of items per page.
+  - example : 20
+- `sort` (String) The sort order.
+  - example : name:asc
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 
 ### Read-Only
 
@@ -72,17 +82,34 @@ variable "subnet_id" {
 
 Optional:
 
-- `health_check_type` (String) HealthCheckType
-- `id` (String) Id
-- `lb_server_group_count` (Number) LbServerGroupCount
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `state` (String) State
-- `subnet_id` (String) SubnetId
+- `health_check_type` (String) The type of health check.
+  - example : DEFAULT
+  - pattern : DEFAULT | CUSTOM
+- `id` (String) The unique identifier of the LB Health Check.
+  - example: YOUR RESOURCE'S ID
+- `lb_server_group_count` (Number) The number of LB Server Groups.
+  - example : 2
+- `name` (String) The name of the LB Health Check.
+  - example : HealthCheck01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol for health checks.
+  - example : HTTP
+  - pattern : TCP | HTTP | HTTPS
+- `state` (String) The current state of the Health Check.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

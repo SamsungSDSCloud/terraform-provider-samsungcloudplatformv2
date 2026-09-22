@@ -57,8 +57,12 @@ variable "resource_groups_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) Id (between 1 and 64 characters)
-- `name` (String) Name (between 1 and 256 characters)
+- `id` (String) The unique identifier of the resource group.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `name` (String) The name of the resource group.
+
+Example: `example-rg`
 - `region` (String) Region
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -66,7 +70,9 @@ variable "resource_groups_filter_use_regex" {
 
 ### Read-Only
 
-- `ids` (List of String) ID List
+- `ids` (List of String) The unique identifier's list of the resource group.
+
+Example: `[e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67, 70636f984e564b3c9e54e74a53f9318d]`
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -74,5 +80,8 @@ variable "resource_groups_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

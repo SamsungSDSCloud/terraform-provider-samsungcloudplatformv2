@@ -3,12 +3,11 @@ package vpc
 import (
 	"context"
 	"fmt"
-	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -28,7 +27,7 @@ func NewVpcNatGatewayDataSource() datasource.DataSource {
 // vpcNatGatewayDataSource is the data source implementation.
 type vpcNatGatewayDataSource struct {
 	config  *scpsdk.Configuration
-	client  *vpcv1d2.Client
+	client  *vpcv1d3.Client
 	clients *client.SCPClient
 }
 
@@ -43,55 +42,60 @@ func (d *vpcNatGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaR
 		Description: "List of NAT Gateways.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size \n" +
+				Description: "The number of items per page. \n" +
 					"  - example : 20",
 				Optional: true,
 				Computed: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page \n" +
+				Description: "The page number for pagination. \n" +
 					"  - example : 0",
 				Optional: true,
 				Computed: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order. \n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "NAT Gateway Name \n" +
+				Description: "The name of the resource.\n" +
 					"  - example : NatGatewayName",
 				Optional: true,
 			},
 			common.ToSnakeCase("NatGatewayIpAddress"): schema.StringAttribute{
-				Description: "NAT Gateway IP Address \n" +
+				Description: "The IP address of the NAT gateway.\n" +
 					"  - example : 192.167.0.5",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "VPC ID \n" +
+				Description: "The identifier of the VPC that the NAT gateway belongs to.\n" +
 					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
 				Optional: true,
 			},
 			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description: "VPC Name \n" +
+				Description: "The name of the VPC that the NAT gateway belongs to. \n" +
 					"  - example : vpcName",
 				Optional: true,
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID \n" +
+				Description: "The identifier of the subnet that the NAT gateway belongs to. \n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Optional: true,
 			},
 			common.ToSnakeCase("SubnetName"): schema.StringAttribute{
-				Description: "Subnet Name \n" +
+				Description: "The name of the subnet that the NAT gateway belongs to.\n" +
 					"  - example : subnetName",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "NAT Gateway State \n" +
+				Description: "The current lifecycle state of the NAT gateway.\n" +
 					"  - example : CREATING | ACTIVE | DELETING | DELETED | ERROR",
+				Optional: true,
+			},
+			common.ToSnakeCase("MultiZoneEnabled"): schema.BoolAttribute{
+				Description: "Whether the NAT gateway is enabled for multi-zone.\n" +
+					"  - example : true",
 				Optional: true,
 			},
 			common.ToSnakeCase("NatGateways"): schema.ListNestedAttribute{
@@ -100,75 +104,106 @@ func (d *vpcNatGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaR
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "NAT Gateway ID",
-							Computed:    true,
+							Description: "The unique identifier of the NAT gateway.\n" +
+								"  - example : 12f56e27070248a6a240a497e43fbe18",
+							Computed: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "NAT Gateway Name",
-							Computed:    true,
+							Description: "The name of the NAT gateway.\n" +
+								"  - example : NatGatewayName",
+							Computed: true,
 						},
-						common.ToSnakeCase("NatGatewayIpAddress"): schema.StringAttribute{
-							Description: "NAT Gateway IP Address",
-							Computed:    true,
+						common.ToSnakeCase("NatGatewayIps"): schema.ListNestedAttribute{
+							Description: "A list of NAT gateway IP addresses.\n" +
+								"  - example : [{\"ip_address\": \"192.167.0.5\", \"publicip_id\": \"12f56e27070248a6a240a497e43fbe18\"}]",
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									common.ToSnakeCase("IpAddress"): schema.StringAttribute{
+										Description: "The IP address of the NAT gateway.\n" +
+											"  - example : 192.167.0.5",
+										Computed: true,
+									},
+									common.ToSnakeCase("PublicipId"): schema.StringAttribute{
+										Description: "The identifier of the public IP address.\n" +
+											"  - example : 12f56e27070248a6a240a497e43fbe18",
+										Computed: true,
+									},
+								},
+							},
 						},
 						common.ToSnakeCase("VpcId"): schema.StringAttribute{
-							Description: "VPC ID",
-							Computed:    true,
+							Description: "The identifier of the VPC that the NAT gateway belongs to.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Computed: true,
 						},
 						common.ToSnakeCase("VpcName"): schema.StringAttribute{
-							Description: "VPC Name",
-							Computed:    true,
+							Description: "The name of the VPC that the NAT gateway belongs to.\n" +
+								"  - example : vpcName",
+							Computed: true,
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-							Description: "Subnet ID",
-							Computed:    true,
+							Description: "The identifier of the subnet that the NAT gateway belongs to.\n" +
+								"  - example : 023c57b14f11483689338d085e061492",
+							Computed: true,
 						},
 						common.ToSnakeCase("SubnetName"): schema.StringAttribute{
-							Description: "Subnet Name",
-							Computed:    true,
+							Description: "The name of the subnet that the NAT gateway belongs to.\n" +
+								"  - example : subnetName",
+							Computed: true,
 						},
 						common.ToSnakeCase("SubnetCidr"): schema.StringAttribute{
-							Description: "Subnet CIDR",
-							Computed:    true,
+							Description: "The IP address range of the subnet in CIDR notation.\n" +
+								"  - example : 192.167.1.0/24",
+							Computed: true,
 						},
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "Account ID",
-							Computed:    true,
+							Description: "The identifier of the account that owns the NAT gateway.\n" +
+								"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "NAT Gateway State",
-							Computed:    true,
+							Description: "The current lifecycle state of the NAT gateway.\n" +
+								"  - example : ACTIVE",
+							Computed: true,
+						},
+						common.ToSnakeCase("MultiZoneEnabled"): schema.BoolAttribute{
+							Description: "Whether the NAT gateway is enabled for multi-zone.\n" +
+								"  - example : true",
+							Computed: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "NAT Gateway Description",
-							Computed:    true,
-						},
-						common.ToSnakeCase("PublicipId"): schema.StringAttribute{
-							Description: "PublicIP ID",
-							Computed:    true,
+							Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+								"  - example : NAT Gateway Description",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "Created At",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "Created By",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "Modified At",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "Modified By",
-							Computed:    true,
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("TotalCount"): schema.Int32Attribute{
-				Description: "Count",
-				Computed:    true,
+				Description: "The total number of nat gateways.\n" +
+					"  - example : 2",
+				Computed: true,
 			},
 			common.ToSnakeCase("SortFinal"): schema.ListAttribute{
 				Description: "List of sort condition \n" +
@@ -198,13 +233,13 @@ func (d *vpcNatGatewayDataSource) Configure(_ context.Context, req datasource.Co
 		return
 	}
 
-	d.client = inst.Client.VpcV1Dot2
+	d.client = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *vpcNatGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state vpcv1d2.NatGatewayDataSource
+	var state vpcv1d3.NatGatewayDataSource
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -224,25 +259,7 @@ func (d *vpcNatGatewayDataSource) Read(ctx context.Context, req datasource.ReadR
 
 	// Map response body to model
 	for _, natgateway := range data.NatGateways {
-		natgatewayState := vpcv1d2.NatGateway{
-			Id:                  types.StringValue(natgateway.Id),
-			Name:                types.StringValue(natgateway.Name),
-			NatGatewayIpAddress: types.StringValue(natgateway.NatGatewayIpAddress),
-			VpcId:               types.StringValue(natgateway.VpcId),
-			VpcName:             types.StringValue(natgateway.VpcName),
-			SubnetId:            types.StringValue(natgateway.SubnetId),
-			SubnetName:          types.StringValue(natgateway.SubnetName),
-			SubnetCidr:          types.StringValue(natgateway.SubnetCidr),
-			AccountId:           types.StringValue(natgateway.AccountId),
-			State:               types.StringValue(string(natgateway.State)),
-			Description:         types.StringPointerValue(natgateway.Description.Get()),
-			PublicipId:          types.StringPointerValue(natgateway.PublicipId.Get()),
-			CreatedAt:           types.StringValue(natgateway.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:           types.StringValue(natgateway.CreatedBy),
-			ModifiedAt:          types.StringValue(natgateway.ModifiedAt.Format(time.RFC3339)),
-			ModifiedBy:          types.StringValue(natgateway.ModifiedBy),
-		}
-		state.NatGateways = append(state.NatGateways, natgatewayState)
+		state.NatGateways = append(state.NatGateways, vpcv1d3.ResponseToNatGatewayDSValue(natgateway))
 	}
 
 	state.TotalCount = types.Int32Value(data.Count)

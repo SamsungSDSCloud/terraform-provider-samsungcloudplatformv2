@@ -2,8 +2,6 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_backup_backups" "ids" {
-  region = var.region
-
   server_name = var.server_name
   name = var.name
 

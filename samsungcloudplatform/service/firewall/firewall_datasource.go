@@ -3,14 +3,15 @@ package firewall
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/firewall"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	firewall "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/firewallv1d1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -37,88 +38,124 @@ func (d *firewallFirewallDataSource) Metadata(_ context.Context, req datasource.
 // Schema defines the schema for the data source.
 func (d *firewallFirewallDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Firewall",
+		Description: "Retrieves details of a firewall instance.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Firewall ID \n" +
-					"  - example : 68db67f78abd405da98a6056a8ee42af",
+				Description: "The unique identifier of the resource.\n" +
+					"  - example: 68db67f78abd405da98a6056a8ee42af",
 				Required: true,
 			},
 			common.ToSnakeCase("Firewall"): schema.SingleNestedAttribute{
-				Description: "Firewall",
+				Description: "The firewall resource details.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the resource.\n" +
+							"  - example: 68db67f78abd405da98a6056a8ee42af",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The account ID associated with the resource.\n" +
+							"  - example: 297615908b8e4ec69520a99a6777add3",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the resource.\n" +
+							"  - example: fw-web-prod",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Computed:    true,
+						Description: "The identifier of the VPC that the resource belongs to.\n" +
+							"  - example: 6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("VpcName"): schema.StringAttribute{
-						Description: "VpcName",
-						Computed:    true,
+						Description: "The name of the VPC that the resource belongs to.\n" +
+							"  - example: vpc-prod-01",
+						Computed: true,
 					},
 					common.ToSnakeCase("Loggable"): schema.BoolAttribute{
-						Description: "Loggable",
-						Computed:    true,
-					},
-					common.ToSnakeCase("FwResourceId"): schema.StringAttribute{
-						Description: "FwResourceId",
-						Computed:    true,
+						Description: "The flag indicating whether firewall flow logs are stored.\n" +
+							"  - example: True",
+						Computed: true,
 					},
 					common.ToSnakeCase("PreProductId"): schema.StringAttribute{
-						Description: "PreProductId",
-						Computed:    true,
+						Description: "The identifier of the firewall pre‑product associated with the service.\n" +
+							"  - example: a637b0c278064513ab90ac9e91a92e03",
+						Computed: true,
 					},
 					common.ToSnakeCase("ProductType"): schema.StringAttribute{
-						Description: "ProductType",
-						Computed:    true,
+						Description: "The type of the firewall service.\n" +
+							"  - example: IGW",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the resource.\n" +
+							"  - example: ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("Status"): schema.StringAttribute{
-						Description: "Status",
-						Computed:    true,
+						Description: "The current status of the resource.\n" +
+							"  - example: ENABLE",
+						Computed: true,
 					},
 					common.ToSnakeCase("TotalRuleCount"): schema.Int32Attribute{
-						Description: "TotalRuleCount",
-						Computed:    true,
+						Description: "Number of rules in the firewall.\n" +
+							"  - example: 5",
+						Computed: true,
 					},
 					common.ToSnakeCase("FlavorName"): schema.StringAttribute{
-						Description: "FlavorName",
-						Computed:    true,
+						Description: "Firewall size.\n" +
+							"  - example: MEDIUM",
+						Computed: true,
 					},
 					common.ToSnakeCase("FlavorRuleQuota"): schema.Int32Attribute{
-						Description: "FlavorRuleQuota",
-						Computed:    true,
+						Description: "Firewall rule quota based on firewall size.\n" +
+							"  - example: 200",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
+							"  - example: 2025-01-15T10:30:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user ID that created the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
+							"  - example: 2025-06-01T14:22:00Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
+						Description: "The user ID that modified the resource.\n" +
+							"  - example: 6a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+						Computed: true,
+					},
+					"zone_resources": schema.ListNestedAttribute{
 						Computed:    true,
+						Description: "Firewall Zone Resources",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"allocate_state": schema.StringAttribute{
+									Computed: true,
+									Description: "Firewall Allocate Type.\n" +
+										"  - enum  : 'SUCCESS' | 'FAIL' | 'DELETED'",
+								},
+								"fw_resource_id": schema.StringAttribute{
+									Computed: true,
+									Description: "Firewall resource id.\n" +
+										"  - example : '005fd1d30dea11f08a2c56773bef875b'",
+								},
+								"zone": schema.StringAttribute{
+									Computed: true,
+									Description: "Firewall Zone.\n" +
+										"  - example : 'kr-west1-a'",
+								},
+							},
+						},
 					},
 				},
 			},
@@ -145,7 +182,7 @@ func (d *firewallFirewallDataSource) Configure(_ context.Context, req datasource
 		return
 	}
 
-	d.client = inst.Client.Firewall
+	d.client = inst.Client.FirewallV1d1
 	d.clients = inst.Client
 }
 
@@ -159,68 +196,52 @@ func (d *firewallFirewallDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	var defaultSize types.Int32
-	var defaultPage types.Int32
-	var defaultSort types.String
-	var defaultName types.String
-	var defaultVpcName types.String
-	var defaultProductType types.List
-	var defaultState types.List
-
-	ids, err := GetFirewallList(d.clients, defaultPage, defaultSize, defaultSort, defaultName, defaultVpcName, defaultProductType, defaultState)
+	data, err := d.client.ShowFirewall(ctx, state.Id.ValueString()) // client 를 호출한다.
 	if err != nil {
+		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Unable to Read Firewall",
-			err.Error(),
+			"Error Reading Firewall",
+			"Could not read Firewall ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
 		)
+		return
 	}
 
-	if len(ids) > 0 {
-		exist := false
-		for _, v := range ids {
-			if v == state.Id {
-				exist = true
-				break
-			}
-		}
+	firewallElement := data.Firewall
 
-		if exist {
-			data, err := d.client.GetFirewall(state.Id.ValueString()) // client 를 호출한다.
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				resp.Diagnostics.AddError(
-					"Error Reading Firewall",
-					"Could not read Firewall ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
-				)
-				return
+	var zoneResources []firewall.ZoneResources
+	if len(firewallElement.ZoneResources) > 0 {
+		for _, v := range firewallElement.ZoneResources {
+			zoneResource := firewall.ZoneResources{
+				AllocateState: types.StringValue(string(v.AllocateState)),
+				FwResourceId:  types.StringValue(v.FwResourceId),
+				Zone:          types.StringValue(v.Zone),
 			}
-
-			firewallElement := data.Firewall
-
-			firewallModel := firewall.Firewall{
-				Id:              types.StringValue(firewallElement.Id),
-				AccountId:       types.StringValue(firewallElement.AccountId),
-				Name:            types.StringValue(firewallElement.Name),
-				VpcId:           types.StringPointerValue(firewallElement.VpcId.Get()),
-				VpcName:         types.StringPointerValue(firewallElement.VpcName.Get()),
-				Loggable:        types.BoolValue(firewallElement.Loggable),
-				FwResourceId:    types.StringValue(firewallElement.FwResourceId),
-				PreProductId:    types.StringPointerValue(firewallElement.PreProductId),
-				ProductType:     types.StringValue(string(firewallElement.ProductType)),
-				State:           types.StringValue(string(firewallElement.State)),
-				Status:          types.StringValue(string(firewallElement.Status)),
-				TotalRuleCount:  types.Int32Value(*firewallElement.TotalRuleCount),
-				FlavorName:      types.StringPointerValue(firewallElement.FlavorName),
-				FlavorRuleQuota: types.Int32Value(*firewallElement.FlavorRuleQuota),
-				CreatedAt:       types.StringValue(firewallElement.CreatedAt.Format(time.RFC3339)),
-				CreatedBy:       types.StringValue(firewallElement.CreatedBy),
-				ModifiedAt:      types.StringValue(firewallElement.ModifiedAt.Format(time.RFC3339)),
-				ModifiedBy:      types.StringValue(firewallElement.ModifiedBy),
-			}
-			firewallObjectValue, _ := types.ObjectValueFrom(ctx, firewallModel.AttributeTypes(), firewallModel)
-			state.Firewall = firewallObjectValue
+			zoneResources = append(zoneResources, zoneResource)
 		}
 	}
+
+	firewallModel := firewall.Firewall{
+		Id:              types.StringValue(firewallElement.Id),
+		AccountId:       types.StringValue(firewallElement.AccountId),
+		Name:            types.StringValue(firewallElement.Name),
+		VpcId:           types.StringPointerValue(firewallElement.VpcId.Get()),
+		VpcName:         types.StringPointerValue(firewallElement.VpcName.Get()),
+		Loggable:        types.BoolValue(firewallElement.Loggable),
+		PreProductId:    types.StringPointerValue(firewallElement.PreProductId),
+		ProductType:     types.StringValue(string(firewallElement.ProductType)),
+		State:           types.StringValue(string(firewallElement.State)),
+		Status:          types.StringValue(string(firewallElement.Status)),
+		TotalRuleCount:  types.Int32Value(*firewallElement.TotalRuleCount),
+		FlavorName:      types.StringPointerValue(firewallElement.FlavorName),
+		FlavorRuleQuota: types.Int32Value(*firewallElement.FlavorRuleQuota),
+		CreatedAt:       types.StringValue(firewallElement.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:       types.StringValue(firewallElement.CreatedBy),
+		ModifiedAt:      types.StringValue(firewallElement.ModifiedAt.Format(time.RFC3339)),
+		ModifiedBy:      types.StringValue(firewallElement.ModifiedBy),
+		ZoneResources:   zoneResources,
+	}
+	firewallObjectValue, _ := types.ObjectValueFrom(ctx, firewallModel.AttributeTypes(), firewallModel)
+	state.Firewall = firewallObjectValue
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

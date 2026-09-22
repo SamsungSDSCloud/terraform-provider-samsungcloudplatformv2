@@ -1,0 +1,31 @@
+category:
+  organization: Organization
+  organization_organizations: Organization
+  organization_membership: Organization
+
+  organization_unit: Organization Unit
+  organization_units: Organization Unit
+  organization_unit_parents: Organization Unit
+
+  organization_account: Organization Account
+  organization_accounts: Organization Account
+  organization_account_move: Organization Account
+  organization_account_remove: Organization Account
+
+  organization_account_invitations: Organization Account Invitation
+  organization_invitations: Organization Account Invitation
+  organization_invitation: Organization Account Invitation
+  organization_invitation_accept: Organization Account Invitation
+  organization_invitation_cancel: Organization Account Invitation
+  organization_invitation_decline: Organization Account Invitation
+
+  organization_delegation_policy: Organization Delegation Policy
+
+  organization_service_control_policies: Organization Service Control Policy
+  organization_service_control_policy: Organization Service Control Policy
+  organization_policy_binding: Organization Service Control Policy
+  organization_policies_for_target: Organization Service Control Policy
+  organization_targets_for_policy: Organization Service Control Policy
+
+  organization_delegation_account: Organization Delegation Account
+  organization_delegation_accounts: Organization Delegation Account

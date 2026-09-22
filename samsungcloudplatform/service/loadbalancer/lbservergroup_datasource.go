@@ -3,15 +3,16 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -27,9 +28,9 @@ func NewLoadbalancerLbServerGroupDataSource() datasource.DataSource {
 
 // loadBalancerLbServerGroupDataSource is the data source implementation.
 type loadBalancerLbServerGroupDataSource struct {
-	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	clientv1d4 *loadbalancerv1d4.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -40,75 +41,100 @@ func (d *loadBalancerLbServerGroupDataSource) Metadata(_ context.Context, req da
 // Schema defines the schema for the data source.
 func (d *loadBalancerLbServerGroupDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Show Lb Server Group.",
+		Description: "Retrieve details of a specific LB Server Group.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Optional:    true,
+				Description: "The unique identifier of the LB Server Group.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LbServerGroup"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Server Group.",
+				Description: "Details of the LB Server Group.",
 				Computed:    true,
-				Attributes: map[string]schema.Attribute{common.ToSnakeCase("AccountId"): schema.StringAttribute{
-					Description: "AccountId",
-					Optional:    true,
-				},
+				Attributes: map[string]schema.Attribute{
+					common.ToSnakeCase("AccountId"): schema.StringAttribute{
+						Description: "The account ID associated with the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
+					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : Server group for web servers\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LbMethod"): schema.StringAttribute{
-						Description: "LbMethod",
-						Optional:    true,
+						Description: "The load balancing method.\n" +
+							"  - example : ROUND_ROBIN\n" +
+							"  - pattern : ROUND_ROBIN | LEAST_CONNECTION | SOURCE_IP_PORT_HASH | SOURCE_IP_HASH | WEIGHTED_ROUND_ROBIN | WEIGHTED_LEAST_CONNECTION\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LbName"): schema.StringAttribute{
-						Description: "LbName",
-						Optional:    true,
+						Description: "The name of the LoadBalancer.\n" +
+							"  - example : LoadBalancer01\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-						Description: "LoadbalancerId",
-						Optional:    true,
+						Description: "The LoadBalancer ID associated with the server group.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Optional:    true,
+						Description: "The current state of the LB Server Group.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR | EDITING | TERMINATING\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the LB Server Group.\n" +
+							"  - example : ServerGroup01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n" +
+							"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "Protocol",
-						Optional:    true,
+						Description: "The protocol for the server group.\n" +
+							"  - example : TCP\n" +
+							"  - pattern : TCP | UDP | HTTP | HTTPS\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("VpcId"): schema.StringAttribute{
-						Description: "VpcId",
-						Optional:    true,
+						Description: "The VPC ID where the resource is located.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Optional:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("LbHealthCheckId"): schema.StringAttribute{
-						Description: "LbHealthCheckId",
-						Optional:    true,
-					}},
+						Description: "The LB Health Check ID.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
+					},
+				},
 			},
 		},
 	}
@@ -132,14 +158,14 @@ func (d *loadBalancerLbServerGroupDataSource) Configure(_ context.Context, req d
 		return
 	}
 
-	d.client = inst.Client.LoadBalancer
+	d.clientv1d4 = inst.Client.LoadBalancerV1d4
 	d.clients = inst.Client
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (d *loadBalancerLbServerGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	// Get current state
-	var state loadbalancer.LbServerGroupDataSourceDetail
+	var state loadbalancerv1d4.LbServerGroupDataSourceDetail
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -147,8 +173,8 @@ func (d *loadBalancerLbServerGroupDataSource) Read(ctx context.Context, req data
 		return
 	}
 
-	// Get refreshed order value from routing rule
-	data, err := d.client.GetLbServerGroup(ctx, state.Id.ValueString())
+	// Get refreshed LB Server Group value from v1.4 API
+	data, err := d.clientv1d4.GetLbServerGroupV1d4(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -158,7 +184,7 @@ func (d *loadBalancerLbServerGroupDataSource) Read(ctx context.Context, req data
 		return
 	}
 
-	var lbServerGroupState = loadbalancer.LbServerGroupDetail{
+	var lbServerGroupState = loadbalancerv1d4.LbServerGroupDetail{
 		Name:            types.StringValue(data.LbServerGroup.Name),
 		Protocol:        types.StringValue(string(data.LbServerGroup.Protocol)),
 		LoadbalancerId:  types.StringPointerValue(data.LbServerGroup.LoadbalancerId.Get()),

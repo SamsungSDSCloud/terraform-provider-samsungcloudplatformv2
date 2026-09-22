@@ -2,8 +2,8 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.terraform.io/samsungsdscloud/samsungcloudplatformv2" {
-  version     = "3.3.2"
-  constraints = "3.3.2"
+  version     = "6.0.1"
+  constraints = "6.0.1"
   hashes = [
     "h1:K8mQzYnQ+1brBWrRI40/2xco3/BKcGJvCNGOPSN2K1U=",
   ]

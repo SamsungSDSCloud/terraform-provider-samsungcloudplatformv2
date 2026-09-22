@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -40,8 +41,12 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 		Description: "List of Transit Gateway",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("firewall_connection_state"): schema.StringAttribute{
-				Description:         "- enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]",
-				MarkdownDescription: "- enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]",
+				Description: "The current lifecycle state of the firewall connection. \n" +
+					"  - enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]\n" +
+					"  - example: ACTIVE",
+				MarkdownDescription: "The current lifecycle state of the firewall connection. \n" +
+					"  - enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]\n" +
+					"  - example: ACTIVE",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"ATTACHING",
@@ -55,38 +60,46 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Transit Gateway Name \n" +
+				Description: "The name of the transit gateway. \n" +
 					"  - example : TransitGatewayName",
-				MarkdownDescription: "Transit Gateway Name \n" +
+				MarkdownDescription: "The name of the transit gateway. \n" +
 					"  - example : TransitGatewayName",
 				Optional: true,
 			},
 			common.ToSnakeCase("page"): schema.Int32Attribute{
-				Optional:            true,
-				Description:         "page",
-				MarkdownDescription: "page",
+				Optional: true,
+				Description: "The page number for pagination.\n" +
+					"  - example : 0",
+				MarkdownDescription: "The page number for pagination.\n" +
+					"  - example : 0",
 				Validators: []validator.Int32{
 					int32validator.Between(0, 99999),
 				},
 			},
 			common.ToSnakeCase("size"): schema.Int32Attribute{
-				Optional:            true,
-				Description:         "Size (between 1 and 10000)",
-				MarkdownDescription: "Size (between 1 and 10000)",
+				Optional: true,
+				Description: "The number of items per page.\n" +
+					"  - example : 20",
+				MarkdownDescription: "The number of items per page.\n" +
+					"  - example : 20",
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort \n" +
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order. \n" +
 					"  - example : created_at:desc",
-				MarkdownDescription: "Sort \n" +
+				MarkdownDescription: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order. \n" +
 					"  - example : created_at:desc",
 				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description:         "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\", \"EDITTING\"]",
-				MarkdownDescription: "- enum: [\"CREATING\",\"ACTIVE\",\"DELETING\",\"DELETED\",\"ERROR\", \"EDITTING\"]",
+				Description: "The current lifecycle state of the transit gateway. \n" +
+					"  - enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]\n" +
+					"  - example:ACTIVE",
+				MarkdownDescription: "The current lifecycle state of the transit gateway. \n" +
+					"  - enum: [ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR]\n" +
+					"  - example:ACTIVE",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"CREATING",
@@ -100,8 +113,29 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				Optional: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "id",
-				Optional:    true,
+				Description: "The unique identifier of the transit gateway.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Optional: true,
+			},
+			common.ToSnakeCase("UplinkZoneState"): schema.StringAttribute{
+				Description: "The current state of the uplink zone.\n" +
+					"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR\n" +
+					"  - example : ACTIVE",
+				MarkdownDescription: "The current state of the uplink zone.\n" +
+					"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR, EDITING\n" +
+					"  - example : ACTIVE",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"ATTACHING",
+						"ACTIVE",
+						"DETACHING",
+						"DELETED",
+						"INACTIVE",
+						"ERROR",
+						"EDITING",
+					),
+				},
+				Optional: true,
 			},
 			common.ToSnakeCase("Tgws"): schema.ListNestedAttribute{
 				Description: "A list of tgw.",
@@ -109,59 +143,85 @@ func (d *tgwDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Computed:    true,
+							Description: "The identifier of the account that owns the transit gateway.\n" +
+								"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+							Computed: true,
 						},
 						common.ToSnakeCase("Bandwidth"): schema.Int32Attribute{
-							Description: "Bandwidth",
-							Computed:    true,
+							Description: "The bandwidth capacity of the connection.\n" +
+								"  - example : 1",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Computed:    true,
+							Description: "The timestamp when the transit gateway was created in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Computed:    true,
+							Description: "The user id that created the transit gateway.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("Description"): schema.StringAttribute{
-							Description: "Description\n" +
-								"  - example : Tgw description\n",
+							Description: "Enter a brief explanation or note about this transit gateway. This help identify the purpose or usage of the resource.\n" +
+								"  - example : Tgw description",
 							Computed: true,
 						},
 						common.ToSnakeCase("firewall_connection_state"): schema.StringAttribute{
-							Description: "firewall connection state",
-							Computed:    true,
+							Description: "The current lifecycle state of the firewall connection. \n" +
+								"  - example : INACTIVE",
+							Computed: true,
 						},
 						common.ToSnakeCase("FirewallIds"): schema.StringAttribute{
-							Description: "FirewallIds",
-							Computed:    true,
+							Description: "List of firewall IDs\n" +
+								"  - example : bbb93aca123f4bb2b2c0f206f4a86b2b",
+							Computed: true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
+							Description: "The unique identifier of the transit gateway.\n" +
+								"  - example : fe860e0af0c04dcd8182b84f907f31f4",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Computed:    true,
+							Description: "The timestamp when the transit gateway was last modified in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Computed:    true,
+							Description: "The user id that modified the transit gateway.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+							Computed: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name\n" +
-								"  - example : Tgw name\n",
+							Description: "The name of the transit gateway.\n" +
+								"  - example : Tgw name",
 							Computed: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State" +
-								" - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING",
+							Description: "The current lifecycle state of the transit gateway. \n" +
+								"  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING\n" +
+								"  - example:ACTIVE",
 							Computed: true,
 						},
 						common.ToSnakeCase("UplinkEnabled"): schema.BoolAttribute{
-							Description: "UplinkEnabled" +
-								"  - example : false\n",
+							Description: "Whether the uplink is enabled.\n" +
+								"  - example : false",
+							Computed: true,
+						},
+						common.ToSnakeCase("UplinkActiveZone"): schema.StringAttribute{
+							Description: "The active zone for the uplink.\n" +
+								"  - example : zone-1",
+							Computed: true,
+						},
+						common.ToSnakeCase("UplinkStandbyZone"): schema.StringAttribute{
+							Description: "The standby zone for the uplink.\n" +
+								"  - example : zone-2",
+							Computed: true,
+						},
+						common.ToSnakeCase("UplinkZoneState"): schema.StringAttribute{
+							Description: "The current state of the uplink zone.\n" +
+								"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR, EDITING\n" +
+								"  - example : ACTIVE",
 							Computed: true,
 						},
 					},
@@ -192,7 +252,7 @@ func (d *tgwDataSources) Configure(_ context.Context, req datasource.ConfigureRe
 		return
 	}
 
-	d.client = inst.Client.VpcV1Dot2
+	d.client = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 
@@ -216,7 +276,7 @@ func (d *tgwDataSources) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	// Map response body to model
 	for _, d := range data.TransitGateways {
-		tgwState := vpc.MapToTgw(d)
+		tgwState := vpc.MapToTgwV2(d)
 		state.Tgws = append(state.Tgws, tgwState)
 	}
 

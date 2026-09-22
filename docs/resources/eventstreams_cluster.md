@@ -175,6 +175,7 @@ variable "service_watch_log_collection" {
 ### Required
 
 - `akhq_enabled` (Boolean) AHKQ Enabled
+- example: false
 - `allowable_ip_addresses` (Set of String) Allowed IP addresses list  
   - example: ['192.168.10.1/32']
 - `dbaas_engine_version_id` (String) DBaaS engine version ID 
@@ -186,7 +187,8 @@ variable "service_watch_log_collection" {
   - minLength: 3  
   - maxLength: 13  
   - pattern: ^[a-z][a-zA-Z0-9\-]*$
-- `is_combined` (Boolean) ZOOKEEPER,BROKER combined (IsCombined=true), ZOOKEEPER,BROKER seperated (IsCombined=False)
+- `is_combined` (Boolean) ZOOKEEPER,BROKER combined (IsCombined=true), ZOOKEEPER,BROKER seperated (IsCombined=False) 
+- example: false
 - `maintenance_option` (Attributes) MaintenanceOption (see [below for nested schema](#nestedatt--maintenance_option))
 - `name` (String) Cluster name 
   - example: 'test'  
@@ -198,12 +200,14 @@ variable "service_watch_log_collection" {
 - `service_state` (String) Service state 
   - example : 'RUNNING' (Create,Start) / 'STOPPED' (Stop)
 - `subnet_id` (String) Subnet ID
-- `timezone` (String) Timezone 
-  - example: 'Asia/Seoul'
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `timezone` (String) Timezone
+  - example: Asia/Seoul
 
 ### Optional
 
 - `service_watch_log_collection` (Boolean) ServiceWatchLogCollection
+ - example: false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
@@ -211,6 +215,7 @@ variable "service_watch_log_collection" {
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--init_config_option"></a>
 ### Nested Schema for `init_config_option`
@@ -240,8 +245,14 @@ Required:
 
 Optional:
 
-- `akhq_id` (String) AkhqId
-- `akhq_password` (String) Akhq password
+- `akhq_id` (String) Akhq ID 
+  - minLength: 2  
+  - maxLength: 20  
+  - pattern: ^[a-z]+$
+- `akhq_password` (String) Akhq password password 
+  - minLength: 8  
+  - maxLength: 30  
+  - pattern: ^(?=.*[a-zA-Z])(?=.*[`\-[\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\S*[^\w\s]).{8,30} ("'제외)
 
 
 <a id="nestedatt--instance_groups"></a>
@@ -259,26 +270,30 @@ Required:
 
 Read-Only:
 
-- `id` (String) Id
+- `id` (String) Instance group ID.
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--instance_groups--block_storage_groups"></a>
 ### Nested Schema for `instance_groups.block_storage_groups`
 
 Required:
 
-- `role_type` (String) Role type 
-  - example: 'OS'
+- `role_type` (String) Block storage role type
+  - example: OS
 - `size_gb` (Number) Size in GB 
   - example: 104 
   - minLength: 16  
-  - maxLength: 5120
+  - maxLength: 5120  
+  - example: 104
 - `volume_type` (String) Volume type 
   - example: 'SSD'
 
 Read-Only:
 
-- `id` (String) Id
-- `name` (String) Name
+- `id` (String) Block storage group ID
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Block storage group name
+  - example: cluster-Disk-00
 
 
 <a id="nestedatt--instance_groups--instances"></a>
@@ -293,11 +308,14 @@ Required:
 Optional:
 
 - `public_ip_id` (String) Public IP ID (Required when NatEnabled=True)
+  - example: YOUR RESOURCE'S PUBLIC_IP_ID
 - `service_ip_address` (String) User subnet IP address
+  - example: 192.168.4.22
 
 Read-Only:
 
-- `name` (String) Name
+- `name` (String) Instance name
+  - example: test001
 
 
 

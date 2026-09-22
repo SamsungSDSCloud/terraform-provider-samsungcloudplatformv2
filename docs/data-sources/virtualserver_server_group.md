@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_server_group Data Source - samsungcloudplatformv2"
 subcategory: Server Group
 description: |-
-  list of server groups.
+  Retrieves server group information for managing virtual server placement policies.
 ---
 
 # samsungcloudplatformv2_virtualserver_server_group (Data Source)
 
-list of server groups.
+Retrieves server group information for managing virtual server placement policies.
 
 ## Example Usage
 
@@ -57,11 +57,12 @@ variable "server_group_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) ID
+- `id` (String) Server group ID.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `server_group` (Attributes) Server Group. (see [below for nested schema](#nestedatt--server_group))
+- `server_group` (Attributes) Server group details including name, policy, and member servers. (see [below for nested schema](#nestedatt--server_group))
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -69,8 +70,11 @@ variable "server_group_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
 
 
 <a id="nestedatt--server_group"></a>
@@ -78,10 +82,10 @@ Required:
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `id` (String) ID
-- `members` (List of String) Members
-- `name` (String) Name
-- `partition_size` (Number) Partition Size
-- `policy` (String) Policy
-- `user_id` (String) User ID
+- `account_id` (String) Account ID.
+- `id` (String) Server group ID.
+- `members` (List of String) List of member server IDs in this group.
+- `name` (String) Server group name.
+- `partition_size` (Number) Partition size for anti-affinity groups.
+- `policy` (String) Server group policy for server placement.
+- `user_id` (String) User ID.

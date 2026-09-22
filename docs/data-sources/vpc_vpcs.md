@@ -23,11 +23,18 @@ data "samsungcloudplatformv2_vpc_vpcs" "vpcs" {
   size  = var.size
   sort  = var.sort
   state = var.state
+  zone  = var.zone
 }
 
 
 output "vpcs" {
-  value = data.samsungcloudplatformv2_vpc_vpcs.vpcs
+  value = {
+    count: data.samsungcloudplatformv2_vpc_vpcs.vpcs.total_count
+    page: data.samsungcloudplatformv2_vpc_vpcs.vpcs.page
+    size: data.samsungcloudplatformv2_vpc_vpcs.vpcs.size
+    sort: data.samsungcloudplatformv2_vpc_vpcs.vpcs.sort
+    vpcs: data.samsungcloudplatformv2_vpc_vpcs.vpcs.vpcs
+  }
 }
 
 variable "cidr" {
@@ -63,7 +70,11 @@ variable "sort" {
 variable "state" {
   type    = string
   default = null
+}
 
+variable "zone" {
+  type    = string
+  default = "kr-west1-b"
 }
 ```
 
@@ -72,21 +83,27 @@ variable "state" {
 
 ### Optional
 
-- `cidr` (String) VPC CIDR 
+- `cidr` (String) The IP address range of the vpc in CIDR notation.
   - example : 192.167.0.0/18
-- `id` (String) VPC ID 
+- `id` (String) The unique identifier of the vpc.
   - example: YOUR RESOURCE'S ID
-- `name` (String) VPC Name 
+- `name` (String) The name of the vpc.
   - example : vpcName
-- `page` (Number) page
-- `size` (Number) size
-- `sort` (String) Sort 
+- `page` (Number) The page number for pagination.
+  - example : 2
+- `size` (Number) The number of items per page.
+  - example : value
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
   - example : created_at:desc
-- `state` (String) - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
+- `state` (String) The current lifecycle state of the vpc.
+  - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
+  - exmaple : ACTIVE
+- `zone` (String) The availability zone of the vpc.
+  - example : kr-1
 
 ### Read-Only
 
-- `total_count` (Number) count
+- `total_count` (Number) The total count of VPC.
   - example: 20
 - `vpcs` (Attributes List) A list of vpc. (see [below for nested schema](#nestedatt--vpcs))
 
@@ -95,41 +112,47 @@ variable "state" {
 
 Read-Only:
 
-- `account_id` (String) Account ID
+- `account_id` (String) The identifier of the account that owns the vpc.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `cidr_count` (Number) Cidr Count
+- `cidr_count` (Number) The number of CIDR blocks associated with the vpc.
   - example: 20
 - `cidrs` (Attributes List) (see [below for nested schema](#nestedatt--vpcs--cidrs))
-- `created_at` (String) Created At
+- `created_at` (String) The timestamp when the vpc was created in ISO 8601 format.
   - example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created By
+- `created_by` (String) The user id that created the vpc.
   - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Description
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the vpc.
   - maxLength: 50
   - example: vpcDescription
-- `id` (String) VPC Id
+- `id` (String) The unique identifier of the vpc.
   - example: YOUR RESOURCE'S ID
-- `modified_at` (String) Modified At
+- `modified_at` (String) The timestamp when the vpc was last modified in ISO 8601 format.
   - example: 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified By
+- `modified_by` (String) The user id that modified the vpc.
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) VPC Name
+- `name` (String) The name of the vpc.
   - maxLength: 20
   - minLength: 3
   - pattern: `^[a-zA-Z0-9-]*$`
   - example: vpcName
-- `state` (String) - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
+- `state` (String) The current lifecycle state of the vpc.
+  - enum: ["CREATING","ACTIVE","DELETED","ERROR"]
+  - exmaple : ACTIVE
+- `zone_type` (String) The zone type of the vpc.
+  - example: GLOBAL
+- `zones` (List of String) The list of availability zones associated with the vpc.
+  - example: ["kr-1","kr-2"]
 
 <a id="nestedatt--vpcs--cidrs"></a>
 ### Nested Schema for `vpcs.cidrs`
 
 Read-Only:
 
-- `cidr` (String) VPC Cidr
+- `cidr` (String) The IP address range of the vpc in CIDR notation.
   - example: 192.167.0.0/18
-- `created_at` (String) Created At
+- `created_at` (String) The timestamp when the vpc was created in ISO 8601 format.
   - example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created By
+- `created_by` (String) The user id that created the vpc.
   - example: YOUR RESOURCE'S CREATED_BY
-- `id` (String) Cidr ID
+- `id` (String) The unique identifier of the vpc.
   - example: YOUR RESOURCE'S ID

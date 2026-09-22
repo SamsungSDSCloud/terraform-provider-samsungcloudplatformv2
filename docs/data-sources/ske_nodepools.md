@@ -24,6 +24,11 @@ output "nodepools" {
   value = data.samsungcloudplatformv2_ske_nodepools.nodepools
 }
 
+output "nodepool_subnet_ids" {
+  description = "Subnet IDs of all nodepools in the cluster"
+  value       = data.samsungcloudplatformv2_ske_nodepools.nodepools.nodepools != null ? [for np in data.samsungcloudplatformv2_ske_nodepools.nodepools.nodepools : np.subnet_id] : []
+}
+
 
 variable "cluster_id" {
   type    = string
@@ -68,6 +73,8 @@ Read-Only:
 - `server_type` (Attributes) ServerType (see [below for nested schema](#nestedatt--nodepools--server_type))
 - `status` (String) Status
   - example: Running
+- `subnet_id` (String) SubnetId
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `volume_type` (Attributes) VolumeType (see [below for nested schema](#nestedatt--nodepools--volume_type))
 
 <a id="nestedatt--nodepools--image"></a>

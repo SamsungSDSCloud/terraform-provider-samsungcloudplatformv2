@@ -13,10 +13,11 @@ Block Storage(BM)
 
 ```terraform
 provider "samsungcloudplatformv2" {
+  default_region = "kr-west1"
 }
 
 resource "samsungcloudplatformv2_baremetal_blockstorage_volume" "volume"{
-  region = var.region
+  zone = var.zone
   name = var.block_storage_name
   disk_type = var.disk_type
   size_gb = var.size_gb
@@ -36,9 +37,9 @@ output "block_storage_output" {
 }
 
 
-variable "region" {
+variable "zone" {
   type    = string
-  default = "kr-west1"
+  default = "kr-west1-y"
 }
 
 variable "block_storage_name" {
@@ -100,7 +101,7 @@ variable "delete_timeouts" {
 ### Required
 
 - `attachments` (Attributes List) List of server id and type. 
-  - example : [{object_type='BM', object_id='83c3c73d457345e3829ee6d5557c0011'}] 
+  - example : [{object_type='BM', object_id='YOUR RESOURCE'S OBJECT_ID'}] 
   - maxLength : 8 
   - minLength : 1 (see [below for nested schema](#nestedatt--attachments))
 - `disk_type` (String) Disk type. 
@@ -115,12 +116,13 @@ variable "delete_timeouts" {
   - example : 10 
   - maximum : 16384 
   - minimum : 1
+- `zone` (String) zone. 
+  - example: kr-west1-a
 
 ### Optional
 
 - `qos` (Attributes) Volume QoS. (It can only be set on an SSD.) 
   - example : {iops=5000, throughput=250} (see [below for nested schema](#nestedatt--qos))
-- `region` (String) Region
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
@@ -136,7 +138,7 @@ variable "delete_timeouts" {
 
 Required:
 
-- `object_id` (String) Object id. 
+- `object_id` (String) BM or MNGC id. 
   - example: YOUR RESOURCE'S OBJECT_ID
 - `object_type` (String) Object type. 
   - example : 'BM' 

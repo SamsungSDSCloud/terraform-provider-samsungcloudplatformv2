@@ -3,25 +3,32 @@ package vpc
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.1"
+	"strings"
+
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpvpcv1d3 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcPublicipResource{}
-	_ resource.ResourceWithConfigure = &vpcPublicipResource{}
+	_ resource.Resource                = &vpcPublicipResource{}
+	_ resource.ResourceWithConfigure   = &vpcPublicipResource{}
+	_ resource.ResourceWithImportState = &vpcPublicipResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcPublicipResource{}
 )
 
 // NewVpcPublicipResource is a helper function to simplify the provider implementation.
@@ -31,9 +38,9 @@ func NewVpcPublicipResource() resource.Resource {
 
 // vpcPublicipResource is the data source implementation.
 type vpcPublicipResource struct {
-	config  *scpsdk.Configuration
-	client  *vpc.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	clientv1d3 *vpcv1d3.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -48,80 +55,106 @@ func (r *vpcPublicipResource) Schema(_ context.Context, _ resource.SchemaRequest
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the public ip.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Type \n" +
+				Description: "The type of the public ip.\n" +
 					"  - example : IGW | GGW | SIGW",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
-					"  - example : Public IP description\n" +
+				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+					"  - example : Public IP Description\n" +
 					"  - maxLength : 50",
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Computed:            true,
+				Optional:            true,
+				Description:         "Zone\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone\n  - example: kr-west1-a",
 			},
 			common.ToSnakeCase("Publicip"): schema.SingleNestedAttribute{
 				Description: "Publicip",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the public ip.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("IpAddress"): schema.StringAttribute{
-						Description: "IpAddress",
-						Computed:    true,
+						Description: "The IP address assigned to the resource.\n" +
+							"  - example : 203.0.113.10",
+						Computed: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the public ip.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("AttachedResourceType"): schema.StringAttribute{
-						Description: "AttachedResourceType",
-						Computed:    true,
+						Description: "The type of the resource that this public ip is attached to.\n" +
+							"  - example : VM",
+						Computed: true,
 					},
 					common.ToSnakeCase("AttachedResourceName"): schema.StringAttribute{
-						Description: "AttachedResourceName",
-						Computed:    true,
+						Description: "The name of the resource that this public ip is attached to.\n" +
+							"  - example : my-server",
+						Computed: true,
 					},
 					common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
-						Description: "AttachedResourceId",
-						Computed:    true,
+						Description: "The identifier of the resource that this public ip is attached to.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Computed:    true,
+						Description: "The type of the public ip.\n" +
+							"  - example : IGW",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current lifecycle state of the public ip.\n" +
+							"  - example : ACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : Public IP Description",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
+					},
+					common.ToSnakeCase("Zone"): schema.StringAttribute{
 						Computed:    true,
+						Description: "Zone\n  - example: kr-west1-a",
 					},
 				},
 			},
@@ -147,14 +180,14 @@ func (r *vpcPublicipResource) Configure(_ context.Context, req resource.Configur
 		return
 	}
 
-	r.client = inst.Client.Vpc
+	r.clientv1d3 = inst.Client.VpcV1Dot3
 	r.clients = inst.Client
 }
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vpcPublicipResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan vpc.PublicipResource
+	var plan vpcv1d3.PublicipResource
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -162,7 +195,7 @@ func (r *vpcPublicipResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Create new publicip
-	data, err := r.client.CreatePublicip(ctx, plan)
+	data, err := r.clientv1d3.CreatePublicip(ctx, plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -173,9 +206,17 @@ func (r *vpcPublicipResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	plan.Id = types.StringValue(data.Publicip.Id)
-	publicipModel := createPublicipModel(data)
+	publicipModel := createPublicipModelV1Dot3(data)
 	publicipObjectValue, diags := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.Publicip = publicipObjectValue
+	// Description might be default to "" in API response
+	plan.Description = publicipModel.Description
+	plan.Type = publicipModel.Type
+	plan.Zone = publicipModel.Zone
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -188,7 +229,7 @@ func (r *vpcPublicipResource) Create(ctx context.Context, req resource.CreateReq
 // Read refreshes the Terraform state with the latest data.
 func (r *vpcPublicipResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state vpc.PublicipResource
+	var state vpcv1d3.PublicipResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -196,8 +237,12 @@ func (r *vpcPublicipResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// Get refreshed order value from publicip
-	data, err := r.client.GetPublicip(ctx, state.Id.ValueString())
+	data, err := r.clientv1d3.GetPublicip(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading publicip",
@@ -205,10 +250,28 @@ func (r *vpcPublicipResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
+		)
+		return
+	}
 
-	publicipModel := createPublicipModel(data)
-	publicipObjectValue, diags := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	publicipModel := createPublicipModelV1Dot3(data)
+	publicipObjectValue, diag := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Publicip = publicipObjectValue
+	// Refresh input attributes
+	state.Description = publicipModel.Description
+	state.Type = publicipModel.Type
+	state.Zone = publicipModel.Zone
+
+	tagsMap := getPublicipTags(r.clients, state.Id.ValueString())
+	state.Tags = tagsMap
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -220,15 +283,15 @@ func (r *vpcPublicipResource) Read(ctx context.Context, req resource.ReadRequest
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpcPublicipResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { // 아직 정의하지 않은 Update 메서드를 추가한다.
 	// Retrieve values from plan
-	var state vpc.PublicipResource
-	diags := req.Plan.Get(ctx, &state) // resource 블록에 작성된 configuration data 를 읽어온다.
+	var plan vpcv1d3.PublicipResource
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Update existing order
-	_, err := r.client.UpdatePublicip(ctx, state.Id.ValueString(), state) // client 를 호출한다.
+	_, err := r.clientv1d3.UpdatePublicip(ctx, plan.Id.ValueString(), plan)
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -238,22 +301,29 @@ func (r *vpcPublicipResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	// Fetch updated items from GetPublicip as UpdatePublicip items are not populated.
-	data, err := r.client.GetPublicip(ctx, state.Id.ValueString())
+	// Fetch updated value from GetPublicip as UpdatePublicip response is limited.
+	data, err := r.clientv1d3.GetPublicip(ctx, plan.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading publicip",
-			"Could not read publicip ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			"Could not read publicip ID "+plan.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
 
-	publicipModel := createPublicipModel(data)
-	publicipObjectValue, diags := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
-	state.Publicip = publicipObjectValue
+	publicipModel := createPublicipModelV1Dot3(data)
+	publicipObjectValue, diag := types.ObjectValueFrom(ctx, publicipModel.AttributeTypes(), publicipModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	plan.Publicip = publicipObjectValue
+	plan.Description = publicipModel.Description
+	plan.Type = publicipModel.Type
+	plan.Zone = publicipModel.Zone
 
-	diags = resp.State.Set(ctx, state)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -263,7 +333,7 @@ func (r *vpcPublicipResource) Update(ctx context.Context, req resource.UpdateReq
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vpcPublicipResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state vpc.PublicipResource
+	var state vpcv1d3.PublicipResource
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -271,7 +341,7 @@ func (r *vpcPublicipResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 
 	// Delete existing publicip
-	err := r.client.DeletePublicip(ctx, state.Id.ValueString())
+	err := r.clientv1d3.DeletePublicip(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
@@ -282,9 +352,10 @@ func (r *vpcPublicipResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 }
 
-func createPublicipModel(data *scpvpc.PublicipShowResponse) vpc.Publicip {
+func createPublicipModelV1Dot3(data *scpvpcv1d3.PublicipShowResponseV1Dot3) vpcv1d3.Publicip {
 	publicip := data.Publicip
-	publicipModel := vpc.Publicip{
+	publicipModel := vpcv1d3.Publicip{
+		Id:                   types.StringValue(data.GetPublicip().Id),
 		IpAddress:            types.StringValue(data.GetPublicip().IpAddress),
 		AccountId:            types.StringValue(data.GetPublicip().AccountId),
 		AttachedResourceName: types.StringPointerValue(data.GetPublicip().AttachedResourceName.Get()),
@@ -296,6 +367,7 @@ func createPublicipModel(data *scpvpc.PublicipShowResponse) vpc.Publicip {
 		CreatedBy:            types.StringValue(data.GetPublicip().CreatedBy),
 		ModifiedAt:           types.StringValue(data.GetPublicip().ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:           types.StringValue(data.GetPublicip().ModifiedBy),
+		Zone:                 types.StringValue(data.GetPublicip().Zone),
 	}
 	attachedResourceType := publicip.AttachedResourceType.Get()
 	if attachedResourceType != nil {
@@ -305,4 +377,131 @@ func createPublicipModel(data *scpvpc.PublicipShowResponse) vpc.Publicip {
 		publicipModel.AttachedResourceType = types.StringPointerValue(nil)
 	}
 	return publicipModel
+}
+
+func getPublicipTags(clients *client.SCPClient, resourceIdentifier string) types.Map {
+	serviceName := "vpc"
+	resourceType := "publicip"
+
+	srn, err := tag.GetSRN(clients, serviceName, resourceType, resourceIdentifier, false)
+	if err != nil {
+		return types.MapNull(types.StringType)
+	}
+
+	resp, err := clients.ResourceManager.GetResourceTags(srn)
+	if err != nil {
+		return types.MapNull(types.StringType)
+	}
+
+	tags := make(map[string]attr.Value)
+	for _, t := range resp.Content.Tags {
+		tags[t.Key] = types.StringValue(*t.Value.Get())
+	}
+
+	if len(tags) == 0 {
+		return types.MapNull(types.StringType)
+	}
+
+	tagsMap, _ := types.MapValue(types.StringType, tags)
+	return tagsMap
+}
+
+func (r *vpcPublicipResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpcv1d3.PublicipResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpcv1d3.PublicipResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fields that cannot be updated via the API — check each for changes
+	type fieldCheck struct {
+		name    string
+		changed bool
+	}
+	checks := []fieldCheck{
+		{"type", !plan.Type.Equal(state.Type)},
+		{"zone", !plan.Zone.Equal(state.Zone)},
+		{"tags", !plan.Tags.Equal(state.Tags)},
+	}
+
+	for _, f := range checks {
+		if f.changed {
+			resp.Diagnostics.AddError(
+				"Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual resource. To change %s, recreate the resource.", f.name, f.name),
+			)
+		}
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Reconstruct publicip: merge stable fields from state, leave rest as unknown.
+	// This prevents id, account_id, created_at, created_by from showing as (known after apply).
+	if !state.Publicip.IsNull() && !state.Publicip.IsUnknown() {
+		var statePi vpcv1d3.Publicip
+		resp.Diagnostics.Append(state.Publicip.As(ctx, &statePi, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Only mark modified_at/modified_by as unknown when description actually changes
+		descriptionChanged := !plan.Description.Equal(state.Description)
+
+		mergedPi := vpcv1d3.Publicip{
+			Id:                   statePi.Id,
+			IpAddress:            statePi.IpAddress,
+			AccountId:            statePi.AccountId,
+			AttachedResourceType: statePi.AttachedResourceType,
+			AttachedResourceName: statePi.AttachedResourceName,
+			AttachedResourceId:   statePi.AttachedResourceId,
+			Type:                 statePi.Type,
+			State:                statePi.State,
+			CreatedAt:            statePi.CreatedAt,
+			CreatedBy:            statePi.CreatedBy,
+			Zone:                 statePi.Zone,
+			Description:          plan.Description,
+		}
+
+		if descriptionChanged {
+			mergedPi.ModifiedAt = types.StringUnknown()
+			mergedPi.ModifiedBy = types.StringUnknown()
+		} else {
+			mergedPi.ModifiedAt = statePi.ModifiedAt
+			mergedPi.ModifiedBy = statePi.ModifiedBy
+		}
+
+		mergedObj, diags := types.ObjectValueFrom(ctx, mergedPi.AttributeTypes(), mergedPi)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		plan.Publicip = mergedObj
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+}
+
+// ImportState imports an existing resource into Terraform state.
+func (r *vpcPublicipResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
 }

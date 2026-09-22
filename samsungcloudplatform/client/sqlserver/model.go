@@ -1,10 +1,12 @@
 package sqlserver
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"golang.org/x/net/context"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
 )
 
 const ServiceType = "scp-sqlserver"
@@ -21,29 +23,31 @@ type ClusterDataSource struct {
 }
 
 type ClusterDataSourceDetail struct {
-	Id            types.String `tfsdk:"id"`
-	ClusterDetail types.Object `tfsdk:"cluster"`
+	Id            types.String   `tfsdk:"id"`
+	ClusterDetail *ClusterDetail `tfsdk:"cluster"`
 }
 
 // Create Cluster의 Request
 type ClusterResource struct {
-	Id                   types.String      `tfsdk:"id"`
-	AllowableIpAddresses types.Set         `tfsdk:"allowable_ip_addresses"`
-	DbaasEngineVersionId types.String      `tfsdk:"dbaas_engine_version_id"`
-	NatEnabled           types.Bool        `tfsdk:"nat_enabled"`
-	HaEnabled            types.Bool        `tfsdk:"ha_enabled"`
-	InitConfigOption     InitConfigOption  `tfsdk:"init_config_option"`
-	InstanceGroups       []InstanceGroup   `tfsdk:"instance_groups"`
-	InstanceNamePrefix   types.String      `tfsdk:"instance_name_prefix"`
-	MaintenanceOption    MaintenanceOption `tfsdk:"maintenance_option"`
-	Name                 types.String      `tfsdk:"name"`
-	ServiceState         types.String      `tfsdk:"service_state"`
-	SubnetId             types.String      `tfsdk:"subnet_id"`
-	Tags                 types.Map         `tfsdk:"tags"`
-	Timezone             types.String      `tfsdk:"timezone"`
-	VipPublicIpId        types.String      `tfsdk:"vip_public_ip_id"`
+	Id                   types.String       `tfsdk:"id"`
+	AllowableIpAddresses types.Set          `tfsdk:"allowable_ip_addresses"`
+	DbaasEngineVersionId types.String       `tfsdk:"dbaas_engine_version_id"`
+	NatEnabled           types.Bool         `tfsdk:"nat_enabled"`
+	HaEnabled            types.Bool         `tfsdk:"ha_enabled"`
+	InitConfigOption     *InitConfigOption  `tfsdk:"init_config_option"`
+	InstanceGroups       types.List         `tfsdk:"instance_groups"`
+	InstanceNamePrefix   types.String       `tfsdk:"instance_name_prefix"`
+	MaintenanceOption    *MaintenanceOption `tfsdk:"maintenance_option"`
+	Name                 types.String       `tfsdk:"name"`
+	ServiceState         types.String       `tfsdk:"service_state"`
+	SubnetId             types.String       `tfsdk:"subnet_id"`
+	Tags                 types.Map          `tfsdk:"tags"`
+	Timezone             types.String       `tfsdk:"timezone"`
+	VipPublicIpId        types.String       `tfsdk:"vip_public_ip_id"`
 	//VipPublicIpAddress   types.String      `tfsdk:"vip_public_ip_address"`
-	VirtualIpAddress types.String `tfsdk:"virtual_ip_address"`
+	VirtualIpAddress          types.String `tfsdk:"virtual_ip_address"`
+	ServiceWatchLogCollection types.Bool   `tfsdk:"service_watch_log_collection"`
+	OriginClusterId           types.String `tfsdk:"origin_cluster_id"`
 }
 
 // List Clusters의 Response
@@ -63,15 +67,9 @@ type Cluster struct {
 }
 
 type InitConfigOption struct {
-	AuditEnabled      types.Bool   `tfsdk:"audit_enabled"`
-	BackupOption      BackupOption `tfsdk:"backup_option"`
-	DatabaseCollation types.String `tfsdk:"database_collation"`
-	//DatabaseName         types.String `tfsdk:"database_name"`
-	DatabasePort         types.Int32  `tfsdk:"database_port"`
-	DatabaseServiceName  types.String `tfsdk:"database_service_name"`
-	DatabaseUserName     types.String `tfsdk:"database_user_name"`
+	InitConfigOptionBase
+	AdConfig             *AdConfig    `tfsdk:"ad_config"`
 	DatabaseUserPassword types.String `tfsdk:"database_user_password"`
-	Databases            []Databases  `tfsdk:"databases"`
 	License              types.String `tfsdk:"license"`
 }
 
@@ -87,30 +85,6 @@ type Databases struct {
 	DriveLetter  types.String `tfsdk:"drive_letter"`
 }
 
-type InstanceGroup struct {
-	BlockStorageGroups []BlockStorageGroup `tfsdk:"block_storage_groups"`
-	Id                 types.String        `tfsdk:"id"`
-	Instances          []Instance          `tfsdk:"instances"`
-	RoleType           types.String        `tfsdk:"role_type"`
-	ServerTypeName     types.String        `tfsdk:"server_type_name"`
-}
-
-type BlockStorageGroup struct {
-	Id         types.String `tfsdk:"id"`
-	Name       types.String `tfsdk:"name"`
-	RoleType   types.String `tfsdk:"role_type"`
-	SizeGb     types.Int32  `tfsdk:"size_gb"`
-	VolumeType types.String `tfsdk:"volume_type"`
-}
-
-type Instance struct {
-	Name             types.String `tfsdk:"name"`
-	RoleType         types.String `tfsdk:"role_type"`
-	ServiceIpAddress types.String `tfsdk:"service_ip_address"`
-	PublicIpId       types.String `tfsdk:"public_ip_id"`
-	//PublicIpAddress  types.String `tfsdk:"public_ip_address"`
-}
-
 type MaintenanceOption struct {
 	PeriodHour           types.String `tfsdk:"period_hour"`
 	StartingDayOfWeek    types.String `tfsdk:"starting_day_of_week"`
@@ -118,125 +92,70 @@ type MaintenanceOption struct {
 	UseMaintenanceOption types.Bool   `tfsdk:"use_maintenance_option"`
 }
 
-type ClusterDetail struct {
-	AccountId            types.String      `tfsdk:"account_id"`
-	AllowableIpAddresses types.Set         `tfsdk:"allowable_ip_addresses"`
-	DbaasEngine          types.String      `tfsdk:"dbaas_engine"`
-	NatEnabled           types.Bool        `tfsdk:"nat_enabled"`
-	HaEnabled            types.Bool        `tfsdk:"ha_enabled"`
-	Id                   types.String      `tfsdk:"id"`
-	InitConfigOption     InitConfigOption  `tfsdk:"init_config_option"`
-	InstanceCount        types.Int32       `tfsdk:"instance_count"`
-	InstanceGroups       []InstanceGroup   `tfsdk:"instance_groups"`
-	MaintenanceOption    MaintenanceOption `tfsdk:"maintenance_option"`
-	Name                 types.String      `tfsdk:"name"`
-	ProductType          types.String      `tfsdk:"product_type"`
-	RoleType             types.String      `tfsdk:"role_type"`
-	ServiceState         types.String      `tfsdk:"service_state"`
-	SoftwareVersion      types.String      `tfsdk:"software_version"`
-	SubnetId             types.String      `tfsdk:"subnet_id"`
-	Timezone             types.String      `tfsdk:"timezone"`
-	VipPublicIpId        types.String      `tfsdk:"vip_public_ip_id"`
-	//VipPublicIpAddress   types.String      `tfsdk:"vip_public_ip_address"`
-	VirtualIpAddress types.String `tfsdk:"virtual_ip_address"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	CreatedBy        types.String `tfsdk:"created_by"`
-	ModifiedAt       types.String `tfsdk:"modified_at"`
-	ModifiedBy       types.String `tfsdk:"modified_by"`
+// AdConfigBase holds the AD fields the detail API returns. The data source
+// embeds it directly; the resource extends it with the write-only password.
+type AdConfigBase struct {
+	AdDnsServers        types.Set    `tfsdk:"ad_dns_servers"`
+	AdDomainName        types.String `tfsdk:"ad_domain_name"`
+	AdNetbiosName       types.String `tfsdk:"ad_netbios_name"`
+	AdUserId            types.String `tfsdk:"ad_user_id"`
+	FailoverClusterName types.String `tfsdk:"failover_cluster_name"`
 }
 
-func (m ClusterDetail) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"account_id": types.StringType,
-		"allowable_ip_addresses": types.SetType{
-			ElemType: types.StringType,
-		},
-		"dbaas_engine": types.StringType,
-		"ha_enabled":   types.BoolType,
-		"id":           types.StringType,
-		"init_config_option": types.ObjectType{
-			AttrTypes: map[string]attr.Type{
-				"audit_enabled":          types.BoolType,
-				"database_collation":     types.StringType,
-				"database_port":          types.Int32Type,
-				"database_user_name":     types.StringType,
-				"database_user_password": types.StringType,
-				"database_service_name":  types.StringType,
-				"license":                types.StringType,
-				"backup_option": types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"archive_frequency_minute": types.StringType,
-						"retention_period_day":     types.StringType,
-						"starting_time_hour":       types.StringType,
-						"full_backup_day_of_week":  types.StringType,
-					},
-				},
-				"databases": types.ListType{
-					ElemType: types.ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"database_name": types.StringType,
-							"drive_letter":  types.StringType,
-						},
-					},
-				},
-			},
-		},
-		"instance_count": types.Int32Type,
-		"instance_groups": types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"id":               types.StringType,
-					"role_type":        types.StringType,
-					"server_type_name": types.StringType,
-					"block_storage_groups": types.ListType{
-						ElemType: types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"id":          types.StringType,
-								"name":        types.StringType,
-								"role_type":   types.StringType,
-								"size_gb":     types.Int32Type,
-								"volume_type": types.StringType,
-							},
-						},
-					},
-					"instances": types.ListType{
-						ElemType: types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"name":               types.StringType,
-								"role_type":          types.StringType,
-								"service_ip_address": types.StringType,
-								"public_ip_id":       types.StringType,
-								//"public_ip_address":  types.StringType,
-							},
-						},
-					},
-				},
-			},
-		},
-		"maintenance_option": types.ObjectType{
-			AttrTypes: map[string]attr.Type{
-				"period_hour":            types.StringType,
-				"starting_day_of_week":   types.StringType,
-				"starting_time":          types.StringType,
-				"use_maintenance_option": types.BoolType,
-			},
-		},
-		"name":             types.StringType,
-		"nat_enabled":      types.BoolType,
-		"product_type":     types.StringType,
-		"role_type":        types.StringType,
-		"service_state":    types.StringType,
-		"software_version": types.StringType,
-		"subnet_id":        types.StringType,
-		"timezone":         types.StringType,
-		"vip_public_ip_id": types.StringType,
-		//"vip_public_ip_address": types.StringType,
-		"virtual_ip_address": types.StringType,
-		"created_at":         types.StringType,
-		"created_by":         types.StringType,
-		"modified_at":        types.StringType,
-		"modified_by":        types.StringType,
-	}
+// AdConfig extends the base with the write-only field (ad_user_password).
+type AdConfig struct {
+	AdConfigBase
+	AdUserPassword types.String `tfsdk:"ad_user_password"`
+}
+
+// InitConfigOptionBase holds the scalar fields shared by request and detail
+// response. ad_config is declared in each derived struct because its type differs.
+type InitConfigOptionBase struct {
+	AdEnabled           types.Bool   `tfsdk:"ad_enabled"`
+	AuditEnabled        types.Bool   `tfsdk:"audit_enabled"`
+	BackupOption        BackupOption `tfsdk:"backup_option"`
+	DatabaseCollation   types.String `tfsdk:"database_collation"`
+	DatabasePort        types.Int32  `tfsdk:"database_port"`
+	DatabaseServiceName types.String `tfsdk:"database_service_name"`
+	DatabaseUserName    types.String `tfsdk:"database_user_name"`
+	Databases           []Databases  `tfsdk:"databases"`
+	OriginRegion        types.String `tfsdk:"origin_region"`
+}
+
+// InitConfigOptionResponse extends the base with the read-only AdConfigBase and
+// omits the write-only fields (database_user_password, license) the detail API
+// does not return.
+type InitConfigOptionResponse struct {
+	InitConfigOptionBase
+	AdConfig AdConfigBase `tfsdk:"ad_config"`
+}
+
+type ClusterDetail struct {
+	AccountId                 types.String              `tfsdk:"account_id"`
+	AllowableIpAddresses      types.Set                 `tfsdk:"allowable_ip_addresses"`
+	DbaasEngine               types.String              `tfsdk:"dbaas_engine"`
+	NatEnabled                types.Bool                `tfsdk:"nat_enabled"`
+	HaEnabled                 types.Bool                `tfsdk:"ha_enabled"`
+	Id                        types.String              `tfsdk:"id"`
+	InitConfigOption          *InitConfigOptionResponse `tfsdk:"init_config_option"`
+	InstanceCount             types.Int32               `tfsdk:"instance_count"`
+	InstanceGroups            []database.InstanceGroup  `tfsdk:"instance_groups"`
+	MaintenanceOption         *MaintenanceOption        `tfsdk:"maintenance_option"`
+	Name                      types.String              `tfsdk:"name"`
+	ProductType               types.String              `tfsdk:"product_type"`
+	RoleType                  types.String              `tfsdk:"role_type"`
+	ServiceState              types.String              `tfsdk:"service_state"`
+	SoftwareVersion           types.String              `tfsdk:"software_version"`
+	SubnetId                  types.String              `tfsdk:"subnet_id"`
+	Timezone                  types.String              `tfsdk:"timezone"`
+	VipPublicIpId             types.String              `tfsdk:"vip_public_ip_id"`
+	VirtualIpAddress          types.String              `tfsdk:"virtual_ip_address"`
+	CreatedAt                 types.String              `tfsdk:"created_at"`
+	CreatedBy                 types.String              `tfsdk:"created_by"`
+	ModifiedAt                types.String              `tfsdk:"modified_at"`
+	ModifiedBy                types.String              `tfsdk:"modified_by"`
+	ServiceWatchLogCollection types.Bool                `tfsdk:"service_watch_log_collection"`
+	OriginClusterId           types.String              `tfsdk:"origin_cluster_id"`
 }
 
 // -------------------- Handler -------------------- //
@@ -249,7 +168,10 @@ type UpdateHandler struct {
 // --------------- Engine Version ------------ //
 
 type EngineVersionDataSource struct {
-	Contents []EngineVersion `tfsdk:"contents"`
+	Contents         []EngineVersion `tfsdk:"contents"`
+	Id               types.String    `tfsdk:"id"`
+	ProductImageType types.String    `tfsdk:"product_image_type"`
+	EosIncluded      types.Bool      `tfsdk:"eos_included"`
 }
 
 type EngineVersion struct {

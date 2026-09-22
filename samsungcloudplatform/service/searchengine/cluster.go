@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/searchengine"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/database"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpSearchengine "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/searchengine/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/searchengine"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	databaseUtils "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpSearchengine "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/searchengine/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -25,8 +26,14 @@ import (
 )
 
 var (
-	_ resource.Resource              = &searchengineClusterResource{}
-	_ resource.ResourceWithConfigure = &searchengineClusterResource{}
+	_ resource.Resource                = &searchengineClusterResource{}
+	_ resource.ResourceWithConfigure   = &searchengineClusterResource{}
+	_ resource.ResourceWithImportState = &searchengineClusterResource{}
+)
+
+// Reusable description fragments to avoid duplicated string literals.
+const (
+	descExampleMasterData = "  - example: 'MASTER_DATA' \n"
 )
 
 func NewSearchengineClusterResource() resource.Resource {
@@ -48,26 +55,33 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 		Description: "searchengine",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Identifier of the resource.\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				MarkdownDescription: "Identifier of the resource.\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
-				Description: "Allowed IP addresses list  \n" +
+				Description: databaseUtils.DescAllowedIPAddressesList +
+					"  - example: ['192.168.10.1/32']",
+				MarkdownDescription: databaseUtils.DescAllowedIPAddressesList +
 					"  - example: ['192.168.10.1/32']",
 				Required:    true,
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("DbaasEngineVersionId"): schema.StringAttribute{
-				Description: "DBaaS engine version ID \n" +
+				Description: databaseUtils.DescDBaaSEngineVersionID +
 					"  - example: 'b9b9a5547321a65ed980a3dceab2e10b' (Elasticsearch Enterprise 8.15.0)",
-				Required: true,
+				MarkdownDescription: databaseUtils.DescDBaaSEngineVersionID +
+					"  - example: 'b9b9a5547321a65ed980a3dceab2e10b' (Elasticsearch Enterprise 8.15.0)",
+				Required:  true,
+				WriteOnly: true,
 			},
 			common.ToSnakeCase("IsCombined"): schema.BoolAttribute{
-				Description: "MASTER,DATA combined (IsCombined=true), MASTER,DATA seperated (IsCombined=False)",
-				Required:    true,
+				Description:         "MASTER,DATA combined (IsCombined=true), MASTER,DATA seperated (IsCombined=False)\n  - example: true",
+				MarkdownDescription: "MASTER,DATA combined (IsCombined=true), MASTER,DATA seperated (IsCombined=False)\n  - example: true",
+				Required:            true,
 			},
 			common.ToSnakeCase("InitConfigOption"): schema.SingleNestedAttribute{
 				Description: "Init config option",
@@ -78,46 +92,69 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 						Required:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("RetentionPeriodDay"): schema.StringAttribute{
-								Description: "Backup retention period (day) \n" +
-									"  - example: 7 \n" +
-									"  - min: 7 \n" +
-									"  - max: 35 \n",
+								Description: databaseUtils.DescBackupRetentionPeriodDay +
+									databaseUtils.DescExample7 +
+									databaseUtils.DescMin7 +
+									databaseUtils.DescMax35,
+								MarkdownDescription: databaseUtils.DescBackupRetentionPeriodDay +
+									databaseUtils.DescExample7 +
+									databaseUtils.DescMin7 +
+									databaseUtils.DescMax35,
 								Optional: true,
 							},
 							common.ToSnakeCase("StartingTimeHour"): schema.StringAttribute{
-								Description: "Backup starting time (hour) \n" +
-									"  - example: 12 \n" +
-									"  - min: 00 \n" +
-									"  - max: 23 \n",
+								Description: databaseUtils.DescBackupStartingTimeHour +
+									databaseUtils.DescExample12 +
+									databaseUtils.DescMin00 +
+									databaseUtils.DescMax23,
+								MarkdownDescription: databaseUtils.DescBackupStartingTimeHour +
+									databaseUtils.DescExample12 +
+									databaseUtils.DescMin00 +
+									databaseUtils.DescMax23,
 								Optional: true,
 							},
 						},
 					},
 					common.ToSnakeCase("DatabasePort"): schema.Int32Attribute{
-						Description: "Database service port \n" +
+						Description: databaseUtils.DescDatabaseServicePort +
+							"  - example: 9201 \n",
+						MarkdownDescription: databaseUtils.DescDatabaseServicePort +
 							"  - example: 9201 \n",
 						Required: true,
 					},
 					common.ToSnakeCase("DatabaseUserName"): schema.StringAttribute{
-						Description: "Database user name \n" +
-							"  - example: 'test' \n" +
-							"  - minLength: 2  \n" +
-							"  - maxLength: 20  \n" +
-							"  - pattern: ^[a-z]*$ \n",
+						Description: databaseUtils.DescDatabaseUserName +
+							databaseUtils.DescExampleTest2 +
+							databaseUtils.DescMinLength2 +
+							databaseUtils.DescMaxLength20 +
+							databaseUtils.DescPatternLowerAlpha,
+						MarkdownDescription: databaseUtils.DescDatabaseUserName +
+							databaseUtils.DescExampleTest2 +
+							databaseUtils.DescMinLength2 +
+							databaseUtils.DescMaxLength20 +
+							databaseUtils.DescPatternLowerAlpha,
 						Required: true,
 					},
 					common.ToSnakeCase("DatabaseUserPassword"): schema.StringAttribute{
-						Description: "Database user password \n" +
-							"  - minLength: 8  \n" +
-							"  - maxLength: 30  \n" +
-							"  - pattern: ^(?=.*[a-zA-Z])(?=.*[`\\-[\\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\\S*[^\\w\\s]).{8,30} (\"'제외) \n",
-						Required: true,
+						Description: databaseUtils.DescDatabaseUserPassword +
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							databaseUtils.DescPatternPassword,
+						MarkdownDescription: databaseUtils.DescDatabaseUserPassword +
+							databaseUtils.DescMinLength8 +
+							databaseUtils.DescMaxLength30 +
+							databaseUtils.DescPatternPassword,
+						Required:  true,
+						WriteOnly: true,
 					},
 				},
 			},
 			common.ToSnakeCase("InstanceGroups"): schema.ListNestedAttribute{
 				Description: "Instance groups",
 				Required:    true,
+				PlanModifiers: []planmodifier.List{
+					databaseUtils.InstanceGroupsPlanModifier(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("BlockStorageGroups"): schema.ListNestedAttribute{
@@ -126,28 +163,41 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									common.ToSnakeCase("Id"): schema.StringAttribute{
-										Description: "Id",
-										Computed:    true,
+										Description:         "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+										MarkdownDescription: "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+										Computed:            true,
 									},
 									common.ToSnakeCase("Name"): schema.StringAttribute{
-										Description: "Name",
-										Computed:    true,
+										Description:         "Block storage group name\n  - example: cluster-Disk-00",
+										MarkdownDescription: "Block storage group name\n  - example: cluster-Disk-00",
+										Computed:            true,
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
-										Description: "Role type \n" +
-											"  - example: 'OS' \n",
+										Description: databaseUtils.DescRoleType +
+											databaseUtils.DescExampleOS,
+										MarkdownDescription: databaseUtils.DescRoleType +
+											databaseUtils.DescExampleOS,
 										Required: true,
+										Validators: []validator.String{
+											stringvalidator.OneOf(databaseUtils.BSRoleTypesOsDataBackup...),
+										},
 									},
 									common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
-										Description: "Size in GB \n" +
-											"  - example: 104 \n" +
-											"  - minLength: 16  \n" +
-											"  - maxLength: 5120  \n",
+										Description: databaseUtils.DescSizeInGB +
+											databaseUtils.DescExample104 +
+											databaseUtils.DescMinLength16 +
+											databaseUtils.DescMaxLength5120,
+										MarkdownDescription: databaseUtils.DescSizeInGB +
+											databaseUtils.DescExample104 +
+											databaseUtils.DescMinLength16 +
+											databaseUtils.DescMaxLength5120,
 										Required: true,
 									},
 									common.ToSnakeCase("VolumeType"): schema.StringAttribute{
-										Description: "Volume type \n" +
-											"  - example: 'SSD' \n",
+										Description: databaseUtils.DescVolumeType +
+											databaseUtils.DescExampleSSD,
+										MarkdownDescription: databaseUtils.DescVolumeType +
+											databaseUtils.DescExampleSSD,
 										Required: true,
 										Validators: []validator.String{
 											stringvalidator.OneOf("SSD", "SSD_KMS", "HDD", "HDD_KMS"),
@@ -157,8 +207,9 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 							},
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Computed:    true,
+							Description:         "Instance group ID.\n  - example: ee48b333d5a84097adc079dec17ab872",
+							MarkdownDescription: "Instance group ID.\n  - example: ee48b333d5a84097adc079dec17ab872",
+							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
@@ -169,15 +220,20 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									common.ToSnakeCase("Name"): schema.StringAttribute{
-										Description: "Name",
-										Computed:    true,
+										Description:         "Instance name\n  - example: test001",
+										MarkdownDescription: "Instance name\n  - example: test001",
+										Computed:            true,
 										PlanModifiers: []planmodifier.String{
 											stringplanmodifier.UseStateForUnknown(),
+											databaseUtils.ComputedNullToUnknown(),
 										},
 									},
 									common.ToSnakeCase("RoleType"): schema.StringAttribute{
-										Description: "Role type \n" +
-											"  - example: 'MASTER_DATA' \n" +
+										Description: databaseUtils.DescRoleType +
+											descExampleMasterData +
+											"  - pattern: MASTER_DATA / MASTER / DATA / KIBANA / DASHBOARDS \n",
+										MarkdownDescription: databaseUtils.DescRoleType +
+											descExampleMasterData +
 											"  - pattern: MASTER_DATA / MASTER / DATA / KIBANA / DASHBOARDS \n",
 										Required: true,
 										Validators: []validator.String{
@@ -185,23 +241,34 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 										},
 									},
 									common.ToSnakeCase("ServiceIpAddress"): schema.StringAttribute{
-										Description: "User subnet IP address",
-										Optional:    true,
-										Computed:    true,
+										Description:         "User subnet IP address\n  - example: 192.168.4.22",
+										MarkdownDescription: "User subnet IP address\n  - example: 192.168.4.22",
+										Optional:            true,
+										Computed:            true,
 										PlanModifiers: []planmodifier.String{
 											stringplanmodifier.UseStateForUnknown(),
+											databaseUtils.ComputedNullToUnknown(),
 										},
 									},
 									common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
-										Description: "Public IP ID (Required when NatEnabled=True)",
-										Optional:    true,
+										Description:         "Public IP ID (Required when NatEnabled=True & HaEnabled=False)\n  - example: 90a68b14850741598ecacd0eb190873e",
+										MarkdownDescription: "Public IP ID (Required when NatEnabled=True & HaEnabled=False)\n  - example: 90a68b14850741598ecacd0eb190873e",
+										Optional:            true,
+										Computed:            true,
+										PlanModifiers: []planmodifier.String{
+											stringplanmodifier.UseStateForUnknown(),
+											databaseUtils.ComputedNullToUnknown(),
+										},
 									},
 								},
 							},
 						},
 						common.ToSnakeCase("RoleType"): schema.StringAttribute{
-							Description: "Role type \n" +
-								"  - example: 'MASTER_DATA' \n" +
+							Description: databaseUtils.DescRoleType +
+								descExampleMasterData +
+								"  - pattern: MASTER_DATA (IsCombined=True) / MASTER, DATA (IsCombined=False) / KIBANA, DASHBOARDS (required)\n",
+							MarkdownDescription: databaseUtils.DescRoleType +
+								descExampleMasterData +
 								"  - pattern: MASTER_DATA (IsCombined=True) / MASTER, DATA (IsCombined=False) / KIBANA, DASHBOARDS (required)\n",
 							Required: true,
 							Validators: []validator.String{
@@ -209,7 +276,9 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 							},
 						},
 						common.ToSnakeCase("ServerTypeName"): schema.StringAttribute{
-							Description: "Server type name \n" +
+							Description: databaseUtils.DescServerTypeName +
+								"  - example: 'se1v2m4' \n",
+							MarkdownDescription: databaseUtils.DescServerTypeName +
 								"  - example: 'se1v2m4' \n",
 							Required: true,
 						},
@@ -217,74 +286,119 @@ func (r *searchengineClusterResource) Schema(_ context.Context, _ resource.Schem
 				},
 			},
 			common.ToSnakeCase("InstanceNamePrefix"): schema.StringAttribute{
-				Description: "Instance name prefix \n" +
-					"  - example: 'test'  \n" +
-					"  - minLength: 3  \n" +
-					"  - maxLength: 13  \n" +
-					"  - pattern: ^[a-z][a-zA-Z0-9\\-]*$ \n",
-				Required: true,
+				Description: databaseUtils.DescInstanceNamePrefix +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength13 +
+					databaseUtils.DescPatternLowerAlnumDash,
+				MarkdownDescription: databaseUtils.DescInstanceNamePrefix +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength13 +
+					databaseUtils.DescPatternLowerAlnumDash,
+				Required:  true,
+				WriteOnly: true,
 			},
 			common.ToSnakeCase("License"): schema.StringAttribute{
-				Description: "License",
-				Optional:    true,
+				Description:         "License\n  - example: license",
+				MarkdownDescription: "License\n  - example: license",
+				Optional:            true,
+				WriteOnly:           true,
 			},
 			common.ToSnakeCase("MaintenanceOption"): schema.SingleNestedAttribute{
 				Description: "MaintenanceOption",
 				Required:    true,
+				Validators: []validator.Object{
+					databaseUtils.MaintenanceOptionValidator(),
+				},
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
-						Description: "Period in hours \n" +
-							"  - example: 1  \n",
+						Description: databaseUtils.DescPeriodInHours +
+							databaseUtils.DescExample1,
+						MarkdownDescription: databaseUtils.DescPeriodInHours +
+							databaseUtils.DescExample1,
 						Optional: true,
 					},
 					common.ToSnakeCase("StartingDayOfWeek"): schema.StringAttribute{
-						Description: "Starting day of week \n" +
-							"  - example: 'MON' \n",
+						Description: databaseUtils.DescStartingDayOfWeek +
+							databaseUtils.DescExampleMON,
+						MarkdownDescription: databaseUtils.DescStartingDayOfWeek +
+							databaseUtils.DescExampleMON,
 						Optional: true,
 					},
 					common.ToSnakeCase("StartingTime"): schema.StringAttribute{
-						Description: "Starting time \n" +
-							"  - example: '0000' \n",
+						Description: databaseUtils.DescStartingTime +
+							databaseUtils.DescExample0000,
+						MarkdownDescription: databaseUtils.DescStartingTime +
+							databaseUtils.DescExample0000,
 						Optional: true,
 					},
 					common.ToSnakeCase("UseMaintenanceOption"): schema.BoolAttribute{
-						Description: "Use maintenance option \n" +
-							"  - example: False \n",
+						Description: databaseUtils.DescUseMaintenanceOption +
+							databaseUtils.DescExampleFalse,
+						MarkdownDescription: databaseUtils.DescUseMaintenanceOption +
+							databaseUtils.DescExampleFalse,
 						Optional: true,
 						Computed: true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseNonNullStateForUnknown(),
+							databaseUtils.ImmutableBool(),
+						},
 					},
 				},
 			},
 			"tags": tag.ResourceSchema(),
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Cluster name \n" +
-					"  - example: 'test'  \n" +
-					"  - minLength: 3  \n" +
-					"  - maxLength: 20  \n" +
-					"  - pattern: ^[a-zA-Z]*$ \n",
+				Description: databaseUtils.DescClusterName +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength20 +
+					databaseUtils.DescPatternAlpha,
+				MarkdownDescription: databaseUtils.DescClusterName +
+					databaseUtils.DescExampleTest +
+					databaseUtils.DescMinLength3 +
+					databaseUtils.DescMaxLength20 +
+					databaseUtils.DescPatternAlpha,
 				Required: true,
 			},
 			common.ToSnakeCase("NatEnabled"): schema.BoolAttribute{
-				Description: "NAT availability \n" +
-					"  - example: False \n",
+				Description: databaseUtils.DescNATAvailability +
+					databaseUtils.DescExampleFalse,
+				MarkdownDescription: databaseUtils.DescNATAvailability +
+					databaseUtils.DescExampleFalse,
 				Required: true,
 			},
 			common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-				Description: "Service state \n" +
-					"  - example : 'RUNNING' (Create,Start) / 'STOPPED' (Stop) \n",
+				Description: databaseUtils.DescServiceState +
+					databaseUtils.DescExampleRunningStopped,
+				MarkdownDescription: databaseUtils.DescServiceState +
+					databaseUtils.DescExampleRunningStopped,
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("RUNNING", "STOPPED"),
 				},
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID",
-				Required:    true,
+				Description:         "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249",
+				MarkdownDescription: "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249",
+				Required:            true,
 			},
 			common.ToSnakeCase("Timezone"): schema.StringAttribute{
-				Description: "Timezone \n" +
-					"  - example: 'Asia/Seoul' \n",
+				Description: databaseUtils.DescTimezone +
+					databaseUtils.DescExampleAsiaSeoul,
+				MarkdownDescription: databaseUtils.DescTimezone +
+					databaseUtils.DescExampleAsiaSeoul,
 				Required: true,
+			},
+			common.ToSnakeCase("ServiceWatchLogCollection"): schema.BoolAttribute{
+				Description:         "ServiceWatchLogCollection\n - example: false",
+				MarkdownDescription: "ServiceWatchLogCollection\n - example: false",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+					databaseUtils.ImmutableBool(),
+				},
 			},
 		},
 	}
@@ -309,11 +423,20 @@ func (r *searchengineClusterResource) Configure(_ context.Context, req resource.
 	r.clients = inst.Client
 }
 
+func (r *searchengineClusterResource) nullOutWriteOnlyFields(plan *searchengine.ClusterResource) {
+	plan.DbaasEngineVersionId = types.StringNull()
+	plan.InstanceNamePrefix = types.StringNull()
+	plan.License = types.StringNull()
+	if plan.InitConfigOption != nil {
+		plan.InitConfigOption.DatabaseUserPassword = types.StringNull()
+	}
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *searchengineClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan searchengine.ClusterResource
-	diags := req.Plan.Get(ctx, &plan)
+	diags := req.Config.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -322,6 +445,8 @@ func (r *searchengineClusterResource) Create(ctx context.Context, req resource.C
 	// Create new cluster
 	data, err := r.client.CreateCluster(ctx, plan)
 	if err != nil {
+		r.nullOutWriteOnlyFields(&plan)
+
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error creating cluster",
@@ -333,96 +458,34 @@ func (r *searchengineClusterResource) Create(ctx context.Context, req resource.C
 	// cluster id 반환
 	clusterId := data.Resource.Id
 
-	// cluster 조회 func
-	getFunc := func(id string) (*scpSearchengine.SearchEngineClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	// wait for 구현
-	getData, err := databaseUtils.AsyncRequestPollingWithState(ctx, clusterId, 500, 10*time.Second,
-		"ServiceState", "RUNNING", "FAILED", getFunc)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading Cluster",
-			"Could not read Cluster, unexpected error: "+err.Error(),
-		)
-		return
-	}
-
-	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "searchengine", "search-engine", clusterId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Tag",
-			err.Error(),
-		)
-		return
-	}
-
-	if len(plan.Tags.Elements()) > 0 {
-		getTags, err := r.AsyncPollingTags(ctx, clusterId, "searchengine", "search-engine",
-			100, 3*time.Second)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Tag",
-				err.Error(),
-			)
-			return
-		}
-		tagsMap = getTags
-	}
-	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
-
-	//Metadata 처리
-	state, err := r.MapGetResponseToState(ctx, getData, plan, tagsMap)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Cluster",
-			err.Error(),
-		)
-		return
-	}
-
-	// Set state to fully populated data
-	diags = resp.State.Set(ctx, state)
+	// Save state immediately after creation to prevent orphan resources
+	plan.Id = types.StringValue(clusterId)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
 
-func (r *searchengineClusterResource) AsyncPollingTags(ctx context.Context, clusterId string, serviceName string,
-	resourceType string, maxAttempts int, internal time.Duration) (types.Map, error) {
-	ticker := time.NewTicker(internal)
-	defer ticker.Stop()
+	err = waitForClusterStatus(ctx, r.client, clusterId, []string{"CREATING"}, []string{"RUNNING"}, true)
+	if err != nil {
+		r.nullOutWriteOnlyFields(&plan)
+		resp.State.Set(ctx, plan)
 
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, clusterId)
-
-		if err != nil {
-			return types.Map{}, fmt.Errorf("attempt %d/%d failed: %w",
-				attempt, maxAttempts, err)
-		}
-
-		if len(tagsMap.Elements()) > 0 {
-			return tagsMap, nil
-		}
-
-		if attempt < maxAttempts {
-			select {
-			case <-ticker.C:
-				continue
-			case <-ctx.Done():
-				return types.Map{}, fmt.Errorf("polling canceled: %w", ctx.Err())
-			}
-		}
+		resp.Diagnostics.AddError(
+			"Error waiting for Cluster",
+			"Cluster was created but failed to become RUNNING: "+err.Error(),
+		)
+		return
 	}
 
-	return types.Map{}, fmt.Errorf("max attempts reached (%d)", maxAttempts)
+	readReq := resource.ReadRequest{State: resp.State}
+	readResp := &resource.ReadResponse{State: resp.State}
+	r.Read(ctx, readReq, readResp)
+	resp.State = readResp.State
 }
 
 func (r *searchengineClusterResource) MapGetResponseToState(ctx context.Context,
-	resp *scpSearchengine.SearchEngineClusterDetailResponse, plan searchengine.ClusterResource, tagsMap types.Map) (searchengine.ClusterResource, error) {
+	resp *scpSearchengine.SearchEngineClusterDetailResponseV1Dot1, plan searchengine.ClusterResource, tagsMap types.Map) (searchengine.ClusterResource, error) {
 
 	var allowableIpAddresses types.Set
 	if len(resp.AllowableIpAddresses) == 0 {
@@ -435,79 +498,66 @@ func (r *searchengineClusterResource) MapGetResponseToState(ctx context.Context,
 		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
-	var backupOption = searchengine.BackupOption{}
-	if resp.InitConfigOption.BackupOption.Get() != nil {
-		backupOption = searchengine.BackupOption{
-			RetentionPeriodDay: types.StringValue(resp.InitConfigOption.BackupOption.Get().RetentionPeriodDay),
-			StartingTimeHour:   types.StringValue(resp.InitConfigOption.BackupOption.Get().StartingTimeHour),
+	var initConfigOption *searchengine.InitConfigOption
+	{
+		var dbUserPassword types.String
+		if plan.InitConfigOption != nil {
+			dbUserPassword = plan.InitConfigOption.DatabaseUserPassword
+		} else {
+			dbUserPassword = types.StringNull()
+		}
+
+		var backupOption = searchengine.BackupOption{}
+		if resp.InitConfigOption.BackupOption.Get() != nil {
+			backupOption = searchengine.BackupOption{
+				RetentionPeriodDay: types.StringValue(resp.InitConfigOption.BackupOption.Get().RetentionPeriodDay),
+				StartingTimeHour:   types.StringValue(resp.InitConfigOption.BackupOption.Get().StartingTimeHour),
+			}
+		}
+
+		initConfigOption = &searchengine.InitConfigOption{
+			InitConfigOptionBase: searchengine.InitConfigOptionBase{
+				BackupOption:     backupOption,
+				DatabasePort:     types.Int32PointerValue(resp.InitConfigOption.DatabasePort.Get()),
+				DatabaseUserName: types.StringValue(resp.InitConfigOption.DatabaseUserName),
+			},
+			DatabaseUserPassword: dbUserPassword,
 		}
 	}
 
-	var initConfigOption = searchengine.InitConfigOption{
-		BackupOption:         backupOption,
-		DatabasePort:         types.Int32PointerValue(resp.InitConfigOption.DatabasePort.Get()),
-		DatabaseUserName:     types.StringValue(resp.InitConfigOption.DatabaseUserName),
-		DatabaseUserPassword: plan.InitConfigOption.DatabaseUserPassword,
-	}
+	instanceGroupsList := databaseUtils.MapInstanceGroupsList(ctx, plan.InstanceGroups, searchengine.MapInstanceGroupResponses(resp.InstanceGroups))
 
-	var InstanceGroups []searchengine.InstanceGroup
-	for _, instanceGroup := range resp.InstanceGroups {
-		var BlockStorage []searchengine.BlockStorageGroup
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			BlockStorage = append(BlockStorage, searchengine.BlockStorageGroup{
-				Id:         types.StringValue(blockStorage.Id),
-				Name:       types.StringValue(blockStorage.Name),
-				RoleType:   types.StringValue(string(blockStorage.RoleType)),
-				SizeGb:     types.Int32Value(blockStorage.SizeGb),
-				VolumeType: types.StringValue(string(blockStorage.VolumeType)),
-			})
-		}
-
-		var Instance []searchengine.Instance
-		for _, instance := range instanceGroup.Instances {
-			Instance = append(Instance, searchengine.Instance{
-				Name:             types.StringValue(instance.Name),
-				RoleType:         types.StringValue(string(instance.RoleType)),
-				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
-				PublicIpId:       types.StringPointerValue(instance.PublicIpId.Get()),
-			})
-		}
-
-		InstanceGroups = append(InstanceGroups, searchengine.InstanceGroup{
-			Id:                 types.StringValue(instanceGroup.Id),
-			BlockStorageGroups: BlockStorage,
-			Instances:          Instance,
-			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
-			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
-		})
-	}
-
-	var maintenanceOption = searchengine.MaintenanceOption{}
-	if resp.MaintenanceOption.Get() != nil {
-		maintenanceOption = searchengine.MaintenanceOption{
+	var maintenanceOption *searchengine.MaintenanceOption
+	if resp.MaintenanceOption.IsSet() && resp.MaintenanceOption.Get() != nil {
+		maintenanceOption = &searchengine.MaintenanceOption{
 			PeriodHour:           types.StringPointerValue(resp.MaintenanceOption.Get().PeriodHour.Get()),
 			StartingDayOfWeek:    types.StringPointerValue((*string)(resp.MaintenanceOption.Get().StartingDayOfWeek.Get())),
 			StartingTime:         types.StringPointerValue(resp.MaintenanceOption.Get().StartingTime.Get()),
 			UseMaintenanceOption: types.BoolPointerValue(resp.MaintenanceOption.Get().UseMaintenanceOption),
 		}
+	} else {
+		// cluster가 failed 상태이면 API가 maintenance_option을 null로 반환하므로,
+		// 응답으로 덮어쓰지 않고 직전 plan/state 값을 유지한다.
+		maintenanceOption = plan.MaintenanceOption
 	}
 
 	return searchengine.ClusterResource{
-		Id:                   types.StringValue(resp.Id),
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: plan.DbaasEngineVersionId,
-		InitConfigOption:     initConfigOption,
-		InstanceGroups:       InstanceGroups,
-		InstanceNamePrefix:   plan.InstanceNamePrefix,
-		IsCombined:           plan.IsCombined,
-		MaintenanceOption:    maintenanceOption,
-		License:              plan.License,
-		Name:                 types.StringValue(resp.Name),
-		NatEnabled:           plan.NatEnabled,
-		ServiceState:         types.StringValue(string(resp.ServiceState)),
-		SubnetId:             types.StringValue(resp.SubnetId),
-		Tags:                 tagsMap,
-		Timezone:             types.StringValue(resp.Timezone),
+		Id:                        types.StringValue(resp.Id),
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      plan.DbaasEngineVersionId,
+		InitConfigOption:          initConfigOption,
+		InstanceGroups:            instanceGroupsList,
+		InstanceNamePrefix:        plan.InstanceNamePrefix,
+		IsCombined:                types.BoolValue(resp.GetIsCombined()),
+		MaintenanceOption:         maintenanceOption,
+		License:                   plan.License,
+		Name:                      types.StringValue(resp.Name),
+		NatEnabled:                types.BoolValue(resp.GetNatEnabled()),
+		ServiceState:              types.StringValue(string(resp.ServiceState)),
+		SubnetId:                  types.StringValue(resp.SubnetId),
+		Tags:                      tagsMap,
+		Timezone:                  types.StringValue(resp.Timezone),
+		ServiceWatchLogCollection: types.BoolValue(resp.GetServiceWatchLogCollection()),
 	}, nil
 }
 
@@ -519,8 +569,12 @@ func (r *searchengineClusterResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	data, err := r.client.GetCluster(ctx, state.Id.ValueString())
+	data, _, err := r.client.GetCluster(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Cluster",
@@ -530,7 +584,7 @@ func (r *searchengineClusterResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "searchengine", "search-engine", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, "searchengine", "search-engine", state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -583,7 +637,7 @@ func (r *searchengineClusterResource) Update(ctx context.Context, req resource.U
 	var plan searchengine.ClusterResource
 	var state searchengine.ClusterResource
 	diags := req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -601,83 +655,64 @@ func (r *searchengineClusterResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "IsCombined", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress"}
+	immutableFields := []string{"id", "MaintenanceOption", "DbaasEngineVersionId", "IsCombined", "NatEnabled", "InstanceNamePrefix", "Name", "SubnetId", "Timezone", "VipPublicIpId", "VirtualIpAddress", "ServiceWatchLogCollection"}
 
-	if databaseUtils.IsOverlapFields(immutableFields, changeFields) {
+	// InitConfigOption is immutable except for BackupOption: guard it only when a
+	// field other than BackupOption changed.
+	initConfigOnlyBackup := plan.InitConfigOption != nil && state.InitConfigOption != nil &&
+		databaseUtils.OnlyBackupOptionChanged(*plan.InitConfigOption, *state.InitConfigOption)
+	if !initConfigOnlyBackup {
+		immutableFields = append(immutableFields, "InitConfigOption")
+	}
+
+	// Reject changes to immutable fields, reporting only the fields actually changed.
+	if violated := databaseUtils.OverlapFields(immutableFields, changeFields); len(violated) > 0 {
 		resp.Diagnostics.AddError(
 			"Error Updating Cluster",
-			"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
+			"Immutable fields cannot be modified: "+strings.Join(violated, ", "),
 		)
 		return
 	}
 
-	// 변경 확인
+	// Dispatch each handler whose fields changed.
 	for _, h := range handlers {
-		if databaseUtils.IsOverlapFields(h.Fields, changeFields) {
-			if err := h.Handler(ctx, req, resp); err != nil {
-				resp.Diagnostics.AddError(
-					"Error Updating Cluster",
-					"Could not update cluster, unexpected error: "+err.Error(),
-				)
-				return
-			}
+		if !databaseUtils.IsOverlapFields(h.Fields, changeFields) {
+			continue
+		}
+		if err := h.Handler(ctx, req, resp); err != nil {
+			resp.Diagnostics.AddError(
+				"Error Updating Cluster",
+				"Could not update cluster, unexpected error: "+err.Error(),
+			)
+			return
 		}
 	}
 
-	data, err := r.client.GetCluster(ctx, state.Id.ValueString())
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		resp.Diagnostics.AddError(
-			"Error Reading cluster",
-			"Could not read cluster name "+state.Name.ValueString()+": "+err.Error()+"\nReason: "+detail,
-		)
-		return
-	}
-
-	// read Tag
-	tagsMap, err := tag.GetTags(r.clients, "searchengine", "search-engine", state.Id.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Tag",
-			err.Error(),
-		)
-		return
-	}
-	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
-
-	newState, _ := r.MapGetResponseToState(ctx, data, plan, tagsMap)
-
-	diags = resp.State.Set(ctx, &newState)
+	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-}
-
-func (r *searchengineClusterResource) getStateTransitions() map[string]map[string]func(ctx context.Context, clusterId string) error {
-	transitions := make(map[string]map[string]func(ctx context.Context, clusterId string) error)
-
-	addState := func(from string, to string, callFunc func(ctx context.Context, clusterId string) error) {
-		// from map 이 구성 되지 않았을때 초기화
-		if transitions[from] == nil {
-			transitions[from] = make(map[string]func(ctx context.Context, clusterId string) error)
-		}
-		transitions[from][to] = callFunc
+	readReq := resource.ReadRequest{
+		State: resp.State,
 	}
-
-	// State Transition Map
-	addState("STOPPED", "RUNNING", r.client.StartCluster)
-	addState("RUNNING", "STOPPED", r.client.StopCluster)
-
-	return transitions
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, readReq, readResp)
+	resp.State = readResp.State
 }
 
 func (r *searchengineClusterResource) handlerUpdateClusterState(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan searchengine.ClusterResource
 	var state searchengine.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	currentState := state.ServiceState.ValueString()
 	desiredState := plan.ServiceState.ValueString()
@@ -686,18 +721,33 @@ func (r *searchengineClusterResource) handlerUpdateClusterState(ctx context.Cont
 		return nil
 	}
 
+	// 현재 상태가 전이 중(STOPPING/STARTING)이면 별도 명령 없이 종료 상태가 될 때까지 대기한다.
+	currentState, settleErr := databaseUtils.WaitForSettledState(ctx, currentState, plan.Id.ValueString(),
+		func(ctx context.Context, clusterId string, pendingStates, targetStates []string) error {
+			return waitForClusterStatus(ctx, r.client, clusterId, pendingStates, targetStates, true)
+		})
+	if settleErr != nil {
+		return settleErr
+	}
+
+	// 전이 대기 후 이미 목표 상태에 도달했으면 종료한다.
+	if currentState == desiredState {
+		return nil
+	}
+
 	// state에 따라 start, stop 구분
-	err := r.getStateTransitions()[currentState][desiredState](ctx, plan.Id.ValueString())
+	transition, ok := databaseUtils.GetStateTransitions(r.client)[currentState][desiredState]
+	if !ok || transition == nil {
+		return fmt.Errorf("unsupported service_state transition: %q -> %q (allowed transitions: STOPPED->RUNNING, RUNNING->STOPPED)", currentState, desiredState)
+	}
+
+	err := transition(ctx, plan.Id.ValueString())
 	if err != nil {
 		return err
 	}
 
-	getFunc := func(id string) (*scpSearchengine.SearchEngineClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-		"ServiceState", desiredState, "ERROR", getFunc)
+	pendingStates := databaseUtils.GetPendingStates(currentState)
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), pendingStates, []string{desiredState}, true)
 	if err != nil {
 		return err
 	}
@@ -708,13 +758,23 @@ func (r *searchengineClusterResource) handlerUpdateClusterState(ctx context.Cont
 func (r *searchengineClusterResource) handlerUpdateClusterInitConfig(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan searchengine.ClusterResource
 	var state searchengine.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	clusterId := plan.Id.ValueString()
 
-	backupState := state.InitConfigOption.BackupOption
-	backupPlan := plan.InitConfigOption.BackupOption
+	var backupState searchengine.BackupOption
+	if state.InitConfigOption != nil {
+		backupState = state.InitConfigOption.BackupOption
+	}
+	var backupPlan searchengine.BackupOption
+	if plan.InitConfigOption != nil {
+		backupPlan = plan.InitConfigOption.BackupOption
+	}
 
 	// 1. backup 최초 설정
 	if isEmpty(backupState) && !isEmpty(backupPlan) {
@@ -746,12 +806,7 @@ func (r *searchengineClusterResource) handlerUpdateClusterInitConfig(ctx context
 		}
 	}
 
-	getFunc := func(id string) (*scpSearchengine.SearchEngineClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	_, err := databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-		"ServiceState", "RUNNING", "ERROR", getFunc)
+	err := waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		return err
 	}
@@ -766,8 +821,12 @@ func isEmpty(sp searchengine.BackupOption) bool {
 func (r *searchengineClusterResource) handlerUpdateClusterAllowableIpAddresses(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan searchengine.ClusterResource
 	var state searchengine.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	clusterId := plan.Id.ValueString()
 
@@ -778,12 +837,7 @@ func (r *searchengineClusterResource) handlerUpdateClusterAllowableIpAddresses(c
 		return err
 	}
 
-	getFunc := func(id string) (*scpSearchengine.SearchEngineClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-		"ServiceState", "RUNNING", "FAILED", getFunc)
+	err = waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true)
 	if err != nil {
 		return err
 	}
@@ -791,69 +845,55 @@ func (r *searchengineClusterResource) handlerUpdateClusterAllowableIpAddresses(c
 	return nil
 }
 
-func compareIPAddresses(state []types.String, plan []types.String) ([]string, []string) {
-	toStringSlice := func(input []types.String) []string {
-		var result []string
-		for _, item := range input {
-			if !item.IsNull() {
-				result = append(result, item.ValueString())
-			}
-		}
-		return result
-	}
-
-	toSet := func(items []string) map[string]bool {
-		set := make(map[string]bool)
-		for _, item := range items {
-			set[item] = true
-		}
-		return set
-	}
-
-	stateIPSet := toSet(toStringSlice(state))
-	planIPSet := toSet(toStringSlice(plan))
-
-	diff := func(sourceSet map[string]bool, targetSet map[string]bool) []string {
-		var result []string
-		for key := range sourceSet {
-			if !targetSet[key] {
-				result = append(result, key)
-			}
-		}
-		return result
-	}
-
-	addedIPs := diff(planIPSet, stateIPSet)
-	removedIPs := diff(stateIPSet, planIPSet)
-
-	return addedIPs, removedIPs
-}
-
 func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan searchengine.ClusterResource
 	var state searchengine.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
-	for i := 0; i < len(plan.InstanceGroups); i++ {
-		currentInstanceGroup := state.InstanceGroups[i]
-		desiredInstanceGroup := plan.InstanceGroups[i]
+	var planIGs []databaseUtils.InstanceGroup
+	plan.InstanceGroups.ElementsAs(ctx, &planIGs, false)
+	var stateIGs []databaseUtils.InstanceGroup
+	state.InstanceGroups.ElementsAs(ctx, &stateIGs, false)
 
-		instanceGroupFields := []string{"BlockStorageGroups", "Id", "Instances", "RoleType", "ServerTypeName"}
+	stateIGByRole := make(map[string]databaseUtils.InstanceGroup, len(stateIGs))
+	for _, sg := range stateIGs {
+		if _, exists := stateIGByRole[sg.RoleType.ValueString()]; !exists {
+			stateIGByRole[sg.RoleType.ValueString()] = sg
+		}
+	}
+
+	for i := 0; i < len(planIGs); i++ {
+		desiredInstanceGroup := planIGs[i]
+		currentInstanceGroup, matched := stateIGByRole[desiredInstanceGroup.RoleType.ValueString()]
+		if !matched {
+			continue
+		}
+
+		instanceGroupFields := []string{"Instances", "RoleType", "ServerTypeName"}
 
 		changedFields, err := databaseUtils.GetChangedFields(desiredInstanceGroup, currentInstanceGroup, instanceGroupFields)
 		if err != nil {
 			return err
 		}
 
-		immutableFields := []string{"Id", "RoleType"}
+		var currentBS []databaseUtils.BlockStorageGroup
+		currentInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &currentBS, false)
+		var desiredBS []databaseUtils.BlockStorageGroup
+		desiredInstanceGroup.BlockStorageGroups.ElementsAs(ctx, &desiredBS, false)
+
+		if !reflect.DeepEqual(currentBS, desiredBS) {
+			changedFields = append(changedFields, "BlockStorageGroups")
+		}
+
+		immutableFields := []string{"RoleType"}
 
 		if databaseUtils.IsOverlapFields(immutableFields, changedFields) {
-			resp.Diagnostics.AddError(
-				"Error Updating Cluster",
-				"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
-			)
-			return nil
+			return fmt.Errorf("immutable fields cannot be modified: %s", strings.Join(immutableFields, ", "))
 		}
 
 		if len(changedFields) > 0 {
@@ -867,41 +907,43 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 
 			// BlockStorageGroups Update
 			if databaseUtils.IsOverlapFields(changedFields, []string{"BlockStorageGroups"}) {
-				if len(currentInstanceGroup.BlockStorageGroups) == len(desiredInstanceGroup.BlockStorageGroups) {
-					// Resize Block Storage
-					for i := 0; i < len(currentInstanceGroup.BlockStorageGroups); i++ {
-						currentBlockStorage := currentInstanceGroup.BlockStorageGroups[i]
-						desiredBlockStorage := desiredInstanceGroup.BlockStorageGroups[i]
 
-						bsFields := []string{"Id", "Name", "RoleType", "SizeGb", "VolumeType"}
-						changedBsFields, err := databaseUtils.GetChangedFields(currentBlockStorage, desiredBlockStorage, bsFields)
-						if err != nil {
-							return err
-						}
-
-						immutableBsFields := []string{"RoleType", "VolumeType"}
-
-						if databaseUtils.IsOverlapFields(immutableBsFields, changedBsFields) {
-							resp.Diagnostics.AddError(
-								"Error Updating Cluster",
-								"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
-							)
-							return nil
-						}
-
-						if databaseUtils.IsOverlapFields(changedBsFields, []string{"SizeGb"}) {
-							//client
-							err := r.client.SetBlockStorageSize(ctx, currentBlockStorage.Id.ValueString(), desiredBlockStorage.SizeGb.ValueInt32())
-							if err != nil {
-								return err
-							}
-						}
+				bsPlan, err := databaseUtils.PlanBlockStorageUpdate(currentBS, desiredBS)
+				if err != nil {
+					return err
+				}
+				if len(bsPlan.Removed) > 0 {
+					return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: removing an existing block storage is not supported")
+				}
+				// 리사이즈/추가를 실행하기 전에 role_type을 먼저 검증한다.
+				// 루프 중간에서 실패하면 이미 만들어진 디스크가 state에 남지 않아 drift가 생긴다.
+				for _, add := range bsPlan.Adds {
+					// AddBlockStorages는 ExtraBlockStorageGroupRoleType(OS 제외)만 허용한다.
+					if !databaseUtils.IsExtraBlockStorageRoleType(add.RoleType.ValueString()) {
+						return fmt.Errorf("operation not permitted for BLOCK_STORAGE_GROUP type: role_type %q cannot be added to an existing instance group (allowed: %s)", add.RoleType.ValueString(), strings.Join(databaseUtils.BSRoleTypesExtra, ", "))
 					}
-				} else {
-					// Add Block Storage
-					addBlockStorage := desiredInstanceGroup.BlockStorageGroups[len(desiredInstanceGroup.BlockStorageGroups)-1]
-					err := r.client.AddBlockStorages(ctx, currentInstanceGroup.Id.ValueString(), addBlockStorage.RoleType.ValueString(), addBlockStorage.SizeGb.ValueInt32(), addBlockStorage.VolumeType.ValueString())
-					if err != nil {
+				}
+
+				// Resize existing Block Storages
+				for _, resize := range bsPlan.Resizes {
+					if err := r.client.SetBlockStorageSize(ctx, resize.Id, resize.SizeGb); err != nil {
+						return err
+					}
+				}
+				if len(bsPlan.Resizes) > 0 {
+					if err := waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true); err != nil {
+						return err
+					}
+				}
+
+				// Add new Block Storages
+				for _, add := range bsPlan.Adds {
+					if err := r.client.AddBlockStorages(ctx, currentInstanceGroup.Id.ValueString(), add.RoleType.ValueString(), add.SizeGb.ValueInt32(), add.VolumeType.ValueString()); err != nil {
+						return err
+					}
+				}
+				if len(bsPlan.Adds) > 0 {
+					if err := waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true); err != nil {
 						return err
 					}
 				}
@@ -919,15 +961,21 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 					return nil
 				}
 
-				currentInstanceLen := len(currentInstanceGroup.Instances)
-				desiredInstanceLen := len(desiredInstanceGroup.Instances)
+				var currentIt []databaseUtils.Instance
+				currentInstanceGroup.Instances.ElementsAs(ctx, &currentIt, false)
+				var desiredIt []databaseUtils.Instance
+				desiredInstanceGroup.Instances.ElementsAs(ctx, &desiredIt, false)
 
-				if desiredInstanceLen > currentInstanceLen {
-					instanceCount := int32(desiredInstanceLen - currentInstanceLen)
+				instancePlan := databaseUtils.PlanInstanceUpdate(currentIt, desiredIt)
+				if len(instancePlan.Removed) > 0 {
+					return fmt.Errorf("operation not permitted for INSTANCE type: removing an existing instance is not supported")
+				}
+				if len(instancePlan.Adds) > 0 {
+					instanceCount := int32(len(instancePlan.Adds))
 
 					var serviceIPAddresses []string
 
-					for _, instance := range desiredInstanceGroup.Instances[currentInstanceLen:] {
+					for _, instance := range instancePlan.Adds {
 						if instance.ServiceIpAddress.IsNull() || instance.ServiceIpAddress.IsUnknown() {
 							serviceIPAddresses = []string{}
 							break
@@ -945,12 +993,7 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 			}
 
 			// wait for 구현
-			getFunc := func(id string) (*scpSearchengine.SearchEngineClusterDetailResponse, error) {
-				return r.client.GetCluster(ctx, id)
-			}
-
-			_, err := databaseUtils.AsyncRequestPollingWithState(ctx, plan.Id.ValueString(), 200, 10*time.Second,
-				"ServiceState", "RUNNING", "ERROR", getFunc)
+			err := waitForClusterStatus(ctx, r.client, plan.Id.ValueString(), []string{"EDITING"}, []string{"RUNNING"}, true)
 			if err != nil {
 				return err
 			}
@@ -964,11 +1007,15 @@ func (r *searchengineClusterResource) handlerUpdateInstanceGroups(ctx context.Co
 func (r *searchengineClusterResource) handlerUpdateTag(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) error {
 	var plan searchengine.ClusterResource
 	var state searchengine.ClusterResource
-	req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
+	diags := req.Plan.Get(ctx, &plan)
+	diags.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return fmt.Errorf("failed to read plan or state")
+	}
 
 	// Update
-	_, err := tag.UpdateTags(r.clients, "searchengine", "search-engine", plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, "searchengine", "search-engine", plan.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
@@ -998,14 +1045,8 @@ func (r *searchengineClusterResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	// cluster 조회 func
-	getFunc := func(id string) (*scpSearchengine.SearchEngineClusterDetailResponse, error) {
-		return r.client.GetCluster(ctx, id)
-	}
-
 	// wait for 구현
-	_, err = databaseUtils.AsyncRequestPollingWithState(ctx, clusterId, 200, 20*time.Second,
-		"ServiceState", "TERMINATED", "FAILED", getFunc)
+	err = waitForClusterStatus(ctx, r.client, clusterId, []string{"TERMINATING"}, []string{"TERMINATED"}, false)
 	if err != nil {
 		if err.Error() != "404 Not Found" {
 			resp.Diagnostics.AddError(
@@ -1015,4 +1056,36 @@ func (r *searchengineClusterResource) Delete(ctx context.Context, req resource.D
 			return
 		}
 	}
+}
+
+func (r *searchengineClusterResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func waitForClusterStatus(ctx context.Context, seClient *searchengine.Client, id string, pendingStates []string, targetStates []string, errorOnNotFound bool) error {
+	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
+		info, httpStatus, err := seClient.GetCluster(ctx, id)
+		if httpStatus == 200 {
+			currentState := string(info.ServiceState)
+			for _, s := range pendingStates {
+				if s == currentState {
+					return info, currentState, nil
+				}
+			}
+			for _, s := range targetStates {
+				if s == currentState {
+					return info, currentState, nil
+				}
+			}
+			return nil, "", fmt.Errorf("cluster with id=%s transitioned to unexpected state: %s", id, currentState)
+		} else if httpStatus == 404 {
+			if errorOnNotFound {
+				return nil, "", fmt.Errorf("cluster with id=%s not found", id)
+			}
+			return info, "TERMINATED", nil
+		} else if err != nil {
+			return nil, "", err
+		}
+		return info, string(info.ServiceState), nil
+	}, -1, -1, -1, -1)
 }

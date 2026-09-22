@@ -9,6 +9,7 @@ data "samsungcloudplatformv2_virtualserver_servers" "ids" {
   vpc_id = var.vpc_id
   server_type_id = var.server_type_id
   auto_scaling_group_id = var.auto_scaling_group_id
+  zone = var.zone
 
   filter {
     name = var.servers_filter_name

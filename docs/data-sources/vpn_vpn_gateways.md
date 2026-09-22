@@ -72,14 +72,27 @@ variable "vpc_name" {
 
 ### Optional
 
-- `ip_address` (String) IpAddress
-- `name` (String) Name
-- `page` (Number) Page
-- `size` (Number) Size
-- `sort` (String) Sort
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `ip_address` (String) The IP address assigned to the resource.
+  - example: 10.0.0.0/24
+- `name` (String) The name of the resource.
+  - example: vpnGWProd
+  - valid: English letters and numbers only
+  - constraints: minLength: 1, maxLength: 20
+- `page` (Number) The page number for pagination.
+  - example: 1
+  - constraints: min: 1
+- `size` (Number) The number of items per page.
+  - example: 20
+  - constraints: min: 1
+- `sort` (String) The sorting criteria.
+  - example: created_at:desc
+  - valid: field_name:asc or field_name:desc.
+- `vpc_id` (String) The identifier of the VPC that the resource belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the resource belongs to.
+  - example: vpcProd01
 
 ### Read-Only
 
-- `ids` (List of String) Vpn gateway Id List
+- `ids` (List of String) Vpn gateway Id List.
+  - example: ['YOUR RESOURCE'S IDS']

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_health_check Data Source - samsungcloudplatformv2"
 subcategory: LB Health Check
 description: |-
-  Show Lb Health Check.
+  Retrieve details of a specific LB Health Check.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_health_check (Data Source)
 
-Show Lb Health Check.
+Retrieve details of a specific LB Health Check.
 
 ## Example Usage
 
@@ -34,37 +34,77 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Id
+- `id` (String) The unique identifier of the LB Health Check.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `lb_health_check` (Attributes) A detail of Lb Health Check. (see [below for nested schema](#nestedatt--lb_health_check))
+- `lb_health_check` (Attributes) Details of the LB Health Check. (see [below for nested schema](#nestedatt--lb_health_check))
 
 <a id="nestedatt--lb_health_check"></a>
 ### Nested Schema for `lb_health_check`
 
 Optional:
 
-- `account_id` (String) AccountId
-- `description` (String) Description
-- `health_check_count` (Number) HealthCheckCount
-- `health_check_interval` (Number) HealthCheckInterval
-- `health_check_port` (Number) HealthCheckPort
-- `health_check_timeout` (Number) HealthCheckTimeout
-- `health_check_type` (String) HealthCheckType
-- `health_check_url` (String) HealthCheckUrl
-- `http_method` (String) HttpMethod
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `request_data` (String) RequestData
-- `response_code` (String) ResponseCode
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `vpc_id` (String) VpcId
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Health check for web servers
+  - maxLength : 255
+- `health_check_count` (Number) The number of consecutive health check failures before marking as unhealthy.
+  - example : 3
+  - minimum : 1
+  - maximum : 10
+- `health_check_interval` (Number) The interval between health checks in seconds.
+  - example : 30
+  - minimum : 1
+  - maximum : 180
+- `health_check_port` (Number) The port number used for health checks.
+  - example : 80
+  - minimum : 1
+  - maximum : 65534
+- `health_check_timeout` (Number) The timeout for health check responses in seconds.
+  - example : 10
+  - minimum : 1
+  - maximum : 180
+- `health_check_type` (String) The type of health check.
+  - example : DEFAULT
+  - pattern : DEFAULT | CUSTOM
+- `health_check_url` (String) The URL path for HTTP health checks.
+  - example : /health
+  - minLength : 1
+  - maxLength : 50
+- `http_method` (String) The HTTP method used for health checks.
+  - example : GET
+  - pattern : GET | POST
+- `name` (String) The name of the LB Health Check.
+  - example : HealthCheck01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol used for the health check.
+  - example : HTTP
+  - pattern : TCP | HTTP | HTTPS
+- `request_data` (String) The request data sent during health checks.
+  - example : {"key":"value"}
+  - maxLength : 255
+- `response_code` (String) The expected HTTP response code for health checks.
+  - example : 200
+- `state` (String) The current state of the Health Check.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `vpc_id` (String) The VPC ID where the resource is located.
+  - example: YOUR RESOURCE'S VPC_ID
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

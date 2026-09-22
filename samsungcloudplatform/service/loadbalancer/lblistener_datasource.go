@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/loadbalancer"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancerv1d4"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	loadbalancerutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/loadbalancer"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,9 +28,10 @@ func NewLoadbalancerLbListenerDataSource() datasource.DataSource {
 
 // resourceManagerResourceGroupDataSources is the data source implementation.
 type loadbalancerLbListenerDataSource struct {
-	config  *scpsdk.Configuration
-	client  *loadbalancer.Client
-	clients *client.SCPClient
+	config     *scpsdk.Configuration
+	client     *loadbalancer.Client
+	clientv1d4 *loadbalancerv1d4.Client
+	clients    *client.SCPClient
 }
 
 // Metadata returns the data source type name.
@@ -40,187 +42,260 @@ func (d *loadbalancerLbListenerDataSource) Metadata(_ context.Context, req datas
 // Schema defines the schema for the data source.
 func (d *loadbalancerLbListenerDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "Show Lb Listener.",
+		Description: "Retrieve details of a specific LB Listener.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Optional:    true,
+				Description: "The unique identifier of the LB Listener.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LbListener"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Listener.",
+				Description: "Details of the LB Listener.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "id",
-						Computed:    true,
+						Description: "The unique identifier.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Optional:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Optional:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Optional:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Optional:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : LB Listener for web traffic\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("InsertClientIp"): schema.BoolAttribute{
-						Description: "InsertClientIp",
-						Optional:    true,
+						Description: "Whether to insert client IP in the header using Proxy Protocol v1.\n" +
+							"  - example : true\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the LB Listener.\n" +
+							"  - example : Listener01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n" +
+							"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Persistence"): schema.StringAttribute{
-						Description: "Persistence",
-						Optional:    true,
+						Description: "Session persistence configuration.\n" +
+							"  - example : source-ip\n" +
+							"  - pattern : source-ip | cookie\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Protocol"): schema.StringAttribute{
-						Description: "Protocol",
-						Optional:    true,
+						Description: "The protocol used for the listener.\n" +
+							"  - example : HTTP\n" +
+							"  - pattern : TCP | UDP | HTTP | HTTPS | TLS | TCP_PROXY\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-						Description: "ServerGroupId",
-						Optional:    true,
+						Description: "The ID of the server group associated with the listener.\n" +
+							"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ServerGroupName"): schema.StringAttribute{
-						Description: "ServerGroupName",
-						Optional:    true,
+						Description: "The server group name for the listener.\n" +
+							"  - example : ServerGroup01\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
-						Description: "ServicePort",
-						Optional:    true,
+						Description: "The service port number for the listener.\n" +
+							"  - example : 80\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 65535\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ResponseTimeout"): schema.Int32Attribute{
-						Description: "ResponseTimeout",
-						Optional:    true,
+						Description: "The response timeout in seconds. Only for L7 protocols (HTTP/HTTPS).\n" +
+							"  - example : 30\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 120\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SessionDurationTime"): schema.Int32Attribute{
-						Description: "SessionDurationTime",
-						Optional:    true,
+						Description: "The session duration time in seconds.\n" +
+							"  - example : 3600\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 3600\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SslCertificate"): schema.SingleNestedAttribute{
-						Description: "SslCertificate",
+						Description: "SSL certificate configuration for the listener.",
 						Optional:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("ClientCertId"): schema.StringAttribute{
-								Description: "ClientCertId",
-								Optional:    true,
+								Description: "The client certificate ID.\n" +
+									"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+								Optional: true,
 							},
 							common.ToSnakeCase("ClientCertLevel"): schema.StringAttribute{
-								Description: "ClientCertLevel",
-								Optional:    true,
+								Description: "The client certificate validation level.\n" +
+									"  - example : NORMAL\n" +
+									"  - pattern : LOW | NORMAL | HIGH\n",
+								Optional: true,
 							},
 							common.ToSnakeCase("ServerCertLevel"): schema.StringAttribute{
-								Description: "ServerCertLevel",
-								Optional:    true,
+								Description: "The server certificate validation level.\n" +
+									"  - example : NORMAL\n" +
+									"  - pattern : LOW | NORMAL | HIGH\n",
+								Optional: true,
 							},
 						},
 					},
 					common.ToSnakeCase("SniCertificate"): schema.ListNestedAttribute{
-						Description: "SniCertificate",
+						Description: "SNI certificate configuration for multiple domains.",
 						Optional:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("SniCertId"): schema.StringAttribute{
-									Description: "SniCertId",
-									Optional:    true,
+									Description: "The SNI certificate ID.\n" +
+										"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+									Optional: true,
 								},
 								common.ToSnakeCase("DomainName"): schema.StringAttribute{
-									Description: "DomainName",
-									Optional:    true,
+									Description: "The domain name for SNI certificate.\n" +
+										"  - example : example.com\n" +
+										"  - minLength : 1\n" +
+										"  - maxLength : 63\n",
+									Optional: true,
 								},
 								common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-									Description: "NotAfterDt",
-									Optional:    true,
+									Description: "The expiration date and time of the certificate.\n" +
+										"  - example : 2024-12-31T23:59:59Z\n",
+									Optional: true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the LB Listener.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("UrlHandler"): schema.ListNestedAttribute{
-						Description: "UrlHandler",
+						Description: "URL handler configuration for routing. Only for L7 protocols (HTTP/HTTPS).",
 						Optional:    true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("UrlPattern"): schema.StringAttribute{
-									Description: "UrlPattern",
-									Optional:    true,
+									Description: "The URL pattern for routing.\n" +
+										"  - example : /api/v1\n" +
+										"  - minLength : 1\n" +
+										"  - maxLength : 63\n",
+									Optional: true,
 								},
 								common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-									Description: "ServerGroupId",
-									Optional:    true,
+									Description: "The ID of the server group to route traffic to.\n" +
+										"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+									Optional: true,
 								},
 								common.ToSnakeCase("Seq"): schema.Int32Attribute{
-									Description: "Seq",
-									Optional:    true,
+									Description: "The sequence number for routing priority. 0 is reserved for default rule.\n" +
+										"  - example : 1\n",
+									Optional: true,
 								},
 							},
 						},
 					},
 					common.ToSnakeCase("HttpsRedirection"): schema.SingleNestedAttribute{
-						Description: "HttpsRedirection",
+						Description: "HTTPS redirection configuration. Only for HTTP protocol listeners.",
 						Optional:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("Protocol"): schema.StringAttribute{
-								Description: "Protocol",
-								Optional:    true,
+								Description: "The protocol to redirect to.\n" +
+									"  - example : HTTPS\n",
+								Optional: true,
 							},
 							common.ToSnakeCase("Port"): schema.StringAttribute{
-								Description: "Port",
-								Optional:    true,
+								Description: "The port number to redirect to.\n" +
+									"  - example : 443\n" +
+									"  - minimum : 1\n" +
+									"  - maximum : 65534\n",
+								Optional: true,
 							},
 							common.ToSnakeCase("ResponseCode"): schema.StringAttribute{
-								Description: "ResponseCode",
-								Optional:    true,
+								Description: "The HTTP response code for redirection.\n" +
+									"  - example : 301\n",
+								Optional: true,
 							},
 						},
 					},
+					common.ToSnakeCase("IdleTimeout"): schema.Int32Attribute{
+						Description: "The idle timeout in seconds. Only for L7 protocols (HTTP/HTTPS).\n" +
+							"  - example : 60\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 120\n",
+						Optional: true,
+					},
 					common.ToSnakeCase("UrlRedirection"): schema.StringAttribute{
-						Description: "UrlRedirection",
-						Optional:    true,
+						Description: "URL redirection configuration.\n" +
+							"  - example : https://example.com\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("XForwardedFor"): schema.BoolAttribute{
-						Description: "XForwardedFor",
-						Optional:    true,
+						Description: "X-Forwarded-For header configuration.\n" +
+							"  - example : true\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("XForwardedPort"): schema.BoolAttribute{
-						Description: "XForwardedPort",
-						Optional:    true,
+						Description: "X-Forwarded-Port header configuration.\n" +
+							"  - example : true\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("XForwardedProto"): schema.BoolAttribute{
-						Description: "XForwardedProto",
-						Optional:    true,
+						Description: "X-Forwarded-Proto header configuration.\n" +
+							"  - example : true\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("RoutingAction"): schema.StringAttribute{
-						Description: "RoutingAction",
-						Optional:    true,
+						Description: "The routing action type. 'LB_SERVER_GROUP' for URL handler routing, 'URL_REDIRECT' for HTTPS/URL redirection.\n" +
+							"  - example : LB_SERVER_GROUP\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ConditionType"): schema.StringAttribute{
-						Description: "ConditionType",
-						Optional:    true,
+						Description: "The condition type for routing. 'URL_PATH' or 'HOST_HEADER' for URL handler.\n" +
+							"  - example : URL_PATH\n",
+						Optional: true,
 					},
-					common.ToSnakeCase("IdleTimeout"): schema.Int32Attribute{
-						Description: "IdleTimeout",
+					common.ToSnakeCase("HstsConfig"): schema.SingleNestedAttribute{
+						Description: "HSTS Configuration\n",
 						Optional:    true,
-					},
-					common.ToSnakeCase("HstsMaxAge"): schema.Int32Attribute{
-						Description: "HstsMaxAge",
-						Optional:    true,
+						Attributes: map[string]schema.Attribute{
+							common.ToSnakeCase("MaxAge"): schema.Int32Attribute{
+								Description: "HSTS max age in seconds.\n" +
+									"  - example : 1\n",
+								Optional: true,
+								Computed: true,
+							},
+							common.ToSnakeCase("IncludeSubDomains"): schema.BoolAttribute{
+								Description: "The Include Sub Domains\n" +
+									"  - example : true\n",
+								Optional: true,
+								Computed: true,
+							},
+						},
 					},
 				},
 			},
@@ -247,11 +322,12 @@ func (d *loadbalancerLbListenerDataSource) Configure(_ context.Context, req data
 	}
 
 	d.client = inst.Client.LoadBalancer
+	d.clientv1d4 = inst.Client.LoadBalancerV1d4
 	d.clients = inst.Client
 }
 
 func (d *loadbalancerLbListenerDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) { // 아직 정의하지 않은 Read 메서드를 추가한다.
-	var state loadbalancer.LbListenerDataSourceDetail
+	var state loadbalancerv1d4.LbListenerDataSourceDetail
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -259,7 +335,7 @@ func (d *loadbalancerLbListenerDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	data, err := d.client.GetLbListener(ctx, state.Id.ValueString())
+	data, err := d.clientv1d4.GetLbListener(ctx, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Show LbListener",
@@ -268,9 +344,14 @@ func (d *loadbalancerLbListenerDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	lbListenerState := loadbalancerutil.ConvertResponse(data)
+	lbListenerState, skipped := loadbalancerutil.ConvertResponse(data)
 
-	lbListenerObjectValue, _ := types.ObjectValueFrom(ctx, lbListenerState.AttributeTypes(), lbListenerState)
+	lbListenerObjectValue, diags := types.ObjectValueFrom(ctx, lbListenerState.AttributeTypes(), lbListenerState)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	state.LbListenerDetail = lbListenerObjectValue
 
 	// Set refreshed state
@@ -279,4 +360,12 @@ func (d *loadbalancerLbListenerDataSource) Read(ctx context.Context, req datasou
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	if skipped > 0 {
+		resp.Diagnostics.AddWarning(
+			"UrlHandler mapping skipped",
+			fmt.Sprintf("%d url_handler entries were skipped due to unexpected response format. Check provider logs for details.", skipped),
+		)
+	}
+
 }

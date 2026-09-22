@@ -3,13 +3,15 @@ package servicewatch
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/servicewatch/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/servicewatch/1.5"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -19,8 +21,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &serviceWatchLogStreamResource{}
-	_ resource.ResourceWithConfigure = &serviceWatchLogStreamResource{}
+	_ resource.Resource                = &serviceWatchLogStreamResource{}
+	_ resource.ResourceWithConfigure   = &serviceWatchLogStreamResource{}
+	_ resource.ResourceWithImportState = &serviceWatchLogStreamResource{}
 )
 
 // NewServiceWatchLogStreamResource is a helper function to simplify the provider implementation.
@@ -46,62 +49,74 @@ func (r *serviceWatchLogStreamResource) Schema(_ context.Context, _ resource.Sch
 		Description: "Log Stream Resource",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Log stream ID",
-				Computed:    true,
+				Description: "The unique identifier of the log stream.\n" +
+					" - example : b0fc99a46a2c44b8b22739b130853dd8\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Log stream Name",
-				Required:    true,
+				Description: "Log stream Name.\n" +
+					" - example : testls01\n",
+				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			common.ToSnakeCase("LogGroupId"): schema.StringAttribute{
-				Description: "Log group ID",
-				Required:    true,
+				Description: "The unique identifier of the log group.\n" +
+					" - example : bce52822147744b4afe0187164caa2e8\n",
+				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			common.ToSnakeCase("LogStream"): schema.SingleNestedAttribute{
-				Description: "Log stream",
-				Computed:    true,
-				Optional:    true,
+				Description: "List of log stream.\n" +
+					" - example : {\"id\": \"b0fc99a46a2c44b8b22739b130853dd8\", \"name\": \"testls01\"}\n",
+				Computed: true,
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Log stream ID",
-						Computed:    true,
+						Description: "Log stream ID.\n" +
+							" - example : b0fc99a46a2c44b8b22739b130853dd8\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Log stream name",
-						Computed:    true,
+						Description: "Log stream name.\n" +
+							" - example : testls01\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LogGroupId"): schema.StringAttribute{
-						Description: "Log group ID",
-						Computed:    true,
+						Description: "The unique identifier of the log group.\n" +
+							" - example : bce52822147744b4afe0187164caa2e8\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CollectYn"): schema.StringAttribute{
-						Description: "Whether to collect logs or not",
-						Computed:    true,
+						Description: "Whether to collect logs or not.\n" +
+							" - example : Y\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created date time",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Creator ID",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified date time",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							" - example : 2024-05-17T00:23:17Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modifier ID",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+						Computed: true,
 					},
 				},
 			},
@@ -154,7 +169,11 @@ func (r *serviceWatchLogStreamResource) Create(ctx context.Context, req resource
 
 	// Map response body to schema and populate Computed attribute values
 	logStream := convertLogStream(&data.LogStream)
-	logStreamObjectValue, diags := types.ObjectValueFrom(ctx, logStream.AttributeTypes(), logStream)
+	logStreamObjectValue, d := types.ObjectValueFrom(ctx, logStream.AttributeTypes(), logStream)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	plan.Id = types.StringValue(logStream.Id.ValueString())
 	plan.LogStream = logStreamObjectValue
@@ -180,6 +199,10 @@ func (r *serviceWatchLogStreamResource) Read(ctx context.Context, req resource.R
 	// Get refreshed value from Log Stream
 	data, err := r.client.GetLogStream(ctx, state.LogGroupId.ValueString(), state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		var detailMessage string
 		if data != nil { // 존재하지 않는 log stream 조회 시 Error message 수정
 			detailMessage = "Could not read Log Group ID " + state.LogGroupId.ValueString() + ", Log Stream ID " + state.Id.ValueString() +
@@ -196,7 +219,11 @@ func (r *serviceWatchLogStreamResource) Read(ctx context.Context, req resource.R
 
 	// Map response body to schema and populate Computed attribute values
 	logStream := convertLogStream(&data.LogStream)
-	logStreamObjectValue, diags := types.ObjectValueFrom(ctx, logStream.AttributeTypes(), logStream)
+	logStreamObjectValue, d := types.ObjectValueFrom(ctx, logStream.AttributeTypes(), logStream)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LogStream = logStreamObjectValue
 
 	// Set refreshed state
@@ -253,4 +280,20 @@ func convertLogStream(logStreamResp *servicewatch2.LogStreamDTO) servicewatch.Lo
 		ModifiedAt: types.StringValue(logStreamResp.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy: types.StringValue(logStreamResp.ModifiedBy),
 	}
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *serviceWatchLogStreamResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: logGroupId/logStreamId, got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("log_group_id"), types.StringValue(parts[0]))
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
+	// resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_cidr Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  VPC CIDR
+  CIDR blocks that can be used in a VPC
 ---
 
 # samsungcloudplatformv2_vpc_cidr (Resource)
 
-VPC CIDR
+CIDR blocks that can be used in a VPC
 
 ## Example Usage
 
@@ -21,7 +21,7 @@ resource "samsungcloudplatformv2_vpc_cidr" "my_added_cidr_vpc" {
 }
 
 output "vpc_output" {
-  value = samsungcloudplatformv2_vpc_cidr.my_added_cidr_vpc.vpc
+  value = samsungcloudplatformv2_vpc_cidr.my_added_cidr_vpc
 }
 
 
@@ -43,38 +43,12 @@ variable "cidr" {
 
 ### Required
 
-- `cidr` (String) CIDR 
-  - example : 192.168.0.0/24
-- `vpc_id` (String) VPC ID 
+- `cidr` (String) The IP address range of the vpc in CIDR notation.
+  - example : '192.168.0.0/24'
+- `vpc_id` (String) The identifier of the VPC that the resource belongs to.
   - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
-- `vpc` (Attributes) VPC detail after adding CIDR (see [below for nested schema](#nestedatt--vpc))
-
-<a id="nestedatt--vpc"></a>
-### Nested Schema for `vpc`
-
-Read-Only:
-
-- `account_id` (String) Account ID
-- `cidr_count` (Number) CIDR Count
-- `cidrs` (Attributes List) CIDRs (see [below for nested schema](#nestedatt--vpc--cidrs))
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `description` (String) Description
-- `id` (String) VPC ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `name` (String) Name
-- `state` (String) State
-
-<a id="nestedatt--vpc--cidrs"></a>
-### Nested Schema for `vpc.cidrs`
-
-Read-Only:
-
-- `cidr` (String) CIDR
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `id` (String) CIDR ID
+- `id` (String) The unique identifier of the vpc cidr.
+  - example: YOUR RESOURCE'S ID

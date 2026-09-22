@@ -32,6 +32,11 @@ variable "sort" {
   default = "created_at:desc"
 }
 
+variable "uplink_zone_state" {
+  type    = string
+  default = "ACTIVE"
+}
+
 variable "state" {
   type    = string
   default = "ACTIVE"

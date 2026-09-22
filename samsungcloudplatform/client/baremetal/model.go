@@ -1,7 +1,7 @@
 package baremetal
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/filter"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -47,6 +47,7 @@ type BaremetalDataSource struct {
 	TimeZone           types.String `tfsdk:"time_zone"`
 	UseLocalSubnet     types.Bool   `tfsdk:"use_local_subnet"`
 	VpcId              types.String `tfsdk:"vpc_id"`
+	Zone               types.String `tfsdk:"zone"`
 }
 
 type LocalSubnetInfoType struct {
@@ -112,7 +113,7 @@ type ServerDetails struct {
 	NatEnabled                    types.Bool   `tfsdk:"nat_enabled"`
 	PublicIpAddressId             types.String `tfsdk:"public_ip_address_id"`
 	ServerTypeId                  types.String `tfsdk:"server_type_id"`
-	UseHyperThreading             types.Bool   `tfsdk:"use_hyper_threading"`
+	Zone                          types.String `tfsdk:"zone"`
 	Id                            types.String `tfsdk:"id"`
 	State                         types.String `tfsdk:"state"`
 }
@@ -126,14 +127,13 @@ func (v ServerDetails) AttributeTypes() map[string]attr.Type {
 		"nat_enabled":                        types.BoolType,
 		"public_ip_address_id":               types.StringType,
 		"server_type_id":                     types.StringType,
-		"use_hyper_threading":                types.BoolType,
 		"id":                                 types.StringType,
 		"state":                              types.StringType,
+		"zone":                               types.StringType,
 	}
 }
 
 type PublicNatInfoValue struct {
-	NatId       types.String `tfsdk:"nat_id"`
 	NatIp       types.String `tfsdk:"nat_ip"`
 	NatIpId     types.String `tfsdk:"nat_ip_id"`
 	State       types.String `tfsdk:"state"`
@@ -142,7 +142,6 @@ type PublicNatInfoValue struct {
 
 func (v PublicNatInfoValue) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"nat_id":        types.StringType,
 		"nat_ip":        types.StringType,
 		"nat_ip_id":     types.StringType,
 		"state":         types.StringType,

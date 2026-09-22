@@ -3,17 +3,18 @@ package ske
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.4"
+	"regexp"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/ske"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/ske/1.6"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"regexp"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -50,10 +51,11 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 						Description:         "Account ID\n  - example: 617b3d0e90c24a5fa1f65a3824861354",
 						MarkdownDescription: "Account ID\n  - example: 617b3d0e90c24a5fa1f65a3824861354",
 					},
-					"cloud_logging_enabled": schema.BoolAttribute{
+					"additional_subnet_id_list": schema.ListAttribute{
 						Computed:            true,
-						Description:         "Cloud Logging Enabled\n  - example: true",
-						MarkdownDescription: "Cloud Logging Enabled\n  - example: true",
+						ElementType:         types.StringType,
+						Description:         "Additional Subnet ID List",
+						MarkdownDescription: "List of additional subnet IDs associated with the cluster.",
 					},
 					"cluster_namespace": schema.StringAttribute{
 						Computed:            true,
@@ -76,9 +78,41 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 						MarkdownDescription: "ID\n  - example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
 					},
 					"kubernetes_version": schema.StringAttribute{
+						Computed: true,
+						Description: "Cluster Version\n" +
+							"  - pattern: ^v[0-9]{1}\\.[0-9]{1,2}\\.[0-9]{1,2}$\n" +
+							"  - pattern: v1.31.X|v1.32.X|v1.33.X|v1.34.X\n" +
+							"  - example: v1.34.3\n" +
+							"  - Use the samsungcloudplatformv2_ske_kubernetes_versions data source to query the SKE service for all Kubernetes versions supported. (ex v1.31.X|v1.32.X|v1.33.X|v1.34.X)",
+						MarkdownDescription: "Cluster Version\n" +
+							"  - pattern: ^v[0-9]{1}\\.[0-9]{1,2}\\.[0-9]{1,2}$\n" +
+							"  - pattern: v1.31.X|v1.32.X|v1.33.X|v1.34.X\n" +
+							"  - example: v1.34.3\n" +
+							"  - Use the samsungcloudplatformv2_ske_kubernetes_versions data source to query the SKE service for all Kubernetes versions supported. (ex v1.31.X|v1.32.X|v1.33.X|v1.34.X)",
+					},
+					"linked_resources": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource ID\n  - example: res-12345678",
+									MarkdownDescription: "Linked Resource ID\n  - example: res-12345678",
+								},
+								"name": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource Name\n  - example: my-resource",
+									MarkdownDescription: "Linked Resource Name\n  - example: my-resource",
+								},
+								"type": schema.StringAttribute{
+									Computed:            true,
+									Description:         "Linked Resource Type (fs/obs)\n  - pattern: fs|obs\n  - example: fs",
+									MarkdownDescription: "Linked Resource Type (fs/obs)\n  - pattern: fs|obs\n  - example: fs",
+								},
+							},
+						},
 						Computed:            true,
-						Description:         "Cluster Version\n  - example: v1.29.8",
-						MarkdownDescription: "Cluster Version\n  - example: v1.29.8",
+						Description:         "List of linked resources associated with the cluster\n  - example: {id='res-12345678', name='my-resource', type='fs'}",
+						MarkdownDescription: "List of linked resources associated with the cluster\n  - example: {id='res-12345678', name='my-resource', type='fs'}",
 					},
 					"managed_security_group": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -87,15 +121,12 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 								Description:         "Managed Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 								MarkdownDescription: "Managed Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 							},
-							"name": schema.StringAttribute{
-								Computed:            true,
-								Description:         "Managed Security Group Name\n  - example: sample-name",
-								MarkdownDescription: "Managed Security Group Name\n  - example: sample-name",
-							},
 						},
-						Computed:            true,
-						Description:         "Managed Security Group",
-						MarkdownDescription: "Managed Security Group",
+						Computed: true,
+						Description: "Managed Security Group\n" +
+							exampleNestedResourceID,
+						MarkdownDescription: "Managed Security Group\n" +
+							exampleNestedResourceID,
 					},
 					"max_node_count": schema.Int64Attribute{
 						Computed:            true,
@@ -137,24 +168,26 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 								},
 								"type": schema.StringAttribute{
 									Computed:            true,
-									Description:         "Private Endpoint Access Control Resource Type\n  - example: vm",
-									MarkdownDescription: "Private Endpoint Access Control Resource Type\n  - example: vm",
+									Description:         "Private Endpoint Access Control Resource Type\n  - pattern: vm|bm|gpuvm|mngc|devops\n  - example: vm",
+									MarkdownDescription: "Private Endpoint Access Control Resource Type\n  - pattern: vm|bm|gpuvm|mngc|devops\n  - example: vm",
 								},
 							},
 						},
-						Computed:            true,
-						Description:         "Private Endpoint Access Control Resources",
-						MarkdownDescription: "Private Endpoint Access Control Resources",
+						Computed: true,
+						Description: "Private Endpoint Access Control Resources\n" +
+							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name', type='vm'}",
+						MarkdownDescription: "Private Endpoint Access Control Resources\n" +
+							"  - example: {id='2a9be312-5d4b-4bc8-b2ae-35100fa9241f', name='sample-name', type='vm'}",
 					},
 					"private_endpoint_url": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Private Kubeconfig Download Yn\n  - example: N",
-						MarkdownDescription: "Private Kubeconfig Download Yn\n  - example: N",
+						Description:         "Private Endpoint URL\n  - example: https://sample-cluster.ske.private.kr-west1.samsungsdscloud.com:6443",
+						MarkdownDescription: "Private Endpoint URL\n  - example: https://sample-cluster.ske.private.kr-west1.samsungsdscloud.com:6443",
 					},
 					"private_kubeconfig_download_yn": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Private Endpoint URL\n  - example: https://sample-cluster.ske.private.kr-west1.samsungsdscloud.com:6443",
-						MarkdownDescription: "Private Endpoint URL\n  - example: https://sample-cluster.ske.private.kr-west1.samsungsdscloud.com:6443",
+						Description:         "Private Kubeconfig Download Yn\n  - pattern: Y|N\n  - example: N",
+						MarkdownDescription: "Private Kubeconfig Download Yn\n  - pattern: Y|N\n  - example: N",
 					},
 					"public_endpoint_access_control_ip": schema.StringAttribute{
 						Computed:            true,
@@ -168,8 +201,8 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 					},
 					"public_kubeconfig_download_yn": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Public Kubeconfig Download Yn\n  - example: N",
-						MarkdownDescription: "Public Kubeconfig Download Yn\n  - example: N",
+						Description:         "Public Kubeconfig Download Yn\n  - pattern: Y|N\n  - example: N",
+						MarkdownDescription: "Public Kubeconfig Download Yn\n  - pattern: Y|N\n  - example: N",
 					},
 					"security_group_list": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
@@ -179,16 +212,13 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 									Description:         "Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 									MarkdownDescription: "Security Group ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 								},
-								"name": schema.StringAttribute{
-									Computed:            true,
-									Description:         "Security Group Name\n  - example: sample-name",
-									MarkdownDescription: "Security Group Name\n  - example: sample-name",
-								},
 							},
 						},
-						Computed:            true,
-						Description:         "Connected Security Group List",
-						MarkdownDescription: "Connected Security Group List",
+						Computed: true,
+						Description: "Connected Security Group List\n" +
+							exampleNestedResourceID,
+						MarkdownDescription: "Connected Security Group List\n" +
+							exampleNestedResourceID,
 					},
 					"service_watch_logging_enabled": schema.BoolAttribute{
 						Computed:            true,
@@ -197,8 +227,8 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 					},
 					"status": schema.StringAttribute{
 						Computed:            true,
-						Description:         "Cluster Status\n  - example: RUNNING",
-						MarkdownDescription: "Cluster Status\n  - example: RUNNING",
+						Description:         "Cluster Status\n  - pattern: RUNNING|CREATING|UPDATING|DELETING\n  - example: RUNNING",
+						MarkdownDescription: "Cluster Status\n  - pattern: RUNNING|CREATING|UPDATING|DELETING\n  - example: RUNNING",
 					},
 					"subnet": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -207,32 +237,26 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 								Description:         "Subnet ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 								MarkdownDescription: "Subnet ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 							},
-							"name": schema.StringAttribute{
-								Computed:            true,
-								Description:         "Subnet Name\n  - example: sample-name",
-								MarkdownDescription: "Subnet Name\n  - example: sample-name",
-							},
 						},
-						Computed:            true,
-						Description:         "Subnet of Cluster",
-						MarkdownDescription: "Subnet of Cluster",
+						Computed: true,
+						Description: "Subnet of Cluster\n" +
+							exampleNestedResourceID,
+						MarkdownDescription: "Subnet of Cluster\n" +
+							exampleNestedResourceID,
 					},
 					"volume": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"id": schema.StringAttribute{
 								Computed:            true,
-								Description:         "Volume ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-								MarkdownDescription: "Volume ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
-							},
-							"name": schema.StringAttribute{
-								Computed:            true,
-								Description:         "Volume Name\n  - example: sample-name",
-								MarkdownDescription: "Volume Name\n  - example: sample-name",
+								Description:         "NFS Volume ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
+								MarkdownDescription: "NFS Volume ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 							},
 						},
-						Computed:            true,
-						Description:         "Connected File Storage",
-						MarkdownDescription: "Connected File Storage",
+						Computed: true,
+						Description: "Connected File Storage\n" +
+							exampleNestedResourceID,
+						MarkdownDescription: "Connected File Storage\n" +
+							exampleNestedResourceID,
 					},
 					"vpc": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -241,18 +265,17 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 								Description:         "VPC ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 								MarkdownDescription: "VPC ID\n  - example: 2a9be312-5d4b-4bc8-b2ae-35100fa9241f",
 							},
-							"name": schema.StringAttribute{
-								Computed:            true,
-								Description:         "VPC Name\n  - example: sample-name",
-								MarkdownDescription: "VPC Name\n  - example: sample-name",
-							},
 						},
-						Computed:            true,
-						Description:         "VPC of Cluster",
-						MarkdownDescription: "VPC of Cluster",
+						Computed: true,
+						Description: "VPC of Cluster\n" +
+							exampleNestedResourceID,
+						MarkdownDescription: "VPC of Cluster\n" +
+							exampleNestedResourceID,
 					},
 				},
-				Computed: true,
+				Computed:            true,
+				Description:         "Cluster\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_cluster#nested-schema-for-cluster",
+				MarkdownDescription: "Cluster\n - example: https://registry.terraform.io/providers/SamsungSDSCloud/samsungcloudplatformv2/latest/docs/resources/ske_cluster#nested-schema-for-cluster",
 			},
 			"id": schema.StringAttribute{
 				Required:            true,
@@ -261,6 +284,11 @@ func (d *skeClusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile("^[0-9a-f]{32}$"), ""),
 				},
+			},
+			"deletion_protection_enabled": schema.BoolAttribute{
+				Computed:            true,
+				Description:         "Cluster Deletion Protection Enabled\n  - example: true",
+				MarkdownDescription: "Cluster Deletion Protection Enabled\n  - example: true",
 			},
 		},
 	}
@@ -275,7 +303,7 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	// Get refreshed value from Cluster
+	// Get refreshed value from Cluster (v1.6)
 	data, _, err := d.client.GetCluster(ctx, state.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
@@ -288,9 +316,11 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	cluster := data.Cluster
 
-	var securityGroups []ske.ExternalResource
-	for _, securityGroup := range cluster.SecurityGroupList {
-		securityGroups = append(securityGroups, d.makeExternalResourceModel((*scpske.ExternalResource)(&securityGroup)))
+	var securityGroups []ske.ExternalResourceId
+	for _, sgId := range cluster.SecurityGroupIdList {
+		securityGroups = append(securityGroups, ske.ExternalResourceId{
+			Id: types.StringValue(sgId),
+		})
 	}
 
 	var privateEndpointAccessControlResources []ske.PrivateEndpointAccessControlResource
@@ -303,7 +333,7 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		Id:                                    types.StringValue(cluster.Id),
 		Name:                                  types.StringValue(cluster.Name),
 		AccountId:                             types.StringValue(cluster.AccountId),
-		CloudLoggingEnabled:                   types.BoolValue(cluster.CloudLoggingEnabled),
+		AdditionalSubnetIdList:                func() types.List { v, _ := types.ListValueFrom(ctx, types.StringType, func() []string { ids := make([]string, len(cluster.AdditionalSubnetIdList)); copy(ids, cluster.AdditionalSubnetIdList); return ids }()); return v }(),
 		KubernetesVersion:                     types.StringValue(cluster.KubernetesVersion),
 		ClusterNamespace:                      types.StringValue(cluster.ClusterNamespace),
 		MaxNodeCount:                          types.Int32PointerValue(cluster.MaxNodeCount.Get()),
@@ -314,21 +344,22 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		PublicEndpointUrl:                     types.StringValue(cluster.GetPublicEndpointUrl()),
 		PublicKubeconfigDownloadYn:            types.StringValue(cluster.PublicKubeconfigDownloadYn),
 		PublicEndpointAccessControlIp:         types.StringValue(cluster.GetPublicEndpointAccessControlIp()),
-		Vpc:                                   d.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Vpc.Get())),
-		Subnet:                                d.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Subnet.Get())),
-		Volume:                                d.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Volume.Get())),
+		Vpc:                                   d.nullableStringToExternalResourceId(cluster.VpcId),
+		Subnet:                                d.nullableStringToExternalResourceId(cluster.DefaultSubnetId),
+		Volume:                                d.nullableStringToExternalResourceId(cluster.NfsVolumeId),
 		SecurityGroupList:                     securityGroups,
-		ManagedSecurityGroup:                  d.makeExternalResourceModel((*scpske.ExternalResource)(cluster.Vpc.Get())),
+		ManagedSecurityGroup:                  d.nullableStringToExternalResourceId(cluster.ManagedSecurityGroupId),
 		CreatedAt:                             types.StringValue(cluster.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:                             types.StringValue(cluster.CreatedBy),
 		ModifiedAt:                            types.StringValue(cluster.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:                            types.StringValue(cluster.ModifiedBy),
 		Status:                                types.StringValue(cluster.Status),
 		ServiceWatchLoggingEnabled:            types.BoolValue(cluster.ServiceWatchLoggingEnabled),
+		LinkedResources:                       convertLinkedResourcesFromSDK(cluster.LinkedResources),
 	}
 	clusterObjectValue, _ := types.ObjectValueFrom(ctx, clusterModel.AttributeTypes(), clusterModel)
-	println("clusterObjectValue:", clusterObjectValue.String())
 	state.Cluster = clusterObjectValue
+	state.DeletionProtectionEnabled = types.BoolValue(cluster.DeletionProtectionEnabled)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -338,10 +369,14 @@ func (d *skeClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 }
 
-func (d *skeClusterDataSource) makeExternalResourceModel(externalResource *scpske.ExternalResource) ske.ExternalResource {
-	return ske.ExternalResource{
-		Id:   types.StringValue(externalResource.GetId()),
-		Name: types.StringValue(externalResource.GetName()),
+func (d *skeClusterDataSource) nullableStringToExternalResourceId(ns scpske.NullableString) ske.ExternalResourceId {
+	if ns.Get() == nil {
+		return ske.ExternalResourceId{
+			Id: types.StringNull(),
+		}
+	}
+	return ske.ExternalResourceId{
+		Id: types.StringValue(*ns.Get()),
 	}
 }
 

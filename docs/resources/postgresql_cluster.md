@@ -31,6 +31,7 @@ resource "samsungcloudplatformv2_postgresql_cluster" "cluster" {
   maintenance_option      = var.maintenance_option
   vip_public_ip_id        = var.vip_public_ip_id
   virtual_ip_address      = var.virtual_ip_address
+  service_watch_log_collection = var.service_watch_log_collection
 }
 
 
@@ -163,7 +164,7 @@ variable "vip_public_ip_id" {
 
 variable "virtual_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "service_state" {
@@ -176,6 +177,11 @@ variable "tags" {
   default = {
     key = "value"
   }
+}
+
+variable "service_watch_log_collection" {
+  type    = bool
+  default = false
 }
 ```
 
@@ -208,20 +214,28 @@ variable "tags" {
 - `service_state` (String) Service state 
   - example : 'RUNNING' (Create,Start) / 'STOPPED' (Stop)
 - `subnet_id` (String) Subnet ID
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `timezone` (String) Timezone 
   - example: 'Asia/Seoul'
 
 ### Optional
 
+- `origin_cluster_id` (String) Origin cluster ID to create this cluster from (restore/replica)
+  - example: YOUR RESOURCE'S ORIGIN_CLUSTER_ID
+- `service_watch_log_collection` (Boolean) ServiceWatchLogCollection
+ - example: false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 - `vip_public_ip_id` (String) VIP Public IP ID (Required when NatEnabled=True & HaEnabled=True)
+  - example: YOUR RESOURCE'S VIP_PUBLIC_IP_ID
 - `virtual_ip_address` (String) Virtual IP address
+  - example: 192.168.4.30
 
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--init_config_option"></a>
 ### Nested Schema for `init_config_option`
@@ -229,6 +243,7 @@ variable "tags" {
 Required:
 
 - `audit_enabled` (Boolean) Audit Log Setting
+  - example: true
 - `backup_option` (Attributes) BackupOption (see [below for nested schema](#nestedatt--init_config_option--backup_option))
 - `database_encoding` (String) Database encoding 
   - example: 'UTF-8'
@@ -250,6 +265,11 @@ Required:
   - minLength: 8  
   - maxLength: 30  
   - pattern: ^(?=.*[a-zA-Z])(?=.*[`\-[\]~!@#$%^&*()_+={};:,<.>/?])(?=.*[0-9])(?=\S*[^\w\s]).{8,30} ("'제외)
+
+Read-Only:
+
+- `origin_region` (String) Origin region of the source cluster (set for restored/replica clusters)
+  - example: kr-west1
 
 <a id="nestedatt--init_config_option--backup_option"></a>
 ### Nested Schema for `init_config_option.backup_option`
@@ -279,13 +299,14 @@ Required:
 - `instances` (Attributes List) Instances (see [below for nested schema](#nestedatt--instance_groups--instances))
 - `role_type` (String) Role type 
   - example: 'ACTIVE' 
-  - pattern: ACTIVE (HaEnabled=False) / ACTIVE_STANDBY (HaEnabled=True)
+  - pattern: ACTIVE (HaEnabled=False) / ACTIVE_STANDBY (HaEnabled=True) / REPLICA
 - `server_type_name` (String) Server type name 
   - example: 'db1v2m4'
 
 Read-Only:
 
-- `id` (String) Id
+- `id` (String) Instance group ID.
+  - example: YOUR RESOURCE'S ID
 
 <a id="nestedatt--instance_groups--block_storage_groups"></a>
 ### Nested Schema for `instance_groups.block_storage_groups`
@@ -303,8 +324,10 @@ Required:
 
 Read-Only:
 
-- `id` (String) Id
-- `name` (String) Name
+- `id` (String) Block storage group ID
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Block storage group name
+  - example: cluster-Disk-00
 
 
 <a id="nestedatt--instance_groups--instances"></a>
@@ -314,16 +337,19 @@ Required:
 
 - `role_type` (String) Role type 
   - example: 'ACTIVE' 
-  - pattern: ACTIVE / STANDBY
+  - pattern: ACTIVE / STANDBY / REPLICA
 
 Optional:
 
 - `public_ip_id` (String) Public IP ID (Required when NatEnabled=True & HaEnabled=False)
+  - example: YOUR RESOURCE'S PUBLIC_IP_ID
 - `service_ip_address` (String) User subnet IP address
+  - example: 192.168.4.22
 
 Read-Only:
 
-- `name` (String) Name
+- `name` (String) Instance name
+  - example: test001
 
 
 

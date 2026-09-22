@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_gslb_gslb_resources Data Source - samsungcloudplatformv2"
 subcategory: GSLB
 description: |-
-  Get List of Gslb Resource.
+  Gets a list of resources linked to a GSLB.
 ---
 
 # samsungcloudplatformv2_gslb_gslb_resources (Data Source)
 
-Get List of Gslb Resource.
+Gets a list of resources linked to a GSLB.
 
 ## Example Usage
 
@@ -58,46 +58,48 @@ variable "gslb_id" {
 
 ### Required
 
-- `gslb_id` (String) GslbId
+- `gslb_id` (String) The unique identifier of the GSLB.
+  - example: YOUR RESOURCE'S GSLB_ID
 
 ### Optional
 
-- `page` (Number) Page
-  - Example: 0
-- `size` (Number) Size
-  - Example: 20
-- `sort` (String) Sort
-  - Example: created_at:desc
+- `page` (Number) The page number for pagination.
+  - example : 0
+- `size` (Number) The number of items per page.
+  - example : 20
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.
+  - example : createdAt:asc
 
 ### Read-Only
 
-- `gslb_resources` (Attributes List) A list of gslb resource. (see [below for nested schema](#nestedatt--gslb_resources))
-- `total_count` (Number) Count
-  - Example: 20
+- `gslb_resources` (Attributes List) A list of resources linked to the GSLB. (see [below for nested schema](#nestedatt--gslb_resources))
+- `total_count` (Number) The total number of GSLB resources.
+  - example : 2
 
 <a id="nestedatt--gslb_resources"></a>
 ### Nested Schema for `gslb_resources`
 
 Read-Only:
 
-- `created_at` (String) Created at
-  - Example: 2024-05-17T00:23:17Z
-- `created_by` (String) Created by
-  - Example: 90dfc2b1e04edba54ba2b41539a9ac
-- `description` (String) Description
-  - Max length:50
-- `destination` (String) The GSLB Resource Destination.
-- `health_check_status` (String) The GSLB Resource Health Check Status.  - Example: CONNECTED | DISCONNECTED
-- `id` (String) ID
-  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e
-- `modified_at` (String) Modified at
-  - Example: 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified by
-  - Example: 90dddfc2b1e04edba54ba2b41539a9ac
-- `region` (String) The GSLB Resource Region.
-- `status` (String) The GSLB Resource Status.
-  - Example: ENABLE | DISABLE
-- `weight` (Number) The GSLB Resource Weight.
-  - Min: 0
-  - Max: 100
-  - Default: 0
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Example Description for GSLB Resource
+- `destination` (String) The destination endpoint for the GSLB resource.
+  - example : 192.168.1.100
+- `health_check_status` (String) The health check status of the GSLB resource (e.g., CONNECTED, DISCONNECTED).
+  - example : CONNECTED
+- `id` (String) The unique identifier of the GSLB resource.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `region` (String) The region where the GSLB resource is located.
+  - example : kr-west1
+- `status` (String) Whether to use the GSLB resource. (e.g., ENABLE, DISABLE)
+  - example : ENABLE
+- `weight` (Number) The weight for load balancing distribution (0-100).
+  - example : 50

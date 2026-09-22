@@ -1,6 +1,9 @@
 package ske
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
 type Image struct {
 	CustomImageName types.String `tfsdk:"custom_image_name"`
@@ -28,6 +31,10 @@ type VolumeType struct {
 type ExternalResource struct {
 	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
+}
+
+type ExternalResourceId struct {
+	Id types.String `tfsdk:"id"`
 }
 
 type PrivateEndpointAccessControlResource struct {
@@ -69,4 +76,31 @@ type LinkedResource struct {
 	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 	Type types.String `tfsdk:"type"`
+}
+
+//------------ Cluster NFS Volume -------------------//
+
+type ClusterNfsVolumeResource struct {
+	Id          types.String `tfsdk:"id"`
+	ClusterId   types.String `tfsdk:"cluster_id"`
+	NfsVolumeId types.String `tfsdk:"nfs_volume_id"`
+	Cluster     types.Object `tfsdk:"cluster"`
+}
+
+type ClusterNfsVolumeDataSource struct {
+	Id        types.String `tfsdk:"id"`
+	ClusterId types.String `tfsdk:"cluster_id"`
+	NfsVolume types.Object `tfsdk:"nfs_volume"`
+}
+
+type NfsVolume struct {
+	Id   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+}
+
+func (m NfsVolume) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":   types.StringType,
+		"name": types.StringType,
+	}
 }

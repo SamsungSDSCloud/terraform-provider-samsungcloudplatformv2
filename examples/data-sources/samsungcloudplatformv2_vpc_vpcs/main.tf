@@ -9,4 +9,5 @@ data "samsungcloudplatformv2_vpc_vpcs" "vpcs" {
   size  = var.size
   sort  = var.sort
   state = var.state
+  zone  = var.zone
 }

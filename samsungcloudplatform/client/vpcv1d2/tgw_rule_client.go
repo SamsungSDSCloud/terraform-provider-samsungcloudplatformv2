@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.2"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.2"
 )
 
 func (client *Client) GetTGWRuleList(ctx context.Context, request TransitGatewayRuleDataSource) (*vpc.TransitGatewayRuleListResponseV1Dot2, *http.Response, error) {
@@ -46,4 +46,35 @@ func (client *Client) GetTGWRuleList(ctx context.Context, request TransitGateway
 
 	resp, httpResponse, err := req.Execute()
 	return resp, httpResponse, err
+}
+
+func (client *Client) CreateTGWRule(ctx context.Context, request TransitGatewayRuleResource) (*vpc.TransitGatewayRuleShowResponse, error) {
+	req := client.sdkClient.VpcV1TransitGatewayRulesApiAPI.CreateTransitGatewayRule(ctx, request.TransitGatewayId.ValueString())
+
+	req = req.TransitGatewayRuleCreateRequest(vpc.TransitGatewayRuleCreateRequest{
+		Description:        request.Description.ValueStringPointer(),
+		DestinationCidr:    request.DestinationCidr.ValueString(),
+		DestinationType:    vpc.TransitGatewayVpcRuleDestinationType(request.DestinationType.ValueString()),
+		TgwConnectionVpcId: request.TgwConnectionVpcId.ValueString(),
+	})
+
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) GetRoutingRule(ctx context.Context, transitGatewayId, id string) (*vpc.TransitGatewayRuleListResponseV1Dot2, error) {
+	req := client.sdkClient.VpcV1TransitGatewayRulesApiAPI.ListTransitGatewayRules(ctx, transitGatewayId)
+
+	if id != "" {
+		req = req.Id(id)
+	}
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+func (client *Client) DeleteRoutingRule(ctx context.Context, transitGatewayId, id string) error {
+	req := client.sdkClient.VpcV1TransitGatewayRulesApiAPI.DeleteTransitGatewayRule(ctx, transitGatewayId, id)
+
+	_, err := req.Execute()
+	return err
 }

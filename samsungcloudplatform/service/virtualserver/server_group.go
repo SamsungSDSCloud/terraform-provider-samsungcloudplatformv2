@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/virtualserver"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/virtualserver/1.5"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -41,39 +42,58 @@ func (r *virtualServerServerGroupResource) Metadata(_ context.Context, req resou
 
 func (r *virtualServerServerGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Server",
+		Description:         "Creates a server group.",
+		MarkdownDescription: "Creates a server group for managing virtual server placement policies.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Resource ID.",
+				MarkdownDescription: "Resource ID.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Required:    true,
+				Description: "Server group name.\n" +
+					"  - example: my-server-group\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				MarkdownDescription: "Server group name.\n" +
+					"  - example: my-server-group\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				Required: true,
 			},
 			common.ToSnakeCase("Policy"): schema.StringAttribute{
-				Description: "Policy",
-				Required:    true,
+				Description: "Server group policy.\n" +
+					"  - example: affinity\n" +
+					"  - Available values: affinity, anti-affinity, partition",
+				MarkdownDescription: "Server group policy for server placement.\n" +
+					"  - example: affinity\n" +
+					"  - Available values: affinity, anti-affinity, partition\n" +
+					"  - note: affinity places servers on the same host; anti-affinity places servers on different hosts",
+				Required: true,
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "Account ID",
-				Computed:    true,
+				Description:         "Account ID.",
+				MarkdownDescription: "Account ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("UserId"): schema.StringAttribute{
-				Description: "User ID",
-				Computed:    true,
+				Description:         "User ID.",
+				MarkdownDescription: "User ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Members"): schema.ListAttribute{
-				Description: "Members",
-				Computed:    true,
-				ElementType: types.StringType,
+				Description:         "List of member server IDs.",
+				MarkdownDescription: "List of member server IDs in this group.",
+				Computed:            true,
+				ElementType:         types.StringType,
 			},
 			common.ToSnakeCase("PartitionSize"): schema.Int32Attribute{
-				Description: "Partition Size",
-				Computed:    true,
+				Description:         "Partition size.",
+				MarkdownDescription: "Partition size for anti-affinity groups.",
+				Computed:            true,
 			},
 			"tags": tag.ResourceSchema(),
 		},
@@ -146,7 +166,7 @@ func (r *virtualServerServerGroupResource) Create(ctx context.Context, req resou
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, data.Id)
+	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, data.Id, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -183,7 +203,7 @@ func (r *virtualServerServerGroupResource) Read(ctx context.Context, req resourc
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Resource Group",
@@ -235,7 +255,7 @@ func (r *virtualServerServerGroupResource) Update(ctx context.Context, req resou
 	}
 
 	tagElements := plan.Tags.Elements()
-	tagsMap, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, plan.Id.ValueString(), tagElements)
+	tagsMap, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeServerGroup, plan.Id.ValueString(), tagElements, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating tags",
@@ -271,4 +291,12 @@ func (r *virtualServerServerGroupResource) Delete(ctx context.Context, req resou
 		)
 		return
 	}
+}
+
+func (r *virtualServerServerGroupResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

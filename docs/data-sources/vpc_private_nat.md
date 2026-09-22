@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_private_nat Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  Show Private NAT.
+  List of Private NAT.
 ---
 
 # samsungcloudplatformv2_vpc_private_nat (Data Source)
 
-Show Private NAT.
+List of Private NAT.
 
 ## Example Usage
 
@@ -38,7 +38,7 @@ variable "private_nat_id" {
 
 ### Optional
 
-- `private_nat_id` (String) Private NAT ID 
+- `private_nat_id` (String) The identifier of the private NAT.
   - example: YOUR RESOURCE'S PRIVATE_NAT_ID
 
 ### Read-Only
@@ -50,29 +50,29 @@ variable "private_nat_id" {
 
 Read-Only:
 
-- `account_id` (String) Account ID 
+- `account_id` (String) The identifier of the account that owns the private NAT.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `cidr` (String) Private NAT IP range 
+- `cidr` (String) The IP address range of the network in CIDR notation.
   - example : 192.167.0.0/24
-- `created_at` (String) Created At 
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format. 
   - example : 2024-05-17T00:23:17Z
-- `created_by` (String) Created By 
+- `created_by` (String) The user id that created the resource.
   - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Description 
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. 
   - example : PrivateNat Description
-- `id` (String) Private NAT ID 
+- `id` (String) The unique identifier of the private NAT.
   - example: YOUR RESOURCE'S ID
-- `modified_at` (String) Modified At 
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format. 
   - example : 2024-05-17T00:23:17Z
 - `modified_by` (String) Modified By 
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) Private NAT Name 
+- `name` (String) The name of the private NAT.
   - example : PrivateNatName
-- `service_resource_id` (String) Private NAT connected Service Resource ID 
+- `service_resource_id` (String) The identifier of the connected service resource.
   - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
 - `service_resource_name` (String) Private NAT connected Service Resource Name 
   - example : PrivateNatName
-- `service_type` (String) Private NAT connected Service Type 
-  - example : DIRECT_CONNECT
-- `state` (String) Private NAT State 
+- `service_type` (String) The type of the connected service.
+  - example : DIRECT_CONNECT | TRANSIT_GATEWAY
+- `state` (String) The current lifecycle state of the private NAT.
   - example : ACTIVE

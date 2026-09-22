@@ -3,24 +3,29 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.3"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &loadbalancerLoadbalancerPublicNatIpResource{}
-	_ resource.ResourceWithConfigure = &loadbalancerLoadbalancerPublicNatIpResource{}
+	_ resource.Resource                = &loadbalancerLoadbalancerPublicNatIpResource{}
+	_ resource.ResourceWithConfigure   = &loadbalancerLoadbalancerPublicNatIpResource{}
+	_ resource.ResourceWithImportState = &loadbalancerLoadbalancerPublicNatIpResource{}
 )
 
 // NewLoadbalancerLoadbalancerPublicNatIpResource is a helper function to simplify the provider implementation.
@@ -46,99 +51,124 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Schema(_ context.Context, 
 		Description: "Loadbalancer Public NAT.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the resource.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-				Description: "LoadbalancerId",
-				Required:    true,
+				Description: "The LoadBalancer ID associated with the Public NAT IP.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Required: true,
 			},
 			common.ToSnakeCase("LoadbalancerPublicNatIp"): schema.SingleNestedAttribute{
 				Description: "A detail of public NAT.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Optional:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Optional:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Optional:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Optional:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Optional:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Optional:    true,
+						Description: "The account ID associated with the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ActionType"): schema.StringAttribute{
-						Description: "ActionType",
-						Optional:    true,
+						Description: "The action type.\n" +
+							"  - example : NAT_ALL\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Optional:    true,
+						Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+							"  - example : Public NAT IP for internet access\n" +
+							"  - maxLength : 255\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ExternalIpAddress"): schema.StringAttribute{
-						Description: "ExternalIpAddress",
-						Optional:    true,
+						Description: "The external IP address.\n" +
+							"  - example : 203.0.113.1\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Optional:    true,
+						Description: "The unique identifier of the Public NAT IP.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("InternalIpAddress"): schema.StringAttribute{
-						Description: "InternalIpAddress",
-						Optional:    true,
+						Description: "The internal IP address.\n" +
+							"  - example : 10.0.0.1\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Optional:    true,
+						Description: "The name of the Public NAT IP.\n" +
+							"  - example : PublicNatIp01\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("OwnerId"): schema.StringAttribute{
-						Description: "OwnerId",
-						Optional:    true,
+						Description: "The owner ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("OwnerName"): schema.StringAttribute{
-						Description: "OwnerName",
-						Optional:    true,
+						Description: "The owner name.\n" +
+							"  - example : LoadBalancer01\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("OwnerType"): schema.StringAttribute{
-						Description: "OwnerType",
-						Optional:    true,
+						Description: "The owner type.\n" +
+							"  - example : ALB\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("PublicipId"): schema.StringAttribute{
-						Description: "PublicipId",
-						Optional:    true,
+						Description: "The public IP ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ServiceIpPortId"): schema.StringAttribute{
-						Description: "ServiceIpPortId",
-						Optional:    true,
+						Description: "The service IP port ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Optional:    true,
+						Description: "The current state of the Public NAT IP.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Optional:    true,
+						Description: "The type of static NAT.\n" +
+							"  - example : INTERNET\n" +
+							"  - pattern : INTERNET | PRIVATE_NAT\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("vpc_id"): schema.StringAttribute{
-						Description: "vpc_id",
-						Optional:    true,
+						Description: "The VPC ID where the LoadBalancer is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 				},
 			},
@@ -147,8 +177,9 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Schema(_ context.Context, 
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("PublicipId"): schema.StringAttribute{
-						Description: "PublicipId",
-						Optional:    true,
+						Description: "The public IP ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 				},
 			},
@@ -175,6 +206,10 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Configure(_ context.Contex
 	}
 
 	r.client = inst.Client.LoadBalancer
+}
+
+func (r *loadbalancerLoadbalancerPublicNatIpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("loadbalancer_id"), req, resp)
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -215,10 +250,55 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Create(ctx context.Context
 
 // Read refreshes the Terraform state with the latest data.
 func (r *loadbalancerLoadbalancerPublicNatIpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state loadbalancer.LoadbalancerPublicNatIpResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Call ShowLoadbalancerPublicNatIp to refresh NAT IP details.
+	data, err := r.client.GetLoadbalancerPublicNatIp(ctx, state.LoadbalancerId.ValueString())
+	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("Error reading Public NAT", err.Error())
+		return
+	}
+
+	// Merge Show response with existing state.
+	// Show API returns only 3 fields (ExternalIpAddress, PublicipId, State).
+	// Other fields are preserved from existing state to avoid data loss.
+	var existingDetail loadbalancer.LoadbalancerPublicNatIpDetail
+	if !state.LoadbalancerPublicNatIp.IsNull() {
+		diags := state.LoadbalancerPublicNatIp.As(ctx, &existingDetail, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	refreshedDetail := readLoadbalancerNatModel(data, existingDetail)
+	staticNatObjectValue, diags := types.ObjectValueFrom(ctx, refreshedDetail.AttributeTypes(), refreshedDetail)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	state.LoadbalancerPublicNatIp = staticNatObjectValue
+
+	diags = resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
-// Update updates the resource and sets the updated Terraform state on success.
 func (r *loadbalancerLoadbalancerPublicNatIpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	resp.Diagnostics.AddWarning(
+		"Update not supported",
+		"Loadbalancer Public NAT IP does not support in-place updates. To change configuration, recreate the resource.",
+	)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -238,6 +318,17 @@ func (r *loadbalancerLoadbalancerPublicNatIpResource) Delete(ctx context.Context
 		resp.Diagnostics.AddError(
 			"Error Deleting LB Public NAT",
 			"Could not delete LB Public NAT, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+
+	// Wait for the Public NAT IP to be fully deleted (404 = success)
+	refreshFn := r.getPublicNatIpRefreshFunc(ctx, state.LoadbalancerId.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting LB Public NAT",
+			"Error waiting for LB Public NAT to become deleted: "+err.Error(),
 		)
 		return
 	}
@@ -263,8 +354,48 @@ func createLoadbalancerNatModel(data *scploadbalancer.StaticNatCreateResponse) l
 		PublicipId:        virtualserverutil.ToNullableStringValue(lbStaticNat.PublicipId.Get()),
 		ServiceIpPortId:   virtualserverutil.ToNullableStringValue(lbStaticNat.ServiceIpPortId.Get()),
 		State:             virtualserverutil.ToNullableStringValue(lbStaticNat.State.Get()),
-		SubnetId:          virtualserverutil.ToNullableStringValue(lbStaticNat.AccountId.Get()),
+		SubnetId:          virtualserverutil.ToNullableStringValue(lbStaticNat.SubnetId.Get()),
 		Type:              virtualserverutil.ToNullableStringValue(lbStaticNat.Type.Get()),
 		VpcId:             virtualserverutil.ToNullableStringValue(lbStaticNat.VpcId.Get()),
+	}
+}
+
+// readLoadbalancerNatModel maps the Show API response (StaticNat — 3 fields) to the provider model,
+// merging with existing state to preserve fields not returned by the Show API.
+func readLoadbalancerNatModel(data *scploadbalancer.LoadbalancerStaticNatResponse, existing loadbalancer.LoadbalancerPublicNatIpDetail) loadbalancer.LoadbalancerPublicNatIpDetail {
+	staticNat := data.StaticNat
+	return loadbalancer.LoadbalancerPublicNatIpDetail{
+		// Fields from Show API (refreshed)
+		ExternalIpAddress: types.StringValue(staticNat.ExternalIpAddress),
+		PublicipId:        virtualserverutil.ToNullableStringValue(staticNat.PublicipId.Get()),
+		State:             types.StringValue(staticNat.State),
+		// Fields preserved from existing state (not available from Show API)
+		AccountId:         existing.AccountId,
+		ActionType:        existing.ActionType,
+		CreatedAt:         existing.CreatedAt,
+		CreatedBy:         existing.CreatedBy,
+		Description:       existing.Description,
+		Id:                existing.Id,
+		InternalIpAddress: existing.InternalIpAddress,
+		ModifiedAt:        existing.ModifiedAt,
+		ModifiedBy:        existing.ModifiedBy,
+		Name:              existing.Name,
+		OwnerId:           existing.OwnerId,
+		OwnerName:         existing.OwnerName,
+		OwnerType:         existing.OwnerType,
+		ServiceIpPortId:   existing.ServiceIpPortId,
+		SubnetId:          existing.SubnetId,
+		Type:              existing.Type,
+		VpcId:             existing.VpcId,
+	}
+}
+
+func (r *loadbalancerLoadbalancerPublicNatIpResource) getPublicNatIpRefreshFunc(ctx context.Context, loadbalancerId string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		data, err := r.client.GetLoadbalancerPublicNatIp(ctx, loadbalancerId)
+		if err != nil {
+			return nil, "", err
+		}
+		return data, data.StaticNat.State, nil
 	}
 }

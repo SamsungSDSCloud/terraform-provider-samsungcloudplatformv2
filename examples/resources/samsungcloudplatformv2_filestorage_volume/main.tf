@@ -8,5 +8,5 @@ resource "samsungcloudplatformv2_filestorage_volume" "volume" {
   cifs_password = var.cifs_password
   file_unit_recovery_enabled = var.file_unit_recovery_enabled
   tags = var.tags
-  access_rules = var.access_rules
+  zone = var.zone
 }

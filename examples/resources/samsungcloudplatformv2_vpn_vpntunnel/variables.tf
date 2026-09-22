@@ -5,7 +5,7 @@ variable "description" {
 
 variable "name" {
   type    = string
-  default = "test1509257"
+  default = "test06162026"
 }
 
 variable "phase1" {
@@ -57,5 +57,6 @@ variable "vpn_gateway_id" {
   type    = string
   default = "ENTER YOUR RESOURCE'S VPN_GATEWAY_ID"
 }
+
 
 

@@ -3,12 +3,14 @@ package configinspection
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/configinspection"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/configinspection"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,8 +18,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &configInspectionDiagnosisResource{}
-	_ resource.ResourceWithConfigure = &configInspectionDiagnosisResource{}
+	_ resource.Resource                = &configInspectionDiagnosisResource{}
+	_ resource.ResourceWithConfigure   = &configInspectionDiagnosisResource{}
+	_ resource.ResourceWithImportState = &configInspectionDiagnosisResource{}
 )
 
 // NewConfigInspectionDiagnosisResource is a helper function to simplify the provider implementation.
@@ -40,107 +43,111 @@ func (r *configInspectionDiagnosisResource) Metadata(ctx context.Context, req re
 // Schema defines the resource schema
 func (r *configInspectionDiagnosisResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Config inspection resource.",
+		Description: "Manages a Config Inspection resource for automated security compliance assessment. This resource creates and manages security diagnosis configurations that scan your cloud infrastructure against industry best practices and organizational security policies to identify vulnerabilities and compliance violations.",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "Account Id\n" +
-					"  - Example: 0e3dffc50eb247a1adf4f2e5c82c4f99",
+				Description: "Account Identifier.\n" +
+					"  - example : '0e3dffc50eb247a1adxxxxxxxxxxxxxx'",
 				Required: true,
 			},
 			common.ToSnakeCase("AuthKeyRequest"): schema.SingleNestedAttribute{
-				Description: "Auth key request",
+				Description: "Authentication key configuration for secure access during security assessments. Defines credentials that allow the diagnosis service to scan your cloud resources.",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
-						Description: "Diagnosis ID\n" +
-							"  - Example: DIA-943731CB8E3045C289BAECAEC3532097",
+						Description: "Id of diagnosis.\n" +
+							"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 						Optional: true,
 					},
 					common.ToSnakeCase("AuthKeyCreatedAt"): schema.StringAttribute{
-						Description: "Auth key created at\n" +
-							"  - Example: 2022-01-01 12:00:00",
+						Description: "Created date of authkey.\n" +
+							"  - example : '2022-01-01 12:00:00'",
 						Optional: true,
 					},
 					common.ToSnakeCase("AuthKeyExpiredAt"): schema.StringAttribute{
-						Description: "Auth key expired at\n" +
-							"  - Example: 2023-01-01 12:00:00",
+						Description: "Expired date of authkey.\n" +
+							"  - example : '2023-01-01 12:00:00'",
 						Optional: true,
 					},
 					common.ToSnakeCase("AuthKeyId"): schema.StringAttribute{
-						Description: "Auth key ID\n" +
-							"  - Example: 9b72a9856e494e67afc69atd3631fe38",
+						Description: "Id of auth key.\n" +
+							"  - example : '9b72a9856e494exxxxxxxxxxxxxxxxxx'",
 						Required: true,
 					},
 				},
 			},
 			common.ToSnakeCase("CspType"): schema.StringAttribute{
-				Description: "Type of cloud service provider\n" +
-					"  - Example: SCP",
+				Description: "Type of cloud service provider.\n" +
+					"  - example : 'SCP'\n" +
+					"  - enum : SCP | AWS | Azure",
 				Required: true,
 			},
 			common.ToSnakeCase("DiagnosisAccountId"): schema.StringAttribute{
-				Description: "Id of diagnosis\n" +
-					"  - Example: 0e3dffc50eb247a1adf4f2e5c82c4f99",
+				Description: "Account Id of diagnosis.\n" +
+					"  - example : '0e3dffc50eb247a1adxxxxxxxxxxxxxx'",
 				Required: true,
 			},
 			common.ToSnakeCase("DiagnosisCheckType"): schema.StringAttribute{
-				Description: "Check type of diagnosis\n" +
-					"  - Example: BP",
+				Description: "Check type of diagnosis.\n" +
+					"  - example : 'BP'\n" +
+					"  - enum : BP | SSI",
 				Required: true,
 			},
 			common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
-				Description: "Id of diagnosis\n" +
-					"  - Example: DIA-943731CB8E3045C289BAECAEC3532097",
+				Description: "Id of diagnosis.\n" +
+					"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 				Required: true,
 			},
 			common.ToSnakeCase("DiagnosisName"): schema.StringAttribute{
-				Description: "Name of diagnosis\n" +
-					"  - Example: Sample Diagnosis Name",
+				Description: "Name of diagnosis.\n" +
+					"  - example : 'Sample Diagnosis Name'\n" +
+					"  - pattern : `^[a-zA-Z0-9-_]+$`",
 				Required: true,
 			},
 			common.ToSnakeCase("DiagnosisType"): schema.StringAttribute{
-				Description: "Diagnosis Type\n" +
-					"  - Example: Console",
+				Description: "Config inspection type.\n" +
+					"  - example : 'Console'",
 				Required: true,
 			},
 			common.ToSnakeCase("PlanType"): schema.StringAttribute{
-				Description: "Plan\n" +
-					"  - Example: STANDARD",
+				Description: "Billing plan for the inspection.\n" +
+					"  - example : 'STANDARD'\n" +
+					"  - enum : STANDARD | MONTHLY",
 				Required: true,
 			},
 			common.ToSnakeCase("ScheduleRequest"): schema.SingleNestedAttribute{
-				Description: "Schedule request",
+				Description: "Schedule request.",
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("DiagnosisId"): schema.StringAttribute{
-						Description: "Diagnosis ID\n" +
-							"  - Example: DIA-943731CB8E3045C289BAECAEC3532097",
+						Description: "Id of diagnosis.\n" +
+							"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
 						Required: true,
 					},
 					common.ToSnakeCase("DiagnosisStartTimePattern"): schema.StringAttribute{
-						Description: "Diagnosis start time pattern\n" +
-							"  - Example: 08:00",
+						Description: "Start time (5-minute increments, 00 to 23 hours, 00 to 55 minutes).\n" +
+							"  - example : '08:00'",
 						Required: true,
 					},
 					common.ToSnakeCase("FrequencyType"): schema.StringAttribute{
-						Description: "Frequency type\n" +
-							"  - Example: MONTH",
+						Description: "Schedule type (monthly, weekly, daily).\n" +
+							"  - example : 'MONTH'",
 						Required: true,
 					},
 					common.ToSnakeCase("FrequencyValue"): schema.StringAttribute{
-						Description: "Frequency value\n" +
-							"  - Example:1",
+						Description: "Schedule value (01~31, MONDAY~SUNDAY, everyDay).\n" +
+							"  - example : 1",
 						Required: true,
 					},
 					common.ToSnakeCase("UseDiagnosisCheckTypeBp"): schema.StringAttribute{
-						Description: "Use diagnosis check type BP\n" +
-							"  - Example: y",
+						Description: "Checklist Best Practice Use.\n" +
+							"  - example : 'y'",
 						Required: true,
 					},
 					common.ToSnakeCase("UseDiagnosisCheckTypeSsi"): schema.StringAttribute{
-						Description: "Use diagnosis check type SSI\n" +
-							"  - Example: y",
+						Description: "Checklist SSI usage.\n" +
+							"  - example : 'y'",
 						Required: true,
 					},
 				},
@@ -149,12 +156,14 @@ func (r *configInspectionDiagnosisResource) Schema(ctx context.Context, req reso
 
 			// Output
 			common.ToSnakeCase("Result"): schema.BoolAttribute{
-				Description: "Result",
-				Computed:    true,
+				Description: "Result of diagnosis request (true, false).\n" +
+					"  - example : true",
+				Computed: true,
 			},
 			common.ToSnakeCase("CreatedDiagnosisId"): schema.StringAttribute{
-				Description: "Id of created diagnosis",
-				Computed:    true,
+				Description: "Id of created diagnosis.\n" +
+					"  - example : 'DIA-943731CB8E3045C289xxxxxxxxxxxxxx'",
+				Computed: true,
 			},
 		},
 	}
@@ -203,9 +212,16 @@ func (r *configInspectionDiagnosisResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	// Wait for sdk changes returned diagnosis ID
-	state.Result = types.BoolValue(res.Result)
-	state.CreatedDiagnosisId = types.StringValue(res.DiagnosisId)
+	if res != nil {
+		state.Result = types.BoolValue(res.Result)
+		state.CreatedDiagnosisId = types.StringValue(res.DiagnosisId)
+	} else {
+		resp.Diagnostics.AddError(
+			"Failed to create config inspection",
+			"An error occurred while creating config inspection. Empty response",
+		)
+		return
+	}
 
 	// Save data into Terraform state
 	diags = resp.State.Set(ctx, state)
@@ -226,10 +242,10 @@ func (r *configInspectionDiagnosisResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	_, err := r.client.GetConfigInspectionObjectDetail(ctx, state.CreatedDiagnosisId.ValueString())
+	res, err := r.client.GetConfigInspectionObjectDetail(ctx, state.CreatedDiagnosisId.ValueString())
 	if err != nil {
 		// Check if the error indicates the resource was not found
-		if err.Error() == "404 Not Found" {
+		if strings.Contains(err.Error(), "404") {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -239,6 +255,38 @@ func (r *configInspectionDiagnosisResource) Read(ctx context.Context, req resour
 			fmt.Sprintf("An error occurred while reading config inspection detail: %s. Details: %s", err.Error(), detail),
 		)
 		return
+	}
+	if res == nil {
+		resp.Diagnostics.AddError(
+			"Error reading config inspection",
+			"An error occurred while reading config inspection. Empty response",
+		)
+		return
+	}
+	// Terraform resource only manage ID (used for deletion)
+	state.CreatedDiagnosisId = types.StringValue(res.SummaryResponses.DiagnosisId)
+
+	// Update input fields from API response for drift detection
+	state.AccountId = types.StringPointerValue(res.AuthKeyResponses.UserId)
+	state.DiagnosisAccountId = types.StringValue(res.SummaryResponses.DiagnosisAccountId)
+	state.CspType = types.StringValue(res.SummaryResponses.CspType)
+	state.DiagnosisCheckType = types.StringValue(res.SummaryResponses.DiagnosisCheckType)
+	state.DiagnosisId = types.StringValue(res.SummaryResponses.DiagnosisId)
+	state.DiagnosisName = types.StringValue(res.SummaryResponses.DiagnosisName)
+	state.DiagnosisType = types.StringValue(res.SummaryResponses.DiagnosisType)
+	state.PlanType = types.StringValue(res.SummaryResponses.PlanType)
+	state.ScheduleRequest = &configinspection.DiagnosisScheduleRequest{
+		DiagnosisId:               types.StringPointerValue(res.ScheduleResponse.DiagnosisId),
+		DiagnosisStartTimePattern: types.StringPointerValue(res.ScheduleResponse.DiagnosisStartTimePattern),
+		FrequencyType:             types.StringPointerValue(res.ScheduleResponse.FrequencyType),
+		FrequencyValue:            types.StringPointerValue(res.ScheduleResponse.FrequencyValue),
+		UseDiagnosisCheckTypeBp:   types.StringPointerValue(res.ScheduleResponse.UseDiagnosisCheckTypeBp),
+		UseDiagnosisCheckTypeSsi:  types.StringPointerValue(res.ScheduleResponse.UseDiagnosisCheckTypeSsi),
+	}
+	state.AuthKeyRequest = &configinspection.AuthKeyRequest{
+		AuthKeyId:        types.StringPointerValue(res.AuthKeyResponses.AuthKeyId),
+		AuthKeyCreatedAt: types.StringPointerValue(res.AuthKeyResponses.AuthKeyCreatedAt),
+		AuthKeyExpiredAt: types.StringPointerValue(res.AuthKeyResponses.AuthKeyExpiredAt),
 	}
 
 	// Save updated data into Terraform state
@@ -279,4 +327,9 @@ func (r *configInspectionDiagnosisResource) Delete(ctx context.Context, req reso
 		)
 		return
 	}
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *configInspectionDiagnosisResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("created_diagnosis_id"), req, resp)
 }

@@ -3,11 +3,12 @@ package virtualserver
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/filter"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/filter"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,24 +40,42 @@ func (d *virtualServerVolumeDataSources) Metadata(_ context.Context, req datasou
 // Schema defines the schema for the data source.
 func (d *virtualServerVolumeDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "list of volumes.",
+		Description:         "Retrieves a list of volumes.",
+		MarkdownDescription: "Retrieves a list of block storage volumes for virtual servers.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "Volume name.\n" +
+					"  - example: my-volume\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				MarkdownDescription: "Volume name.\n" +
+					"  - example: my-volume\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 255",
+				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
+				Description: "Volume state.\n" +
+					"  - Available values: available, reserved, attaching, detaching, in-use, awaiting-transfer, error, etc.",
+				MarkdownDescription: "Volume state.\n" +
+					"  - Available values: available, reserved, attaching, detaching, in-use, awaiting-transfer, error, etc.",
+				Optional: true,
 			},
 			common.ToSnakeCase("Bootable"): schema.BoolAttribute{
-				Description: "Bootable",
-				Optional:    true,
+				Description:         "Bootable flag.",
+				MarkdownDescription: "Whether the volume is bootable.\n  - example: false",
+				Optional:            true,
+			},
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Description:         "Zone ID.\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone ID.\n  - example: kr-west1-a",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Ids"): schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				Description: "Server ID List",
+				ElementType:         types.StringType,
+				Computed:            true,
+				Description:         "List of volume IDs.",
+				MarkdownDescription: "List of volume IDs.",
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -97,7 +116,7 @@ func (d *virtualServerVolumeDataSources) Read(ctx context.Context, req datasourc
 		return
 	}
 
-	ids, err := GetVolumes(d.clients, state.Name, state.State, state.Bootable, state.Filter)
+	ids, err := GetVolumes(d.clients, state.Name, state.State, state.Bootable, state.Zone, state.Filter)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Volumes",
@@ -113,8 +132,8 @@ func (d *virtualServerVolumeDataSources) Read(ctx context.Context, req datasourc
 	}
 }
 
-func GetVolumes(clients *client.SCPClient, Name types.String, State types.String, Bootable types.Bool, filters []filter.Filter) ([]types.String, error) {
-	data, err := clients.VirtualServer.GetVolumeListWithParam(Name, State, Bootable)
+func GetVolumes(clients *client.SCPClient, Name types.String, State types.String, Bootable types.Bool, Zone types.String, filters []filter.Filter) ([]types.String, error) {
+	data, err := clients.VirtualServer.GetVolumeListWithParam(Name, State, Bootable, Zone)
 	if err != nil {
 		return nil, err
 	}

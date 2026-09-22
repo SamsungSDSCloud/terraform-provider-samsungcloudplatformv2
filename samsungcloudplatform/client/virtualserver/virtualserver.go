@@ -5,9 +5,9 @@ import (
 	"math"
 	"net/http"
 
-	virtualservercommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
+	virtualservercommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/virtualserver/1.5"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -24,29 +24,90 @@ func NewClient(config *scpsdk.Configuration) *Client {
 }
 
 // -------------------- Volume -------------------- //
-func (client *Client) GetVolumeList() (*scpvirtualserver.VolumeListResponseV1Dot2, error) {
+func (client *Client) GetVolumeList() (*scpvirtualserver.VolumeListResponseV1Dot4, error) {
 	ctx := context.Background()
 	req := client.sdkClient.VirtualserverV1VolumesApiAPI.ListVolumes(ctx)
 	resp, _, err := req.Execute()
 	return resp, err
 }
-func (client *Client) GetVolumeListWithParam(Name types.String, State types.String, Bootable types.Bool) (*scpvirtualserver.VolumeListResponseV1Dot2, error) {
-	ctx := context.Background()
-	req := client.sdkClient.VirtualserverV1VolumesApiAPI.ListVolumes(ctx)
-	if !Name.IsNull() {
-		req = req.Name(Name.ValueString())
-	}
-	if !State.IsNull() {
-		req = req.State(State.ValueString())
-	}
-	if !Bootable.IsNull() {
-		req = req.Bootable(Bootable.ValueBool())
-	}
-	resp, _, err := req.Execute()
-	return resp, err
+func (client *Client) GetVolumeListWithParam(Name types.String, State types.String, Bootable types.Bool, Zone types.String) (*scpvirtualserver.VolumeListResponseV1Dot4, error) {
+	return client.listVolumesPaged(context.Background(), func(req listVolumesRequest) listVolumesRequest {
+		if !Name.IsNull() {
+			req = req.Name(Name.ValueString())
+		}
+		if !State.IsNull() {
+			req = req.State(State.ValueString())
+		}
+		if !Bootable.IsNull() {
+			req = req.Bootable(Bootable.ValueBool())
+		}
+		if !Zone.IsNull() {
+			req = req.Zone(Zone.ValueString())
+		}
+		return req
+	})
 }
 
-func (client *Client) CreateVolume(ctx context.Context, request VolumeResource) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
+// volumeListPageSize 는 ListVolumes 가 허용하는 최대 limit 이다.
+const volumeListPageSize int32 = 1000
+
+// listVolumesRequest 는 ListVolumes 요청 빌더 타입의 별칭이다. (이름이 길어서)
+type listVolumesRequest = scpvirtualserver.VirtualserverV1VolumesApiAPIListVolumesRequest
+
+// listVolumesPaged 는 marker 페이징으로 조건에 맞는 볼륨을 전부 모아서 돌려준다.
+// ListVolumes 는 한 번에 최대 1000건만 주기 때문에, 볼륨이 1000건을 넘으면
+// 단발 호출로는 뒤쪽 볼륨(서버에 붙은 boot volume 등)을 못 찾는다.
+// marker 는 직전 응답 마지막 항목의 ID 다.
+func (client *Client) listVolumesPaged(ctx context.Context, withParams func(listVolumesRequest) listVolumesRequest) (*scpvirtualserver.VolumeListResponseV1Dot4, error) {
+	var volumes []scpvirtualserver.VolumeShowResponseV1Dot4
+	marker := ""
+
+	for {
+		req := client.sdkClient.VirtualserverV1VolumesApiAPI.ListVolumes(ctx)
+		if withParams != nil {
+			req = withParams(req)
+		}
+		req = req.Limit(volumeListPageSize)
+		if marker != "" {
+			req = req.Marker(marker)
+		}
+
+		resp, _, err := req.Execute()
+		if err != nil {
+			return nil, err
+		}
+		if resp == nil || len(resp.Volumes) == 0 {
+			break
+		}
+
+		volumes = append(volumes, resp.Volumes...)
+
+		// 마지막 페이지.
+		if int32(len(resp.Volumes)) < volumeListPageSize {
+			break
+		}
+
+		next := resp.Volumes[len(resp.Volumes)-1].Id
+		// 서버가 marker 를 무시하면 같은 페이지가 계속 돌아온다. 무한 루프를 막는다.
+		if next == "" || next == marker {
+			break
+		}
+		marker = next
+	}
+
+	count := int32(len(volumes))
+	return &scpvirtualserver.VolumeListResponseV1Dot4{
+		Count:   *scpvirtualserver.NewNullableInt32(&count),
+		Volumes: volumes,
+	}, nil
+}
+
+// GetVolumeListAll 은 필터 없이 전체 볼륨을 페이징으로 모아서 돌려준다.
+func (client *Client) GetVolumeListAll(ctx context.Context) (*scpvirtualserver.VolumeListResponseV1Dot4, error) {
+	return client.listVolumesPaged(ctx, nil)
+}
+
+func (client *Client) CreateVolume(ctx context.Context, request VolumeResource) (*scpvirtualserver.VolumeShowResponseV1Dot4, error) {
 	req := client.sdkClient.VirtualserverV1VolumesApiAPI.CreateVolume(ctx)
 
 	//Tags
@@ -69,20 +130,21 @@ func (client *Client) CreateVolume(ctx context.Context, request VolumeResource) 
 		maxThroughput = nil
 	}
 
-	req = req.VolumeCreateRequestV1Dot2(scpvirtualserver.VolumeCreateRequestV1Dot2{
+	req = req.VolumeCreateRequestV1Dot4(scpvirtualserver.VolumeCreateRequestV1Dot4{
 		Name:          request.Name.ValueString(),
 		Size:          request.Size.ValueInt32(),
 		VolumeType:    *scpvirtualserver.NewNullableString(request.VolumeType.ValueStringPointer()),
 		MaxIops:       *scpvirtualserver.NewNullableInt32(maxIops),
 		MaxThroughput: *scpvirtualserver.NewNullableInt32(maxThroughput),
 		Tags:          TagsObject,
+		Zone:          request.Zone.ValueString(),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) GetVolume(ctx context.Context, volumeId string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
+func (client *Client) GetVolume(ctx context.Context, volumeId string) (*scpvirtualserver.VolumeShowResponseV1Dot4, error) {
 	req := client.sdkClient.VirtualserverV1VolumesApiAPI.ShowVolume(ctx, volumeId)
 
 	resp, _, err := req.Execute()
@@ -96,7 +158,7 @@ func (client *Client) GetDefaultVolumeType(ctx context.Context) (*scpvirtualserv
 	return resp, err
 }
 
-func (client *Client) UpdateVolume(ctx context.Context, volumeId string, request VolumeResource) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
+func (client *Client) UpdateVolume(ctx context.Context, volumeId string, request VolumeResource) (*scpvirtualserver.VolumeShowResponseV1Dot4, error) {
 	req := client.sdkClient.VirtualserverV1VolumesApiAPI.UpdateVolume(ctx, volumeId)
 
 	req = req.VolumeUpdateRequest(scpvirtualserver.VolumeUpdateRequest{
@@ -107,7 +169,7 @@ func (client *Client) UpdateVolume(ctx context.Context, volumeId string, request
 	return resp, err
 }
 
-func (client *Client) ExtendVolume(ctx context.Context, volumeId string, request VolumeResource) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
+func (client *Client) ExtendVolume(ctx context.Context, volumeId string, request VolumeResource) (*scpvirtualserver.VolumeShowResponseV1Dot4, error) {
 	req := client.sdkClient.VirtualserverV1VolumesApiAPI.ExtendVolume(ctx, volumeId)
 
 	req = req.VolumeExtendRequest(scpvirtualserver.VolumeExtendRequest{
@@ -224,7 +286,7 @@ func (client *Client) DeleteKeypair(ctx context.Context, keypairName string) err
 
 func (client *Client) GetServerList(Name types.String, Ip types.String, State types.String,
 	ProductCategory types.String, ProductOffering types.String, VpcId types.String, ServerTypeId types.String,
-	AutoScalingGroupId types.String) (*scpvirtualserver.ServerListResponse, error) {
+	AutoScalingGroupId types.String, Zone types.String) (*scpvirtualserver.ServerListResponseV1Dot5, error) {
 	ctx := context.Background()
 
 	req := client.sdkClient.VirtualserverV1ServersAPI.ListVirtualServers(ctx)
@@ -257,6 +319,9 @@ func (client *Client) GetServerList(Name types.String, Ip types.String, State ty
 	if !AutoScalingGroupId.IsNull() {
 		req = req.AutoScalingGroupId(AutoScalingGroupId.ValueString())
 	}
+	if !Zone.IsNull() {
+		req = req.Zone(Zone.ValueString())
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -287,11 +352,8 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 	var defaultMaxCount int32 = 1
 	var maxCount = *scpvirtualserver.NewNullableInt32(&defaultMaxCount)
 
-	//Metadata
-	metadataMapValue := make(map[string]interface{})
-	for k, v := range request.Metadata.Elements() {
-		metadataMapValue[k] = v.String()
-	}
+	// Metadata 는 Computed 전용이라 config 로 받을 수 없다. 그래서 생성 요청에 싣지 않는다.
+	// (플랫폼이 HA_Enabled 등을 스스로 채우고, 그 결과를 Read 에서 state 로 가져온다.)
 
 	//Networks
 	var networks []scpvirtualserver.Network
@@ -345,21 +407,43 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 	blankSourceType, _ := scpvirtualserver.NewVolumeSourceTypeFromValue("blank")
 
 	defaultVolumeType, _ := client.GetDefaultVolumeType(ctx)
-	volumeType := request.BootVolume.Type.ValueStringPointer()
-	if request.BootVolume.Type.IsNull() || request.BootVolume.Type.IsUnknown() {
+
+	// Convert BootVolume from types.Object to ServerResourceVolume
+	var bootVolume ServerResourceVolume
+	if !request.BootVolume.IsNull() && !request.BootVolume.IsUnknown() {
+		attrs := request.BootVolume.Attributes()
+		if v, ok := attrs["type"]; ok {
+			bootVolume.Type = v.(types.String)
+		}
+		if v, ok := attrs["delete_on_termination"]; ok {
+			bootVolume.DeleteOnTermination = v.(types.Bool)
+		}
+		if v, ok := attrs["size"]; ok {
+			bootVolume.Size = v.(types.Int32)
+		}
+		if v, ok := attrs["max_iops"]; ok {
+			bootVolume.MaxIops = v.(types.Int32)
+		}
+		if v, ok := attrs["max_throughput"]; ok {
+			bootVolume.MaxThroughput = v.(types.Int32)
+		}
+	}
+
+	volumeType := bootVolume.Type.ValueStringPointer()
+	if bootVolume.Type.IsNull() || bootVolume.Type.IsUnknown() {
 		volumeType = defaultVolumeType.Name.Get()
 	}
-	deleteOnTermination := request.BootVolume.DeleteOnTermination.ValueBoolPointer()
-	if request.BootVolume.DeleteOnTermination.IsNull() || request.BootVolume.DeleteOnTermination.IsUnknown() {
+	deleteOnTermination := bootVolume.DeleteOnTermination.ValueBoolPointer()
+	if bootVolume.DeleteOnTermination.IsNull() || bootVolume.DeleteOnTermination.IsUnknown() {
 		deleteOnTermination = nil
 	}
 
-	bootVolumeMaxIops := request.BootVolume.MaxIops.ValueInt32Pointer()
-	if request.BootVolume.MaxIops.IsNull() || request.BootVolume.MaxIops.IsUnknown() {
+	bootVolumeMaxIops := bootVolume.MaxIops.ValueInt32Pointer()
+	if bootVolume.MaxIops.IsNull() || bootVolume.MaxIops.IsUnknown() {
 		bootVolumeMaxIops = nil
 	}
-	bootVolumeMaxThroughput := request.BootVolume.MaxThroughput.ValueInt32Pointer()
-	if request.BootVolume.MaxThroughput.IsNull() || request.BootVolume.MaxThroughput.IsUnknown() {
+	bootVolumeMaxThroughput := bootVolume.MaxThroughput.ValueInt32Pointer()
+	if bootVolume.MaxThroughput.IsNull() || bootVolume.MaxThroughput.IsUnknown() {
 		bootVolumeMaxThroughput = nil
 	}
 	volumeState := scpvirtualserver.VolumeV1Dot2{
@@ -367,7 +451,7 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 		DeleteOnTermination: *scpvirtualserver.NewNullableBool(deleteOnTermination),
 		MaxIops:             *scpvirtualserver.NewNullableInt32(bootVolumeMaxIops),
 		MaxThroughput:       *scpvirtualserver.NewNullableInt32(bootVolumeMaxThroughput),
-		Size:                request.BootVolume.Size.ValueInt32(),
+		Size:                bootVolume.Size.ValueInt32(),
 		SourceType:          *scpvirtualserver.NewNullableVolumeSourceType(imageSourceType),
 		Type:                *scpvirtualserver.NewNullableString(volumeType),
 	}
@@ -410,12 +494,11 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 		partitionNumber.Unset()
 	}
 
-	reqState := &scpvirtualserver.ServerCreateRequestV1Dot2{
+	reqState := &scpvirtualserver.ServerCreateRequestV1Dot5{
 		ImageId:         request.ImageId.ValueString(),
 		KeypairName:     request.KeypairName.ValueString(),
 		Lock:            *scpvirtualserver.NewNullableBool(request.Lock.ValueBoolPointer()),
 		MaxCount:        maxCount,
-		Metadata:        metadataMapValue,
 		Name:            request.Name.ValueString(),
 		Networks:        networks,
 		ProductCategory: productCategory,
@@ -427,11 +510,12 @@ func (client *Client) CreateServer(ctx context.Context, request ServerResource) 
 		UserData:        *scpvirtualserver.NewNullableString(request.UserData.ValueStringPointer()),
 		Volumes:         volumes,
 		PartitionNumber: partitionNumber,
+		Zone:            request.Zone.ValueString(),
 	}
 
 	virtualservercommon.UnsetNilFields(reqState)
 
-	req = req.ServerCreateRequestV1Dot2(*reqState)
+	req = req.ServerCreateRequestV1Dot5(*reqState)
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -462,12 +546,12 @@ func (client *Client) CreateServerInterface(ctx context.Context, serverId string
 		subnetId = nil
 	}
 
-	reqState := &scpvirtualserver.ServerInterfaceCreateRequest{
+	reqState := &scpvirtualserver.ServerInterfaceCreateRequestV1Dot4{
 		FixedIps: fixedIps,
 		PortId:   *scpvirtualserver.NewNullableString(portId),
 		SubnetId: *scpvirtualserver.NewNullableString(subnetId),
 	}
-	req = req.ServerInterfaceCreateRequest(*reqState)
+	req = req.ServerInterfaceCreateRequestV1Dot4(*reqState)
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -483,7 +567,7 @@ func (client *Client) CreateServerInterfaceNat(ctx context.Context, serverId str
 	return resp, err
 }
 
-func (client *Client) GetServer(ctx context.Context, serverId string) (*scpvirtualserver.ServerShowResponse, error) {
+func (client *Client) GetServer(ctx context.Context, serverId string) (*scpvirtualserver.ServerShowResponseV1Dot5, error) {
 	req := client.sdkClient.VirtualserverV1ServersAPI.ShowVirtualServer(ctx, serverId)
 	resp, _, err := req.Execute()
 	return resp, err
@@ -495,7 +579,7 @@ func (client *Client) GetServerInterface(ctx context.Context, serverId string, p
 	return resp, err
 }
 
-func (client *Client) UpdateServer(ctx context.Context, request ServerResource) (*scpvirtualserver.ServerShowResponse, error) {
+func (client *Client) UpdateServer(ctx context.Context, request ServerResource) (*scpvirtualserver.ServerShowResponseV1Dot5, error) {
 	req := client.sdkClient.VirtualserverV1ServersAPI.UpdateVirtualServer(ctx, request.Id.ValueString())
 
 	reqState := &scpvirtualserver.ServerUpdateRequest{
@@ -574,7 +658,7 @@ func (client *Client) DeleteServerInterfaceNat(ctx context.Context, serverId str
 // -------------------- Image -------------------- //
 
 func (client *Client) GetImageList(ScpImageType types.String, ScpOriginalImageType types.String, Name types.String,
-	OsDistro types.String, Status types.String, Visibility types.String) (*scpvirtualserver.ImageListResponseV1Dot3, error) {
+	OsDistro types.String, Status types.String, Visibility types.String) (*scpvirtualserver.ImageListResponseV1Dot4, error) {
 	ctx := context.Background()
 
 	req := client.sdkClient.VirtualserverV1VirtualserverV1ImagesAPI.ListImages(ctx)
@@ -603,7 +687,7 @@ func (client *Client) GetImageList(ScpImageType types.String, ScpOriginalImageTy
 	return resp, err
 }
 
-func (client *Client) CreateImage(ctx context.Context, request ImageResource) (*scpvirtualserver.ImageShowResponseV1Dot2, error) {
+func (client *Client) CreateImage(ctx context.Context, request ImageResource) (*scpvirtualserver.ImageShowResponseV1Dot4, error) {
 	req := client.sdkClient.VirtualserverV1VirtualserverV1ImagesAPI.CreateImage(ctx)
 
 	//Tags
@@ -648,7 +732,7 @@ func (client *Client) CreateImageFromServer(ctx context.Context, request ImageRe
 	return resp, err
 }
 
-func (client *Client) GetImage(ctx context.Context, imageId string) (*scpvirtualserver.ImageShowResponseV1Dot2, error) {
+func (client *Client) GetImage(ctx context.Context, imageId string) (*scpvirtualserver.ImageShowResponseV1Dot4, error) {
 	req := client.sdkClient.VirtualserverV1VirtualserverV1ImagesAPI.ShowImage(ctx, imageId)
 	resp, _, err := req.Execute()
 	return resp, err
@@ -660,7 +744,7 @@ func (client *Client) DeleteImage(ctx context.Context, imageId string) error {
 	return err
 }
 
-func (client *Client) UpdateImage(ctx context.Context, imageId string, request ImageResource) (*scpvirtualserver.ImageShowResponseV1Dot2, error) {
+func (client *Client) UpdateImage(ctx context.Context, imageId string, request ImageResource) (*scpvirtualserver.ImageShowResponseV1Dot4, error) {
 	req := client.sdkClient.VirtualserverV1VirtualserverV1ImagesAPI.UpdateImage(ctx, imageId)
 
 	reqState := &scpvirtualserver.ImageSetRequest{

@@ -16,8 +16,6 @@ provider "samsungcloudplatformv2" {
 }
 
 data "samsungcloudplatformv2_backup_backup" "backup" {
-  region = var.region
-
   id = var.id
   server_name = var.server_name
   name = var.name
@@ -32,11 +30,6 @@ data "samsungcloudplatformv2_backup_backup" "backup" {
 
 output "backup" {
   value = data.samsungcloudplatformv2_backup_backup.backup
-}
-
-variable "region" {
-  type    = string
-  default = "kr-west1"
 }
 
 variable "id" {
@@ -76,9 +69,8 @@ variable "backup_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) ID
-- `name` (String) Backup name
-- `region` (String) Region
+- `id` (String) ID  - example: 'b9261af7ab4a48fd9f1b7c46608767f2'
+- `name` (String) Backup name  - example: 'terraformtestbackup01'
 - `server_name` (String) Backup server name
 
 ### Read-Only
@@ -91,8 +83,11 @@ variable "backup_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
 
 
 <a id="nestedatt--backup"></a>
@@ -100,18 +95,37 @@ Required:
 
 Read-Only:
 
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `encrypt_enabled` (Boolean) Whether to use Encryption
-- `id` (String) ID
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `name` (String) Backup server name
-- `policy_category` (String) Backup policy category
-- `policy_type` (String) Backup policy type
-- `retention_period` (String) Backup retention period
-- `role_type` (String) Backup role type
-- `server_category` (String) Backup server category
+- `created_at` (String) Created At 
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created By 
+  - example: YOUR RESOURCE'S CREATED_BY
+- `encrypt_enabled` (Boolean) Whether to use Encryption 
+  - example: true
+- `id` (String) ID 
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) Modified At 
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified By 
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) Backup name 
+  - example: 'terraformtestbackup01'
+- `policy_category` (String) PolicyCategory is the category field of a Backup policy. 
+  - example: 'AGENTLESS' 
+  - pattern: `^(AGENTLESS)$`
+- `policy_type` (String) PolicyType is the type field of a Backup policy 
+  - example: 'VM_IMAGE' 
+  - pattern: `^(VM_IMAGE)$`
+- `retention_period` (String) Backup retention period 
+  - example: 'MONTH_1' 
+  - pattern: `^(WEEK_2|MONTH_1|MONTH_3|MONTH_6|YEAR_1)$`
+- `role_type` (String) Backup role type 
+  - example: 'ORIGINAL' 
+  - pattern: `^(ORIGINAL)$`
+- `server_category` (String) Category of the server to be backup 
+  - example: 'VIRTUAL_SERVER' 
+  - pattern: `^(VIRTUAL_SERVER|GPU_SERVER)$`
 - `server_name` (String) Backup server name
-- `server_uuid` (String) Backup server UUID
-- `state` (String) Backup state
+- `server_uuid` (String) Backup server UUID 
+  - example: 'YOUR RESOURCE'S SERVER_UUID'
+- `state` (String) Backup state 
+  - example: 'AVAILABLE'

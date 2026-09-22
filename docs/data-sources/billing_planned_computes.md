@@ -17,23 +17,38 @@ list of planned computes.
 ### Optional
 
 - `contract_id` (String) Contract Id
+  - example: YOUR RESOURCE'S CONTRACT_ID
 - `contract_type` (List of String) Contract Type
+  - example: 01
 - `created_by` (String) Created by
+  - example: YOUR RESOURCE'S CREATED_BY
 - `end_date` (String) End date (YYYY-MM-dd)
+  - example: 2024-12-31
 - `limit` (Number) Limit
+  - example: 10
 - `modified_by` (String) Modified by
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `next_contract_type` (List of String) Next Contract Type
+  - example: 03
 - `os_type` (List of String) OS Type
+  - example: rhel
 - `page` (Number) Page
+  - example: 1
 - `server_type` (String) Server Type
+  - example: s1v1m2
 - `service_id` (List of String) Service Id
+  - example: YOUR RESOURCE'S SERVICE_ID
 - `sort` (String) Sort
+  - example: asc
 - `start_date` (String) Start date (YYYY-MM-dd)
+  - example: 2024-01-01
 - `state` (List of String) Planned Compute State
+  - example: ACTIVE
 
 ### Read-Only
 
-- `planned_computes` (Attributes List) A list of Planned computes. (see [below for nested schema](#nestedatt--planned_computes))
+- `planned_computes` (Attributes List) A list of Planned computes.
+  - example: [{account_id='f5c8e56a4d9b49a8bd89e14758a32d53', contract_id='C1234567', contract_type='01', state='ACTIVE'}] (see [below for nested schema](#nestedatt--planned_computes))
 
 <a id="nestedatt--planned_computes"></a>
 ### Nested Schema for `planned_computes`
@@ -41,28 +56,54 @@ list of planned computes.
 Read-Only:
 
 - `account_id` (String) Account ID
+  - example: YOUR RESOURCE'S ACCOUNT_ID
 - `contract_id` (String) Contract ID
+  - example: YOUR RESOURCE'S CONTRACT_ID
 - `contract_type` (String) Contract Type
+  - example: 01
 - `created_at` (String) Created at
+  - example: 2024-05-17T00:23:17Z
 - `created_by` (String) Created by
+  - example: YOUR RESOURCE'S CREATED_BY
 - `delete_yn` (String) Delete Y/N
+  - example: N
 - `end_date` (String) End date
+  - example: 2025-05-17
 - `first_contract_start_at` (String) First contract start at
+  - example: 2023-05-17T00:23:17Z
 - `id` (String) Planned compute ID
+  - example: YOUR RESOURCE'S ID
 - `modified_at` (String) Modified at
+  - example: 2024-06-24T14:02:10Z
 - `modified_by` (String) Modified by
+  - example: YOUR RESOURCE'S MODIFIED_BY
 - `next_contract_type` (String) Next contract type
+  - example: 03
 - `next_end_date` (String) Next end date
-- `next_start_date` (String) Next end date
+  - example: 2026-05-17
+- `next_start_date` (String) Next start date
+  - example: 2025-05-18
 - `os_name` (String) OS name
+  - example: RHEL
 - `os_type` (String) OS type
+  - example: rhel
 - `region` (String) Region
+  - example: kr-west1
 - `resource_name` (String) Resource name
+  - example: Planned-compute-01
 - `resource_type` (String) Resource type
+  - example: BARE_METAL
 - `server_type` (String) Server type
+  - example: s1v1m2
 - `server_type_description` (Map of String) Server type description
+  - example: {"cpu": "16 Cores"| "memory": "64 GB"}
 - `service_id` (String) Service ID
+  - example: YOUR RESOURCE'S SERVICE_ID
 - `service_name` (String) Service Name
+  - example: Virtual Server
 - `srn` (String) srn
+  - example: srn:e::26affb52e16944038a0cd2cc26060e1c:kr1-west1::compute:instance/INSTANCE-UPOg3Z6ZqyiMM0QyC3sI2m
 - `start_date` (String) Start date
+  - example: 2024-05-17
 - `state` (String) State
+  - example: ACTIVE

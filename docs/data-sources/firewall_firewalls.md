@@ -15,19 +15,19 @@ List of firewall
 provider "samsungcloudplatformv2" {
 }
 
-data "samsungcloudplatformv2_firewall_firewalls" "ids" {
+data "samsungcloudplatformv2_firewall_firewalls" "firewalls" {
   product_type = var.product_type
 }
 
 
-output "ids" {
-  value = data.samsungcloudplatformv2_firewall_firewalls.ids.ids
+output "firewalls" {
+  value = data.samsungcloudplatformv2_firewall_firewalls.firewalls
 }
 
 
 variable "product_type" {
   type    = list(string)
-  default = ["LB", "IGW"]
+  default = ["SIGW"]
 }
 ```
 
@@ -36,21 +36,84 @@ variable "product_type" {
 
 ### Optional
 
-- `name` (String) Firewall Name 
-  - example : subnetName
-- `page` (Number) Page 
-  - example : 0
-- `product_type` (List of String) ProductType 
-  - example : IGW | GGW | DGW | LB | SIGW | TGW_IGW | TGW_GGW | TGW_DGW | TGW_SIGW | TGW_BM
-- `size` (Number) Size 
-  - example : 20
-- `sort` (String) Sort 
-  - example : created_at:desc
-- `state` (List of String) State 
-  - example : CREATING | ACTIVE | EDITING | DELETING | ERROR | DEPLOYING
-- `vpc_name` (String) Vpc Name 
-  - example : vpcName
+- `name` (String) The name of the resource.
+  - example: fw-web-prod
+  - constraints: maxLength: 255
+- `page` (Number) The page number for pagination.
+  - example: 1
+  - constraints: min: 1
+- `product_type` (List of String) The type of the firewall service.
+  - example: IGW
+  - valid: IGW, GGW, DGW, LB, SIGW, TGW_IGW, TGW_GGW, TGW_DGW, TGW_SIGW, TGW_BM
+- `size` (Number) The number of items per page.
+  - example: 20
+  - constraints: min: 1
+- `sort` (String) The sorting criteria.
+  - example: created_at:desc
+  - valid: field_name:asc or field_name:desc
+- `state` (List of String) The current state of the resource.
+  - example: ACTIVE
+  - valid: CREATING, ACTIVE, EDITING, DELETING, ERROR, DEPLOYING
+- `vpc_name` (String) The name of the VPC that the resource belongs to.
+  - example: vpc-prod-01
 
 ### Read-Only
 
-- `ids` (List of String) Firewall Id List
+- `firewalls` (Attributes List) A list of firewalls. (see [below for nested schema](#nestedatt--firewalls))
+- `total_count` (Number) The total number of Firewall resources.
+  - example : 2
+
+<a id="nestedatt--firewalls"></a>
+### Nested Schema for `firewalls`
+
+Read-Only:
+
+- `account_id` (String) The account ID that owns the firewall.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the firewall was created, in ISO 8601 format.
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) The user ID that created the firewall.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `flavor_name` (String) The flavor name of the firewall.
+  - example: FIREWALL.STANDARD
+- `flavor_rule_quota` (Number) The maximum number of rules allowed by the firewall flavor.
+  - example: 100
+- `id` (String) The unique identifier of the firewall.
+  - example: YOUR RESOURCE'S ID
+- `loggable` (Boolean) Whether logging is enabled for the firewall.
+  - example: true
+- `modified_at` (String) The timestamp when the firewall was last modified, in ISO 8601 format.
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) The user ID that last modified the firewall.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the firewall.
+  - example: fw-web-prod
+- `pre_product_id` (String) The pre-product ID associated with the firewall.
+  - example: YOUR RESOURCE'S PRE_PRODUCT_ID
+- `product_type` (String) The type of the firewall service.
+  - example: IGW
+  - valid: IGW, GGW, DGW, LB, SIGW, TGW_IGW, TGW_GGW, TGW_DGW, TGW_SIGW, TGW_BM
+- `state` (String) The current state of the firewall.
+  - example: ACTIVE
+  - valid: CREATING, ACTIVE, EDITING, DELETING, ERROR, DEPLOYING
+- `status` (String) The status of the firewall.
+  - example: ENABLED
+- `total_rule_count` (Number) The total number of rules in the firewall.
+  - example: 10
+- `vpc_id` (String) The VPC ID that the firewall belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The VPC name that the firewall belongs to.
+  - example: vpc-prod-01
+- `zone_resources` (Attributes List) A list of zone resources associated with the firewall. (see [below for nested schema](#nestedatt--firewalls--zone_resources))
+
+<a id="nestedatt--firewalls--zone_resources"></a>
+### Nested Schema for `firewalls.zone_resources`
+
+Read-Only:
+
+- `allocate_state` (String) The allocation state of the zone resource.
+  - example: ALLOCATED
+- `fw_resource_id` (String) The resource ID of the firewall in the zone.
+  - example: YOUR RESOURCE'S FW_RESOURCE_ID
+- `zone` (String) The zone name where the firewall is deployed.
+  - example: zone-1

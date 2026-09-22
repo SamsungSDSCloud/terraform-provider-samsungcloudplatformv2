@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_subnet_vip Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  Get detail Subnet Vip
+  Detail information about Subnet Vip.
 ---
 
 # samsungcloudplatformv2_vpc_subnet_vip (Data Source)
 
-Get detail Subnet Vip
+Detail information about Subnet Vip.
 
 ## Example Usage
 
@@ -41,9 +41,9 @@ variable "vip_id" {
 
 ### Required
 
-- `subnet_id` (String) Subnet ID 
+- `subnet_id` (String) The identifier of the subnet that the subnet vip belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
-- `vip_id` (String) Subnet Vip ID 
+- `vip_id` (String) The identifier of the subnet vip.
   - example: YOUR RESOURCE'S VIP_ID
 
 ### Read-Only
@@ -56,18 +56,27 @@ variable "vip_id" {
 Read-Only:
 
 - `connected_ports` (Attributes List) Connected Ports (see [below for nested schema](#nestedatt--subnet_vip--connected_ports))
-- `created_at` (String) Created At
-- `created_by` (String) Created By
-- `description` (String) Description
-- `id` (String) Subnet Vip Id
-- `modified_at` (String) Modified At
-- `modified_by` (String) Modified By
-- `state` (String) State 
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this subnet vip. This help identify the purpose or usage of the subnet vip.
+  - example : resourceDescription
+- `id` (String) The unique identifier of the subnet vip.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `state` (String) The current lifecycle state of the subnet vip.
   - enum : CREATING, ACTIVE, DELETING, DELETED, ERROR
+  - example : ACTIVE
 - `static_nat` (Attributes) Static NAT Info (see [below for nested schema](#nestedatt--subnet_vip--static_nat))
-- `subnet_id` (String) Subnet ID
-- `vip_port_id` (String) Vip Port Id
-- `virtual_ip_address` (String) Virtual IP Address 
+- `subnet_id` (String) The identifier of the subnet that the subnet vip belongs to.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `vip_port_id` (String) The identifier of the vip port.
+  - example: YOUR RESOURCE'S VIP_PORT_ID
+- `virtual_ip_address` (String) The virtual IP address assigned to the subnet vip.
   - example : 192.168.20.6
 
 <a id="nestedatt--subnet_vip--connected_ports"></a>
@@ -75,12 +84,18 @@ Read-Only:
 
 Read-Only:
 
-- `attached_resource_id` (String) Connected resource ID
-- `attached_resource_type` (String) Connected resource Type
-- `id` (String) Connected Port Id
-- `port_id` (String) Port ID
-- `port_ip_address` (String) Port IP Address
-- `port_name` (String) Port Name
+- `attached_resource_id` (String) The identifier of the resource that this resource is attached to.
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
+- `attached_resource_type` (String) The type of the resource that this resource is attached to.
+  - example : VM
+- `id` (String) The unique identifier of the connected port.
+  - example: YOUR RESOURCE'S ID
+- `port_id` (String) The unique identifier of the port
+  - example: YOUR RESOURCE'S PORT_ID
+- `port_ip_address` (String) The ip address of the port.
+  - example : 192.168.0.1
+- `port_name` (String) The name of the port.
+  - example : 7df8abb4912e4709b1cb237daccca7a8
 
 
 <a id="nestedatt--subnet_vip--static_nat"></a>
@@ -89,6 +104,10 @@ Read-Only:
 Read-Only:
 
 - `external_ip_address` (String) Static Nat External Ip Address
-- `id` (String) Static Nat Id
-- `publicip_id` (String) Publicip ID
-- `state` (String) Static Nat State
+  - example : 192.168.0.1
+- `id` (String) The unique identifier of the Static Nat.
+  - example: YOUR RESOURCE'S ID
+- `publicip_id` (String) The identifier of the public IP address.
+  - example: YOUR RESOURCE'S PUBLICIP_ID
+- `state` (String) The current lifecycle state of the the Static Nat.
+  - example : ACTIVE

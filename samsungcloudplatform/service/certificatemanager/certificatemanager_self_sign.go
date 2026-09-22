@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/certificatemanager"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/certificatemanager"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -19,8 +20,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &certificateManagerSelfSignResource{}
-	_ resource.ResourceWithConfigure = &certificateManagerSelfSignResource{}
+	_ resource.Resource                = &certificateManagerSelfSignResource{}
+	_ resource.ResourceWithConfigure   = &certificateManagerSelfSignResource{}
+	_ resource.ResourceWithImportState = &certificateManagerSelfSignResource{}
 )
 
 func NewCertificateManagerSelfSignResource() resource.Resource {
@@ -33,6 +35,11 @@ type certificateManagerSelfSignResource struct {
 }
 
 func (r *certificateManagerSelfSignResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+	// This is a no-op implementation
+	response.Diagnostics.AddError(
+		"Update not supported",
+		"This resource does not support in-place updates.",
+	)
 }
 
 // Metadata returns the data source type name.
@@ -43,95 +50,103 @@ func (r *certificateManagerSelfSignResource) Metadata(_ context.Context, req res
 // Schema defines the schema for the data source.
 func (r *certificateManagerSelfSignResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "certificate manager",
+		Description: "Manages a self-signed SSL/TLS certificate in the Certificate Manager service. " +
+			"This resource creates a self-signed certificate by specifying certificate parameters such as Common Name (CN), " +
+			"organization, and validity period. Self-signed certificates are useful for internal testing and development purposes. " +
+			"Note: Self-signed certificates are not signed by a trusted Certificate Authority and will trigger browser warnings.",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Unique identifier of the self-signed certificate. " +
+					"Automatically generated upon successful creation. " +
+					"Use this ID to reference the certificate in other resources or data sources.",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Cn"): schema.StringAttribute{
-				Description: "Certificate Common Name\n" +
-					"  - Example: test.go.kr",
+				Description: "Certificate Common Name.\n" +
+					"  - example : 'test.go.kr'",
 				Required: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Certificate Name\n" +
-					"  - Example: test-certificate",
+				Description: "Certificate Name.\n" +
+					"  - example : 'test-certificate'",
 				Required: true,
 			},
 			common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-				Description: "Certificate Expire Date\n" +
-					"  - Example: 20251212",
+				Description: "Certificate Expire Date.\n" +
+					"  - example : '20251212'",
 				Required: true,
 			},
 			common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
-				Description: "Certificate Start Date\n" +
-					"  - Example: 20250101",
+				Description: "Certificate Start Date.\n" +
+					"  - example : '20250101'",
 				Required: true,
 			},
 			common.ToSnakeCase("Organization"): schema.StringAttribute{
-				Description: "Certificate Organization Name\n" +
-					"  - Example: samsungSDS",
+				Description: "Certificate Organization Name.\n" +
+					"  - example : 'samsungSDS'",
 				Required: true,
 			},
 			common.ToSnakeCase("Recipients"): schema.ListAttribute{
-				Description: "Expired certificates Recipients",
+				Description: "List of recipients who will receive notifications about certificate expiration. " +
+					"Each recipient is a map containing user information. " +
+					"Useful for ensuring timely renewal before certificate expires. " +
+					"Format: [{'region': 'region-name', 'user_id': 'user-id', 'user_name': 'user-name'}].",
 				ElementType: types.MapType{
 					ElemType: types.StringType,
 				},
 				Optional: true,
 			},
 			common.ToSnakeCase("Region"): schema.StringAttribute{
-				Description: "Name of region\n" +
-					"  - Example: west1",
+				Description: "Name of region.\n" +
+					"  - example : 'west1'",
 				Required: true,
 			},
 			common.ToSnakeCase("Timezone"): schema.StringAttribute{
-				Description: "Timezone\n" +
-					"  - Example: Asia/Seoul",
+				Description: "Timezone indentifier.\n" +
+					"  - example : 'Asia/Seoul'",
 				Required: true,
 			},
 			common.ToSnakeCase("Certificate"): schema.SingleNestedAttribute{
-				Description: "Certificate",
+				Description: "Certificate detail",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CertKind"): schema.StringAttribute{
-						Description: "Certificate type\n" +
-							"  - Example: DEV",
+						Description: "Certificate type.\n" +
+							"  - example : 'DEV'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Cn"): schema.StringAttribute{
-						Description: "Certificate Common Name\n" +
-							"  - Example: test.go.kr",
+						Description: "Certificate Common Name.\n" +
+							"  - example : 'test.go.kr'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID\n" +
-							"  - Example: 0fdd87aab8cb46f59b7c1f81ed03fb3e",
+						Description: "Certificate ID.\n" +
+							"  - example : '0fdd87aab8cb46f59b7c1f81ed03fb3e'",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Certificate Name\n" +
-							"  - Example: test-certificate",
+						Description: "Certificate Name.\n" +
+							"  - example : 'test-certificate'",
 						Computed: true,
 					},
 					common.ToSnakeCase("NotAfterDt"): schema.StringAttribute{
-						Description: "Certificate Expire Date\n" +
-							"  - Example: 2026-02-07T18:07:59",
+						Description: "Certificate Expire Date.\n" +
+							"  - example : '2026-02-07T18:07:59'",
 						Computed: true,
 					},
 					common.ToSnakeCase("NotBeforeDt"): schema.StringAttribute{
-						Description: "Certificate Start Date\n" +
-							"  - Example: 2025-02-08T18:07:00",
+						Description: "Certificate Start Date.\n" +
+							"  - example : '2025-02-08T18:07:00'",
 						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "Certificate State\n" +
-							"  - Example: VALID",
+						Description: "Certificate State.\n" +
+							"  - example : 'VALID'",
 						Computed: true,
 					},
 				},
@@ -178,31 +193,39 @@ func (r *certificateManagerSelfSignResource) Create(ctx context.Context, req res
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error creating certificate manager self sign",
+			"An error occurred while creating certificate manager self sign. Empty response",
+		)
+		return
+	}
+
 	plan.Id = types.StringValue(data.Certificate.Id)
 	vgModel := certificatemanager.Certificate{
 		Id:          types.StringValue(data.Certificate.Id),
 		Name:        types.StringValue(data.Certificate.Name),
-		CertKind:    types.StringValue(*data.Certificate.CertKind),
+		CertKind:    types.StringPointerValue(data.Certificate.CertKind),
 		Cn:          types.StringValue(data.Certificate.Cn),
 		NotBeforeDt: types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339)),
 		NotAfterDt:  types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339)),
 		State:       types.StringValue(data.Certificate.State),
 	}
 
-	certificateObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	certificateObjectValue, dia := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	resp.Diagnostics.Append(dia...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	plan.Certificate = certificateObjectValue
 
+	// Save data into Terraform state
 	diags = resp.State.Set(ctx, plan)
-
-	readReq := resource.ReadRequest{
-		State: resp.State,
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, readReq, readResp)
-
-	resp.State = readResp.State
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -218,6 +241,10 @@ func (r *certificateManagerSelfSignResource) Read(ctx context.Context, req resou
 	// Get refreshed order value from port
 	data, err := r.client.GetCertificateManager(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading certificate manager",
@@ -225,19 +252,39 @@ func (r *certificateManagerSelfSignResource) Read(ctx context.Context, req resou
 		)
 		return
 	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error Reading certificate manager",
+			"An error occurred while reading certificate manager. Empty response",
+		)
+		return
+	}
 
 	vgModel := certificatemanager.Certificate{
 		Id:          types.StringValue(data.Certificate.Id),
 		Name:        types.StringValue(data.Certificate.Name),
-		CertKind:    types.StringValue(*data.Certificate.CertKind),
+		CertKind:    types.StringPointerValue(data.Certificate.CertKind),
 		Cn:          types.StringValue(data.Certificate.Cn),
 		NotBeforeDt: types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339)),
 		NotAfterDt:  types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339)),
 		State:       types.StringValue(data.Certificate.State),
 	}
 
-	vgObjectValue, diags := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	vgObjectValue, dia := types.ObjectValueFrom(ctx, vgModel.AttributeTypes(), vgModel)
+	resp.Diagnostics.Append(dia...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	state.Certificate = vgObjectValue
+
+	// Update top-level input fields from API response for drift detection.
+	// region/timezone are not returned by the API
+	state.Cn = types.StringValue(data.Certificate.Cn)
+	state.Name = types.StringValue(data.Certificate.Name)
+	state.NotBeforeDt = types.StringValue(data.Certificate.NotBeforeDt.Format(time.RFC3339))
+	state.NotAfterDt = types.StringValue(data.Certificate.NotAfterDt.Format(time.RFC3339))
+	state.Organization = types.StringValue(data.Certificate.Organization)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -265,13 +312,9 @@ func (r *certificateManagerSelfSignResource) Delete(ctx context.Context, req res
 		)
 		return
 	}
+}
 
-	err = waitForCertificateManagerStatus(ctx, r.client, state.Id.ValueString(), []string{}, []string{"DELETED"})
-	if err != nil && !strings.Contains(err.Error(), "404") {
-		resp.Diagnostics.AddError(
-			"Error deleting certificate manager",
-			"Error waiting for certificate manager to become deleted: "+err.Error(),
-		)
-		return
-	}
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *certificateManagerSelfSignResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

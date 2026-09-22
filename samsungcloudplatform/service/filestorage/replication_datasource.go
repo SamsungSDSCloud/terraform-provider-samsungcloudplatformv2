@@ -3,10 +3,11 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -53,7 +54,7 @@ func (f *fileStorageReplicationDataSource) Metadata(_ context.Context, request d
 
 func (f *fileStorageReplicationDataSource) Schema(_ context.Context, request datasource.SchemaRequest, response *datasource.SchemaResponse) {
 	response.Schema = schema.Schema{
-		Description: "Show Replication",
+		Description: "Retrieves details of a File Storage Replication on Samsung Cloud Platform.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "ID",
@@ -103,9 +104,9 @@ func (f *fileStorageReplicationDataSource) Schema(_ context.Context, request dat
 							"  - example : 'my_volume' \n",
 						Computed: true,
 					},
-					"replication_volume_region": schema.StringAttribute{
-						Description: "Target Volume Region \n" +
-							"  - example : 'kr-west1' \n",
+					"replication_volume_zone": schema.StringAttribute{
+						Description: "Target Volume Zone \n" +
+							"  - example : 'kr-west1-a' \n",
 						Computed: true,
 					},
 					"source_volume_access_level": schema.StringAttribute{
@@ -123,9 +124,9 @@ func (f *fileStorageReplicationDataSource) Schema(_ context.Context, request dat
 							"  - example : 'my_volume' \n",
 						Computed: true,
 					},
-					"source_volume_region": schema.StringAttribute{
-						Description: "Source Volume Region \n" +
-							"  - example : 'kr-west1' \n",
+					"source_volume_zone": schema.StringAttribute{
+						Description: "Source Volume Zone \n" +
+							"  - example : 'kr-west1-a' \n",
 						Computed: true,
 					},
 				},
@@ -157,11 +158,11 @@ func (f *fileStorageReplicationDataSource) Read(ctx context.Context, request dat
 		ReplicationVolumeAccessLevel: types.StringValue(data.ReplicationVolumeAccessLevel),
 		ReplicationVolumeId:          types.StringValue(data.ReplicationVolumeId),
 		ReplicationVolumeName:        types.StringValue(data.ReplicationVolumeName),
-		ReplicationVolumeRegion:      types.StringValue(data.ReplicationVolumeRegion),
+		ReplicationVolumeZone:        types.StringValue(data.ReplicationVolumeZone),
 		SourceVolumeAccessLevel:      types.StringValue(data.SourceVolumeAccessLevel),
 		SourceVolumeId:               types.StringValue(data.SourceVolumeId),
 		SourceVolumeName:             types.StringValue(data.SourceVolumeName),
-		SourceVolumeRegion:           types.StringValue(data.SourceVolumeRegion),
+		SourceVolumeZone:             types.StringValue(data.SourceVolumeZone),
 	}
 	replicationObjectValue, _ := types.ObjectValueFrom(ctx, replicationState.AttributeTypes(), replicationState)
 

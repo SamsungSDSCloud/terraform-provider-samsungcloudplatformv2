@@ -1,13 +1,14 @@
 package converter
 
 import (
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/ske"
-	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/ske/1.4"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/ske"
+	scpske "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/ske/1.6"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func NodepoolResponseToNodepoolModel(data *scpske.NodepoolShowResponseV1Dot4) ske.Nodepool {
+func NodepoolResponseToNodepoolModel(data *scpske.NodepoolShowResponseV1Dot5) ske.Nodepool {
 	nodepoolElement := data.GetNodepool()
 	nodepoolModel := ske.Nodepool{
 		Id:                  types.StringValue(nodepoolElement.Id),
@@ -50,6 +51,9 @@ func NodepoolResponseToNodepoolModel(data *scpske.NodepoolShowResponseV1Dot4) sk
 		LinkedResources:     MakeLinkedResourcesModel(nodepoolElement.LinkedResources),
 		VolumeMaxIops:       nodepoolElement.VolumeMaxIops.Get(),
 		VolumeMaxThroughput: nodepoolElement.VolumeMaxThroughput.Get(),
+		PreferredIps:        types.StringPointerValue(nodepoolElement.PreferredIps.Get()),
+		SubnetId:            types.StringValue(nodepoolElement.SubnetId),
+		Zone:                types.StringValue(nodepoolElement.Zone),
 		CreatedAt:           types.StringValue(nodepoolElement.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:           types.StringValue(nodepoolElement.CreatedBy),
 		ModifiedAt:          types.StringValue(nodepoolElement.ModifiedAt.Format(time.RFC3339)),

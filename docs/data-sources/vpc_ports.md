@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_ports Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  list of subnet.
+  list of port.
 ---
 
 # samsungcloudplatformv2_vpc_ports (Data Source)
 
-list of subnet.
+list of port.
 
 ## Example Usage
 
@@ -35,31 +35,31 @@ variable "limit" {
 
 ### Optional
 
-- `attached_resource_id` (String) Attached Resource ID 
+- `attached_resource_id` (String) The identifier of the resource that this port is attached to.
   - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
-- `fixed_ip_address` (String) Fixed IP Address 
+- `fixed_ip_address` (String) The fixed IP address assigned to the port. 
   - example : 172.24.4.2
-- `id` (String) Port ID 
+- `id` (String) The unique identifier of the port.
   - example: YOUR RESOURCE'S ID
-- `limit` (Number) Limit 
+- `limit` (Number) Number of items returned per page.
   - example : 10 
   - maximum : 10000 
   - minimum : 1
-- `mac_address` (String) MAC Address 
+- `mac_address` (String) The MAC address of the port.
   - example : fa:16:3e:f7:32:c0
-- `marker` (String) Marker 
+- `marker` (String) Pagination Start ID.
   - example : 607e0938521643b5b4b266f343fae693 
   - maxLength : 64 
   - minLength : 1
-- `name` (String) Port Name 
+- `name` (String) The name of the port.
   - example : portName
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. 
   - example : created_at:desc
-- `state` (String) State 
+- `state` (String) The current lifecycle state of the port. 
   - example : CREATING | ACTIVE | DELETING | ERROR
-- `subnet_id` (String) Subnet ID 
+- `subnet_id` (String) The identifier of the subnet that the port belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
-- `subnet_name` (String) Subnet Name 
+- `subnet_name` (String) The name of the subnet that the port belongs to
   - example : subnetName
 
 ### Read-Only
@@ -71,18 +71,33 @@ variable "limit" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `attached_resource_id` (String) AttachedResourceId
-- `attached_resource_type` (String) AttachedResourceType
-- `created_at` (String) CreatedAt
-- `description` (String) Description
-- `fixed_ip_address` (String) FixedIpAddress
-- `id` (String) Id
-- `mac_address` (String) MacAddress
-- `modified_at` (String) ModifiedAt
-- `name` (String) Name
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `subnet_name` (String) SubnetName
-- `vpc_id` (String) VpcId
-- `vpc_name` (String) VpcName
+- `account_id` (String) The identifier of the account that owns the port.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `attached_resource_id` (String) The identifier of the resource that this port is attached to.
+  - example: YOUR RESOURCE'S ATTACHED_RESOURCE_ID
+- `attached_resource_type` (String) The type of the resource that this port is attached to.
+  - example : VM
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : Port Description
+- `fixed_ip_address` (String) The fixed IP address assigned to the port.
+  - example : 192.168.1.100
+- `id` (String) The unique identifier of the port.
+  - example: YOUR RESOURCE'S ID
+- `mac_address` (String) The MAC address of the port.
+  - example : fa:16:3e:00:00:01
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `name` (String) The name of the port.
+  - example : portName
+- `state` (String) The current lifecycle state of the port.
+  - example : ACTIVE
+- `subnet_id` (String) The identifier of the subnet that the port belongs to.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `subnet_name` (String) The name of the subnet that the port belongs to.
+  - example : subnetName
+- `vpc_id` (String) The identifier of the VPC that the port belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the port belongs to.
+  - example : vpcName

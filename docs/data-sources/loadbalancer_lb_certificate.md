@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_certificate Data Source - samsungcloudplatformv2"
 subcategory: LB Certificate
 description: |-
-  Show Lb Certificate.
+  Retrieve details of a specific LB Certificate.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_certificate (Data Source)
 
-Show Lb Certificate.
+Retrieve details of a specific LB Certificate.
 
 ## Example Usage
 
@@ -35,33 +35,55 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) Id
+- `id` (String) The unique identifier of the LB Certificate.
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
-- `lb_certificate` (Attributes) A detail of Lb Certificate. (see [below for nested schema](#nestedatt--lb_certificate))
+- `lb_certificate` (Attributes) Details of the LB Certificate. (see [below for nested schema](#nestedatt--lb_certificate))
 
 <a id="nestedatt--lb_certificate"></a>
 ### Nested Schema for `lb_certificate`
 
 Optional:
 
-- `account_id` (String) AccountId
-- `cert_body` (String) CertBody
-- `cert_chain` (String) CertChain
-- `cert_kind` (String) CertKind
-- `cn` (String) Cn
-- `id` (String) Id
-- `name` (String) Name
-- `not_after_dt` (String) NotAfterDt
-- `not_before_dt` (String) NotBeforeDt
-- `organization` (String) Organization
-- `private_key` (String) PrivateKey
-- `state` (String) State
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `cert_body` (String, Sensitive) The certificate body in PEM format.
+  - example : (sensitive value)
+- `cert_chain` (String, Sensitive) The certificate chain in PEM format.
+  - example : (sensitive value)
+- `cert_kind` (String) The type of certificate.
+  - example : SERVER
+  - pattern : SERVER | CLIENT
+- `cn` (String) The common name (CN) of the certificate.
+  - example : example.com
+- `id` (String) The unique identifier of the LB Certificate.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) The name of the LB Certificate.
+  - example : Certificate01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `not_after_dt` (String) The expiration date of the certificate.
+  - example : 2026-02-12T23:59:59Z
+- `not_before_dt` (String) The start date of the certificate validity.
+  - example : 2025-02-12T00:00:00Z
+- `organization` (String) The organization name in the certificate.
+  - example : Samsung SDS
+- `private_key` (String, Sensitive) The private key associated with the certificate.
+  - example : (sensitive value)
+- `state` (String) The current state of the LB Certificate.
+  - example : ACTIVE
+  - pattern : ACTIVE | ERROR
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

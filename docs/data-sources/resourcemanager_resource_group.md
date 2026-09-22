@@ -59,8 +59,12 @@ variable "resource_group_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) Id
-- `name` (String) Name (between 1 and 256 characters)
+- `id` (String) The unique identifier of the resource group.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `name` (String) The name of the resource group.
+
+Example: `example-rg`
 - `region` (String) Region
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
@@ -68,7 +72,9 @@ variable "resource_group_filter_use_regex" {
 
 ### Read-Only
 
-- `resource_group` (Attributes) Resource Group (see [below for nested schema](#nestedatt--resource_group))
+- `resource_group` (Attributes) The detailed information of the resource group.
+
+Example: See nested attributes below. (see [below for nested schema](#nestedatt--resource_group))
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -76,8 +82,11 @@ variable "resource_group_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
 
 
 <a id="nestedatt--resource_group"></a>
@@ -91,22 +100,48 @@ Optional:
 
 Read-Only:
 
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `group_definition_tags` (Attributes List) A list of tag. (see [below for nested schema](#nestedatt--resource_group--group_definition_tags))
-- `id` (String) Id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `region` (String) Region
-- `resource_types` (List of String) ResourceTypes
-- `srn` (String) Srn
+- `created_at` (String) The creation timestamp of the resource group.
+
+Example: `2023-10-27T10:00:00Z`
+- `created_by` (String) The user ID of the creator.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `description` (String) Description of the resource group.
+
+Example: `My resource group`
+- `group_definition_tags` (Attributes List) A list of key-value pairs representing group definition tags.
+
+Example: `[{Key: Environment, Value: Production}]` (see [below for nested schema](#nestedatt--resource_group--group_definition_tags))
+- `id` (String) The unique identifier of the resource group.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `modified_at` (String) The modification timestamp of the resource group.
+
+Example: `2023-10-27T10:00:00Z`
+- `modified_by` (String) The user ID of the modifier.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `name` (String) The name of the resource group.
+
+Example: `example-rg`
+- `region` (String) The region code where the resource group is located.
+
+Example: `kr-west1`
+- `resource_types` (List of String) A list of resource types associated with the group.
+
+Example: `["virtual-server"]`
+- `srn` (String) The System Resource Name (SRN) of the resource group.
+
+Example: `srn:s::13d97ad943ca452481d624f78391df13:kr-west1::resourcemanager:resource-group/70636f984e564b3c9e54e74a53f9318d`
 
 <a id="nestedatt--resource_group--group_definition_tags"></a>
 ### Nested Schema for `resource_group.group_definition_tags`
 
 Read-Only:
 
-- `key` (String) Key
-- `value` (String) Value
+- `key` (String) The key of the tag.
+
+Example: `Environment`
+- `value` (String) The value of the tag.
+
+Example: `Production`

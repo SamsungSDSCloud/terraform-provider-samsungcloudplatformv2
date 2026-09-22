@@ -2,8 +2,10 @@ package epas
 
 import (
 	"context"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/epas/1.1"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	epas "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/epas/1.3"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -46,14 +48,33 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*epas.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*epas.EngineListResponse, error) {
 	req := client.sdkClient.EpasV1EpasMasterDataApiAPI.EpasListEngineVersions(ctx)
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(epas.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
 // create (ctx, clusterResource) - (asyncResponse)
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*epas.InstanceDetailResponse, error) {
+	req := client.sdkClient.EpasV1EpasInstancesApiAPI.EpasShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
 func (client *Client) CreateCluster(ctx context.Context, request ClusterResource) (*epas.AsyncResponse, error) {
 	req := client.sdkClient.EpasV1EpasClustersApiAPI.EpasCreateCluster(ctx)
 
@@ -95,30 +116,36 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	// InstanceGroups
-	var convertedInstanceGroups []epas.InstanceGroupRequest
-	for _, instanceGroup := range request.InstanceGroups {
-		var convertedBlockStorage []epas.BlockStorageGroupRequest
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			convertedBlockStorage = append(convertedBlockStorage, epas.BlockStorageGroupRequest{
+	var convertedInstanceGroups []epas.RdbInstanceGroupRequest
+	var igVals []database.InstanceGroup
+	request.InstanceGroups.ElementsAs(context.Background(), &igVals, false)
+	for _, instanceGroup := range igVals {
+		var convertedBlockStorage []epas.RdbBlockStorageGroupRequest
+		var bsVals []database.BlockStorageGroup
+		instanceGroup.BlockStorageGroups.ElementsAs(context.Background(), &bsVals, false)
+		for _, blockStorage := range bsVals {
+			convertedBlockStorage = append(convertedBlockStorage, epas.RdbBlockStorageGroupRequest{
 				RoleType:   epas.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: epas.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
 		}
 
-		var convertedInstance []epas.InstanceRequest
-		for _, instance := range instanceGroup.Instances {
-			convertedInstance = append(convertedInstance, epas.InstanceRequest{
-				RoleType:         epas.InstanceRoleType(instance.RoleType.ValueString()),
+		var convertedInstance []epas.RdbInstanceRequest
+		var instVals []database.Instance
+		instanceGroup.Instances.ElementsAs(context.Background(), &instVals, false)
+		for _, instance := range instVals {
+			convertedInstance = append(convertedInstance, epas.RdbInstanceRequest{
+				RoleType:         epas.RdbInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *epas.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *epas.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
 		}
 
-		convertedInstanceGroups = append(convertedInstanceGroups, epas.InstanceGroupRequest{
+		convertedInstanceGroups = append(convertedInstanceGroups, epas.RdbInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           epas.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           epas.RdbInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -148,40 +175,45 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.EpasClusterCreateRequest(epas.EpasClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *epas.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		VipPublicIpId:        *epas.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
-		VirtualIpAddress:     *epas.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+	req = req.EpasClusterCreateRequestV1Dot2(epas.EpasClusterCreateRequestV1Dot2{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		OriginClusterId:           *epas.NewNullableString(request.OriginClusterId.ValueStringPointer()),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *epas.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		VipPublicIpId:             *epas.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
+		VirtualIpAddress:          *epas.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		ServiceWatchLogCollection: *epas.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull() && initConfigOption.BackupOption.ArchiveFrequencyMinute.IsNull()
 
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*epas.EpasClusterDetailResponseV1Dot1, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*epas.EpasClusterDetailResponseV1Dot2, int, error) {
 	req := client.sdkClient.EpasV1EpasClustersApiAPI.EpasShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {
@@ -218,6 +250,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, archiveFr
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.EpasV1EpasBackupApiAPI.EpasUnsetBackup(ctx, clusterId)
 
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(epas.OtpSessionIdRequest{
+		SessionId: *epas.NewNullableString(nil),
+	})
+
 	_, _, err := req.Execute()
 	return err
 }
@@ -253,11 +290,59 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
 	req := client.sdkClient.EpasV1EpasInstancesApiAPI.EpasAddBlockStorages(ctx, instanceGroupId)
 	reqState := &epas.AddBlockStoragesRequest{
-		RoleType:   epas.BlockStorageGroupRoleType(roleType),
+		RoleType:   epas.ExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: epas.VolumeType(volumeType).Ptr(),
 	}
 	req = req.AddBlockStoragesRequest(*reqState)
 	_, _, err := req.Execute()
 	return err
+}
+
+func MapInstanceGroupResponses(sdkResp []epas.InstanceGroupResponse) []database.InstanceGroupResponse {
+	if sdkResp == nil {
+		return nil
+	}
+
+	result := make([]database.InstanceGroupResponse, len(sdkResp))
+	for i, ig := range sdkResp {
+		bsGroups := make([]database.BlockStorageGroupResponse, len(ig.BlockStorageGroups))
+		for j, bs := range ig.BlockStorageGroups {
+			bsGroups[j] = database.BlockStorageGroupResponse{
+				Id:         bs.Id,
+				Name:       bs.Name,
+				RoleType:   string(bs.RoleType),
+				SizeGb:     bs.SizeGb,
+				VolumeType: string(bs.VolumeType),
+			}
+		}
+
+		instances := make([]database.InstanceResponse, len(ig.Instances))
+		for j, it := range ig.Instances {
+			var pubIP, serviceIP string
+			if it.ServiceIpAddress.Get() != nil {
+				serviceIP = *it.ServiceIpAddress.Get()
+			}
+			if it.PublicIpId.Get() != nil {
+				pubIP = *it.PublicIpId.Get()
+			}
+
+			instances[j] = database.InstanceResponse{
+				Name:             it.Name,
+				PublicIpId:       pubIP,
+				RoleType:         string(it.RoleType),
+				ServiceIpAddress: serviceIP,
+			}
+		}
+
+		result[i] = database.InstanceGroupResponse{
+			BlockStorageGroups: bsGroups,
+			Id:                 ig.Id,
+			Instances:          instances,
+			RoleType:           string(ig.RoleType),
+			ServerTypeName:     ig.ServerTypeName,
+		}
+	}
+
+	return result
 }

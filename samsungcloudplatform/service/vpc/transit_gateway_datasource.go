@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,66 +37,95 @@ func (d *tgwDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, re
 		Description: "Show Transit Gateway",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Id",
-				Required:    true,
+				Description: "The unique identifier of the transit gateway.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Required: true,
 			},
 			common.ToSnakeCase("TransitGateway"): schema.SingleNestedAttribute{
 				Description: "Transit Gateway",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the transit gateway.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("Bandwidth"): schema.Int32Attribute{
-						Description: "Bandwidth",
-						Computed:    true,
+						Description: "The bandwidth capacity of the connection.\n" +
+							"  - example : 1",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description: "The timestamp when the transit gateway was created in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description: "The user id that created the transit gateway.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this transit gateway. This help identify the purpose or usage of the resource.\n" +
+							"  - example : TransitGateway Description",
+						Computed: true,
 					},
 					common.ToSnakeCase("firewall_connection_state"): schema.StringAttribute{
-						Description: "firewall connection state",
-						Computed:    true,
+						Description: "The current lifecycle state of the firewall connection. \n" +
+							"  - example : INACTIVE",
+						Computed: true,
 					},
 					common.ToSnakeCase("FirewallIds"): schema.StringAttribute{
-						Description: "FirewallIds",
-						Computed:    true,
+						Description: "List of firewall IDs\n" +
+							"  - example : bbb93aca123f4bb2b2c0f206f4a86b2b",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description: "The unique identifier of the transit gateway.\n" +
+							"  - example : fe860e0af0c04dcd8182b84f907f31f4",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description: "The timestamp when the transit gateway was last modified in ISO 8601 format.\n" +
+							"  - example : 2024-05-17T00:23:17Z",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description: "The user id that modified the transit gateway.\n" +
+							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the transit gateway.\n" +
+							"  - example : TransitGatewayName",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State" +
-							" - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING \n" +
-							" - example : CREATING \n",
+						Description: "The current lifecycle state of the transit gateway.\n" +
+							"  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING \n" +
+							"  - example : CREATING",
 						Computed: true,
 					},
 					common.ToSnakeCase("UplinkEnabled"): schema.BoolAttribute{
-						Description: "UplinkEnabled",
-						Computed:    true,
+						Description: "Whether the uplink is enabled.\n" +
+							"  - example : false",
+						Computed: true,
+					},
+					common.ToSnakeCase("UplinkActiveZone"): schema.StringAttribute{
+						Description: "The active availability zone for the uplink connection.\n" +
+							"  - example : apigw-kr-1",
+						Computed: true,
+					},
+					common.ToSnakeCase("UplinkStandbyZone"): schema.StringAttribute{
+						Description: "The standby availability zone for the uplink connection.\n" +
+							"  - example : apigw-kr-2",
+						Computed: true,
+					},
+					common.ToSnakeCase("UplinkZoneState"): schema.StringAttribute{
+						Description: "The current state of the uplink zone.\n" +
+							"  - enum: ATTACHING, ACTIVE, DETACHING, DELETED, INACTIVE, ERROR\n" +
+							"  - example : ACTIVE",
+						Computed: true,
 					},
 				},
 			},
@@ -118,7 +147,7 @@ func (d *tgwDataSource) Configure(_ context.Context, req datasource.ConfigureReq
 		return
 	}
 
-	d.client = inst.Client.VpcV1Dot2
+	d.client = inst.Client.VpcV1Dot3
 	d.clients = inst.Client
 }
 

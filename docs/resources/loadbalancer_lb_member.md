@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_member Resource - samsungcloudplatformv2"
 subcategory: LB Member
 description: |-
-  Lb Member.
+  LB Member resource for managing pool members.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_member (Resource)
 
-Lb Member.
+LB Member resource for managing pool members.
 
 ## Example Usage
 
@@ -84,7 +84,8 @@ variable "lb_member_modify" {
 
 ### Required
 
-- `lb_server_group_id` (String) LbServerGroupId
+- `lb_server_group_id` (String) The LB Server Group ID.
+  - example: YOUR RESOURCE'S LB_SERVER_GROUP_ID
 
 ### Optional
 
@@ -93,7 +94,8 @@ variable "lb_member_modify" {
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
-- `lb_member` (Attributes) A detail of Lb Member. (see [below for nested schema](#nestedatt--lb_member))
+  - example: YOUR RESOURCE'S ID
+- `lb_member` (Attributes) Details of the LB Member. (see [below for nested schema](#nestedatt--lb_member))
 
 <a id="nestedatt--lb_member_create"></a>
 ### Nested Schema for `lb_member_create`
@@ -101,15 +103,30 @@ variable "lb_member_modify" {
 Required:
 
 - `member_ip` (String) The IP address of the member. Required for all modes. For `VM`/`BM` modes, this is typically the private IP of the instance. For `MANUAL` mode, specify the target IP directly.
-- `member_port` (Number) The protocol port number of the member (1-65535). Required.
+  - example : 192.168.0.1
+- `member_port` (Number) The protocol port number of the member. Required.
+  - example : 80
+  - minimum : 1
+  - maximum : 65534
 - `name` (String) The name of the member. Required.
+  - example : Member01
+  - minLength : 1
+  - maxLength : 63
 
 Optional:
 
 - `member_state` (String) The initial state of the member. Valid values: `ENABLE` (accepts traffic), `DISABLE` (does not accept traffic). Defaults to `ENABLE` if not specified.
-- `member_weight` (Number) The weight of the member for load balancing (1-100). Higher values receive more traffic. Defaults to 1 if not specified.
+  - example : ENABLE
+  - pattern : ENABLE | DISABLE
+- `member_weight` (Number) The weight of the member for load balancing. Higher values receive more traffic. Defaults to 1 if not specified.
+  - example : 100
+  - minimum : 1
+  - maximum : 1000
 - `object_id` (String) The ID of the backend object (VM instance, BM server, etc.). Required when `object_type` is `VM` or `BM`. Omit when `object_type` is `MANUAL`.
+  - example: YOUR RESOURCE'S OBJECT_ID
 - `object_type` (String) The type of backend object. Valid values: `VM` (virtual machine), `BM` (bare metal server), `MANUAL` (IP-based/manual member), `MNGC` (managed container). Defaults to `VM` if not specified. For `VM` or `BM`, `object_id` is required. For `MANUAL`, `member_ip` is required and `object_id` should be omitted.
+  - example : VM
+  - pattern : VM | BM | MANUAL | MNGC
 
 
 <a id="nestedatt--lb_member"></a>
@@ -117,18 +134,42 @@ Optional:
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `lb_server_group_id` (String) LbServerGroupId
-- `member_ip` (String) MemberIp
-- `member_port` (Number) MemberPort
-- `member_state` (String) MemberState
-- `member_weight` (Number) MemberWeight
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `name` (String) Name
-- `object_id` (String) ObjectId
-- `object_type` (String) ObjectType
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `uuid` (String) Uuid
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `lb_server_group_id` (String) The LB Server Group ID.
+  - example: YOUR RESOURCE'S LB_SERVER_GROUP_ID
+- `member_ip` (String) The IP address of the member.
+  - example : 192.168.0.1
+- `member_port` (Number) The port number of the member.
+  - example : 80
+  - minimum : 1
+  - maximum : 65534
+- `member_state` (String) The state of the member.
+  - example : ENABLE
+  - pattern : ENABLE | DISABLE
+- `member_weight` (Number) The weight of the member.
+  - example : 100
+  - minimum : 1
+  - maximum : 1000
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the LB Member.
+  - example : Member01
+  - minLength : 1
+  - maxLength : 63
+- `object_id` (String) The object ID.
+  - example: YOUR RESOURCE'S OBJECT_ID
+- `object_type` (String) The object type.
+  - example : VM
+  - pattern : VM | BM | MANUAL | MNGC
+- `state` (String) The current state of the LB Member.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | EDITING | ERROR
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `uuid` (String) The unique identifier (UUID) of the member resource.
+  - example : 46c681018e33453085ca7c8db54e0076

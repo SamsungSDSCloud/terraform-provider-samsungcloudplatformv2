@@ -6,21 +6,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcPrivateNatResource{}
-	_ resource.ResourceWithConfigure = &vpcPrivateNatResource{}
+	_ resource.Resource                = &vpcPrivateNatResource{}
+	_ resource.ResourceWithConfigure   = &vpcPrivateNatResource{}
+	_ resource.ResourceWithImportState = &vpcPrivateNatResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcPrivateNatResource{}
 )
 
 // NewVpcPrivateNatResource is a helper function to simplify the provider implementation.
@@ -43,95 +48,100 @@ func (d *vpcPrivateNatResource) Metadata(_ context.Context, req resource.Metadat
 // Schema defines the schema for the data source.
 func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Private NAT.",
+		Description: "Private NAT resource for the Direct Connect or the Transit Gateway.",
 		Attributes: map[string]schema.Attribute{
 			// Input
 			common.ToSnakeCase("Cidr"): schema.StringAttribute{
-				Description: "Private NAT IP range \n" +
+				Description: "The IP address range of the network in CIDR notation.\n" +
 					"  - example : 192.167.0.0/24",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description \n" +
+				Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. \n" +
 					"  - example : PrivateNat Description",
 				Optional: true,
-				Default:  stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Computed: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Private NAT Name \n" +
+				Description: "The name of the private NAT. \n" +
 					"  - example : PrivateNatName",
 				Required: true,
 			},
 			common.ToSnakeCase("ServiceResourceId"): schema.StringAttribute{
-				Description: "Private NAT connected Service Resource ID \n" +
+				Description: "The identifier of the connected service resource. \n" +
 					"  - example : 3f342bf9a557405b997c2cf48c89cbc2",
 				Required: true,
 			},
 			common.ToSnakeCase("ServiceType"): schema.StringAttribute{
-				Description: "Private NAT connected Service Type \n" +
-					"  - example : DIRECT_CONNECT",
+				Description: "The type of the connected service.\n" +
+					"  - example : DIRECT_CONNECT | TRANSIT_GATEWAY",
 				Required: true,
 			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
 
 			// Output
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Private NAT ID \n" +
+				Description: "The unique identifier of the private NAT. \n" +
 					"  - example : 12f56e27070248a6a240a497e43fbe18",
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("PrivateNat"): schema.SingleNestedAttribute{
 				Description: "Private NAT details",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "Account ID \n" +
+						Description: "The identifier of the account that owns the private NAT.\n" +
 							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
 						Computed: true,
 					},
 					common.ToSnakeCase("Cidr"): schema.StringAttribute{
-						Description: "Private NAT IP range \n" +
+						Description: "The IP address range of the network in CIDR notation.\n" +
 							"  - example : 192.167.0.0/24",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At \n" +
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
 							"  - example : 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By \n" +
+						Description: "The user id that created the resource. \n" +
 							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "Description \n" +
+						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. \n" +
 							"  - example : PrivateNat Description",
 						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Private NAT ID \n" +
+						Description: "The unique identifier of the private NAT.\n" +
 							"  - example : 12f56e27070248a6a240a497e43fbe18",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At \n" +
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
 							"  - example : 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By \n" +
+						Description: "The user id that modified the resource.\n" +
 							"  - example : 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Private NAT Name \n" +
+						Description: "The name of the private NAT. \n" +
 							"  - example : PrivateNatName",
 						Computed: true,
 					},
 					common.ToSnakeCase("ServiceResourceId"): schema.StringAttribute{
-						Description: "Private NAT connected Service Resource ID \n" +
+						Description: "The identifier of the connected service resource.\n" +
 							"  - example : 3f342bf9a557405b997c2cf48c89cbc2",
 						Computed: true,
 					},
@@ -141,12 +151,12 @@ func (d *vpcPrivateNatResource) Schema(_ context.Context, _ resource.SchemaReque
 						Computed: true,
 					},
 					common.ToSnakeCase("ServiceType"): schema.StringAttribute{
-						Description: "Private NAT connected Service Type \n" +
-							"  - example : DIRECT_CONNECT",
+						Description: "The type of the connected service. \n" +
+							"  - example : DIRECT_CONNECT | TRANSIT_GATEWAY",
 						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "Private NAT State \n" +
+						Description: "The current lifecycle state of the private NAT.\n" +
 							"  - example : ACTIVE",
 						Computed: true,
 					},
@@ -217,11 +227,20 @@ func (r *vpcPrivateNatResource) Create(ctx context.Context, req resource.CreateR
 		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
-	privateNatObjectValue, diags := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
+	privateNatObjectValue, diag := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.PrivateNat = privateNatObjectValue
+	plan.Description = privateNatModel.Description
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	err = waitForPrivateNatStatus(ctx, r.client1d2, privateNat.Id, []string{}, []string{"ACTIVE"})
 	if err != nil {
@@ -256,10 +275,21 @@ func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadReque
 	// Get refreshed order value from Private NAT
 	data, err := r.client1d2.GetPrivateNat(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading Private NAT",
 			"Could not read Private NAT ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+	if data == nil {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
 		)
 		return
 	}
@@ -281,8 +311,14 @@ func (r *vpcPrivateNatResource) Read(ctx context.Context, req resource.ReadReque
 		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
-	privateNatObjectValue, _ := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
+	privateNatObjectValue, diag := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.PrivateNat = privateNatObjectValue
+	// Set refreshed state
+	state.Description = privateNatModel.Description
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -344,8 +380,13 @@ func (r *vpcPrivateNatResource) Update(ctx context.Context, req resource.UpdateR
 		ModifiedAt:          types.StringValue(privateNat.ModifiedAt.Format(time.RFC3339)),
 		ModifiedBy:          types.StringValue(privateNat.ModifiedBy),
 	}
-	privateNatObjectValue, _ := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
+	privateNatObjectValue, diag := types.ObjectValueFrom(ctx, privateNatModel.AttributeTypes(), privateNatModel)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.PrivateNat = privateNatObjectValue
+	plan.Description = privateNatModel.Description
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -375,7 +416,7 @@ func (r *vpcPrivateNatResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	err = waitForPrivateNatStatus(ctx, r.client1d2, state.Id.ValueString(), []string{}, []string{"DELETED"})
+	err = waitForPrivateNatStatus(ctx, r.client1d2, state.Id.ValueString(), []string{"DELETING"}, []string{"DELETED"})
 	if err != nil && !strings.Contains(err.Error(), "404") {
 		resp.Diagnostics.AddError(
 			"Error deleting Private NAT",
@@ -391,6 +432,111 @@ func waitForPrivateNatStatus(ctx context.Context, vpcClient *vpcv1d2.Client, id 
 		if err != nil {
 			return nil, "", err
 		}
+		// API response normally with state ERROR
+		if string(info.PrivateNat.State) == "ERROR" {
+			return nil, "", fmt.Errorf("private NAT %s entered ERROR state", id)
+		}
 		return info, string(info.PrivateNat.State), nil
-	})
+	}, -1, -1, -1, -1)
+}
+
+// ImportState imports an existing Private NAT into Terraform state.
+func (r *vpcPrivateNatResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
+}
+
+func (r *vpcPrivateNatResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpcv1d2.PrivateNatResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpcv1d2.PrivateNatResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fields that cannot be updated via the API — check each for changes
+	type fieldCheck struct {
+		name    string
+		changed bool
+	}
+	checks := []fieldCheck{
+		{"name", !plan.Name.Equal(state.Name)},
+		{"cidr", !plan.Cidr.Equal(state.Cidr)},
+		{"service_resource_id", !plan.ServiceResourceId.Equal(state.ServiceResourceId)},
+		{"service_type", !plan.ServiceType.Equal(state.ServiceType)},
+		{"tags", !plan.Tags.Equal(state.Tags)},
+	}
+
+	for _, f := range checks {
+		if f.changed {
+			resp.Diagnostics.AddError(
+				"Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual resource. To change %s, recreate the resource.", f.name, f.name),
+			)
+		}
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Reconstruct private_nat: merge stable fields from state, leave rest as unknown.
+	// This prevents id, account_id, created_at, created_by from showing as (known after apply).
+	if !state.PrivateNat.IsNull() && !state.PrivateNat.IsUnknown() {
+		var statePn vpcv1d2.PrivateNat
+		resp.Diagnostics.Append(state.PrivateNat.As(ctx, &statePn, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Only mark modified_at/modified_by as unknown when description actually change
+		descriptionChanged := !plan.Description.Equal(state.Description)
+
+		mergedPn := vpcv1d2.PrivateNat{
+			Id:                  statePn.Id,
+			AccountId:           statePn.AccountId,
+			CreatedAt:           statePn.CreatedAt,
+			CreatedBy:           statePn.CreatedBy,
+			Cidr:                statePn.Cidr,
+			ServiceResourceId:   statePn.ServiceResourceId,
+			ServiceResourceName: statePn.ServiceResourceName,
+			ServiceType:         statePn.ServiceType,
+			State:               statePn.State,
+			Name:                statePn.Name,
+			Description:         plan.Description,
+		}
+
+		if descriptionChanged {
+			mergedPn.ModifiedAt = types.StringUnknown()
+			mergedPn.ModifiedBy = types.StringUnknown()
+		} else {
+			mergedPn.ModifiedAt = statePn.ModifiedAt
+			mergedPn.ModifiedBy = statePn.ModifiedBy
+		}
+
+		mergedObj, diags := types.ObjectValueFrom(ctx, mergedPn.AttributeTypes(), mergedPn)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		plan.PrivateNat = mergedObj
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
 }

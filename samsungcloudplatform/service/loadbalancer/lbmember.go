@@ -6,15 +6,18 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/baremetal"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/loadbalancer/1.3"
+	"strings"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	baremetalcommon "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/baremetal"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scploadbalancer "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/loadbalancer/1.3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -25,9 +28,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource               = &loadbalancerLbMemberResource{}
-	_ resource.ResourceWithConfigure  = &loadbalancerLbMemberResource{}
-	_ resource.ResourceWithModifyPlan = &loadbalancerLbMemberResource{}
+	_ resource.Resource                = &loadbalancerLbMemberResource{}
+	_ resource.ResourceWithConfigure   = &loadbalancerLbMemberResource{}
+	_ resource.ResourceWithModifyPlan  = &loadbalancerLbMemberResource{}
+	_ resource.ResourceWithImportState = &loadbalancerLbMemberResource{}
 )
 
 // NewLoadBalancerLbMemberResource is a helper function to simplify the provider implementation.
@@ -50,82 +54,108 @@ func (r *loadbalancerLbMemberResource) Metadata(_ context.Context, req resource.
 // Schema defines the schema for the data source.
 func (r *loadbalancerLbMemberResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Lb Member.",
+		Description: "LB Member resource for managing pool members.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "Identifier of the resource.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("LbServerGroupId"): schema.StringAttribute{
-				Description: "LbServerGroupId",
-				Required:    true,
+				Description: "The LB Server Group ID.\n" +
+					"  - example : 46c681018e33453085ca7c8db54e0076\n",
+				Required: true,
 			},
 			common.ToSnakeCase("LbMember"): schema.SingleNestedAttribute{
-				Description: "A detail of Lb Member.",
+				Description: "Details of the LB Member.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "created at",
-						Computed:    true,
+						Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "created by",
-						Computed:    true,
+						Description: "The user id that created the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "modified at",
-						Computed:    true,
+						Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+							"  - example : 2024-01-01T00:00:00Z\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "modified by",
-						Computed:    true,
+						Description: "The user id that last modified the resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State",
-						Computed:    true,
+						Description: "The current state of the LB Member.\n" +
+							"  - example : ACTIVE\n" +
+							"  - pattern : CREATING | ACTIVE | DELETING | EDITING | ERROR\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Computed:    true,
+						Description: "The subnet ID where the resource is located.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Uuid"): schema.StringAttribute{
-						Description: "Uuid",
-						Computed:    true,
+						Description: "The unique identifier (UUID) of the member resource.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ObjectId"): schema.StringAttribute{
-						Description: "ObjectId",
-						Computed:    true,
+						Description: "The object ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-						Description: "ObjectType",
-						Computed:    true,
+						Description: "The object type.\n" +
+							"  - example : VM\n" +
+							"  - pattern : VM | BM | MANUAL | MNGC\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MemberWeight"): schema.Int32Attribute{
-						Description: "MemberWeight",
-						Computed:    true,
+						Description: "The weight of the member.\n" +
+							"  - example : 100\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 1000\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MemberState"): schema.StringAttribute{
-						Description: "MemberState",
-						Computed:    true,
+						Description: "The state of the member.\n" +
+							"  - example : ENABLE\n" +
+							"  - pattern : ENABLE | DISABLE\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MemberPort"): schema.Int32Attribute{
-						Description: "MemberPort",
-						Computed:    true,
+						Description: "The port number of the member.\n" +
+							"  - example : 80\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 65534\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("MemberIp"): schema.StringAttribute{
-						Description: "MemberIp",
-						Computed:    true,
+						Description: "The IP address of the member.\n" +
+							"  - example : 192.168.0.1\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description: "The name of the LB Member.\n" +
+							"  - example : Member01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n",
+						Computed: true,
 					},
 					common.ToSnakeCase("LbServerGroupId"): schema.StringAttribute{
-						Description: "LbServerGroupId",
-						Computed:    true,
+						Description: "The LB Server Group ID.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Computed: true,
 					},
 				},
 			},
@@ -134,48 +164,63 @@ func (r *loadbalancerLbMemberResource) Schema(_ context.Context, _ resource.Sche
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("ObjectId"): schema.StringAttribute{
-						Description: "The ID of the backend object (VM instance, BM server, etc.). Required when `object_type` is `VM` or `BM`. Omit when `object_type` is `MANUAL`.",
-						Optional:    true,
+						Description: "The ID of the backend object (VM instance, BM server, etc.). Required when `object_type` is `VM` or `BM`. Omit when `object_type` is `MANUAL`.\n" +
+							"  - example : 46c681018e33453085ca7c8db54e0076\n",
+						Optional: true,
 					},
 					common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-						Description: "The type of backend object. Valid values: `VM` (virtual machine), `BM` (bare metal server), `MANUAL` (IP-based/manual member), `MNGC` (managed container). Defaults to `VM` if not specified. For `VM` or `BM`, `object_id` is required. For `MANUAL`, `member_ip` is required and `object_id` should be omitted.",
-						Optional:    true,
+						Description: "The type of backend object. Valid values: `VM` (virtual machine), `BM` (bare metal server), `MANUAL` (IP-based/manual member), `MNGC` (managed container). Defaults to `VM` if not specified. For `VM` or `BM`, `object_id` is required. For `MANUAL`, `member_ip` is required and `object_id` should be omitted.\n" +
+							"  - example : VM\n" +
+							"  - pattern : VM | BM | MANUAL | MNGC\n",
+						Optional: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("VM", "BM", "MANUAL", "MNGC"),
 						},
 					},
 					common.ToSnakeCase("MemberPort"): schema.Int32Attribute{
-						Description: "The protocol port number of the member (1-65535). Required.",
-						Required:    true,
+						Description: "The protocol port number of the member. Required.\n" +
+							"  - example : 80\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 65534\n",
+						Required: true,
 						Validators: []validator.Int32{
 							int32validator.Between(1, 65535),
 						},
 					},
 					common.ToSnakeCase("MemberIp"): schema.StringAttribute{
-						Description: "The IP address of the member. Required for all modes. For `VM`/`BM` modes, this is typically the private IP of the instance. For `MANUAL` mode, specify the target IP directly.",
-						Required:    true,
+						Description: "The IP address of the member. Required for all modes. For `VM`/`BM` modes, this is typically the private IP of the instance. For `MANUAL` mode, specify the target IP directly.\n" +
+							"  - example : 192.168.0.1\n",
+						Required: true,
 						Validators: []validator.String{
 							baremetalcommon.IpStringValidator{},
 						},
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "The name of the member. Required.",
-						Required:    true,
+						Description: "The name of the member. Required.\n" +
+							"  - example : Member01\n" +
+							"  - minLength : 1\n" +
+							"  - maxLength : 63\n",
+						Required: true,
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 63),
 							stringvalidator.RegexMatches(regexp.MustCompile(`^[a-zA-Z0-9\s\-_\.]*$`), "Member Name"),
 						},
 					},
 					common.ToSnakeCase("MemberWeight"): schema.Int32Attribute{
-						Description: "The weight of the member for load balancing (1-100). Higher values receive more traffic. Defaults to 1 if not specified.",
-						Optional:    true,
+						Description: "The weight of the member for load balancing. Higher values receive more traffic. Defaults to 1 if not specified.\n" +
+							"  - example : 100\n" +
+							"  - minimum : 1\n" +
+							"  - maximum : 1000\n",
+						Optional: true,
 						Validators: []validator.Int32{
 							int32validator.Between(1, 1000),
 						},
 					},
 					common.ToSnakeCase("MemberState"): schema.StringAttribute{
-						Description: "The initial state of the member. Valid values: `ENABLE` (accepts traffic), `DISABLE` (does not accept traffic). Defaults to `ENABLE` if not specified.",
-						Optional:    true,
+						Description: "The initial state of the member. Valid values: `ENABLE` (accepts traffic), `DISABLE` (does not accept traffic). Defaults to `ENABLE` if not specified.\n" +
+							"  - example : ENABLE\n" +
+							"  - pattern : ENABLE | DISABLE\n",
+						Optional: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("ENABLE", "DISABLE"),
 						},
@@ -206,8 +251,8 @@ func (r *loadbalancerLbMemberResource) ModifyPlan(ctx context.Context, req resou
 
 	lbMemberCreate := plan.LbMemberCreate
 
-	// Skip if the create block was not provided (all fields null/unknown)
-	if lbMemberCreate.Name.IsNull() && lbMemberCreate.ObjectType.IsNull() {
+	// Skip if the create block was not provided (nil or all fields null/unknown)
+	if lbMemberCreate == nil || (lbMemberCreate.Name.IsNull() && lbMemberCreate.ObjectType.IsNull()) {
 		return
 	}
 
@@ -266,6 +311,20 @@ func (r *loadbalancerLbMemberResource) Configure(_ context.Context, req resource
 	r.client = inst.Client.LoadBalancer
 }
 
+func (r *loadbalancerLbMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: lb_server_group_id/lb_member_id, got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("lb_server_group_id"), types.StringValue(parts[0]))
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(parts[1]))
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *loadbalancerLbMemberResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
@@ -287,24 +346,35 @@ func (r *loadbalancerLbMemberResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	//for _, member := range data.Members {
+	if data == nil || len(data.Members) == 0 {
+		resp.Diagnostics.AddError("Error creating Lb Member", "API returned no member in response")
+		return
+	}
 	member := data.Members[0]
 	plan.Id = types.StringValue(member.Id)
 
 	// Map response body to schema and populate Computed attribute values
 	lbMemberModel := createLbMemberModel(member)
-	lbMemberOjbectValue, _ := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	lbMemberOjbectValue, d := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.LbMember = lbMemberOjbectValue
 
-	// Set state to fully populated data
-	_ = resp.State.Set(ctx, plan)
-
-	err = waitForMemberStatus(ctx, r.client, member.LbServerGroupId, member.Id, []string{}, []string{"ACTIVE"})
+	refreshFn := r.getLbMemberRefreshFunc(ctx, plan.LbServerGroupId.ValueString(), member.Id)
+	err = client.WaitForResourceCreated(ctx, refreshFn)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating lb server group member",
-			"Error waiting for lb server group member to become active: "+err.Error(),
+			"Error creating lb member",
+			"Error waiting for lb member to become active: "+err.Error(),
 		)
+		return
+	}
+
+	// Set state to fully populated data
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -317,7 +387,6 @@ func (r *loadbalancerLbMemberResource) Create(ctx context.Context, req resource.
 	r.Read(ctx, readReq, readResp)
 
 	resp.State = readResp.State
-	//}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -333,15 +402,23 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 	// Get refreshed order value from LB Member
 	data, err := r.client.GetLbMember(ctx, state.LbServerGroupId.ValueString(), state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Lb Member",
-			"Could not create Lb Member, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error get Lb Member",
+			"Could not get Lb Member, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
 
 	lbMember := data.Member.Get()
+
+	// Rewrite configurable top-level input fields from API response to detect drift
+	state.LbServerGroupId = types.StringValue(lbMember.LbServerGroupId)
+
 	lbMemberModel := loadbalancer.LbMemberDetail{
 		LbServerGroupId: types.StringValue(lbMember.LbServerGroupId),
 		Name:            types.StringValue(lbMember.Name),
@@ -360,8 +437,26 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 		CreatedAt:       types.StringValue(lbMember.CreatedAt.Format(time.RFC3339)),
 	}
 
-	lbMemberOjbectValue, _ := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	lbMemberOjbectValue, d := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LbMember = lbMemberOjbectValue
+
+	// Reconcile lb_member_create input block with API response to detect drift
+	// Only populate if nil (e.g., after import) — preserve user config values otherwise
+	if state.LbMemberCreate == nil {
+		state.LbMemberCreate = &loadbalancer.LbMemberCreate{
+			Name:         types.StringValue(lbMember.Name),
+			MemberIp:     types.StringValue(lbMember.MemberIp),
+			MemberPort:   types.Int32Value(lbMember.MemberPort),
+			ObjectType:   types.StringValue(string(lbMember.ObjectType)),
+			ObjectId:     virtualserverutil.ToNullableStringValue(lbMember.ObjectId.Get()),
+			MemberWeight: types.Int32Value(lbMember.MemberWeight),
+			MemberState:  types.StringValue(lbMember.MemberState),
+		}
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -374,37 +469,58 @@ func (r *loadbalancerLbMemberResource) Read(ctx context.Context, req resource.Re
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *loadbalancerLbMemberResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var state loadbalancer.LbMemberResource
-	diags := req.Plan.Get(ctx, &state)
+	var plan loadbalancer.LbMemberResource
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Update existing order
-	data, err := r.client.UpdateLbMember(ctx, state.LbServerGroupId.ValueString(), state.Id.ValueString(), state)
+	// Get current member from API to compare with plan
+	currentData, err := r.client.GetLbMember(ctx, plan.LbServerGroupId.ValueString(), plan.Id.ValueString())
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
-			"Error creating Lb Server Group Member",
-			"Could not create Lb Server Group Member, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Error reading Lb Member",
+			"Could not read Lb Member, unexpected error: "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+	currentMember := currentData.Member.Get()
+
+	// Compare plan vs current state — only send fields that changed
+	data, err := r.client.UpdateLbMemberPartial(ctx, plan.LbServerGroupId.ValueString(), plan.Id.ValueString(), plan.LbMemberSet, currentMember)
+	if err != nil {
+		detail := client.GetDetailFromError(err)
+		resp.Diagnostics.AddError(
+			"Error updating Lb Member",
+			"Could not updating Lb Member, unexpected error: "+err.Error()+"\nReason: "+detail,
 		)
 		return
 	}
 
 	lbMemberModel := updateLbMemberModel(data)
 
-	lbMemberObjectValue, _ := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
-	state.LbMember = lbMemberObjectValue
+	lbMemberObjectValue, d := types.ObjectValueFrom(ctx, lbMemberModel.AttributeTypes(), lbMemberModel)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	plan.Id = types.StringValue(data.Member.Get().Id)
+	plan.LbMember = lbMemberObjectValue
+	// plan.LbMemberSet (user config) — leave as-is from plan
 
-	// Set refreshed state
-	resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	err = waitForMemberStatus(ctx, r.client, data.Member.Get().LbServerGroupId, data.Member.Get().Id, []string{}, []string{"ACTIVE"})
+	refreshFn := r.getLbMemberRefreshFunc(ctx, plan.LbServerGroupId.ValueString(), plan.Id.ValueString())
+	err = client.WaitForResourceUpdated(ctx, refreshFn)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating lb server group member",
-			"Error waiting for lb server group member to become active: "+err.Error(),
+			"Error Updating LbMember",
+			"Error waiting for LbMember to become ACTIVE: "+err.Error(),
 		)
 		return
 	}
@@ -440,6 +556,26 @@ func (r *loadbalancerLbMemberResource) Delete(ctx context.Context, req resource.
 		)
 		return
 	}
+
+	refreshFn := r.getLbMemberRefreshFunc(ctx, state.LbServerGroupId.ValueString(), state.Id.ValueString())
+	err = client.WaitForResourceDeleted(ctx, refreshFn)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting LbMember",
+			"Error waiting for LbMember to become deleted: "+err.Error(),
+		)
+		return
+	}
+
+	readReq := resource.ReadRequest{
+		State: resp.State,
+	}
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, readReq, readResp)
+
+	resp.State = readResp.State
 }
 
 func createLbMemberModel(data scploadbalancer.Member) loadbalancer.LbMemberDetail {
@@ -484,12 +620,12 @@ func updateLbMemberModel(data *scploadbalancer.MemberShowResponse) loadbalancer.
 	}
 }
 
-func waitForMemberStatus(ctx context.Context, loadbalancerClient *loadbalancer.Client, lbServerGroupId string, id string, pendingStates []string, targetStates []string) error {
-	return client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
-		info, err := loadbalancerClient.GetLbMember(ctx, lbServerGroupId, id)
+func (r *loadbalancerLbMemberResource) getLbMemberRefreshFunc(ctx context.Context, lbServerGroupId string, id string) func() (interface{}, string, error) {
+	return func() (interface{}, string, error) {
+		data, err := r.client.GetLbMember(ctx, lbServerGroupId, id)
 		if err != nil {
 			return nil, "", err
 		}
-		return info, string(info.GetMember().State), nil
-	})
+		return data, string(data.Member.Get().State), nil
+	}
 }

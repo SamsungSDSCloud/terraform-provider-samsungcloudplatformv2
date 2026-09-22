@@ -63,10 +63,10 @@ func (m PrivateDns) AttributeTypes() map[string]attr.Type {
 }
 
 type PrivateDnsResource struct {
-	Id               types.String     `tfsdk:"id"`
-	PrivateDns       types.Object     `tfsdk:"private_dns"`
-	PrivateDnsCreate PrivateDnsCreate `tfsdk:"private_dns_create"`
-	Tags             types.Map        `tfsdk:"tags"`
+	Id               types.String      `tfsdk:"id"`
+	PrivateDns       types.Object      `tfsdk:"private_dns"`
+	PrivateDnsCreate *PrivateDnsCreate `tfsdk:"private_dns_create"`
+	Tags             types.Map         `tfsdk:"tags"`
 }
 
 type PrivateDnsCreate struct {
@@ -165,10 +165,10 @@ func (m PublicDomainNameDetail) AttributeTypes() map[string]attr.Type {
 }
 
 type PublicDomainNameResource struct {
-	Id                     types.String           `tfsdk:"id"`
-	PublicDomainName       types.Object           `tfsdk:"public_domain_name"`
-	PublicDomainNameCreate PublicDomainNameCreate `tfsdk:"public_domain_name_create"`
-	Tags                   types.Map              `tfsdk:"tags"`
+	Id                     types.String            `tfsdk:"id"`
+	PublicDomainName       types.Object            `tfsdk:"public_domain_name"`
+	PublicDomainNameCreate *PublicDomainNameCreate `tfsdk:"public_domain_name_create"`
+	Tags                   types.Map               `tfsdk:"tags"`
 }
 
 type PublicDomainNameCreate struct {
@@ -248,10 +248,10 @@ func (m HostedZone) AttributeTypes() map[string]attr.Type {
 }
 
 type HostedZoneResource struct {
-	Id               types.String     `tfsdk:"id"`
-	Zone             types.Object     `tfsdk:"zone"`
-	HostedZoneCreate HostedZoneCreate `tfsdk:"hosted_zone_create"`
-	Tags             types.Map        `tfsdk:"tags"`
+	Id               types.String      `tfsdk:"id"`
+	Zone             types.Object      `tfsdk:"zone"`
+	HostedZoneCreate *HostedZoneCreate `tfsdk:"hosted_zone_create"`
+	Tags             types.Map         `tfsdk:"tags"`
 }
 
 type HostedZoneCreate struct {
@@ -342,10 +342,10 @@ func (m RecordDetail) AttributeTypes() map[string]attr.Type {
 }
 
 type RecordResource struct {
-	Id           types.String `tfsdk:"id"`
-	HostedZoneId types.String `tfsdk:"hosted_zone_id"`
-	Record       types.Object `tfsdk:"record"`
-	RecordCreate RecordCreate `tfsdk:"record_create"`
+	Id           types.String  `tfsdk:"id"`
+	HostedZoneId types.String  `tfsdk:"hosted_zone_id"`
+	Record       types.Object  `tfsdk:"record"`
+	RecordCreate *RecordCreate `tfsdk:"record_create"`
 }
 
 type RecordCreate struct {

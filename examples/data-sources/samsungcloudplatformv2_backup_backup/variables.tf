@@ -1,8 +1,3 @@
-variable "region" {
-  type    = string
-  default = "kr-west1"
-}
-
 variable "id" {
   type    = string
   default = "ENTER YOUR RESOURCE'S ID"

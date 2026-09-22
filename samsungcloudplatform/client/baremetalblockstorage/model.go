@@ -9,12 +9,12 @@ const ServiceType = "scp-baremetal-blockstorage"
 
 type VolumeResource struct {
 	Id          types.String   `tfsdk:"id"`
+	Zone        types.String   `tfsdk:"zone"`
 	Name        types.String   `tfsdk:"name"`
 	DiskType    types.String   `tfsdk:"disk_type"`
 	SizeGb      types.Int32    `tfsdk:"size_gb"`
 	Attachments []Attachment   `tfsdk:"attachments"`
 	QoS         types.Object   `tfsdk:"qos"`
-	Region      types.String   `tfsdk:"region"`
 	Timeouts    timeouts.Value `tfsdk:"timeouts"`
 	Tags        types.Map      `tfsdk:"tags"`
 }

@@ -15,32 +15,73 @@ list of account budget
 provider "samsungcloudplatformv2" {
 }
 
-data "samsungcloudplatformv2_budget_budgets" "ids" {
-  filter {
-    name = var.budget_filter_name
-    values = var.budget_filter_values
-    use_regex = var.budget_filter_use_regex
-  }
+data "samsungcloudplatformv2_budget_budgets" "budgets" {
+
 }
+
 
 
 output "ids" {
-  value = data.samsungcloudplatformv2_budget_budgets.ids.ids
+  value = data.samsungcloudplatformv2_budget_budgets.budgets.ids
 }
 
-variable "budget_filter_name" {
-  type    = string
-  default = "name"
+
+output "budgets" {
+  value = data.samsungcloudplatformv2_budget_budgets.budgets.budgets
 }
 
-variable "budget_filter_values" {
-  type    = list(string)
-  default = ["budget_test"]
+output "count" {
+  description = "Total number of budgets matching the filter"
+  value       = data.samsungcloudplatformv2_budget_budgets.budgets.budget_count
+}
+output "sort" {
+  description = "Sort criteria actually applied by the server"
+  value       = data.samsungcloudplatformv2_budget_budgets.budgets.sort
+}
+output "size" {
+  description = "Page size actually applied by the server"
+  value       = data.samsungcloudplatformv2_budget_budgets.budgets.size
+}
+output "page" {
+  description = "Page number actually applied by the server"
+  value       = data.samsungcloudplatformv2_budget_budgets.budgets.page
 }
 
-variable "budget_filter_use_regex" {
-  type    = bool
-  default = false
+
+variable "budget_id" {
+  type        = string
+  default     = "ENTER YOUR RESOURCE'S BUDGET_ID"
+  description = "Budget ID (optional)"
+}
+
+variable "budget_name" {
+  type        = string
+  default     = null
+  description = "Budget name (optional)"
+}
+variable "search_name" {
+  type        = string
+  default     = null
+  description = "Seach name (optional)"
+}
+
+variable "sort" {
+  type        = string
+  default     = null
+  description = "sort (optional)"
+}
+
+
+variable "page" {
+  type        = number
+  default     = 0
+  description = "page (optional)"
+}
+
+variable "size" {
+  type        = number
+  default     = 20
+  description = "count (optional)"
 }
 ```
 
@@ -50,12 +91,23 @@ variable "budget_filter_use_regex" {
 ### Optional
 
 - `filter` (Block List) Filter (see [below for nested schema](#nestedblock--filter))
-- `id` (String) Id (between 1 and 64 characters)
-- `name` (String) Name (between 1 and 64 characters)
+- `id` (String) The unique ID of the budget.
+
+Example: `bud-1234567890abcdef`
+- `name` (String) The name of the budget.
+
+Example: `ex_month_budget`
 
 ### Read-Only
 
-- `ids` (List of String) ID List
+- `budget_count` (Number) Total count of budgets
+- `budgets` (Attributes List) Budget list (see [below for nested schema](#nestedatt--budgets))
+- `ids` (List of String) The id list of budget.
+
+Example: `["bud-1234567890abcdef"]`
+- `page` (Number) Current page number
+- `size` (Number) Page size
+- `sort` (List of String) Sort criteria
 
 <a id="nestedblock--filter"></a>
 ### Nested Schema for `filter`
@@ -63,5 +115,26 @@ variable "budget_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']
+
+
+<a id="nestedatt--budgets"></a>
+### Nested Schema for `budgets`
+
+Read-Only:
+
+- `amount` (String)
+- `created_at` (String)
+- `created_by` (String)
+- `id` (String)
+- `is_cost_linked` (Boolean)
+- `modified_at` (String)
+- `modified_by` (String)
+- `name` (String)
+- `start_month` (String)
+- `type` (String)
+- `unit` (String)

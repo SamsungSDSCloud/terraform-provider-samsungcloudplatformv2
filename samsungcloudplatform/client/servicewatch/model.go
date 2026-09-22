@@ -23,6 +23,7 @@ type DashboardDataSource struct {
 	FavoriteEnabled types.Bool   `tfsdk:"favorite_enabled"`
 	Srn             types.String `tfsdk:"srn"`
 	ShareType       types.String `tfsdk:"share_type"`
+	NamespaceCode   types.String `tfsdk:"namespace_code"`
 	CreatedAt       types.String `tfsdk:"created_at"`
 	CreatedBy       types.String `tfsdk:"created_by"`
 	ModifiedAt      types.String `tfsdk:"modified_at"`
@@ -31,17 +32,18 @@ type DashboardDataSource struct {
 }
 
 type DashboardResource struct {
-	LastUpdated types.String `tfsdk:"last_updated"`
-	Id          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Type        types.String `tfsdk:"type"`
-	Srn         types.String `tfsdk:"srn"`
-	ShareType   types.String `tfsdk:"share_type"`
-	CreatedAt   types.String `tfsdk:"created_at"`
-	CreatedBy   types.String `tfsdk:"created_by"`
-	ModifiedAt  types.String `tfsdk:"modified_at"`
-	ModifiedBy  types.String `tfsdk:"modified_by"`
-	Widgets     types.List   `tfsdk:"widgets"`
+	LastUpdated   types.String `tfsdk:"last_updated"`
+	Id            types.String `tfsdk:"id"`
+	Name          types.String `tfsdk:"name"`
+	Type          types.String `tfsdk:"type"`
+	Srn           types.String `tfsdk:"srn"`
+	ShareType     types.String `tfsdk:"share_type"`
+	NamespaceCode types.String `tfsdk:"namespace_code"`
+	CreatedAt     types.String `tfsdk:"created_at"`
+	CreatedBy     types.String `tfsdk:"created_by"`
+	ModifiedAt    types.String `tfsdk:"modified_at"`
+	ModifiedBy    types.String `tfsdk:"modified_by"`
+	Widgets       types.List   `tfsdk:"widgets"`
 }
 
 type Dashboard struct {
@@ -49,6 +51,7 @@ type Dashboard struct {
 	Name            types.String `tfsdk:"name"`
 	Type            types.String `tfsdk:"type"`
 	FavoriteEnabled types.Bool   `tfsdk:"favorite_enabled"`
+	NamespaceCode   types.String `tfsdk:"namespace_code"`
 	CreatedAt       types.String `tfsdk:"created_at"`
 	ModifiedAt      types.String `tfsdk:"modified_at"`
 }
@@ -59,6 +62,7 @@ func (m Dashboard) AttributeTypes() map[string]attr.Type {
 		"name":             types.StringType,
 		"type":             types.StringType,
 		"favorite_enabled": types.BoolType,
+		"namespace_code":   types.StringType,
 		"created_at":       types.StringType,
 		"modified_at":      types.StringType,
 	}
@@ -262,7 +266,9 @@ type AlertResource struct {
 	Operator          types.String  `tfsdk:"operator"`
 	ViolationCount    types.Int32   `tfsdk:"violation_count"`
 	MissingDataOption types.String  `tfsdk:"missing_data_option"`
+	Timestamp         types.String  `tfsdk:"timestamp"`
 	RecipientIds      types.List    `tfsdk:"recipient_ids"`
+	RecipientType     types.String  `tfsdk:"recipient_type"`
 	Tags              types.Map     `tfsdk:"tags"`
 	CreatedAt         types.String  `tfsdk:"created_at"`
 	CreatedBy         types.String  `tfsdk:"created_by"`
@@ -293,6 +299,7 @@ type Alert struct {
 	Operator             types.String  `tfsdk:"operator"`
 	ViolationCount       types.Int32   `tfsdk:"violation_count"`
 	MissingDataOption    types.String  `tfsdk:"missing_data_option"`
+	Timestamp            types.String  `tfsdk:"timestamp"`
 	CreatedAt            types.String  `tfsdk:"created_at"`
 	CreatedBy            types.String  `tfsdk:"created_by"`
 	ModifiedAt           types.String  `tfsdk:"modified_at"`
@@ -327,6 +334,7 @@ func (m Alert) AttributeTypes() map[string]attr.Type {
 		"operator":               types.StringType,
 		"violation_count":        types.Int32Type,
 		"missing_data_option":    types.StringType,
+		"timestamp":              types.StringType,
 		"created_at":             types.StringType,
 		"created_by":             types.StringType,
 		"modified_at":            types.StringType,
@@ -377,6 +385,7 @@ type EventRuleResource struct {
 	EventRuleId    types.String   `tfsdk:"event_rule_id"`
 	Name           types.String   `tfsdk:"name"`
 	RecipientIds   []types.String `tfsdk:"recipient_ids"`
+	RecipientType  types.String   `tfsdk:"recipient_type"`
 	ResourceTypeId types.String   `tfsdk:"resource_type_id"`
 	ServiceId      types.String   `tfsdk:"service_id"`
 	SrnList        []types.String `tfsdk:"srn_list"`

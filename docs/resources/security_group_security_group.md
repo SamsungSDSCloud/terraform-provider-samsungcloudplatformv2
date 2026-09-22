@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_security_group_security_group Resource - samsungcloudplatformv2"
 subcategory: Security Group
 description: |-
-  Security group
+  Security Group
 ---
 
 # samsungcloudplatformv2_security_group_security_group (Resource)
 
-Security group
+Security Group
 
 ## Example Usage
 
@@ -56,37 +56,53 @@ variable "security_group_tags" {
 
 ### Required
 
-- `name` (String) Name 
-  - example : sg_0911
+- `name` (String) The name of the Security Group.
+  - example: sg-web-prod
+  - valid: All characters except 'default'
+  - constraints: minLength: 1, maxLength: 255, duplicates allowed
 
 ### Optional
 
-- `description` (String) Description 
-  - example : sg_description
-- `loggable` (Boolean) loggable 
-  - example : True
+- `description` (String) A brief explanation or note about this resource.
+  - example: Security group for web tier
+  - constraints: maxLength: 255
+- `loggable` (Boolean) Enable flow log for the security group.
+  - example: true
+  - valid: true / false
 - `tags` (Map of String) A map of key-value pairs representing tags for the resource.
   - Keys must be a maximum of 128 characters.
   - Values must be a maximum of 256 characters.
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
-- `security_group` (Attributes) Security group (see [below for nested schema](#nestedatt--security_group))
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `security_group` (Attributes) Manages security groups to protect virtual networks. (see [below for nested schema](#nestedatt--security_group))
 
 <a id="nestedatt--security_group"></a>
 ### Nested Schema for `security_group`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `id` (String) Id
-- `loggable` (Boolean) loggable
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `rule_count` (Number) RuleCount
-- `state` (String) State
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example: 2025-01-15T10:30:00Z
+- `created_by` (String) The user ID that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) A brief explanation or note about this resource.
+  - example: Security group for web tier
+- `id` (String) The unique identifier of the resource.
+  - example: YOUR RESOURCE'S ID
+- `loggable` (Boolean) Enable flow log for the security group.
+  - example: true
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example: 2025-06-01T14:22:00Z
+- `modified_by` (String) The user ID that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the Security Group.
+  - example: sg-web-prod
+- `rule_count` (Number) Number of rules in the Security Group.
+  - example: 5
+- `state` (String) The current state of the resource.
+  - example: ACTIVE

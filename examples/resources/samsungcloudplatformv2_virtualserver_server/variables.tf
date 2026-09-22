@@ -81,5 +81,9 @@ variable "extra_volumes_volume_1_delete_on_termination" {
   default = true
 }
 
+variable "zone" {
+  type    = string
+  default = "kr-west1-a"
+}
 
 

@@ -4,19 +4,23 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/servicewatch"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/servicewatch/1.2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/servicewatch"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	servicewatch2 "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/servicewatch/1.5"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -25,8 +29,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &serviceWatchAlertResource{}
-	_ resource.ResourceWithConfigure = &serviceWatchAlertResource{}
+	_ resource.Resource                = &serviceWatchAlertResource{}
+	_ resource.ResourceWithConfigure   = &serviceWatchAlertResource{}
+	_ resource.ResourceWithImportState = &serviceWatchAlertResource{}
 )
 
 // NewServiceWatchAlertResource is a helper function to simplify the provider implementation.
@@ -52,154 +57,206 @@ func (r *serviceWatchAlertResource) Schema(_ context.Context, _ resource.SchemaR
 		Description: "Alert Resource",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("LastUpdated"): schema.StringAttribute{
-				Description: "Timestamp of the last Terraform update of the Resource Group",
-				Computed:    true,
+				Description: "Timestamp of the last Terraform update of the Resource Group.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "Alert ID",
-				Computed:    true,
+				Description: "Alert ID.\n" +
+					" - example : 0ad6da92-634a-4f8c-932e-9d650599ab1e\n",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Alert name",
-				Required:    true,
+				Description: "Alert name.\n" +
+					" - example : Alert Test\n" +
+					" - minLength: 3\n" +
+					" - maxLength: 100\n",
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(3, 100),
 				},
 			},
 			common.ToSnakeCase("Type"): schema.StringAttribute{
-				Description: "Alert type",
-				Required:    true,
+				Description: "Alert type - METRIC_ALERT, SERVICE_ALERT, COMPOSITE_ALERT.\n" +
+					" - example : METRIC_ALERT\n",
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.OneOf(AlertTypeMetric, AlertTypeService, AlertTypeComposite),
 				},
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Alert description",
-				Optional:    true,
+				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+					" - example : Description for Alert Test\n" +
+					" - maxLength: 1000\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("ActivatedYn"): schema.StringAttribute{
-				Description: "Whether the Alert is activated or not",
-				Computed:    true,
-				Optional:    true,
+				Description: "Whether the Alert is activated or not.\n" +
+					" - example : Y\n",
+				Computed: true,
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(YnYes, YnNo),
 				},
 			},
 			common.ToSnakeCase("Level"): schema.StringAttribute{
-				Description: "Alert level - HIGH, MIDDLE, LOW",
-				Required:    true,
+				Description: "Alert level - HIGH, MIDDLE, LOW.\n" +
+					" - example : HIGH\n",
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(AlertLevelHigh, AlertLevelMiddle, AlertLevelLow),
 				},
 			},
 			common.ToSnakeCase("NamespaceId"): schema.StringAttribute{
-				Description: "Namespace ID",
-				Computed:    true,
+				Description: "The unique identifier of the namespace.\n" +
+					" - example : 1d9d05af5c624f2cb80a45f2c911e2f4\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("NamespaceName"): schema.StringAttribute{
-				Description: "Namespace name",
-				Required:    true,
+				Description: "The name of the namespace.\n" +
+					" - example : Virtual Server\n",
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("MetricId"): schema.StringAttribute{
-				Description: "Sharing type",
-				Computed:    true,
+				Description: "The unique identifier of the metric.\n" +
+					" - example : f13aab3b88c341b2bc73f8925a0e8cc5\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("MetricName"): schema.StringAttribute{
-				Description: "Metric name",
-				Required:    true,
+				Description: "The name of the metric.\n" +
+					" - example : CPU Usage\n",
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("Dimensions"): schema.ListNestedAttribute{
-				Description: "List of dimension",
-				Optional:    true,
-				Computed:    true,
+				Description: "List of dimensions.\n" +
+					" - example : [{\"key\": \"instance_id\", \"value\": \"i-12345678\"}]\n",
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.List{listplanmodifier.RequiresReplace()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Key"): schema.StringAttribute{
-							Description: "Dimension key",
-							Required:    true,
+							Description: "Dimension key.\n" +
+								" - example : instance_id\n",
+							Required: true,
 						},
 						common.ToSnakeCase("Value"): schema.StringAttribute{
-							Description: "Dimension value",
-							Required:    true,
+							Description: "Dimension value.\n" +
+								" - example : i-12345678\n",
+							Required: true,
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("Period"): schema.Int32Attribute{
-				Description: "Period (seconds)",
-				Required:    true,
+				Description: "Period (seconds).\n" +
+					" - example : 300\n",
+				Required:      true,
+				PlanModifiers: []planmodifier.Int32{int32planmodifier.RequiresReplace()},
 			},
 			common.ToSnakeCase("Statistic"): schema.StringAttribute{
-				Description: "Statistic - SUM, AVG, MAX, MIN",
-				Required:    true,
+				Description: "Statistic - SUM, AVG, MAX, MIN.\n" +
+					" - example : AVG\n",
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.OneOf(StatSum, StatAvg, StatMax, StatMin),
 				},
 			},
 			common.ToSnakeCase("EvaluationCount"): schema.Int32Attribute{
-				Description: "Evaluation count for the Alert condition",
-				Optional:    true,
-				Computed:    true,
+				Description: "Evaluation count for the Alert condition.\n" +
+					" - example : 3\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("Threshold"): schema.Float32Attribute{
-				Description: "Threshold for the Alert condition (except from RANGE operator)",
-				Optional:    true,
-				Computed:    true,
+				Description: "Threshold for the Alert condition (except for RANGE operator).\n" +
+					" - example : 80.0\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("UpperBound"): schema.Float32Attribute{
-				Description: "Upper bound for the Alert range operator",
-				Optional:    true,
-				Computed:    true,
+				Description: "Upper bound for the Alert range operator.\n" +
+					" - example : 90.0\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("LowerBound"): schema.Float32Attribute{
-				Description: "Lower bound for the Alert range operator",
-				Optional:    true,
-				Computed:    true,
+				Description: "Lower bound for the Alert range operator.\n" +
+					" - example : 80.0\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("Operator"): schema.StringAttribute{
-				Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE",
-				Required:    true,
+				Description: "Operator - EQ, NOT_EQ, GT, GTE, LT, LTE, RANGE.\n" +
+					" - example : RANGE\n",
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.OneOf(OpEQ, OpNotEQ, OpGT, OpGTE, OpLT, OpLTE, OpRange),
 				},
 			},
 			common.ToSnakeCase("ViolationCount"): schema.Int32Attribute{
-				Description: "Violation count for the Alert condition",
-				Optional:    true,
-				Computed:    true,
+				Description: "Violation count for the Alert condition.\n" +
+					" - example : 2\n",
+				Optional: true,
+				Computed: true,
 			},
 			common.ToSnakeCase("MissingDataOption"): schema.StringAttribute{
-				Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE",
-				Required:    true,
+				Description: "Missing data option - MISSING, BREACHING, NOT_BREACHING, IGNORE.\n" +
+					" - example : BREACHING\n",
+				Required:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 				Validators: []validator.String{
 					stringvalidator.OneOf(MissingDataMissing, MissingDataBreaching, MissingDataNotBreaching, MissingDataIgnore),
 				},
 			},
 			common.ToSnakeCase("RecipientIds"): schema.ListAttribute{
-				Description: "List of user IDs",
+				Description: "List of notification recipient IDs. All of them share the recipient_type.\n" +
+					" - example : [\"90dddfc2b1e04edba54ba2b41539a9ac\"]\n",
 				Optional:    true,
 				ElementType: types.StringType,
 			},
+			common.ToSnakeCase("RecipientType"): schema.StringAttribute{
+				Description: "The type of every recipient in recipient_ids - USER, GROUP.\n" +
+					" - example : USER\n",
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(RecipientTypeUser, RecipientTypeGroup),
+				},
+			},
 			common.ToSnakeCase("Tags"): tag.ResourceSchema(),
+			common.ToSnakeCase("Timestamp"): schema.StringAttribute{
+				Description: "The timestamp when the alert was triggered, in ISO 8601 format.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
+			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created date time",
-				Computed:    true,
+				Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description: "Creator ID",
-				Computed:    true,
+				Description: "The user id that created the resource.\n" +
+					" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-
-				Description: "Modified date time",
-				Computed:    true,
+				Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+					" - example : 2024-05-17T00:23:17Z\n",
+				Computed: true,
 			},
 			common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-				Description: "Modifier ID",
-				Computed:    true,
+				Description: "The user id that last modified the resource.\n" +
+					" - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+				Computed: true,
 			},
 		},
 	}
@@ -261,6 +318,20 @@ func (r *serviceWatchAlertResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
+	// The creation API has no activated_yn: an alert is always created active.
+	// Honour an explicit "N" by calling the activation endpoint right after create.
+	if plan.ActivatedYn.ValueString() == YnNo {
+		_, err := r.client.UpdateAlertActivated(ctx, data.GetId(), YnNo)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				ErrUpdateActivatedAlert,
+				fmt.Sprintf(ErrUpdateActivatedAlertFmt, err.Error(), detail),
+			)
+			return
+		}
+	}
+
 	// Fetch updated items from GetAlert as UpdateAlert items are not populated.
 	alertResp, err := r.client.GetAlert(ctx, data.GetId())
 	if err != nil {
@@ -273,7 +344,11 @@ func (r *serviceWatchAlertResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	convertFromAlertDetailResponse(ctx, &plan, alertResp)
+	_, d := convertFromAlertDetailResponse(ctx, &plan, alertResp)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	plan.Id = types.StringValue(data.GetId())
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
@@ -298,6 +373,10 @@ func (r *serviceWatchAlertResource) Read(ctx context.Context, req resource.ReadR
 	// Get refreshed value from Resource Group
 	alertResp, err := r.client.GetAlert(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			ErrReadAlert,
@@ -306,7 +385,11 @@ func (r *serviceWatchAlertResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 	// Map response body to schema and populate Computed attribute values
-	convertFromAlertDetailResponse(ctx, &state, alertResp)
+	_, diags = convertFromAlertDetailResponse(ctx, &state, alertResp)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	// Set refreshed state
@@ -332,7 +415,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	// 변경 사항이 없으면 state 값 셋팅
+	// Set state values if plan values are unset
 	plan.ActivatedYn = useStateIfUnset(plan.ActivatedYn, state.ActivatedYn)
 	plan.Description = useStateIfUnset(plan.Description, state.Description)
 	plan.MetricId = useStateIfUnset(plan.MetricId, state.MetricId)
@@ -340,7 +423,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 	plan.EvaluationCount = useStateIfUnset(plan.EvaluationCount, state.EvaluationCount)
 	plan.ViolationCount = useStateIfUnset(plan.ViolationCount, state.ViolationCount)
 
-	// operator 변경 시 threshold/bound 값 처리
+	// Handle threshold/bound values when operator changes
 	if !plan.Operator.Equal(state.Operator) {
 		if plan.Operator.ValueString() == "RANGE" {
 			plan.Threshold = types.Float32Null()
@@ -354,7 +437,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		plan.LowerBound = useStateIfUnset(plan.LowerBound, state.LowerBound)
 	}
 
-	// activatedYn 이 변경되면, activated Update 수행
+	// If activatedYn changes, perform activated update
 	if !plan.ActivatedYn.Equal(state.ActivatedYn) {
 		_, err := r.client.UpdateAlertActivated(ctx, plan.Id.ValueString(), plan.ActivatedYn.ValueString())
 		if err != nil {
@@ -368,7 +451,7 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		state.ActivatedYn = plan.ActivatedYn
 	}
 
-	// description 이 변경되면, description Update 수행
+	// If description changes, perform description update
 	if !plan.Description.Equal(state.Description) {
 		_, err := r.client.UpdateAlertDescription(ctx, plan.Id.ValueString(), plan.Description.ValueString())
 		if err != nil {
@@ -381,7 +464,26 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 		}
 		state.Description = plan.Description
 	}
-	// metric 정보 변경 시, GetMetric 호출하여 Id 조회
+	// If recipients change, perform notifications update.
+	// The alert body and its recipients are separate endpoints, so this is sent on its own.
+	// It is deliberately left out of needsUpdate/convertUpdateModel: recipients are not part
+	// of AlertSetRequest, and including them there would trigger a pointless body update.
+	if !plan.RecipientType.Equal(state.RecipientType) || !plan.RecipientIds.Equal(state.RecipientIds) {
+		_, err := r.client.UpdateAlertNotifications(ctx, plan.Id.ValueString(), plan)
+		if err != nil {
+			detail := client.GetDetailFromError(err)
+			resp.Diagnostics.AddError(
+				ErrUpdateAlertNotifications,
+				fmt.Sprintf(ErrUpdateAlertNotificationsFmt, err.Error(), detail),
+			)
+			return
+		}
+		// GetAlert mapping does not carry recipients, so keep the applied values in state.
+		state.RecipientType = plan.RecipientType
+		state.RecipientIds = plan.RecipientIds
+	}
+
+	// If metric info changes, call GetMetric to retrieve Id
 	planDimensionKeys, diags := getDimensionKeys(ctx, plan.Dimensions)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -424,7 +526,11 @@ func (r *serviceWatchAlertResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	convertFromAlertDetailResponse(ctx, &state, alertResp)
+	_, d := convertFromAlertDetailResponse(ctx, &state, alertResp)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -509,7 +615,7 @@ func getDimensionKeys(ctx context.Context, dimensions types.List) ([][]string, d
 	return [][]string{keys}, nil
 }
 
-func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.AlertResource, alertResp *servicewatch2.AlertDetailResponse) servicewatch.AlertResource {
+func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.AlertResource, alertResp *servicewatch2.AlertDetailResponseV1Dot5) (servicewatch.AlertResource, diag.Diagnostics) {
 	var dimensions []servicewatch.Dimension
 	for _, dimension := range alertResp.Dimensions {
 		dimensions = append(dimensions, servicewatch.Dimension{
@@ -517,7 +623,8 @@ func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.Ale
 			Value: types.StringValue(dimension.GetValue()),
 		})
 	}
-	state.Dimensions, _ = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: servicewatch.Dimension{}.AttributeTypes()}, dimensions)
+	var d diag.Diagnostics
+	state.Dimensions, d = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: servicewatch.Dimension{}.AttributeTypes()}, dimensions)
 
 	state.Name = types.StringValue(alertResp.GetName())
 	state.Description = nullableStringTypes(alertResp.GetDescriptionOk())
@@ -537,12 +644,13 @@ func convertFromAlertDetailResponse(ctx context.Context, state *servicewatch.Ale
 	state.Operator = types.StringValue(string(alertResp.GetOperator()))
 	state.ViolationCount = types.Int32Value(alertResp.GetViolationCount())
 	state.MissingDataOption = types.StringValue(string(alertResp.GetMissingDataOption()))
+	state.Timestamp = nullableTimeTypes(alertResp.GetTimestampOk())
 	state.CreatedAt = types.StringValue(alertResp.GetCreatedAt().Format(TimeFormatDisplay))
 	state.CreatedBy = types.StringValue(alertResp.GetCreatedBy())
 	state.ModifiedAt = types.StringValue(alertResp.GetModifiedAt().Format(TimeFormatDisplay))
 	state.ModifiedBy = types.StringValue(alertResp.GetModifiedBy())
 
-	return *state
+	return *state, d
 }
 
 func useStateIfUnset[T attr.Value](plan, state T) T {
@@ -576,4 +684,9 @@ func convertUpdateModel(model servicewatch.AlertResource) servicewatch.AlertUpda
 		ViolationCount:    model.ViolationCount,
 		MissingDataOption: model.MissingDataOption,
 	}
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *serviceWatchAlertResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

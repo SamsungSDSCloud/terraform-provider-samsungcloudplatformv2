@@ -2,17 +2,18 @@ package mariadb
 
 import (
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/mariadb"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/mariadb"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"golang.org/x/net/context"
-	"time"
 )
 
 var (
@@ -39,31 +40,43 @@ func (d *mariadbClusterDataSources) Schema(_ context.Context, _ datasource.Schem
 		Description: "List of Clusters.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size (between 1 and 10000)",
-				Optional:    true,
+				Description: "The page number for pagination.\n" +
+					"  - example : 0 ",
+				MarkdownDescription: "The page number for pagination.\n" +
+					"  - example : 0 ",
+				Optional: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 10000),
 				},
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "The number of items per page.\n" +
+					"  - example : 20 ",
+				MarkdownDescription: "The number of items per page.\n" +
+					"  - example : 20 ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.\n" +
+					"  - example : created_at:asc ",
+				MarkdownDescription: "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order.\n" +
+					"  - example : created_at:asc ",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description:         "Cluster name\n  - example: mytest",
+				MarkdownDescription: "Cluster name\n  - example: mytest",
+				Optional:            true,
 			},
 			common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-				Description: "ServiceState",
-				Optional:    true,
+				Description:         "Service state\n  - example: RUNNING",
+				MarkdownDescription: "Service state\n  - example: RUNNING",
+				Optional:            true,
 			},
 			common.ToSnakeCase("DatabaseName"): schema.StringAttribute{
-				Description: "DatabaseName",
-				Optional:    true,
+				Description:         "Database name\n  - example: mydb",
+				MarkdownDescription: "Database name\n  - example: mydb",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Clusters"): schema.ListNestedAttribute{
 				Description: "A detail of Cluster.",
@@ -71,52 +84,66 @@ func (d *mariadbClusterDataSources) Schema(_ context.Context, _ datasource.Schem
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("AccountId"): schema.StringAttribute{
-							Description: "AccountId",
-							Required:    true,
+							Description: "The identifier of the account that owns the endpoint.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							MarkdownDescription: "The identifier of the account that owns the endpoint.\n" +
+								"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+							Required: true,
 						},
 						common.ToSnakeCase("DatabaseName"): schema.StringAttribute{
-							Description: "DatabaseName",
-							Required:    true,
+							Description:         "Database name\n  - example: mydb",
+							MarkdownDescription: "Database name\n  - example: mydb",
+							Required:            true,
 						},
 						common.ToSnakeCase("HaEnabled"): schema.BoolAttribute{
-							Description: "HaEnabled",
-							Optional:    true,
+							Description:         "HA availability\n  - example: false",
+							MarkdownDescription: "HA availability\n  - example: false",
+							Optional:            true,
 						},
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Required:    true,
+							Description:         "Identifier of the resource.\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+							MarkdownDescription: "Identifier of the resource.\n  - example: 35e21d596d4f41e9b7b66d8f2129213a",
+							Required:            true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Required:    true,
+							Description:         "Cluster name\n  - example: mytest",
+							MarkdownDescription: "Cluster name\n  - example: mytest",
+							Required:            true,
 						},
 						common.ToSnakeCase("InstanceCount"): schema.Int32Attribute{
-							Description: "InstanceCount",
-							Optional:    true,
+							Description:         "Instance Count\n  - example: 1",
+							MarkdownDescription: "Instance Count\n  - example: 1",
+							Optional:            true,
 						},
 						common.ToSnakeCase("RoleType"): schema.StringAttribute{
-							Description: "RoleType",
-							Required:    true,
+							Description:         "Role type\n  - example: ORIGIN",
+							MarkdownDescription: "Role type\n  - example: ORIGIN",
+							Required:            true,
 						},
 						common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-							Description: "ServiceState",
-							Required:    true,
+							Description:         "Service state\n  - example: RUNNING",
+							MarkdownDescription: "Service state\n  - example: RUNNING",
+							Required:            true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "CreatedAt",
-							Required:    true,
+							Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+							MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+							Required:            true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "CreatedBy",
-							Required:    true,
+							Description:         "Created by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+							MarkdownDescription: "Created by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+							Required:            true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "ModifiedAt",
-							Required:    true,
+							Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+							MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
+							Required:            true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "ModifiedBy",
-							Required:    true,
+							Description:         "Modified by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+							MarkdownDescription: "Modified by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+							Required:            true,
 						},
 					},
 				},

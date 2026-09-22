@@ -5,7 +5,17 @@ variable "transit_gateway_id" {
 
 variable "product_type" {
   type    = string
-  default = "TGW_BM"
+  default = "TGW_DGW"
+}
+
+variable "uplink_active_zone" {
+  type    = string
+  default = "kr-west1-a"
+}
+
+variable "uplink_standby_zone" {
+  type    = string
+  default = "kr-west1-y"
 }
 
 

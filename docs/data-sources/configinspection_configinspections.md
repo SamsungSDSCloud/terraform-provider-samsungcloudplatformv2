@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_configinspection_configinspections Data Source - samsungcloudplatformv2"
 subcategory: Config inspection
 description: |-
-  List of config inspection object.
+  List of config inspection objects.
 ---
 
 # samsungcloudplatformv2_configinspection_configinspections (Data Source)
 
-List of config inspection object.
+List of config inspection objects.
 
 ## Example Usage
 
@@ -30,63 +30,75 @@ output "response" {
 }
 
 variable "with_count" {
-  type    = string
-  default = null // true, false
+  description = "Whether to include the total item count in the response"
+  type        = string
+  default     = null // true, false
 }
 
 variable "limit" {
-  type    = number
-  default = null
+  description = "Maximum number of items to return per page"
+  type        = number
+  default     = null
 }
 
 variable "marker" {
-  type    = string
-  default = null
+  description = "Pagination token from a previous response to fetch the next page"
+  type        = string
+  default     = null
 }
 
 variable "sort" {
-  type    = string
-  default = null
+  description = "Sort results as 'field:asc' or 'field:desc'"
+  type        = string
+  default     = null
 }
 
 variable "is_mine" {
-  type    = bool
-  default = null
+  description = "My Config Inspection"
+  type        = bool
+  default     = null
 }
 
 variable "diagnosis_id" {
-  type    = string
-  default = "ENTER YOUR RESOURCE'S DIAGNOSIS_ID"
+  description = "Id of diagnosis"
+  type        = string
+  default     = "ENTER YOUR RESOURCE'S DIAGNOSIS_ID"
 }
 
 variable "diagnosis_name" {
-  type    = string
-  default = null
+  description = "Name of diagnosis"
+  type        = string
+  default     = null
 }
 
 variable "csp_type" {
-  type    = string
-  default = null
+  description = "Type of cloud service provider"
+  type        = string
+  default     = null
 }
 
 variable "diagnosis_account_id" {
-  type    = string
-  default = "ENTER YOUR RESOURCE'S DIAGNOSIS_ACCOUNT_ID"
+  description = "Account Id of diagnosis"
+  type        = string
+  default     = "ENTER YOUR RESOURCE'S DIAGNOSIS_ACCOUNT_ID"
 }
 
 variable "recent_diagnosis_state" {
-  type    = list(string)
-  default = null
+  description = "Filter by the latest diagnosis status"
+  type        = list(string)
+  default     = null
 }
 
 variable "start_date" {
-  type    = string
-  default = null
+  description = "Include only inspections created on or after this date"
+  type        = string
+  default     = null
 }
 
 variable "end_date" {
-  type    = string
-  default = null
+  description = "Include only inspections created on or before this date"
+  type        = string
+  default     = null
 }
 ```
 
@@ -95,48 +107,50 @@ variable "end_date" {
 
 ### Optional
 
-- `csp_type` (String) Type of cloud service provider
-  - Example: SCP
-- `diagnosis_account_id` (String) Id of diagnosis
-  - Example: 0e3dffc50eb247a1adf4f2e5c82c4f99
-- `diagnosis_id` (String) Id of diagnosis
-  - Example: DIA-943731CB8E3045C289BAECAEC3532097
-- `diagnosis_name` (String) Name of diagnosis
-  - Example: My Diagnosis
-- `end_date` (String) End date
-  - Example: 2022-01-02 12:00:00
-- `is_mine` (Boolean) My Config Inspection
-  - Example: false
-- `limit` (Number) Limit
-  - Example: 20
-- `marker` (String) Marker
-  - Example: 607e0938521643b5b4b266f343fae693
-- `recent_diagnosis_state` (List of String) Recent diagnosis state
-  - Example: Completed
-- `sort` (String) Sort
-  - Example: created_at:desc
-- `start_date` (String) Start date
-  - Example: 2022-01-01 12:00:00
-- `with_count` (String) With count
-  - Example: true
+- `csp_type` (String) Type of cloud service provider.
+  - example : 'SCP'
+  - enum : SCP | AWS | Azure
+- `diagnosis_account_id` (String) Account Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ACCOUNT_ID
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
+- `diagnosis_name` (String) Name of diagnosis.
+  - example : 'Sample Diagnosis Name'
+  - pattern : `^[a-zA-Z0-9-_]+$`
+- `end_date` (String) Include only inspections created on or before this date.
+  - example : '2022-01-02 12:00:00'
+- `is_mine` (Boolean) My Config Inspection.
+  - example : false
+- `limit` (Number) Maximum number of items to return per page.
+  - example : 20
+- `marker` (String) Pagination token from a previous response to fetch the next page.
+  - example : '607e0938521643b5b4xxxxxxxxxxxxxx'
+- `recent_diagnosis_state` (List of String) Filter by the latest diagnosis status.
+  - example : 'Completed'
+- `sort` (String) Sort results as 'field:asc' or 'field:desc'.
+  - example : 'created_at:desc'
+- `start_date` (String) Include only inspections created on or after this date.
+  - example : '2022-01-01 12:00:00'
+- `with_count` (String) Whether to include the total item count in the response.
+  - example : true
 
 ### Read-Only
 
-- `links` (Attributes List) Links
-  - Example: [{"href": "http://scp.samsungsdscloud.com/v1/notices", "rel": "self"}] (see [below for nested schema](#nestedatt--links))
-- `summary_responses` (Attributes List) Summary responses (see [below for nested schema](#nestedatt--summary_responses))
-- `total_count` (Number) Total count
-  - Example: 20
+- `links` (Attributes List) Collection of hypermedia links to related resources or pages.
+  - example : [{"href": "http://scp.samsungsdscloud.com/v1/notices", "rel": "self"}] (see [below for nested schema](#nestedatt--links))
+- `summary_responses` (Attributes List) Summary responses. (see [below for nested schema](#nestedatt--summary_responses))
+- `total_count` (Number) Total number of items available across all pages.
+  - example : 20
 
 <a id="nestedatt--links"></a>
 ### Nested Schema for `links`
 
 Read-Only:
 
-- `href` (String) Href
-  - Example : http://scp.samsungsdscloud.com/v1/notices
-- `rel` (String) Rel
-  - Example : self
+- `href` (String) URL of the linked resource.
+  - example : 'http://scp.samsungsdscloud.com/v1/notices'
+- `rel` (String) Relationship type of the link.
+  - example : 'self'
 
 
 <a id="nestedatt--summary_responses"></a>
@@ -144,25 +158,29 @@ Read-Only:
 
 Read-Only:
 
-- `created_at` (String) Created date
-  - Example: 2022-01-01T12:00:00Z
-- `csp_type` (String) Type of cloud service provider
-  - Example: SCP
-- `diagnosis_account_id` (String) Id of diagnosis
-  - Example: 0e3dffc50eb247a1adf4f2e5c82c4f99
-- `diagnosis_check_type` (String) Check type of diagnosis
-  - Example: BP
-- `diagnosis_id` (String) Id of diagnosis
-  - Example: DIA-943731CB8E3045C289BAECAEC3532097
-- `diagnosis_name` (String) Name of diagnosis
-  - Example: Sample Diagnosis Name
-- `diagnosis_type` (String) diagnosis Type
-  - Example: Console
-- `error_state` (String) Error type of recent diagnosis
-  - Example: CONNECTION_FAIL
-- `plan_type` (String) plan Type
-  - Example: STANDARD
-- `recent_diagnosis_at` (String) Recent Diagnosis Date
-  - Example: 2022-01-01T12:00:00Z
-- `recent_diagnosis_state` (String) Recent Diagnosis State
-  - Example: Completed
+- `created_at` (String) Created date.
+  - example : '2022-01-01T12:00:00Z'
+- `csp_type` (String) Type of cloud service provider.
+  - example : 'SCP'
+  - enum : SCP | AWS | Azure
+- `diagnosis_account_id` (String) Account Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ACCOUNT_ID
+- `diagnosis_check_type` (String) Check type of diagnosis.
+  - example : 'BP'
+  - enum : BP | SSI
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
+- `diagnosis_name` (String) Name of diagnosis.
+  - example : 'Sample Diagnosis Name'
+  - pattern : `^[a-zA-Z0-9-_]+$`
+- `diagnosis_type` (String) Config inspection type.
+  - example : 'Console'
+- `error_state` (String) Error type of recent diagnosis.
+  - example : 'CONNECTION_FAIL'
+- `plan_type` (String) Billing plan for the inspection.
+  - example : 'STANDARD'
+  - enum : STANDARD | MONTHLY
+- `recent_diagnosis_at` (String) Recent Diagnosis Date.
+  - example : '2022-01-01T12:00:00Z'
+- `recent_diagnosis_state` (String) Recent diagnosis status.
+  - example : 'Completed'

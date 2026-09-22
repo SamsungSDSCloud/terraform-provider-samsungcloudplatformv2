@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_subnet_vip_port Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  VPC Subnet VIP Port
+  Resource of VPC Subnet VIP's Port
 ---
 
 # samsungcloudplatformv2_vpc_subnet_vip_port (Resource)
 
-VPC Subnet VIP Port
+Resource of VPC Subnet VIP's Port
 
 ## Example Usage
 
@@ -49,16 +49,16 @@ variable "port_id" {
 
 ### Required
 
-- `port_id` (String) Port ID 
+- `port_id` (String) The identifier of the port.
   - example: YOUR RESOURCE'S PORT_ID
-- `subnet_id` (String) Subnet ID 
+- `subnet_id` (String) The identifier of the subnet that the subnet vip port belongs to.
   - example: YOUR RESOURCE'S SUBNET_ID
-- `vip_id` (String) Subnet Vip Id 
+- `vip_id` (String) The identifier of the subnet vip.
   - example: YOUR RESOURCE'S VIP_ID
 
 ### Read-Only
 
-- `id` (String) Connected Port Id 
+- `id` (String) The unique identifier of the connected port.
   - example: YOUR RESOURCE'S ID
-- `subnet_vip_id` (String) Subnet Vip Id 
+- `subnet_vip_id` (String) The unique identifier of the subnet vip.
   - example: YOUR RESOURCE'S SUBNET_VIP_ID

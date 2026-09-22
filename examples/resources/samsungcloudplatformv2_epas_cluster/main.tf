@@ -17,4 +17,5 @@ resource "samsungcloudplatformv2_epas_cluster" "cluster" {
   maintenance_option      = var.maintenance_option
   vip_public_ip_id        = var.vip_public_ip_id
   virtual_ip_address      = var.virtual_ip_address
+  service_watch_log_collection    = var.service_watch_log_collection
 }

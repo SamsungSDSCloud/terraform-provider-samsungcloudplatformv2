@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/eventstreams"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/eventstreams"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -39,51 +40,67 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 		Description: "Show Cluster.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Id"): schema.StringAttribute{
-				Description: "ID",
-				Optional:    true,
+				Description:         "Cluster ID\n  - example: 71b2978c27724a7495ea3a901dddee9b",
+				MarkdownDescription: "Cluster ID\n  - example: 71b2978c27724a7495ea3a901dddee9b",
+				Optional:            true,
 			},
 			common.ToSnakeCase("Cluster"): schema.SingleNestedAttribute{
 				Description: "A detail of Cluster.",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountId"): schema.StringAttribute{
-						Description: "AccountId",
-						Computed:    true,
+						Description: "The identifier of the account that owns the endpoint.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						MarkdownDescription: "The identifier of the account that owns the endpoint.\n" +
+							"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+						Computed: true,
 					},
 					common.ToSnakeCase("AllowableIpAddresses"): schema.SetAttribute{
-						ElementType: types.StringType,
-						Description: "AllowableIpAddresses",
-						Computed:    true,
+						ElementType:         types.StringType,
+						Description:         "Allowed IP addresses list  \n  - example: ['192.168.10.1/32']",
+						MarkdownDescription: "Allowed IP addresses list  \n  - example: ['192.168.10.1/32']",
+						Computed:            true,
 					},
 					common.ToSnakeCase("DbaasEngine"): schema.StringAttribute{
-						Description: "DbaasEngine",
-						Computed:    true,
+						Description:         "DBaaS engine\n  - example: Kafka",
+						MarkdownDescription: "DBaaS engine\n  - example: Kafka",
+						Computed:            true,
+					},
+					common.ToSnakeCase("DbaasEngineVersionName"): schema.StringAttribute{
+						Description:         "DBaaS engine version name\n  - example: Event Streams 3.9.2",
+						MarkdownDescription: "DBaaS engine version name\n  - example: Event Streams 3.9.2",
+						Computed:            true,
 					},
 					common.ToSnakeCase("IsCombined"): schema.BoolAttribute{
-						Description: "IsCombined",
-						Computed:    true,
+						Description:         "Master Data server separation state\n  - example: true",
+						MarkdownDescription: "Master Data server separation state\n  - example: true",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "Id",
-						Computed:    true,
+						Description:         "Identifier of the resource.\n  - example: 71b2978c27724a7495ea3a901dddee9b",
+						MarkdownDescription: "Identifier of the resource.\n  - example: 71b2978c27724a7495ea3a901dddee9b",
+						Computed:            true,
 					},
 					common.ToSnakeCase("InitConfigOption"): schema.SingleNestedAttribute{
 						Description: "InitConfigOption.",
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("BrokerPort"): schema.Int32Attribute{
-								Description: "BrokerPort",
-								Computed:    true,
+								Description:         "Broker port\n  - example: 9091",
+								MarkdownDescription: "Broker port\n  - example: 9091",
+								Computed:            true,
 							},
 							common.ToSnakeCase("ZookeeperPort"): schema.Int32Attribute{
-								Description: "ZookeeperPort",
-								Computed:    true,
+								Description:         "Zookeeper port\n  - example: 2180",
+								MarkdownDescription: "Zookeeper port\n  - example: 2180",
+								Computed:            true,
 							},
 						},
 					},
 					common.ToSnakeCase("InstanceCount"): schema.Int32Attribute{
-						Description: "InstanceCount",
-						Computed:    true,
+						Description:         "Instance Count\n  - example: 3",
+						MarkdownDescription: "Instance Count\n  - example: 3",
+						Computed:            true,
 					},
 					common.ToSnakeCase("InstanceGroups"): schema.ListNestedAttribute{
 						Description: "InstanceGroups",
@@ -91,16 +108,19 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								common.ToSnakeCase("Id"): schema.StringAttribute{
-									Description: "Id",
-									Computed:    true,
+									Description:         "Instance group ID.\n  - example: ee48b333d5a84097adc079dec17ab872",
+									MarkdownDescription: "Instance group ID.\n  - example: ee48b333d5a84097adc079dec17ab872",
+									Computed:            true,
 								},
 								common.ToSnakeCase("RoleType"): schema.StringAttribute{
-									Description: "RoleType",
-									Computed:    true,
+									Description:         "Role type\n  - example: ZOOKEEPER_BROKER",
+									MarkdownDescription: "Role type\n  - example: ZOOKEEPER_BROKER",
+									Computed:            true,
 								},
 								common.ToSnakeCase("ServerTypeName"): schema.StringAttribute{
-									Description: "ServerTypeName",
-									Computed:    true,
+									Description:         "Server type name\n  - example: ess1v2m4",
+									MarkdownDescription: "Server type name\n  - example: ess1v2m4",
+									Computed:            true,
 								},
 								common.ToSnakeCase("BlockStorageGroups"): schema.ListNestedAttribute{
 									Description: "BlockStorageGroups",
@@ -108,24 +128,29 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											common.ToSnakeCase("Id"): schema.StringAttribute{
-												Description: "Id",
-												Computed:    true,
+												Description:         "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+												MarkdownDescription: "Block storage group ID\n  - example: 1cf2c013bace4960878dfff31f6feec5",
+												Computed:            true,
 											},
 											common.ToSnakeCase("Name"): schema.StringAttribute{
-												Description: "Name",
-												Computed:    true,
+												Description:         "Block storage group name\n  - example: cluster-Disk-00",
+												MarkdownDescription: "Block storage group name\n  - example: cluster-Disk-00",
+												Computed:            true,
 											},
 											common.ToSnakeCase("RoleType"): schema.StringAttribute{
-												Description: "RoleType",
-												Computed:    true,
+												Description:         "Block storage role type\n  - example: OS",
+												MarkdownDescription: "Block storage role type\n  - example: OS",
+												Computed:            true,
 											},
 											common.ToSnakeCase("SizeGb"): schema.Int32Attribute{
-												Description: "SizeGb",
-												Computed:    true,
+												Description:         "Size (GB)\n  - example: 104",
+												MarkdownDescription: "Size (GB)\n  - example: 104",
+												Computed:            true,
 											},
 											common.ToSnakeCase("VolumeType"): schema.StringAttribute{
-												Description: "VolumeType",
-												Computed:    true,
+												Description:         "Volume type\n  - example: SSD",
+												MarkdownDescription: "Volume type\n  - example: SSD",
+												Computed:            true,
 											},
 										},
 									},
@@ -136,29 +161,25 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											common.ToSnakeCase("Name"): schema.StringAttribute{
-												Description: "Name",
-												Computed:    true,
+												Description:         "Instance name\n  - example: test001",
+												MarkdownDescription: "Instance name\n  - example: test001",
+												Computed:            true,
 											},
 											common.ToSnakeCase("RoleType"): schema.StringAttribute{
-												Description: "RoleType",
-												Computed:    true,
+												Description:         "Role type\n  - example: ZOOKEEPER_BROKER",
+												MarkdownDescription: "Role type\n  - example: ZOOKEEPER_BROKER",
+												Computed:            true,
 											},
 											common.ToSnakeCase("ServiceIpAddress"): schema.StringAttribute{
-												Description: "ServiceIpAddress",
-												Computed:    true,
+												Description:         "User subnet IP address\n  - example: 192.168.4.22",
+												MarkdownDescription: "User subnet IP address\n  - example: 192.168.4.22",
+												Computed:            true,
 											},
 											common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
-												Description: "PublicIpId",
-												Computed:    true,
+												Description:         "Public IP ID\n  - example: 90a68b14850741598ecacd0eb190873e",
+												MarkdownDescription: "Public IP ID\n  - example: 90a68b14850741598ecacd0eb190873e",
+												Computed:            true,
 											},
-											//common.ToSnakeCase("PublicIpAddress"): schema.StringAttribute{
-											//	Description: "PublicIpAddress",
-											//	Computed:    true,
-											//},
-											//common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-											//	Description: "ServiceState",
-											//	Computed:    true,
-											//},
 										},
 									},
 								},
@@ -170,70 +191,96 @@ func (d *eventstreamsClusterDataSource) Schema(_ context.Context, _ datasource.S
 						Computed:    true,
 						Attributes: map[string]schema.Attribute{
 							common.ToSnakeCase("PeriodHour"): schema.StringAttribute{
-								Description: "PeriodHour",
-								Computed:    true,
+								Description:         "Period in hours\n  - example: 1",
+								MarkdownDescription: "Period in hours\n  - example: 1",
+								Computed:            true,
 							},
 							common.ToSnakeCase("StartingDayOfWeek"): schema.StringAttribute{
-								Description: "StartingDayOfWeek",
-								Computed:    true,
+								Description:         "Starting day of week\n  - example: MON",
+								MarkdownDescription: "Starting day of week\n  - example: MON",
+								Computed:            true,
 							},
 							common.ToSnakeCase("StartingTime"): schema.StringAttribute{
-								Description: "StartingTime",
-								Computed:    true,
+								Description:         "Starting time\n  - example: 0000",
+								MarkdownDescription: "Starting time\n  - example: 0000",
+								Computed:            true,
 							},
 							common.ToSnakeCase("UseMaintenanceOption"): schema.BoolAttribute{
-								Description: "UseMaintenanceOption",
-								Computed:    true,
+								Description:         "Use maintenance option\n  - example: true",
+								MarkdownDescription: "Use maintenance option\n  - example: true",
+								Computed:            true,
 							},
 						},
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "Name",
-						Computed:    true,
+						Description:         "Cluster name\n  - example: mytest",
+						MarkdownDescription: "Cluster name\n  - example: mytest",
+						Computed:            true,
 					},
 					common.ToSnakeCase("NatEnabled"): schema.BoolAttribute{
-						Description: "NatEnabled",
-						Computed:    true,
+						Description:         "NAT availability\n  - example: false",
+						MarkdownDescription: "NAT availability\n  - example: false",
+						Computed:            true,
+					},
+					common.ToSnakeCase("ProductImageType"): schema.StringAttribute{
+						Description:         "Product image type\n  - example: Event Streams",
+						MarkdownDescription: "Product image type\n  - example: Event Streams",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ProductType"): schema.StringAttribute{
-						Description: "ProductType",
-						Computed:    true,
+						Description:         "Product type\n  - example: Event Streams",
+						MarkdownDescription: "Product type\n  - example: Event Streams",
+						Computed:            true,
+					},
+					common.ToSnakeCase("RoleType"): schema.StringAttribute{
+						Description:         "Role type\n  - example: ACTIVE / RESTORE / DR_REPLICA / DR_SECONDARY",
+						MarkdownDescription: "Role type\n  - example: ACTIVE / RESTORE / DR_REPLICA / DR_SECONDARY",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ServiceState"): schema.StringAttribute{
-						Description: "ServiceState",
-						Computed:    true,
+						Description:         "Service state\n  - example: RUNNING",
+						MarkdownDescription: "Service state\n  - example: RUNNING",
+						Computed:            true,
 					},
 					common.ToSnakeCase("SoftwareVersion"): schema.StringAttribute{
-						Description: "SoftwareVersion",
-						Computed:    true,
+						Description:         "Software version\n  - example: 3.9.2",
+						MarkdownDescription: "Software version\n  - example: 3.9.2",
+						Computed:            true,
 					},
 					common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-						Description: "SubnetId",
-						Computed:    true,
+						Description:         "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249",
+						MarkdownDescription: "Subnet ID\n  - example: 0c6d633730a9470c9cb3c66be1bc9249",
+						Computed:            true,
 					},
 					common.ToSnakeCase("Timezone"): schema.StringAttribute{
-						Description: "Timezone",
-						Computed:    true,
+						Description:         "Timezone\n  - example: Asia/Seoul",
+						MarkdownDescription: "Timezone\n  - example: Asia/Seoul",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "CreatedAt",
-						Computed:    true,
+						Description:         "Created At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Created At\n  - example: 2024-05-17T00:23:17Z",
+						Computed:            true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "CreatedBy",
-						Computed:    true,
+						Description:         "Created by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						MarkdownDescription: "Created by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "ModifiedAt",
-						Computed:    true,
+						Description:         "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						MarkdownDescription: "Modified At\n  - example: 2024-05-17T00:23:17Z",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "ModifiedBy",
-						Computed:    true,
+						Description:         "Modified by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						MarkdownDescription: "Modified by\n  - example: 7d21d8f464b54de6a44ebfd2c0a56787",
+						Computed:            true,
 					},
 					common.ToSnakeCase("ServiceWatchLogCollection"): schema.BoolAttribute{
-						Description: "ServiceWatchLogCollection",
-						Computed:    true,
+						Description:         "ServiceWatchLogCollection\n - example: false",
+						MarkdownDescription: "ServiceWatchLogCollection\n - example: false",
+						Computed:            true,
 					},
 				},
 			},
@@ -268,7 +315,7 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	data, err := d.client.GetCluster(ctx, state.Id.ValueString())
+	data, _, err := d.client.GetCluster(ctx, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read Cluster",
@@ -288,16 +335,16 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 		allowableIpAddresses, _ = types.SetValue(types.StringType, ipAddresses)
 	}
 
-	var initConfigOption = eventstreams.InitConfigResponse{
+	var initConfigOption = &eventstreams.InitConfigOptionBase{
 		BrokerPort:    types.Int32PointerValue(data.InitConfigOption.BrokerPort),
 		ZookeeperPort: types.Int32PointerValue(data.InitConfigOption.ZookeeperPort),
 	}
 
-	var InstanceGroups []eventstreams.InstanceGroup
+	var InstanceGroups []database.InstanceGroup
 	for _, instanceGroup := range data.InstanceGroups {
-		var BlockStorage []eventstreams.BlockStorageGroup
+		var BlockStorage []database.BlockStorageGroup
 		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			BlockStorage = append(BlockStorage, eventstreams.BlockStorageGroup{
+			BlockStorage = append(BlockStorage, database.BlockStorageGroup{
 				Id:         types.StringValue(blockStorage.Id),
 				Name:       types.StringValue(blockStorage.Name),
 				RoleType:   types.StringValue(string(blockStorage.RoleType)),
@@ -306,9 +353,9 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 			})
 		}
 
-		var Instance []eventstreams.Instance
+		var Instance []database.Instance
 		for _, instance := range instanceGroup.Instances {
-			Instance = append(Instance, eventstreams.Instance{
+			Instance = append(Instance, database.Instance{
 				Name:             types.StringValue(instance.Name),
 				RoleType:         types.StringValue(string(instance.RoleType)),
 				ServiceIpAddress: types.StringPointerValue(instance.ServiceIpAddress.Get()),
@@ -316,20 +363,28 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 			})
 		}
 
-		InstanceGroups = append(InstanceGroups, eventstreams.InstanceGroup{
+		blockStorageGroupList, blockStorageDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: database.BlockStorageGroup{}.AttributeTypes()}, BlockStorage)
+		resp.Diagnostics.Append(blockStorageDiags...)
+		instanceList, instanceDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: database.Instance{}.AttributeTypes()}, Instance)
+		resp.Diagnostics.Append(instanceDiags...)
+
+		InstanceGroups = append(InstanceGroups, database.InstanceGroup{
 			Id:                 types.StringValue(instanceGroup.Id),
-			BlockStorageGroups: BlockStorage,
-			Instances:          Instance,
+			BlockStorageGroups: blockStorageGroupList,
+			Instances:          instanceList,
 			RoleType:           types.StringValue(string(instanceGroup.RoleType)),
 			ServerTypeName:     types.StringValue(instanceGroup.ServerTypeName),
 		})
 	}
 
-	var MaintenanceOption = eventstreams.MaintenanceOption{
-		PeriodHour:           types.StringPointerValue(data.MaintenanceOption.Get().PeriodHour.Get()),
-		StartingDayOfWeek:    types.StringPointerValue((*string)(data.MaintenanceOption.Get().StartingDayOfWeek.Get())),
-		StartingTime:         types.StringPointerValue(data.MaintenanceOption.Get().StartingTime.Get()),
-		UseMaintenanceOption: types.BoolPointerValue(data.MaintenanceOption.Get().UseMaintenanceOption),
+	var MaintenanceOption *eventstreams.MaintenanceOption
+	if data.MaintenanceOption.IsSet() && data.MaintenanceOption.Get() != nil {
+		MaintenanceOption = &eventstreams.MaintenanceOption{
+			PeriodHour:           types.StringPointerValue(data.MaintenanceOption.Get().PeriodHour.Get()),
+			StartingDayOfWeek:    types.StringPointerValue((*string)(data.MaintenanceOption.Get().StartingDayOfWeek.Get())),
+			StartingTime:         types.StringPointerValue(data.MaintenanceOption.Get().StartingTime.Get()),
+			UseMaintenanceOption: types.BoolPointerValue(data.MaintenanceOption.Get().UseMaintenanceOption),
+		}
 	}
 
 	var eventstreamsState = eventstreams.ClusterDetail{
@@ -345,6 +400,7 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 		Name:                      types.StringValue(data.Name),
 		NatEnabled:                types.BoolPointerValue(data.NatEnabled.Get()),
 		ProductType:               types.StringValue(string(data.ProductType)),
+		RoleType:                  types.StringPointerValue((*string)(data.RoleType.Get())),
 		ServiceState:              types.StringValue(string(data.ServiceState)),
 		SoftwareVersion:           types.StringValue(data.SoftwareVersion),
 		SubnetId:                  types.StringValue(data.SubnetId),
@@ -355,8 +411,7 @@ func (d *eventstreamsClusterDataSource) Read(ctx context.Context, req datasource
 		ModifiedBy:                types.StringValue(data.ModifiedBy),
 		ServiceWatchLogCollection: types.BoolValue(data.GetServiceWatchLogCollection()),
 	}
-	eventstreamsObjectValue, _ := types.ObjectValueFrom(ctx, eventstreamsState.AttributeTypes(), eventstreamsState)
-	state.ClusterDetail = eventstreamsObjectValue
+	state.ClusterDetail = &eventstreamsState
 
 	// Set state
 	diags = resp.State.Set(ctx, &state)

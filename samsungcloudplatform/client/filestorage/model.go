@@ -18,6 +18,7 @@ type VolumeDataSourceIds struct {
 
 type VolumeDataSource struct {
 	AccountId               types.String `tfsdk:"account_id"`
+	AzType                  types.String `tfsdk:"az_type"`
 	CreatedAt               types.String `tfsdk:"created_at"`
 	EncryptionEnabled       types.Bool   `tfsdk:"encryption_enabled"`
 	EndpointPath            types.String `tfsdk:"endpoint_path"`
@@ -28,9 +29,9 @@ type VolumeDataSource struct {
 	Protocol                types.String `tfsdk:"protocol"`
 	Purpose                 types.String `tfsdk:"purpose"`
 	State                   types.String `tfsdk:"state"`
-	TypeId                  types.String `tfsdk:"type_id"`
 	TypeName                types.String `tfsdk:"type_name"`
 	Usage                   types.Int64  `tfsdk:"usage"`
+	Zone                    types.String `tfsdk:"zone"`
 }
 
 type VolumeResource struct {
@@ -47,16 +48,51 @@ type VolumeResource struct {
 	Protocol                types.String         `tfsdk:"protocol"`
 	Purpose                 types.String         `tfsdk:"purpose"`
 	State                   types.String         `tfsdk:"state"`
-	TypeId                  types.String         `tfsdk:"type_id"`
 	TypeName                types.String         `tfsdk:"type_name"`
 	Usage                   types.Int64          `tfsdk:"usage"`
 	Tags                    types.Map            `tfsdk:"tags"`
-	AccessRules             []AccessRuleResource `tfsdk:"access_rules"`
+	Zone                    types.String         `tfsdk:"zone"`
 }
 
 type AccessRuleResource struct {
 	ObjectId   types.String `tfsdk:"object_id"`
 	ObjectType types.String `tfsdk:"object_type"`
+}
+
+// 신규 (standalone resource용)
+type FileStorageAccessRuleResource struct {
+	Id            types.String `tfsdk:"id"`
+	FileStorageId types.String `tfsdk:"file_storage_id"`
+	ObjectId      types.String `tfsdk:"object_id"`
+	ObjectType    types.String `tfsdk:"object_type"`
+}
+
+// 신규 (data source - 전체 목록 조회용)
+type FileStorageAccessRulesDataSource struct {
+	FileStorageId types.String         `tfsdk:"file_storage_id"`
+	AccessRules   []AccessRuleResource `tfsdk:"access_rules"`
+}
+
+// VolumeModelV0 is the v0 state model for StateUpgrader (access_rules included).
+type VolumeModelV0 struct {
+	AccountId               types.String         `tfsdk:"account_id"`
+	CifsPassword            types.String         `tfsdk:"cifs_password"`
+	CreatedAt               types.String         `tfsdk:"created_at"`
+	EncryptionEnabled       types.Bool           `tfsdk:"encryption_enabled"`
+	EndpointPath            types.String         `tfsdk:"endpoint_path"`
+	FileUnitRecoveryEnabled types.Bool           `tfsdk:"file_unit_recovery_enabled"`
+	Id                      types.String         `tfsdk:"id"`
+	Name                    types.String         `tfsdk:"name"`
+	NameUuid                types.String         `tfsdk:"name_uuid"`
+	Path                    types.String         `tfsdk:"path"`
+	Protocol                types.String         `tfsdk:"protocol"`
+	Purpose                 types.String         `tfsdk:"purpose"`
+	State                   types.String         `tfsdk:"state"`
+	TypeName                types.String         `tfsdk:"type_name"`
+	Usage                   types.Int64          `tfsdk:"usage"`
+	Tags                    types.Map            `tfsdk:"tags"`
+	AccessRules             []AccessRuleResource `tfsdk:"access_rules"`
+	Zone                    types.String         `tfsdk:"zone"`
 }
 
 // -------------------- SnapshotSchedule -------------------- //
@@ -69,10 +105,10 @@ type SnapshotScheduleDataSource struct {
 }
 
 type SnapshotScheduleResource struct {
-	VolumeId               types.String     `tfsdk:"volume_id"`
-	SnapshotPolicyEnabled  types.Bool       `tfsdk:"snapshot_policy_enabled"`
-	SnapshotRetentionCount types.Int32      `tfsdk:"snapshot_retention_count"`
-	SnapshotSchedule       SnapshotSchedule `tfsdk:"snapshot_schedule"`
+	VolumeId               types.String      `tfsdk:"volume_id"`
+	SnapshotPolicyEnabled  types.Bool        `tfsdk:"snapshot_policy_enabled"`
+	SnapshotRetentionCount types.Int32       `tfsdk:"snapshot_retention_count"`
+	SnapshotSchedule       *SnapshotSchedule `tfsdk:"snapshot_schedule"`
 }
 
 type SnapshotSchedule struct {
@@ -100,7 +136,7 @@ type ReplicationResources struct {
 type ReplicationResource struct {
 	CifsPassword                 types.String `tfsdk:"cifs_password"`
 	Name                         types.String `tfsdk:"name"`
-	Region                       types.String `tfsdk:"region"`
+	Zone                         types.String `tfsdk:"zone"`
 	ReplicationFrequency         types.String `tfsdk:"replication_frequency"`
 	VolumeId                     types.String `tfsdk:"volume_id"`
 	ReplicationId                types.String `tfsdk:"replication_id"`
@@ -109,11 +145,11 @@ type ReplicationResource struct {
 	ReplicationVolumeAccessLevel types.String `tfsdk:"replication_volume_access_level"`
 	ReplicationVolumeId          types.String `tfsdk:"replication_volume_id"`
 	ReplicationVolumeName        types.String `tfsdk:"replication_volume_name"`
-	ReplicationVolumeRegion      types.String `tfsdk:"replication_volume_region"`
+	ReplicationVolumeZone        types.String `tfsdk:"replication_volume_zone"`
 	SourceVolumeAccessLevel      types.String `tfsdk:"source_volume_access_level"`
 	SourceVolumeId               types.String `tfsdk:"source_volume_id"`
 	SourceVolumeName             types.String `tfsdk:"source_volume_name"`
-	SourceVolumeRegion           types.String `tfsdk:"source_volume_region"`
+	SourceVolumeZone             types.String `tfsdk:"source_volume_zone"`
 	ReplicationUpdateType        types.String `tfsdk:"replication_update_type"`
 	ReplicationType              types.String `tfsdk:"replication_type"`
 	BackupRetentionCount         types.Int32  `tfsdk:"backup_retention_count"`
@@ -123,7 +159,7 @@ func (m ReplicationResource) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"cifs_password":                   types.StringType,
 		"name":                            types.StringType,
-		"region":                          types.StringType,
+		"zone":                            types.StringType,
 		"replication_frequency":           types.StringType,
 		"volume_id":                       types.StringType,
 		"replication_id":                  types.StringType,
@@ -132,11 +168,11 @@ func (m ReplicationResource) AttributeTypes() map[string]attr.Type {
 		"replication_volume_access_level": types.StringType,
 		"replication_volume_id":           types.StringType,
 		"replication_volume_name":         types.StringType,
-		"replication_volume_region":       types.StringType,
+		"replication_volume_zone":         types.StringType,
 		"source_volume_access_level":      types.StringType,
 		"source_volume_id":                types.StringType,
 		"source_volume_name":              types.StringType,
-		"source_volume_region":            types.StringType,
+		"source_volume_zone":              types.StringType,
 		"replication_update_type":         types.StringType,
 	}
 }
@@ -170,11 +206,11 @@ type Replication struct {
 	ReplicationVolumeAccessLevel types.String `tfsdk:"replication_volume_access_level"`
 	ReplicationVolumeId          types.String `tfsdk:"replication_volume_id"`
 	ReplicationVolumeName        types.String `tfsdk:"replication_volume_name"`
-	ReplicationVolumeRegion      types.String `tfsdk:"replication_volume_region"`
+	ReplicationVolumeZone        types.String `tfsdk:"replication_volume_zone"`
 	SourceVolumeAccessLevel      types.String `tfsdk:"source_volume_access_level"`
 	SourceVolumeId               types.String `tfsdk:"source_volume_id"`
 	SourceVolumeName             types.String `tfsdk:"source_volume_name"`
-	SourceVolumeRegion           types.String `tfsdk:"source_volume_region"`
+	SourceVolumeZone             types.String `tfsdk:"source_volume_zone"`
 }
 
 func (m Replication) AttributeTypes() map[string]attr.Type {
@@ -186,10 +222,10 @@ func (m Replication) AttributeTypes() map[string]attr.Type {
 		"replication_volume_access_level": types.StringType,
 		"replication_volume_id":           types.StringType,
 		"replication_volume_name":         types.StringType,
-		"replication_volume_region":       types.StringType,
+		"replication_volume_zone":         types.StringType,
 		"source_volume_access_level":      types.StringType,
 		"source_volume_id":                types.StringType,
 		"source_volume_name":              types.StringType,
-		"source_volume_region":            types.StringType,
+		"source_volume_zone":              types.StringType,
 	}
 }

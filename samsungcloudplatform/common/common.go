@@ -6,11 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 const (
@@ -97,6 +99,9 @@ const (
 	BlockStorageTypeOS      string = "OS"
 	BlockStorageTypeData    string = "DATA"
 	BlockStorageTypeArchive string = "ARCHIVE"
+
+	// Compute
+	ComputeVolumeInUseState string = "IN-USE"
 )
 
 func ToSnakeCase(str string) string {
@@ -237,6 +242,14 @@ func ToNullableInt32Value(v *int32) types.Int32 {
 		return types.Int32Null()
 	}
 	return types.Int32Value(*v)
+}
+
+func ParseInt32(s string) int32 {
+	if s == "" {
+		return 0
+	}
+	v, _ := strconv.ParseInt(s, 10, 32)
+	return int32(v)
 }
 
 func CreateTlsConfig() (*tls.Config, error) {

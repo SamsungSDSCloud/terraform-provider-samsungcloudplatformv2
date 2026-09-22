@@ -2,9 +2,12 @@ package sqlserver
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/sqlserver/1.0"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/database"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/sqlserver/1.2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -47,8 +50,19 @@ func (client *Client) GetClusterList(ctx context.Context, request ClusterDataSou
 }
 
 // engine version
-func (client *Client) GetEngineVersionList(ctx context.Context) (*sqlserver.EngineListResponse, error) {
+// 비어있지 않은 필터만 쿼리 파라미터로 전달한다.
+// eosIncluded가 nil이면 파라미터를 생략하여 서버 기본값을 따른다.
+func (client *Client) GetEngineVersionList(ctx context.Context, id string, productImageType string, eosIncluded *bool) (*sqlserver.EngineListResponse, error) {
 	req := client.sdkClient.SqlserverV1SqlserverMasterDataApiAPI.SqlserverListEngineVersions(ctx)
+	if id != "" {
+		req = req.Id(id)
+	}
+	if productImageType != "" {
+		req = req.ProductImageType(sqlserver.ProductImageType(productImageType))
+	}
+	if eosIncluded != nil {
+		req = req.EosIncluded(*eosIncluded)
+	}
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -106,6 +120,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 	}
 
 	var convertedInitConfigOption = sqlserver.SqlserverInitConfigOptionRequest{
+		AdEnabled:            initConfigOption.AdEnabled.ValueBoolPointer(),
 		AuditEnabled:         initConfigOption.AuditEnabled.ValueBoolPointer(),
 		BackupOption:         *sqlserver.NewNullableSqlserverBackupOption(convertedBackupOption),
 		DatabaseCollation:    databaseCollation,
@@ -117,26 +132,48 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		License:              initConfigOption.License.ValueString(),
 	}
 
-	// initconfig data 확인
-	//data, _ := json.MarshalIndent(convertedInitConfigOption, "", "  ")
-	//fmt.Println(string(data))
+	// AdConfig는 ad_enabled가 true일 때만 필요하다.
+	if initConfigOption.AdEnabled.ValueBool() {
+		if initConfigOption.AdConfig == nil {
+			return nil, fmt.Errorf("init_config_option.ad_config is required when init_config_option.ad_enabled is true")
+		}
+		adConfig := sqlserver.SqlserverAdConfigRequest{
+			AdDomainName:        initConfigOption.AdConfig.AdDomainName.ValueString(),
+			AdNetbiosName:       initConfigOption.AdConfig.AdNetbiosName.ValueString(),
+			AdUserId:            initConfigOption.AdConfig.AdUserId.ValueString(),
+			AdUserPassword:      initConfigOption.AdConfig.AdUserPassword.ValueString(),
+			FailoverClusterName: *sqlserver.NewNullableString(initConfigOption.AdConfig.FailoverClusterName.ValueStringPointer()),
+		}
+		for _, dns := range initConfigOption.AdConfig.AdDnsServers.Elements() {
+			adConfig.AdDnsServers = append(adConfig.AdDnsServers, dns.(types.String).ValueString())
+		}
+		convertedInitConfigOption.AdConfig = *sqlserver.NewNullableSqlserverAdConfigRequest(&adConfig)
+	} else if initConfigOption.AdConfig != nil {
+		return nil, fmt.Errorf("init_config_option.ad_config must not be set when init_config_option.ad_enabled is false")
+	}
 
 	// InstanceGroups
 	var convertedInstanceGroups []sqlserver.SqlserverInstanceGroupRequest
-	for _, instanceGroup := range request.InstanceGroups {
-		var convertedBlockStorage []sqlserver.BlockStorageGroupRequest
-		for _, blockStorage := range instanceGroup.BlockStorageGroups {
-			convertedBlockStorage = append(convertedBlockStorage, sqlserver.BlockStorageGroupRequest{
-				RoleType:   sqlserver.BlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
+	var igVals []database.InstanceGroup
+	request.InstanceGroups.ElementsAs(ctx, &igVals, false)
+	for _, instanceGroup := range igVals {
+		var convertedBlockStorage []sqlserver.SqlserverBlockStorageGroupRequest
+		var bsVals []database.BlockStorageGroup
+		instanceGroup.BlockStorageGroups.ElementsAs(ctx, &bsVals, false)
+		for _, blockStorage := range bsVals {
+			convertedBlockStorage = append(convertedBlockStorage, sqlserver.SqlserverBlockStorageGroupRequest{
+				RoleType:   sqlserver.OsDataBlockStorageGroupRoleType(blockStorage.RoleType.ValueString()),
 				SizeGb:     blockStorage.SizeGb.ValueInt32(),
 				VolumeType: sqlserver.VolumeType(blockStorage.VolumeType.ValueString()).Ptr(),
 			})
 		}
 
 		var convertedInstance []sqlserver.SqlserverInstanceRequest
-		for _, instance := range instanceGroup.Instances {
+		var instVals []database.Instance
+		instanceGroup.Instances.ElementsAs(ctx, &instVals, false)
+		for _, instance := range instVals {
 			convertedInstance = append(convertedInstance, sqlserver.SqlserverInstanceRequest{
-				RoleType:         sqlserver.InstanceRoleType(instance.RoleType.ValueString()),
+				RoleType:         sqlserver.SqlserverInstanceRoleType(instance.RoleType.ValueString()),
 				ServiceIpAddress: *sqlserver.NewNullableString(instance.ServiceIpAddress.ValueStringPointer()),
 				PublicIpId:       *sqlserver.NewNullableString(instance.PublicIpId.ValueStringPointer()),
 			})
@@ -145,7 +182,7 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		convertedInstanceGroups = append(convertedInstanceGroups, sqlserver.SqlserverInstanceGroupRequest{
 			BlockStorageGroups: convertedBlockStorage,
 			Instances:          convertedInstance,
-			RoleType:           sqlserver.InstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
+			RoleType:           sqlserver.SqlserverInstanceGroupRoleType(instanceGroup.RoleType.ValueString()),
 			ServerTypeName:     instanceGroup.ServerTypeName.ValueString(),
 		})
 	}
@@ -175,39 +212,43 @@ func (client *Client) CreateCluster(ctx context.Context, request ClusterResource
 		TagsObject = append(TagsObject, tagObject)
 	}
 
-	req = req.SqlserverClusterCreateRequest(sqlserver.SqlserverClusterCreateRequest{
-		AllowableIpAddresses: allowableIpAddresses,
-		DbaasEngineVersionId: request.DbaasEngineVersionId.ValueString(),
-		NatEnabled:           request.NatEnabled.ValueBoolPointer(),
-		HaEnabled:            request.HaEnabled.ValueBoolPointer(),
-		InitConfigOption:     convertedInitConfigOption,
-		InstanceGroups:       convertedInstanceGroups,
-		InstanceNamePrefix:   request.InstanceNamePrefix.ValueString(),
-		Name:                 request.Name.ValueString(),
-		SubnetId:             request.SubnetId.ValueString(),
-		Timezone:             request.Timezone.ValueString(),
-		MaintenanceOption:    *sqlserver.NewNullableMaintenanceOption(convertedMaintenanceOption),
-		Tags:                 TagsObject,
-		VipPublicIpId:        *sqlserver.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
-		VirtualIpAddress:     *sqlserver.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+	req = req.SqlserverClusterCreateRequestV1Dot1(sqlserver.SqlserverClusterCreateRequestV1Dot1{
+		AllowableIpAddresses:      allowableIpAddresses,
+		DbaasEngineVersionId:      request.DbaasEngineVersionId.ValueString(),
+		NatEnabled:                request.NatEnabled.ValueBoolPointer(),
+		HaEnabled:                 request.HaEnabled.ValueBoolPointer(),
+		InitConfigOption:          convertedInitConfigOption,
+		InstanceGroups:            convertedInstanceGroups,
+		InstanceNamePrefix:        request.InstanceNamePrefix.ValueString(),
+		Name:                      request.Name.ValueString(),
+		SubnetId:                  request.SubnetId.ValueString(),
+		Timezone:                  request.Timezone.ValueString(),
+		MaintenanceOption:         *sqlserver.NewNullableMaintenanceOption(convertedMaintenanceOption),
+		Tags:                      TagsObject,
+		VipPublicIpId:             *sqlserver.NewNullableString(request.VipPublicIpId.ValueStringPointer()),
+		VirtualIpAddress:          *sqlserver.NewNullableString(request.VirtualIpAddress.ValueStringPointer()),
+		ServiceWatchLogCollection: *sqlserver.NewNullableBool(request.ServiceWatchLogCollection.ValueBoolPointer()),
 	})
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CheckBackupConfig(initConfigOption InitConfigOption) bool {
+func (client *Client) CheckBackupConfig(initConfigOption *InitConfigOption) bool {
 	return initConfigOption.BackupOption.StartingTimeHour.IsNull() && initConfigOption.BackupOption.RetentionPeriodDay.IsNull() && initConfigOption.BackupOption.ArchiveFrequencyMinute.IsNull() && initConfigOption.BackupOption.FullBackupDayOfWeek.IsNull()
 }
 
-func (client *Client) CheckMaintenanceOption(maintenanceOption MaintenanceOption) bool {
+func (client *Client) CheckMaintenanceOption(maintenanceOption *MaintenanceOption) bool {
 	return !maintenanceOption.UseMaintenanceOption.ValueBool() || (maintenanceOption.StartingDayOfWeek.IsNull() && maintenanceOption.StartingTime.IsNull() && maintenanceOption.PeriodHour.IsNull())
 }
 
-func (client *Client) GetCluster(ctx context.Context, clusterId string) (*sqlserver.SqlserverClusterDetailResponse, error) {
+func (client *Client) GetCluster(ctx context.Context, clusterId string) (*sqlserver.SqlserverClusterDetailResponseV1Dot1, int, error) {
 	req := client.sdkClient.SqlserverV1SqlserverClustersApiAPI.SqlserverShowCluster(ctx, clusterId)
-	resp, _, err := req.Execute()
-	return resp, err
+	resp, httpResponse, err := req.Execute()
+	if httpResponse == nil {
+		return nil, 0, err
+	}
+	return resp, httpResponse.StatusCode, err
 }
 
 func (client *Client) DeleteCluster(ctx context.Context, clusterId string) error {
@@ -247,6 +288,11 @@ func (client *Client) SetBackup(ctx context.Context, clusterId string, archiveFr
 func (client *Client) UnSetBackup(ctx context.Context, clusterId string) error {
 	req := client.sdkClient.SqlserverV1SqlserverBackupApiAPI.SqlserverUnsetBackup(ctx, clusterId)
 
+	// OTP 미사용이므로 session_id 는 명시적 null 로 전송한다.
+	req = req.OtpSessionIdRequest(sqlserver.OtpSessionIdRequest{
+		SessionId: *sqlserver.NewNullableString(nil),
+	})
+
 	_, _, err := req.Execute()
 	return err
 }
@@ -279,14 +325,78 @@ func (client *Client) SetBlockStorageSize(ctx context.Context, blockStorageGroup
 	return err
 }
 
+// AddBlockStorages는 기존 instance group에 블록 스토리지를 추가한다.
+// SDK가 SqlserverExtraBlockStorageGroupRoleType(DATA 단일 값) 타입을 제공하지만,
+// roleType은 Terraform 설정에서 온 런타임 문자열이라 형변환만으로는 검증되지 않는다.
+// 따라서 변환 전에 허용 값인지 직접 확인한다.
 func (client *Client) AddBlockStorages(ctx context.Context, instanceGroupId string, roleType string, sizeGb int32, volumeType string) error {
+	if !database.ContainsRoleType(database.BSRoleTypesExtraSqlserver, roleType) {
+		return fmt.Errorf("invalid role_type %q for sqlserver block storage addition (allowed: %s)", roleType, strings.Join(database.BSRoleTypesExtraSqlserver, ", "))
+	}
+
 	req := client.sdkClient.SqlserverV1SqlserverInstancesApiAPI.SqlserverAddBlockStorages(ctx, instanceGroupId)
 	reqState := &sqlserver.SqlserverAddBlockStoragesRequest{
-		RoleType:   sqlserver.BlockStorageGroupRoleType(roleType),
+		RoleType:   sqlserver.SqlserverExtraBlockStorageGroupRoleType(roleType),
 		SizeGb:     sizeGb,
 		VolumeType: sqlserver.VolumeType(volumeType).Ptr(),
 	}
 	req = req.SqlserverAddBlockStoragesRequest(*reqState)
 	_, _, err := req.Execute()
 	return err
+}
+
+func MapInstanceGroupResponses(sdkResp []sqlserver.SqlserverInstanceGroupResponse) []database.InstanceGroupResponse {
+	if sdkResp == nil {
+		return nil
+	}
+
+	result := make([]database.InstanceGroupResponse, len(sdkResp))
+	for i, ig := range sdkResp {
+		bsGroups := make([]database.BlockStorageGroupResponse, len(ig.BlockStorageGroups))
+		for j, bs := range ig.BlockStorageGroups {
+			bsGroups[j] = database.BlockStorageGroupResponse{
+				Id:         bs.Id,
+				Name:       bs.Name,
+				RoleType:   string(bs.RoleType),
+				SizeGb:     bs.SizeGb,
+				VolumeType: string(bs.VolumeType),
+			}
+		}
+
+		instances := make([]database.InstanceResponse, len(ig.Instances))
+		for j, it := range ig.Instances {
+			var pubIP, serviceIP string
+			if it.ServiceIpAddress.Get() != nil {
+				serviceIP = *it.ServiceIpAddress.Get()
+			}
+			if it.PublicIpId.Get() != nil {
+				pubIP = *it.PublicIpId.Get()
+			}
+
+			instances[j] = database.InstanceResponse{
+				Name:             it.Name,
+				PublicIpId:       pubIP,
+				RoleType:         string(it.RoleType),
+				ServiceIpAddress: serviceIP,
+			}
+		}
+
+		result[i] = database.InstanceGroupResponse{
+			BlockStorageGroups: bsGroups,
+			Id:                 ig.Id,
+			Instances:          instances,
+			RoleType:           string(ig.RoleType),
+			ServerTypeName:     ig.ServerTypeName,
+		}
+	}
+
+	return result
+}
+
+// instance
+// 클러스터 내 특정 인스턴스의 상세 정보를 조회한다.
+func (client *Client) GetInstance(ctx context.Context, clusterId string, instanceName string) (*sqlserver.InstanceDetailResponse, error) {
+	req := client.sdkClient.SqlserverV1SqlserverInstancesApiAPI.SqlserverShowInstance(ctx, clusterId, instanceName)
+	resp, _, err := req.Execute()
+	return resp, err
 }

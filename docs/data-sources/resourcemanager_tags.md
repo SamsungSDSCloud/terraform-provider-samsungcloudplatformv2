@@ -16,19 +16,33 @@ list of resource tag.
 
 ### Optional
 
-- `key` (String) Tag Key
-- `resource_identifier` (String) Resource Identifier
-- `value` (String) Tag Value
+- `key` (String) The key of the tag.
+
+Example: `Environment`
+- `resource_identifier` (String) The ID of the resource.
+
+Example: `e4b2c3f8a1d94b6b9f7e8c2d3a4f5b67`
+- `value` (String) The value of the tag.
+
+Example: `Production`
 
 ### Read-Only
 
-- `content` (Attributes List) A list of tag. (see [below for nested schema](#nestedatt--content))
+- `content` (Attributes List) This is set data of SRNs and tags.
+
+Example: See nested attributes below. (see [below for nested schema](#nestedatt--content))
 
 <a id="nestedatt--content"></a>
 ### Nested Schema for `content`
 
 Read-Only:
 
-- `key` (String) Key
-- `srn` (String) Srn
-- `value` (String) Value
+- `key` (String) The key of the tag.
+
+Example: `Environment`
+- `srn` (String) The System Resource Name (SRN) of the resource group.
+
+Example: `srn:s::13d97ad943ca452481d624f78391df13:kr-west1::resourcemanager:resource-group/70636f984e564b3c9e54e74a53f9318d`
+- `value` (String) The value of the tag.
+
+Example: `Production`

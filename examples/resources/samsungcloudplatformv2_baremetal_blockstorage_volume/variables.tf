@@ -1,6 +1,6 @@
-variable "region" {
+variable "zone" {
   type    = string
-  default = "kr-west1"
+  default = "kr-west1-y"
 }
 
 variable "block_storage_name" {

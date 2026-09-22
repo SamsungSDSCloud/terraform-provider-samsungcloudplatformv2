@@ -1,29 +1,29 @@
 variable "with_count" {
-  description = "With count"
+  description = "Whether to include the total item count in the response"
   type        = string
   default     = null
 }
 
 variable "limit" {
-  description = "Limit"
+  description = "Maximum number of items to return per page"
   type        = number
   default     = null
 }
 
 variable "marker" {
-  description = "Marker"
+  description = "Pagination token from a previous response to fetch the next page"
   type        = string
   default     = null
 }
 
 variable "sort" {
-  description = "Sort"
+  description = "The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order"
   type        = string
   default     = null
 }
 
 variable "account_id" {
-  description = "Account Id"
+  description = "Account Identifier"
   type        = string
   default     = "ENTER YOUR RESOURCE'S ACCOUNT_ID"
 }
@@ -47,25 +47,25 @@ variable "csp_type" {
 }
 
 variable "diagnosis_state" {
-  description = "Diagnosis state"
+  description = "Status of diagnosis"
   type        = string
   default     = null
 }
 
 variable "start_date" {
-  description = "Start date"
+  description = "Include only items created on or after this date"
   type        = string
   default     = null
 }
 
 variable "end_date" {
-  description = "End date"
+  description = "Include only items created on or before this date"
   type        = string
   default     = null
 }
 
 variable "user_id" {
-  description = "User id"
+  description = "Account owner of this diagnosis"
   type        = string
   default     = "ENTER YOUR RESOURCE'S USER_ID"
 }

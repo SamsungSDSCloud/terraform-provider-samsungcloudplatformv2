@@ -123,7 +123,7 @@ variable "vip_public_ip_id" {
 
 variable "virtual_ip_address" {
   type    = string
-  default = ""
+  default = null
 }
 
 variable "service_state" {
@@ -137,6 +137,11 @@ variable "tags" {
     key  = "value"
     key2 = "value2"
   }
+}
+
+variable "service_watch_log_collection" {
+  type    = bool
+  default = false
 }
 
 

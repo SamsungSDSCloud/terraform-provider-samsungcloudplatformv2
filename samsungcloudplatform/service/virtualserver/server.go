@@ -6,28 +6,52 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/virtualserver"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpc"
-	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/virtualserver"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/virtualserver/1.3"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/virtualserver"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpc"
+	common "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	virtualserverutil "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/virtualserver"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpvirtualserver "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/virtualserver/1.5"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
-	_ resource.Resource              = &virtualServerServerResource{}
-	_ resource.ResourceWithConfigure = &virtualServerServerResource{}
+	_ resource.Resource               = &virtualServerServerResource{}
+	_ resource.ResourceWithConfigure  = &virtualServerServerResource{}
+	_ resource.ResourceWithModifyPlan = &virtualServerServerResource{}
 )
 
 var osDiskDeviceNames = []string{"/dev/vda", "/dev/sda"}
+
+// import 처럼 prior state 에 맵 키가 없을 때 API 결과에 붙일 키의 접두어.
+// interface_1, interface_2 / volume_1, volume_2 ... 형태가 된다.
+const (
+	networkKeyPrefix = "interface"
+	volumeKeyPrefix  = "volume"
+)
+
+// nextGeneratedKey 는 prefix_1, prefix_2 ... 중 아직 쓰이지 않은 첫 키를 돌려준다.
+// 호출한 쪽에서 곧바로 existing 에 값을 넣어야 다음 호출이 다른 키를 받는다.
+func nextGeneratedKey[T any](prefix string, existing map[string]T) string {
+	for i := 1; ; i++ {
+		key := fmt.Sprintf("%s_%d", prefix, i)
+		if _, taken := existing[key]; !taken {
+			return key
+		}
+	}
+}
 
 func isOsDisk(device string) bool {
 	for _, name := range osDiskDeviceNames {
@@ -36,6 +60,47 @@ func isOsDisk(device string) bool {
 		}
 	}
 	return false
+}
+
+func bootVolumeToObject(bootVolume virtualserver.ServerResourceVolume) types.Object {
+	obj, _ := types.ObjectValueFrom(context.Background(),
+		map[string]attr.Type{
+			"id":                    types.StringType,
+			"delete_on_termination": types.BoolType,
+			"size":                  types.Int32Type,
+			"type":                  types.StringType,
+			"max_iops":              types.Int32Type,
+			"max_throughput":        types.Int32Type,
+		},
+		bootVolume)
+	return obj
+}
+
+func objectToBootVolume(obj types.Object) (virtualserver.ServerResourceVolume, error) {
+	var bootVolume virtualserver.ServerResourceVolume
+	if obj.IsNull() || obj.IsUnknown() {
+		return bootVolume, nil
+	}
+	attrs := obj.Attributes()
+	if id, ok := attrs["id"]; ok {
+		bootVolume.Id = id.(types.String)
+	}
+	if del, ok := attrs["delete_on_termination"]; ok {
+		bootVolume.DeleteOnTermination = del.(types.Bool)
+	}
+	if size, ok := attrs["size"]; ok {
+		bootVolume.Size = size.(types.Int32)
+	}
+	if volType, ok := attrs["type"]; ok {
+		bootVolume.Type = volType.(types.String)
+	}
+	if maxIops, ok := attrs["max_iops"]; ok {
+		bootVolume.MaxIops = maxIops.(types.Int32)
+	}
+	if maxThroughput, ok := attrs["max_throughput"]; ok {
+		bootVolume.MaxThroughput = maxThroughput.(types.Int32)
+	}
+	return bootVolume, nil
 }
 
 func NewVirtualServerServerResource() resource.Resource {
@@ -54,227 +119,350 @@ func (r *virtualServerServerResource) Metadata(_ context.Context, req resource.M
 
 func (r *virtualServerServerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Server",
+		Description: "Virtual Server resource.\n\n" +
+			"**GPU Server Creation Guide:**\n" +
+			"- GPU Server can only use GPU images (images with `scp_image_type` of `gpu_standard`, 'gpu_custom').\n" +
+			"- GPU Server types, refer to SCP documentation for available options in your environment.",
+		MarkdownDescription: "Virtual Server resource.\n\n" +
+			"**GPU Server Creation Guide:**\n" +
+			"- GPU Server can only use GPU images (images with `scp_image_type` of `gpu_standard`, 'gpu_custom').\n" +
+			"- GPU Server types, refer to SCP documentation for available options in your environment.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description:         "Resource ID.",
+				MarkdownDescription: "Resource ID.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description: "Account ID",
-				Computed:    true,
+				Description:         "Account ID.",
+				MarkdownDescription: "Account ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Networks"): schema.MapNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("PortId"): schema.StringAttribute{
-							Description: "Port ID",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Port ID.",
+							MarkdownDescription: "Port ID.\n  - example: 12345678-1234-1234-1234-123456789012",
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-							Description: "Subnet ID",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Subnet ID.",
+							MarkdownDescription: "Subnet ID.\n  - example: ab313c43291e4b678f4bacffe10768ae",
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("FixedIp"): schema.StringAttribute{
-							Description: "Fixed IP",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Fixed IP address.",
+							MarkdownDescription: "Fixed IP address.\n  - example: 192.168.1.100",
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("PublicIpId"): schema.StringAttribute{
-							Description: "Public IP ID",
-							Optional:    true,
+							Description:         "Public IP ID.",
+							MarkdownDescription: "Public IP ID.\n  - example: a765a07e8d9b46f4918fd7d5ed004654",
+							Optional:            true,
 						},
 						common.ToSnakeCase("StaticNatId"): schema.StringAttribute{
-							Description: "Static NAT ID",
-							Computed:    true,
+							Description:         "Static NAT ID.",
+							MarkdownDescription: "Static NAT ID.",
+							Computed:            true,
 						},
 						common.ToSnakeCase("IsDefault"): schema.BoolAttribute{
-							Description: "Indicates whether this is the default port.",
-							Computed:    true,
+							Description:         "Whether this is the default port.",
+							MarkdownDescription: "Whether this is the default port.",
+							Computed:            true,
 						},
 					},
 				},
-				Required:    true,
-				Description: "Networks",
+				Required: true,
+				Description: "Network settings. Defines network interfaces to attach to the server.\n" +
+					"  - example: {\"network-1\": {\"subnet_id\": \"ab313c43291e4b678f4bacffe10768ae\"}}",
+				MarkdownDescription: "Network settings. Defines network interfaces to attach to the server.\n" +
+					"  - example: {\"network-1\": {\"subnet_id\": \"ab313c43291e4b678f4bacffe10768ae\"}}",
 			},
 			common.ToSnakeCase("AutoScalingGroupId"): schema.StringAttribute{
-				Description: "Auto scaling group ID",
-				Computed:    true,
+				Description:         "Auto Scaling Group ID. Only has value for servers created by Auto Scaling Group.",
+				MarkdownDescription: "Auto Scaling Group ID. Only has value for servers created by Auto Scaling Group.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description: "Created at",
-				Computed:    true,
+				Description:         "Creation timestamp.",
+				MarkdownDescription: "Creation timestamp.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-				Description: "Created by",
-				Computed:    true,
+				Description:         "Creator ID.",
+				MarkdownDescription: "Creator ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("DiskConfig"): schema.StringAttribute{
-				Description: "Disk config",
-				Computed:    true,
+				Description:         "Disk configuration mode.",
+				MarkdownDescription: "Disk configuration mode.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ImageId"): schema.StringAttribute{
-				Description: "Image ID",
-				Optional:    true,
-				Computed:    true,
+				Description: "Image ID. Specifies the OS image to use.\n" +
+					"  - example: 70a599e0-31e7-49b7-b260-868f441e862b\n" +
+					"  - note: For GPU Server, only GPU standard images (scp_image_type=gpu_standard, gpu_custom) can be used.",
+				MarkdownDescription: "Image ID. Specifies the OS image to use.\n" +
+					"  - example: 70a599e0-31e7-49b7-b260-868f441e862b\n" +
+					"  - note: For GPU Server, only GPU standard images (scp_image_type=gpu_standard, gpu_custom) can be used.",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("KeypairName"): schema.StringAttribute{
-				Description: "Keypair name",
-				Required:    true,
+				Description:         "Keypair name. Specifies the keypair for SSH access.",
+				MarkdownDescription: "Keypair name. Specifies the keypair for SSH access.\n  - example: my-keypair",
+				Required:            true,
 			},
 			common.ToSnakeCase("LaunchConfigurationId"): schema.StringAttribute{
-				Description: "Launch Configuration ID",
-				Computed:    true,
+				Description:         "Launch Configuration ID. Only has value for servers created by Auto Scaling Group.",
+				MarkdownDescription: "Launch Configuration ID. Only has value for servers created by Auto Scaling Group.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Lock"): schema.BoolAttribute{
-				Description: "Lock",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Lock status. When locked, most user operations are blocked.",
+				MarkdownDescription: "Lock status. When locked, most user operations are blocked.\n  - example: false",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("Metadata"): schema.MapAttribute{
-				Description: "Metadata",
-				Optional:    true,
+				Description: "Metadata. Key-value pairs the platform stores on the server.\n" +
+					"  - Read-only. The platform manages these entries and adds its own (e.g. HA_Enabled),\n" +
+					"    so they cannot be set from configuration. Use user_data or tags instead.",
+				MarkdownDescription: "Metadata. Key-value pairs the platform stores on the server.\n" +
+					"  - Read-only. The platform manages these entries and adds its own (e.g. `HA_Enabled`),\n" +
+					"    so they cannot be set from configuration. Use `user_data` or `tags` instead.",
 				Computed:    true,
 				ElementType: types.StringType,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-				Description: "Modified at",
-				Computed:    true,
+				Description:         "Modification timestamp.",
+				MarkdownDescription: "Modification timestamp.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Required:    true,
+				Description: "Server name.\n" +
+					"  - example: my-server\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 63\n" +
+					"  - pattern: ^[a-zA-Z0-9-_ ]*$",
+				MarkdownDescription: "Server name.\n" +
+					"  - example: my-server\n" +
+					"  - minLength: 1\n" +
+					"  - maxLength: 63\n" +
+					"  - pattern: ^[a-zA-Z0-9-_ ]*$",
+				Required: true,
 			},
 			common.ToSnakeCase("PlannedComputeOsType"): schema.StringAttribute{
-				Description: "Planned compute os type",
-				Computed:    true,
+				Description:         "Planned compute OS type.",
+				MarkdownDescription: "Planned compute OS type.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("ProductCategory"): schema.StringAttribute{
-				Description: "Product category",
-				Optional:    true,
-				Computed:    true,
+				Description: "Product category.\n" +
+					"  - example: compute\n" +
+					"  - Available values: compute, container",
+				MarkdownDescription: "Product category.\n" +
+					"  - example: compute\n" +
+					"  - Available values: compute, container",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("ProductOffering"): schema.StringAttribute{
-				Description: "Product offering",
-				Optional:    true,
-				Computed:    true,
+				Description: "Product offering. Determines the server type.\n" +
+					"  - example: virtual_server\n" +
+					"  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm\n",
+				MarkdownDescription: "Product offering. Determines the server type.\n" +
+					"  - example: virtual_server\n" +
+					"  - Available values: virtual_server, gpu_server, k8s_vm, k8s_gpu_vm\n",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("SecurityGroups"): schema.ListAttribute{
-				Description: "Security groups",
-				Optional:    true,
-				Computed:    true,
-				ElementType: types.StringType,
+				Description:         "Security group ID list.",
+				MarkdownDescription: "Security group ID list.\n  - example: [\"c09c3f05-03d9-443f-b27a-40e0f973c75f\"]",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				PlanModifiers:       []planmodifier.List{listplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("UserData"): schema.StringAttribute{
-				Description: "User data",
-				Optional:    true,
+				Description: "User data script. Base64-encoded script to run on server startup.\n" +
+					"  - example: IyEvYmluL2Jhc2gKL2Jpbi9zdQplY2hvICJJIGFtIGluIHlvdSEiCg==\n" +
+					"  - maxLength: 65535 bytes",
+				MarkdownDescription: "User data script. Base64-encoded script to run on server startup.\n" +
+					"  - example: IyEvYmluL2Jhc2gKL2Jpbi9zdQplY2hvICJJIGFtIGluIHlvdSEiCg==\n" +
+					"  - maxLength: 65535 bytes",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServerGroupId"): schema.StringAttribute{
-				Description: "Server group ID",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Server group ID. Places the server in a specific server group.",
+				MarkdownDescription: "Server group ID. Places the server in a specific server group.\n  - example: 616fb98f-46ca-475e-917e-2563e5a8cd19",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			common.ToSnakeCase("ServerTypeId"): schema.StringAttribute{
-				Description: "Server type ID",
-				Required:    true,
+				Description: "Server type ID. Determines CPU, memory, and other server specifications.\n" +
+					"  - example: s1v1m2\n",
+				MarkdownDescription: "Server type ID. Determines CPU, memory, and other server specifications.\n" +
+					"  - example: s1v1m2\n",
+				Required: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
-				Computed:    true,
+				Description: "Server state.\n" +
+					"  - example: ACTIVE\n" +
+					"  - Available values: ACTIVE, SHUTOFF\n" +
+					"  - Only ACTIVE is allowed when creating a server. " +
+					"To stop a server, create it first and then change this value to SHUTOFF.",
+				MarkdownDescription: "Server state.\n" +
+					"  - example: ACTIVE\n" +
+					"  - Available values: ACTIVE, SHUTOFF\n" +
+					"  - Only ACTIVE is allowed when creating a server. " +
+					"To stop a server, create it first and then change this value to SHUTOFF.",
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("BootVolume"): schema.SingleNestedAttribute{
-				Description: "Boot Volume",
-				Required:    true,
+				Description:         "Boot volume settings. Defines the root disk where OS is installed.",
+				MarkdownDescription: "Boot volume settings. Defines the root disk where OS is installed.",
+				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "ID",
-						Computed:    true,
+						Description:         "Volume ID.",
+						MarkdownDescription: "Volume ID.",
+						Computed:            true,
 					},
 					common.ToSnakeCase("DeleteOnTermination"): schema.BoolAttribute{
-						Description: "Delete on termination",
-						Optional:    true,
-						Computed:    true,
+						Description:         "Whether to delete volume when server is terminated.",
+						MarkdownDescription: "Whether to delete volume when server is terminated.\n  - example: true",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 					},
 					common.ToSnakeCase("Size"): schema.Int32Attribute{
-						Description: "Size",
-						Required:    true,
+						Description:         "Volume size (GiB). Must be a multiple of 8.",
+						MarkdownDescription: "Volume size (GiB). Must be a multiple of 8.\n  - example: 104\n  - minimum: 8",
+						Required:            true,
 					},
 					common.ToSnakeCase("Type"): schema.StringAttribute{
-						Description: "Type",
-						Optional:    true,
-						Computed:    true,
+						Description:         "Volume type. Defaults to SSD if not specified.",
+						MarkdownDescription: "Volume type. Defaults to SSD if not specified.\n  - example: SSD",
+						Optional:            true,
+						Computed:            true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
-						Description: "The number of distinct read or write operations a volume can process in a single second.",
-						Optional:    true,
-						Computed:    true,
+						Description:         "Maximum IOPS. Number of read/write operations per second.",
+						MarkdownDescription: "Maximum IOPS. Number of read/write operations per second.\n  - example: 10000",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseStateForUnknown()},
 					},
 					common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
-						Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
-						Optional:    true,
-						Computed:    true,
+						Description:         "Maximum throughput (MB/s). Amount of data transferred per second.",
+						MarkdownDescription: "Maximum throughput (MB/s). Amount of data transferred per second.\n  - example: 500",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseStateForUnknown()},
 					},
 				},
 			},
 			common.ToSnakeCase("ExtraVolumes"): schema.MapNestedAttribute{
-				Description: "Extra Volumes",
-				Computed:    true,
-				Optional:    true,
+				Description:         "Extra volume settings. Defines additional volumes to attach besides boot volume.",
+				MarkdownDescription: "Extra volume settings. Defines additional volumes to attach besides boot volume.",
+				Computed:            true,
+				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "ID",
-							Computed:    true,
+							Description:         "Volume ID.",
+							MarkdownDescription: "Volume ID.",
+							Computed:            true,
 						},
 						common.ToSnakeCase("DeleteOnTermination"): schema.BoolAttribute{
-							Description: "Delete on termination",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Whether to delete volume when server is terminated.",
+							MarkdownDescription: "Whether to delete volume when server is terminated.\n  - example: true",
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("Size"): schema.Int32Attribute{
-							Description: "Size",
-							Required:    true,
+							Description:         "Volume size (GiB). Must be a multiple of 8.",
+							MarkdownDescription: "Volume size (GiB). Must be a multiple of 8.\n  - example: 104\n  - minimum: 8",
+							Required:            true,
 						},
 						common.ToSnakeCase("Type"): schema.StringAttribute{
-							Description: "Type",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Volume type. Defaults to SSD_Provisioned if not specified.",
+							MarkdownDescription: "Volume type. Defaults to SSD_Provisioned if not specified.\n  - example: SSD",
+							Optional:            true,
+							Computed:            true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
+								stringplanmodifier.UseNonNullStateForUnknown(),
 							},
 						},
 						common.ToSnakeCase("MaxIops"): schema.Int32Attribute{
-							Description: "The number of distinct read or write operations a volume can process in a single second.",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Maximum IOPS. Number of read/write operations per second.",
+							MarkdownDescription: "Maximum IOPS. Number of read/write operations per second.\n  - example: 10000",
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseNonNullStateForUnknown()},
 						},
 						common.ToSnakeCase("MaxThroughput"): schema.Int32Attribute{
-							Description: "The actual amount of data (volume) transferred to or from the storage device per second.",
-							Optional:    true,
-							Computed:    true,
+							Description:         "Maximum throughput (MB/s). Amount of data transferred per second.",
+							MarkdownDescription: "Maximum throughput (MB/s). Amount of data transferred per second.\n  - example: 500",
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseNonNullStateForUnknown()},
 						},
 					},
 				},
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description: "Vpc ID",
-				Computed:    true,
+				Description:         "VPC ID.",
+				MarkdownDescription: "VPC ID.",
+				Computed:            true,
 			},
 			common.ToSnakeCase("PartitionNumber"): schema.Int32Attribute{
-				Description: "Partition Number",
-				Optional:    true,
-				Computed:    true,
+				Description:         "Partition number. Only used when server group type is partition.",
+				MarkdownDescription: "Partition number. Only used when server group type is partition.\n  - example: 1",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers:       []planmodifier.Int32{int32planmodifier.UseStateForUnknown()},
 			},
 			"tags": tag.ResourceSchema(),
+			common.ToSnakeCase("Zone"): schema.StringAttribute{
+				Required:            true,
+				Description:         "Zone ID\n  - example: kr-west1-a",
+				MarkdownDescription: "Zone ID\n  - example: kr-west1-a",
+			},
 		},
 	}
 
@@ -305,7 +493,7 @@ func (r *virtualServerServerResource) AsyncPollingTags(ctx context.Context, reso
 	defer ticker.Stop()
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, resourceId)
+		tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, resourceId, false)
 
 		if err != nil {
 			return types.Map{}, fmt.Errorf("attempt %d/%d failed: %w",
@@ -426,7 +614,7 @@ func (r *virtualServerServerResource) AsyncPollingQosUpdate(ctx context.Context,
 }
 
 func (r *virtualServerServerResource) AsyncPollingVolumeIops(ctx context.Context, serverId string,
-	bootExtraVolume virtualserver.ServerResourceVolume, stateExtraVolumes types.Map) error {
+	bootExtraVolume types.Object, stateExtraVolumes types.Map) error {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 
@@ -466,7 +654,7 @@ func (r *virtualServerServerResource) matchVolumeAttributes(
 		return false
 	}
 	if (planVolume.Type.IsNull() || planVolume.Type.IsUnknown()) &&
-		*unmappedVolume.Type.ValueStringPointer() != defaultVolumeTypeName {
+		unmappedVolume.Type.ValueString() != defaultVolumeTypeName {
 		return false
 	}
 
@@ -510,13 +698,16 @@ func (r *virtualServerServerResource) findMatchingVolumeKey(
 	return ""
 }
 
+// MapUnmappedExtraVolumes 는 state 키에 짝지어지지 않은 볼륨들을 속성 일치로 배치하고,
+// 끝까지 짝을 못 찾은 볼륨 목록을 돌려준다.
+// (이전에는 allMatched bool 만 돌려줘서 남은 볼륨이 그대로 유실됐다.)
 func (r *virtualServerServerResource) MapUnmappedExtraVolumes(
 	unmappedExtraVolumes []virtualserver.ServerResourceVolume,
 	extraVolumesMap map[string]virtualserver.ServerResourceVolume,
 	mappedVolumeKeys map[string]bool,
 	defaultVolumeTypeName string,
-) bool {
-	allMatched := true
+) []virtualserver.ServerResourceVolume {
+	var remaining []virtualserver.ServerResourceVolume
 
 	for _, unmappedVolume := range unmappedExtraVolumes {
 		bestKey := r.findMatchingVolumeKey(unmappedVolume, extraVolumesMap, mappedVolumeKeys, defaultVolumeTypeName)
@@ -525,11 +716,11 @@ func (r *virtualServerServerResource) MapUnmappedExtraVolumes(
 			extraVolumesMap[bestKey] = unmappedVolume
 			mappedVolumeKeys[bestKey] = true
 		} else {
-			allMatched = false
+			remaining = append(remaining, unmappedVolume)
 		}
 	}
 
-	return allMatched
+	return remaining
 }
 
 func (r *virtualServerServerResource) isBootVolumeMatched(
@@ -572,7 +763,7 @@ func (r *virtualServerServerResource) buildVolumeSets(getServerVolumes *scpvirtu
 }
 
 func (r *virtualServerServerResource) categorizeVolumes(
-	getVolumes *scpvirtualserver.VolumeListResponseV1Dot2,
+	getVolumes *scpvirtualserver.VolumeListResponseV1Dot4,
 	volumeIdsSet map[string]bool,
 	volumeDeleteOnTerminationSet map[string]bool,
 	volumeBootVolumeSet map[string]bool,
@@ -608,6 +799,11 @@ func (r *virtualServerServerResource) processExtraVolumes(
 ) (map[string]virtualserver.ServerResourceVolume, []virtualserver.ServerResourceVolume, map[string]bool) {
 	var extraVolumesMap map[string]virtualserver.ServerResourceVolume
 	stateExtraVolumes.ElementsAs(ctx, &extraVolumesMap, false)
+	if extraVolumesMap == nil {
+		// import 처럼 prior state 가 null 이면 ElementsAs 는 nil map 을 남긴다.
+		// 이 상태로 두면 뒤에서 키를 넣을 수 없어 extra_volumes 가 전부 유실된다.
+		extraVolumesMap = make(map[string]virtualserver.ServerResourceVolume)
+	}
 
 	extraVolumeIdKeyMap := make(map[string]string)
 	for key, volume := range extraVolumesMap {
@@ -637,8 +833,14 @@ func (r *virtualServerServerResource) processExtraVolumes(
 func (r *virtualServerServerResource) ResolveServerVolumes(
 	ctx context.Context,
 	serverId string,
-	stateBootVolume virtualserver.ServerResourceVolume,
+	stateBootVolume types.Object,
 	stateExtraVolumes types.Map) (virtualserver.ServerResourceVolume, types.Map, bool, error) {
+
+	bootVolumeFromState, err := objectToBootVolume(stateBootVolume)
+	if err != nil {
+		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
+	}
+
 	getServerVolumes, err := r.client.GetServerVolumeList(ctx, serverId)
 	if err != nil {
 		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
@@ -646,14 +848,14 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 
 	volumeBootVolumeSet, volumeIdsSet, volumeDeleteOnTerminationSet := r.buildVolumeSets(getServerVolumes)
 
-	getVolumes, err := r.client.GetVolumeList()
+	getVolumes, err := r.client.GetVolumeListAll(ctx)
 	if err != nil {
 		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
 	}
 
 	bootVolume, extraVolumes := r.categorizeVolumes(getVolumes, volumeIdsSet, volumeDeleteOnTerminationSet, volumeBootVolumeSet)
 
-	bootVolumeMatched := r.isBootVolumeMatched(bootVolume, stateBootVolume)
+	bootVolumeMatched := r.isBootVolumeMatched(bootVolume, bootVolumeFromState)
 
 	extraVolumesMap, unmappedExtraVolumes, mappedVolumeKeys := r.processExtraVolumes(ctx, extraVolumes, stateExtraVolumes)
 
@@ -661,9 +863,20 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 	if err != nil {
 		return virtualserver.ServerResourceVolume{}, types.Map{}, false, err
 	}
-	defaultVolumeTypeName := *defaultVolumeType.Name.Get()
+	defaultVolumeTypeName := ""
+	if name := defaultVolumeType.Name.Get(); name != nil {
+		defaultVolumeTypeName = *name
+	}
 
-	r.MapUnmappedExtraVolumes(unmappedExtraVolumes, extraVolumesMap, mappedVolumeKeys, defaultVolumeTypeName)
+	unmappedExtraVolumes = r.MapUnmappedExtraVolumes(unmappedExtraVolumes, extraVolumesMap, mappedVolumeKeys, defaultVolumeTypeName)
+
+	// 끝까지 state 키에 짝지어지지 않은 볼륨은 새 키(volume_1, volume_2 ...)로 담는다.
+	// import 이거나 콘솔에서 볼륨을 붙인 경우가 여기에 해당한다.
+	for _, volume := range unmappedExtraVolumes {
+		key := nextGeneratedKey(volumeKeyPrefix, extraVolumesMap)
+		extraVolumesMap[key] = volume
+		mappedVolumeKeys[key] = true
+	}
 
 	extraVolumeMatched := true
 	for _, volume := range extraVolumesMap {
@@ -690,12 +903,18 @@ func (r *virtualServerServerResource) ResolveServerVolumes(
 	return bootVolume, extraVolumeObject, allMatched, nil
 }
 
+// mapNetworksBySubnetAndFixedIp 는 subnet_id + fixed_ip 가 모두 일치하는 state 키에 배치하고,
+// 짝을 못 찾은 인터페이스 목록을 돌려준다.
 func (r *virtualServerServerResource) mapNetworksBySubnetAndFixedIp(
 	unmappedNetworks []virtualserver.ServerResourceNetwork,
 	networkMap map[string]virtualserver.ServerResourceNetwork,
 	mappedNetworkKeys map[string]bool,
-) {
+) []virtualserver.ServerResourceNetwork {
+	var remaining []virtualserver.ServerResourceNetwork
+
 	for _, unmappedNetwork := range unmappedNetworks {
+		matched := false
+
 		for key, planNetwork := range networkMap {
 			if mappedNetworkKeys[key] {
 				continue
@@ -707,19 +926,32 @@ func (r *virtualServerServerResource) mapNetworksBySubnetAndFixedIp(
 					unmappedNetwork.FixedIp.ValueString() == planNetwork.FixedIp.ValueString() {
 					networkMap[key] = unmappedNetwork
 					mappedNetworkKeys[key] = true
+					matched = true
 					break
 				}
 			}
 		}
+
+		if !matched {
+			remaining = append(remaining, unmappedNetwork)
+		}
 	}
+
+	return remaining
 }
 
+// mapNetworksBySubnetOnly 는 fixed_ip 를 안 적은 state 키에 subnet_id 만으로 배치하고,
+// 짝을 못 찾은 인터페이스 목록을 돌려준다.
 func (r *virtualServerServerResource) mapNetworksBySubnetOnly(
 	unmappedNetworks []virtualserver.ServerResourceNetwork,
 	networkMap map[string]virtualserver.ServerResourceNetwork,
 	mappedNetworkKeys map[string]bool,
-) {
+) []virtualserver.ServerResourceNetwork {
+	var remaining []virtualserver.ServerResourceNetwork
+
 	for _, unmappedNetwork := range unmappedNetworks {
+		matched := false
+
 		for key, planNetwork := range networkMap {
 			if mappedNetworkKeys[key] {
 				continue
@@ -730,20 +962,32 @@ func (r *virtualServerServerResource) mapNetworksBySubnetOnly(
 				if unmappedNetwork.SubnetId.ValueString() == planNetwork.SubnetId.ValueString() {
 					networkMap[key] = unmappedNetwork
 					mappedNetworkKeys[key] = true
+					matched = true
 					break
 				}
 			}
 		}
+
+		if !matched {
+			remaining = append(remaining, unmappedNetwork)
+		}
 	}
+
+	return remaining
 }
 
 func (r *virtualServerServerResource) processNetworks(
 	ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponse,
+	resp *scpvirtualserver.ServerShowResponseV1Dot5,
 	state virtualserver.ServerResource,
 ) (types.Map, error) {
 	var networkMap map[string]virtualserver.ServerResourceNetwork
 	state.Networks.ElementsAs(ctx, &networkMap, false)
+	if networkMap == nil {
+		// import 처럼 prior state 가 null 이면 ElementsAs 는 nil map 을 남긴다.
+		// 이 상태로 두면 뒤에서 키를 넣을 수 없어 networks 가 전부 유실된다.
+		networkMap = make(map[string]virtualserver.ServerResourceNetwork)
+	}
 
 	var networkKeyPortMap = make(map[string]string)
 	for key, network := range networkMap {
@@ -792,8 +1036,16 @@ func (r *virtualServerServerResource) processNetworks(
 		mappedNetworkKeys[key] = true
 	}
 
-	r.mapNetworksBySubnetAndFixedIp(unmappedNetworks, networkMap, mappedNetworkKeys)
-	r.mapNetworksBySubnetOnly(unmappedNetworks, networkMap, mappedNetworkKeys)
+	unmappedNetworks = r.mapNetworksBySubnetAndFixedIp(unmappedNetworks, networkMap, mappedNetworkKeys)
+	unmappedNetworks = r.mapNetworksBySubnetOnly(unmappedNetworks, networkMap, mappedNetworkKeys)
+
+	// 끝까지 state 키에 짝지어지지 않은 인터페이스는 새 키(interface_1, interface_2 ...)로 담는다.
+	// import 이거나 콘솔에서 NIC 을 붙인 경우가 여기에 해당한다.
+	for _, network := range unmappedNetworks {
+		key := nextGeneratedKey(networkKeyPrefix, networkMap)
+		networkMap[key] = network
+		mappedNetworkKeys[key] = true
+	}
 
 	networkElemType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -810,10 +1062,21 @@ func (r *virtualServerServerResource) processNetworks(
 	return networks, nil
 }
 
-func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.ServerShowResponse) types.Map {
+// processMetadata 는 API 응답의 metadata 를 그대로 state 값으로 옮긴다.
+//
+// metadata 는 Computed 전용이라 config 로 지정할 수 없다. 즉 비교 대상인 config 값이
+// 없으므로 API 가 HA_Enabled 같은 키를 덧붙여도 apply 가 깨지지 않는다.
+// 플랫폼이 관리하는 값을 있는 그대로 보여주는 것이 이 속성의 역할이다.
+func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.ServerShowResponseV1Dot5) types.Map {
 	metadataMap := make(map[string]attr.Value)
 	for k, v := range resp.Metadata {
-		metadataMap[k] = types.StringValue(v.(string))
+		// v.(string) 단정은 API 가 string 이 아닌 값을 주면 panic 한다.
+		// 스키마상 Map[String] 이므로 문자열로 표현해서 담는다.
+		s, ok := v.(string)
+		if !ok {
+			s = fmt.Sprintf("%v", v)
+		}
+		metadataMap[k] = types.StringValue(s)
 	}
 	metadata, _ := types.MapValue(types.StringType, metadataMap)
 	return metadata
@@ -821,7 +1084,7 @@ func (r *virtualServerServerResource) processMetadata(resp *scpvirtualserver.Ser
 
 func (r *virtualServerServerResource) processSecurityGroups(
 	ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponse,
+	resp *scpvirtualserver.ServerShowResponseV1Dot5,
 	state virtualserver.ServerResource,
 ) ([]attr.Value, error) {
 	getSecurityGroups, err := r.client.GetServerSecurityGroupList(ctx, resp.Id)
@@ -829,13 +1092,34 @@ func (r *virtualServerServerResource) processSecurityGroups(
 		return nil, err
 	}
 
-	securityGroups := make([]attr.Value, len(getSecurityGroups.SecurityGroups))
-	for i, stateSecurityGroup := range state.SecurityGroups.Elements() {
-		for _, securityGroup := range getSecurityGroups.SecurityGroups {
-			if stateSecurityGroup == types.StringValue(securityGroup.Id) {
-				securityGroups[i] = types.StringValue(securityGroup.Id)
-				break
-			}
+	attached := make(map[string]bool, len(getSecurityGroups.SecurityGroups))
+	for _, securityGroup := range getSecurityGroups.SecurityGroups {
+		attached[securityGroup.Id] = true
+	}
+
+	// 이전 구현은 슬라이스 길이를 API 개수로 잡고 prior state 원소 루프로만 채웠다.
+	// 그래서 state 가 API 보다 적으면(= import 는 항상 0개) 원소가 nil 로 남아
+	// ListValueMust 에서 nil pointer dereference panic 이 났다.
+	// 여기서는 state 순서를 유지하면서(순서만 바뀌는 phantom diff 방지)
+	// 붙어 있는 것만 남기고, state 에 없던 것은 뒤에 붙인다. nil 원소가 생기지 않는다.
+	securityGroups := make([]attr.Value, 0, len(getSecurityGroups.SecurityGroups))
+	included := make(map[string]bool, len(getSecurityGroups.SecurityGroups))
+
+	for _, stateSecurityGroup := range state.SecurityGroups.Elements() {
+		id, ok := stateSecurityGroup.(types.String)
+		if !ok || id.IsNull() || id.IsUnknown() {
+			continue
+		}
+		if attached[id.ValueString()] && !included[id.ValueString()] {
+			securityGroups = append(securityGroups, id)
+			included[id.ValueString()] = true
+		}
+	}
+
+	for _, securityGroup := range getSecurityGroups.SecurityGroups {
+		if !included[securityGroup.Id] {
+			securityGroups = append(securityGroups, types.StringValue(securityGroup.Id))
+			included[securityGroup.Id] = true
 		}
 	}
 
@@ -843,7 +1127,7 @@ func (r *virtualServerServerResource) processSecurityGroups(
 }
 
 func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
-	resp *scpvirtualserver.ServerShowResponse, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
+	resp *scpvirtualserver.ServerShowResponseV1Dot5, state virtualserver.ServerResource, tagsMap types.Map) (virtualserver.ServerResource, error) {
 	networks, err := r.processNetworks(ctx, resp, state)
 	if err != nil {
 		return virtualserver.ServerResource{}, err
@@ -866,6 +1150,11 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 	}
 
 	bootVolume, extraVolumeObject, _, err := r.ResolveServerVolumes(ctx, resp.Id, state.BootVolume, state.ExtraVolumes)
+	if err != nil {
+		// 이전에는 err 를 받아놓고 검사하지 않아, 볼륨 조회가 실패해도
+		// 에러 없이 빈 boot_volume / extra_volumes 가 state 에 들어갔다.
+		return virtualserver.ServerResource{}, err
+	}
 
 	return virtualserver.ServerResource{
 		Id:                    types.StringValue(resp.Id),
@@ -890,11 +1179,12 @@ func (r *virtualServerServerResource) MapGetResponseToState(ctx context.Context,
 		ServerGroupId:         virtualserverutil.ToNullableStringValue(resp.ServerGroupId.Get()),
 		ServerTypeId:          virtualserverutil.ToNullableStringValue(resp.ServerType.Id.Get()),
 		State:                 types.StringValue(resp.State),
-		BootVolume:            bootVolume,
+		BootVolume:            bootVolumeToObject(bootVolume),
 		ExtraVolumes:          extraVolumeObject,
 		VpcId:                 virtualserverutil.ToNullableStringValue(resp.VpcId.Get()),
 		PartitionNumber:       virtualserverutil.ToNullableInt32Value(resp.PartitionNumber.Get()),
 		Tags:                  tagsMap,
+		Zone:                  types.StringValue(resp.Zone),
 	}, nil
 }
 
@@ -914,15 +1204,18 @@ func (r *virtualServerServerResource) normalizePlan(plan virtualserver.ServerRes
 		plan.ProductOffering = state.ProductOffering
 	}
 	// BootVolume
-	if plan.BootVolume.Id.IsUnknown() {
-		plan.BootVolume.Id = state.BootVolume.Id
+	planBootVolume, _ := objectToBootVolume(plan.BootVolume)
+	stateBootVolume, _ := objectToBootVolume(state.BootVolume)
+	if planBootVolume.Id.IsUnknown() {
+		planBootVolume.Id = stateBootVolume.Id
 	}
-	if plan.BootVolume.Type.IsUnknown() {
-		plan.BootVolume.Type = state.BootVolume.Type
+	if planBootVolume.Type.IsUnknown() {
+		planBootVolume.Type = stateBootVolume.Type
 	}
-	if plan.BootVolume.DeleteOnTermination.IsUnknown() {
-		plan.BootVolume.DeleteOnTermination = state.BootVolume.DeleteOnTermination
+	if planBootVolume.DeleteOnTermination.IsUnknown() {
+		planBootVolume.DeleteOnTermination = stateBootVolume.DeleteOnTermination
 	}
+	plan.BootVolume = bootVolumeToObject(planBootVolume)
 
 	return plan
 }
@@ -990,7 +1283,7 @@ func (r *virtualServerServerResource) handlerUpdateServerType(ctx context.Contex
 		return err
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponse, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot5, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -1224,7 +1517,7 @@ func (r *virtualServerServerResource) createExtraVolume(
 	serverId string,
 	plan virtualserver.ServerResource,
 	planExtraVolume virtualserver.ServerResourceVolume,
-	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error),
+	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot4, error),
 ) error {
 	volumeResource := virtualserver.VolumeResource{
 		Name:          types.StringValue(serverId + "-blank-vol"),
@@ -1233,6 +1526,7 @@ func (r *virtualServerServerResource) createExtraVolume(
 		Tags:          plan.Tags,
 		MaxIops:       planExtraVolume.MaxIops,
 		MaxThroughput: planExtraVolume.MaxThroughput,
+		Zone:          plan.Zone,
 	}
 	resp, err := r.client.CreateVolume(ctx, volumeResource)
 	if err != nil {
@@ -1267,7 +1561,7 @@ func (r *virtualServerServerResource) deleteExtraVolume(
 	ctx context.Context,
 	stateVolume virtualserver.ServerResourceVolume,
 	serverId string,
-	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error),
+	getVolumeFunc func(string) (*scpvirtualserver.VolumeShowResponseV1Dot4, error),
 ) error {
 	err := r.client.DetachVolume(ctx, stateVolume.Id.ValueString(), serverId)
 	if err != nil {
@@ -1291,8 +1585,10 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 
 	serverId := plan.Id.ValueString()
 
-	if plan.BootVolume != state.BootVolume {
-		if err := r.updateSingleVolume(ctx, serverId, plan.BootVolume, state.BootVolume); err != nil {
+	if !plan.BootVolume.Equal(state.BootVolume) {
+		planBootVolume, _ := objectToBootVolume(plan.BootVolume)
+		stateBootVolume, _ := objectToBootVolume(state.BootVolume)
+		if err := r.updateSingleVolume(ctx, serverId, planBootVolume, stateBootVolume); err != nil {
 			return err
 		}
 	}
@@ -1310,7 +1606,7 @@ func (r *virtualServerServerResource) handlerUpdateServerVolume(ctx context.Cont
 			}
 		}
 
-		getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponseV1Dot2, error) {
+		getVolumeFunc := func(id string) (*scpvirtualserver.VolumeShowResponseV1Dot4, error) {
 			return r.client.GetVolume(ctx, id)
 		}
 
@@ -1343,7 +1639,7 @@ func (r *virtualServerServerResource) handlerUpdateTag(ctx context.Context, req 
 	serviceName, resourceType := r.resolveServerServiceInfoFromModel(state)
 
 	// Server
-	_, err := tag.UpdateTags(r.clients, serviceName, resourceType, plan.Id.ValueString(), plan.Tags.Elements())
+	_, err := tag.UpdateTags(r.clients, serviceName, resourceType, plan.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
@@ -1351,20 +1647,21 @@ func (r *virtualServerServerResource) handlerUpdateTag(ctx context.Context, req 
 	var networkMap map[string]virtualserver.ServerResourceNetwork
 	state.Networks.ElementsAs(ctx, &networkMap, false)
 	for _, network := range networkMap {
-		_, err := tag.UpdateTags(r.clients, ServiceNameVpc, ResourceTypePort, network.PortId.ValueString(), plan.Tags.Elements())
+		_, err := tag.UpdateTags(r.clients, ServiceNameVpc, ResourceTypePort, network.PortId.ValueString(), plan.Tags.Elements(), false)
 		if err != nil {
 			return err
 		}
 	}
 	// Volume
-	_, err = tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, state.BootVolume.Id.ValueString(), plan.Tags.Elements())
+	stateBootVolume, _ := objectToBootVolume(state.BootVolume)
+	_, err = tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, stateBootVolume.Id.ValueString(), plan.Tags.Elements(), false)
 	if err != nil {
 		return err
 	}
 	var extraVolumeMap map[string]virtualserver.ServerResourceVolume
-	state.ExtraVolumes.ElementsAs(ctx, &networkMap, false)
+	state.ExtraVolumes.ElementsAs(ctx, &extraVolumeMap, false)
 	for _, volume := range extraVolumeMap {
-		_, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, volume.Id.ValueString(), plan.Tags.Elements())
+		_, err := tag.UpdateTags(r.clients, ServiceNameVirtualServer, ResourceTypeVolume, volume.Id.ValueString(), plan.Tags.Elements(), false)
 		if err != nil {
 			return err
 		}
@@ -1408,7 +1705,7 @@ func (r *virtualServerServerResource) handlerUpdateServerState(ctx context.Conte
 		return err
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponse, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot5, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -1450,7 +1747,7 @@ func (r *virtualServerServerResource) AsyncPollingServerDeleted(ctx context.Cont
 	return fmt.Errorf("max attempts reached (%d)", maxAttempts)
 }
 
-func (r *virtualServerServerResource) resolveServerServiceInfoFromResponse(response *scpvirtualserver.ServerShowResponse) (serviceName, resourceType string) {
+func (r *virtualServerServerResource) resolveServerServiceInfoFromResponse(response *scpvirtualserver.ServerShowResponseV1Dot5) (serviceName, resourceType string) {
 	if response.ProductOffering.Get().Ptr() != nil &&
 		(*response.ProductOffering.Get().Ptr() == ProductOfferingGpuServer || *response.ProductOffering.Get().Ptr() == ProductOfferingK8sGpuServer) {
 		return ServiceNameGpuServer, ResourceTypeGpuServer
@@ -1474,13 +1771,13 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	if !plan.State.IsNull() {
-		if plan.State.ValueString() != "ACTIVE" {
-			resp.Diagnostics.AddError(
-				"Error Creating Server",
-				"Invalid server state. Server state must be 'ACTIVE' during creation.\nState: "+plan.State.ValueString())
-			return
-		}
+	// 정상 경로라면 ModifyPlan 이 plan 단계에서 이미 걸러낸다. 여기는 마지막 방어선이다.
+	if !plan.State.IsNull() && plan.State.ValueString() != ServerStateActive {
+		resp.Diagnostics.AddError(
+			"Error Creating Server",
+			"Invalid server state. Server state must be '"+ServerStateActive+"' during creation.\n"+
+				"State: "+plan.State.ValueString())
+		return
 	}
 
 	data, err := r.client.CreateServer(ctx, plan)
@@ -1501,7 +1798,7 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	getFunc := func(id string) (*scpvirtualserver.ServerShowResponse, error) {
+	getFunc := func(id string) (*scpvirtualserver.ServerShowResponseV1Dot5, error) {
 		return r.client.GetServer(ctx, id)
 	}
 
@@ -1516,7 +1813,7 @@ func (r *virtualServerServerResource) Create(ctx context.Context, req resource.C
 	}
 
 	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(getData)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, data.Servers[0].Id)
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, data.Servers[0].Id, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -1571,7 +1868,7 @@ func (r *virtualServerServerResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(data)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -1652,16 +1949,6 @@ func (r *virtualServerServerResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	immutableFields := []string{"ImageId", "KeypairName", "Metadata", "ProductCategory", "ProductOffering", "UserData", "ServerGroupId"}
-
-	if virtualserverutil.IsOverlapFields(immutableFields, changeFields) {
-		resp.Diagnostics.AddError(
-			"Error Updating Server",
-			"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
-		)
-		return
-	}
-
 	if virtualserverutil.IsOverlapFields([]string{"Lock"}, changeFields) {
 		if plan.Lock.ValueBool() {
 			handlers = append(handlers, &virtualserver.UpdateHandler{
@@ -1701,7 +1988,7 @@ func (r *virtualServerServerResource) Update(ctx context.Context, req resource.U
 	}
 
 	serviceName, resourceType := r.resolveServerServiceInfoFromResponse(data)
-	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, serviceName, resourceType, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -1750,6 +2037,63 @@ func (r *virtualServerServerResource) Delete(ctx context.Context, req resource.D
 		resp.Diagnostics.AddError(
 			"Error Deleting Server",
 			"Error wating for server to become deleted\n"+err.Error(),
+		)
+		return
+	}
+}
+
+func (r *virtualServerServerResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *virtualServerServerResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan virtualserver.ServerResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// prior state 가 없으면 create 다.
+	// API 는 생성 시 ACTIVE 만 허용하므로 apply 까지 가서 실패하지 않도록 여기서 막는다.
+	if req.State.Raw.IsNull() {
+		if !plan.State.IsNull() && !plan.State.IsUnknown() &&
+			plan.State.ValueString() != ServerStateActive {
+			resp.Diagnostics.AddError(
+				"Invalid Server State",
+				"Server state must be '"+ServerStateActive+"' during creation.\n"+
+					"State: "+plan.State.ValueString()+"\n"+
+					"To end up with a '"+ServerStateShutoff+"' server, create it as '"+
+					ServerStateActive+"' first and then change the state.",
+			)
+		}
+		return
+	}
+
+	var state virtualserver.ServerResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	immutableFields := []string{"ImageId", "KeypairName", "Metadata", "ProductCategory", "ProductOffering", "UserData", "ServerGroupId", "Zone"}
+
+	changeFields, err := virtualserverutil.GetChangedFields(plan, state, immutableFields)
+	if err != nil {
+		return
+	}
+
+	if virtualserverutil.IsOverlapFields(immutableFields, changeFields) {
+		resp.Diagnostics.AddError(
+			"Error Updating Server",
+			"Immutable fields cannot be modified: "+strings.Join(immutableFields, ", "),
 		)
 		return
 	}

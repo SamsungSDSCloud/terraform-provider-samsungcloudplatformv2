@@ -3,13 +3,14 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/filestorage"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -37,74 +38,84 @@ func (d *fileStorageVolumeDataSource) Schema(_ context.Context, _ datasource.Sch
 }
 func VolumeDataSourceSchema() schema.Schema {
 	return schema.Schema{
+		Description: "Retrieves details of a File Storage Volume on Samsung Cloud Platform.",
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
 				Computed: true,
 				Description: "Account ID \n" +
-					"  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
+					"  - example: 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
+			},
+			"az_type": schema.StringAttribute{
+				Computed: true,
+				Description: "Availability Zone Type \n" +
+					"  - example : 'single' \n",
 			},
 			"created_at": schema.StringAttribute{
 				Computed: true,
 				Description: "Created At \n" +
-					"  - example : '2024-07-30T04:54:33.219373' \n",
+					"  - example: '2024-07-30T04:54:33.219373Z' \n",
 			},
 			"encryption_enabled": schema.BoolAttribute{
 				Computed: true,
 				Description: "Volume Encryption Enabled \n" +
-					"  - example : 'true'",
+					"  - example: true",
 			},
 			"endpoint_path": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Endpoint Path \n" +
-					"  - example : 'xxx.xx.xxx.xxx'",
+				Description: "The network endpoint path used to mount and access the file storage volume. \n" +
+					"  - example: 'xxx.xx.xxx.xxx'",
 			},
 			"file_unit_recovery_enabled": schema.BoolAttribute{
 				Computed: true,
+				Description: "Indicates whether file unit recovery is enabled for the volume. \n" +
+					"  - example: true",
 			},
 			"id": schema.StringAttribute{
 				Required: true,
-				Description: "ID \n" +
-					"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
+				Description: "Identifier of the resource. \n" +
+					"  - example: 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
 			},
 			"name": schema.StringAttribute{
 				Computed: true,
 				Description: "Volume Name \n" +
-					"  - example : 'my_volume' \n",
+					"  - example: 'my_volume' \n",
 			},
 			"path": schema.StringAttribute{
 				Computed: true,
 				Description: "Volume Mount Path \n" +
-					"  - example : 'xxx.xx.xxx.xxx'",
+					"  - example: 'xxx.xx.xxx.xxx'",
 			},
 			"protocol": schema.StringAttribute{
 				Computed: true,
 				Description: "Protocol \n" +
-					"  - example : 'NFS' \n",
+					"  - example: 'NFS' \n" +
+					"  - pattern: `^(NFS|CIFS)$` \n",
 			},
 			"purpose": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Purpose \n" +
-					"  - example : 'none' \n",
+				Description: "The designated purpose or workload type of the volume (e.g., general, backup). \n" +
+					"  - example: 'none' \n",
 			},
 			"state": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume State \n" +
-					"  - example : 'available' \n",
-			},
-			"type_id": schema.StringAttribute{
-				Computed: true,
-				Description: "Volume Type ID \n" +
-					"  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
+				Description: "The current lifecycle state of the volume. Valid values: creating, available, error, deleting. \n" +
+					"  - example: 'available' \n",
 			},
 			"type_name": schema.StringAttribute{
 				Computed: true,
 				Description: "Volume Type Name \n" +
-					"  - example : 'HDD' \n",
+					"  - example: 'HDD' \n" +
+					"  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$` \n",
 			},
 			"usage": schema.Int64Attribute{
 				Computed: true,
-				Description: "Volume Usage \n" +
-					"  - example : '100000' \n",
+				Description: "The current usage of the volume in GiB. \n" +
+					"  - example: 100000",
+			},
+			"zone": schema.StringAttribute{
+				Computed: true,
+				Description: "Zone \n" +
+					"  - example : 'kr-west1-a' \n",
 			},
 		},
 	}
@@ -137,18 +148,27 @@ func (d *fileStorageVolumeDataSource) Read(ctx context.Context, request datasour
 	if response.Diagnostics.HasError() {
 		return
 	}
-
+	if state.Id.IsNull() || state.Id.IsUnknown() || state.Id.ValueString() == "" {
+		response.Diagnostics.AddError("Missing Volume ID", "The volume id must be provided.")
+		return
+	}
 	volume, err := d.client.GetVolume(ctx, state.Id.ValueString())
 
 	if err != nil {
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError("Error Reading Volume",
 			"Could not read Volume Id "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail)
+		return
+	}
+
+	if volume == nil {
+		return
 	}
 
 	if volume.AccountId != "" {
 		state.AccountId = types.StringValue(volume.AccountId)
 	}
+	state.AzType = types.StringPointerValue(volume.AzType.Get())
 	if !volume.CreatedAt.IsZero() {
 		state.CreatedAt = types.StringValue(volume.CreatedAt.Format(time.RFC3339))
 	}
@@ -167,11 +187,11 @@ func (d *fileStorageVolumeDataSource) Read(ctx context.Context, request datasour
 	if volume.State != "" {
 		state.State = types.StringValue(volume.State)
 	}
-	if volume.TypeId != "" {
-		state.TypeId = types.StringValue(volume.TypeId)
-	}
 	if volume.TypeName != "" {
 		state.TypeName = types.StringValue(volume.TypeName)
+	}
+	if volume.Zone != "" {
+		state.Zone = types.StringValue(volume.Zone)
 	}
 
 	state.EncryptionEnabled = types.BoolValue(volume.EncryptionEnabled)

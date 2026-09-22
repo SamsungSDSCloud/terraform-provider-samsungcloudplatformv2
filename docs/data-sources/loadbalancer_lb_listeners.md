@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_loadbalancer_lb_listeners Data Source - samsungcloudplatformv2"
 subcategory: LB Listener
 description: |-
-  list of lb listener.
+  List all LB Listeners.
 ---
 
 # samsungcloudplatformv2_loadbalancer_lb_listeners (Data Source)
 
-list of lb listener.
+List all LB Listeners.
 
 ## Example Usage
 
@@ -67,32 +67,61 @@ variable "service_port" {
 
 ### Optional
 
-- `loadbalancer_id` (String) LoadbalancerId
-- `name` (String) Name
-- `page` (Number) Page
-- `service_port` (Number) ServicePort
-- `size` (Number) Size
-- `sort` (String) Sort
-- `state` (String) State
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the listener.
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
+- `name` (String) The name of the LB Listener.
+  - example : Listener01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `page` (Number) The page number.
+  - example : 0
+- `service_port` (Number) The service port number for the listener.
+  - example : 80
+  - minimum : 1
+  - maximum : 65535
+- `size` (Number) The number of items per page.
+  - example : 20
+- `sort` (String) The sort order.
+  - example : name:asc
+- `state` (String) The current state of the LB Listener.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
 
 ### Read-Only
 
-- `lb_listeners` (Attributes List) A list of Lb Listeners. (see [below for nested schema](#nestedatt--lb_listeners))
+- `lb_listeners` (Attributes List) List of LB Listeners. (see [below for nested schema](#nestedatt--lb_listeners))
 
 <a id="nestedatt--lb_listeners"></a>
 ### Nested Schema for `lb_listeners`
 
 Optional:
 
-- `id` (String) Id
-- `name` (String) Name
-- `protocol` (String) Protocol
-- `service_port` (Number) ServicePort
-- `state` (String) State
+- `id` (String) The unique identifier of the LB Listener.
+  - example: YOUR RESOURCE'S ID
+- `name` (String) The name of the LB Listener.
+  - example : Listener01
+  - minLength : 1
+  - maxLength : 63
+  - pattern : ^[a-zA-Z0-9._-]+$
+- `protocol` (String) The protocol used for the listener.
+  - example : HTTP
+  - pattern : TCP | UDP | HTTP | HTTPS | TLS | TCP_PROXY
+- `service_port` (Number) The service port number for the listener.
+  - example : 80
+  - minimum : 1
+  - maximum : 65535
+- `state` (String) The current state of the LB Listener.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
 
 Read-Only:
 
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY

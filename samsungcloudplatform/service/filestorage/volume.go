@@ -3,27 +3,36 @@ package filestorage
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/filestorage"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/filestorage/1.1"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/filestorage"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	scpfilestorage "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/filestorage/1.2"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"regexp"
-	"time"
 )
 
+const reasonPrefix = "\nReason: "
+
 var (
-	_ resource.Resource              = &fileStorageVolumeResource{}
-	_ resource.ResourceWithConfigure = &fileStorageVolumeResource{}
+	_ resource.Resource                	= &fileStorageVolumeResource{}
+	_ resource.ResourceWithConfigure   	= &fileStorageVolumeResource{}
+	_ resource.ResourceWithImportState 	= &fileStorageVolumeResource{}
+	_ resource.ResourceWithUpgradeState	= &fileStorageVolumeResource{}
 )
 
 func NewFileStorageVolumeResource() resource.Resource {
@@ -45,6 +54,8 @@ func (r *fileStorageVolumeResource) Schema(_ context.Context, _ resource.SchemaR
 }
 func VolumeResourceSchema() schema.Schema {
 	return schema.Schema{
+		Version:   1,
+		Description: "Manages a File Storage Volume on Samsung Cloud Platform.",
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
 				Computed: true,
@@ -55,7 +66,7 @@ func VolumeResourceSchema() schema.Schema {
 				Optional:  true,
 				WriteOnly: true,
 				Description: "Cifs Password \n" +
-					"  - example : 'cifspwd0!!' \n" +
+					"  - example : '<YOUR_CIFS_PASSWORD>' \n" +
 					"  - maxLength: 20  \n" +
 					"  - minLength: 6  \n" +
 					"  - pattern: `^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$` \n",
@@ -68,22 +79,26 @@ func VolumeResourceSchema() schema.Schema {
 			"encryption_enabled": schema.BoolAttribute{
 				Computed: true,
 				Description: "Volume Encryption Enabled \n" +
-					"  - example : 'true'",
+					"  - example : true",
 			},
 			"endpoint_path": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Endpoint Path \n" +
-					"  - example : 'xxx.xx.xxx.xxx'",
+				Description: "The network endpoint path used to mount and access the file storage volume. \n" +
+					"  - example : 'xxx.xx.xxx.xxx' \n",
 			},
 			"file_unit_recovery_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
 				Description: "File Unit Recovery Enabled \n" +
-					"  - example : 'true' \n",
+					"  - example : true \n",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "Identifier of the resource.",
+				Computed: true,
+				Description: "Identifier of the resource. \n" +
+					"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
 				// planmodifier 별도 추가
 				PlanModifiers: []planmodifier.String{ //  PlanModifiers 추가
 					stringplanmodifier.UseStateForUnknown(),
@@ -99,9 +114,12 @@ func VolumeResourceSchema() schema.Schema {
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]([a-z0-9_]){2,20}$"), "Enter 3~21 char.(lower case, numbers, _) starting with lower case."),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			common.ToSnakeCase("NameUuid"): schema.StringAttribute{
-				Description: "Volume Name Uuid \n" +
+				Description: "The unique system-assigned name (UUID format) for the volume. \n" +
 					"  - example : 'my_volume_2m060u' \n",
 				Computed: true,
 			},
@@ -110,6 +128,9 @@ func VolumeResourceSchema() schema.Schema {
 				Optional: true,
 				Description: "Volume Mount Path \n" +
 					"  - example : 'xxx.xx.xxx.xxx'",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"protocol": schema.StringAttribute{
 				Required: true,
@@ -122,61 +143,35 @@ func VolumeResourceSchema() schema.Schema {
 			},
 			"purpose": schema.StringAttribute{
 				Computed: true,
-				Description: "Volume Purpose \n" +
+				Description: "The designated purpose or workload type of the volume (e.g., general, backup). \n" +
 					"  - example : 'none' \n",
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Volume State",
-				MarkdownDescription: "Volume State",
-			},
-			"type_id": schema.StringAttribute{
-				Computed: true,
-				Description: "Volume Type ID \n" +
-					"  - example : 'jef22f67-ee83-4gg2-2ab6-3lf774ekfjdu' \n",
+				Description:         "The current lifecycle state of the volume. Valid values: creating, available, error, deleting.",
+				MarkdownDescription: "The current lifecycle state of the volume. Valid values: creating, available, error, deleting.",
 			},
 			"type_name": schema.StringAttribute{
 				Required: true,
 				Description: "Volume Type Name \n" +
 					"  - example : 'HDD' \n" +
-					"  - pattern: `^(HDD|SSD|HighPerformanceSSD|SSD_SAP_S|SSD_SAP_E)$` \n",
+					"  - pattern: `^(HDD|SSD|HighPerformanceSSD)$` \n",
 			},
 			// 별도로 Optional: true 추가
 			"usage": schema.Int64Attribute{
-				Computed: true,
-				Optional: true,
+				Computed:    true,
+				Optional:    true,
+				Description: "The current usage of the volume in GiB.",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			// custom으로 추가
 			"tags": tag.ResourceSchema(),
-			common.ToSnakeCase("AccessRules"): schema.SetNestedAttribute{
-				Description: "List of AccessRule",
-				Optional:    true,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						common.ToSnakeCase("ObjectId"): schema.StringAttribute{
-							Description: "Object Id \n" +
-								"  - example : '43fq3347-02q4-4aa8-ccf9-affe4917bb6f' \n",
-							Computed: true,
-							Optional: true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
-						},
-						common.ToSnakeCase("ObjectType"): schema.StringAttribute{
-							Description: "Object Type" +
-								"  - example : 'VM' \n" +
-								"  - pattern: `^(VM|BM|GPU|GPU_NODE|ENDPOINT)$` \n",
-							Computed: true,
-							Optional: true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
-						},
-					},
-				},
+			"zone": schema.StringAttribute{
+				Required: true,
+				Description: "Zone \n" +
+					"  - example : 'kr-west1-a' \n",
 			},
 		},
 	}
@@ -222,7 +217,7 @@ func (r *fileStorageVolumeResource) Create(ctx context.Context, request resource
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error creating volume",
-			"Could not create volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not create volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -249,20 +244,7 @@ func (r *fileStorageVolumeResource) Create(ctx context.Context, request resource
 	// Map response body to schema and populate Computed attribute values
 	plan.Id = types.StringValue(volume.Id)
 
-	// Update Access Rule
-	if len(plan.AccessRules) != 0 {
-		for _, rule := range plan.AccessRules {
-			err := r.client.UpdateVolumeAccessRule(ctx, plan.Id.ValueString(), rule, "add")
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				response.Diagnostics.AddError("Error Updating AccessRule",
-					"Could not update AccessRule, unexpected error: "+err.Error()+"\nReason: "+detail)
-				return
-			}
-		}
-	}
-
-	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", volume.Id)
+	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", volume.Id, false)
 	if err != nil {
 		response.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -302,15 +284,19 @@ func (r *fileStorageVolumeResource) Read(ctx context.Context, request resource.R
 
 	data, err := r.client.GetVolume(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			response.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error Reading Volume",
-			"Could not read Volume ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+			"Could not read Volume ID "+state.Id.ValueString()+": "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
 
-	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", state.Id.ValueString(), false)
 	if err != nil {
 		response.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -352,7 +338,7 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 		detail := client.GetDetailFromError(err)
 		response.Diagnostics.AddError(
 			"Error Updating Volume",
-			"Could not update Volume, unexpected error: "+err.Error()+"\nReason: "+detail,
+			"Could not update Volume, unexpected error: "+err.Error()+reasonPrefix+detail,
 		)
 		return
 	}
@@ -361,38 +347,24 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 		detail := client.GetDetailFromError(detailErr)
 		response.Diagnostics.AddError(
 			"Error Reading Volume",
-			"Could not read Volume ID "+plan.Id.ValueString()+": "+detailErr.Error()+"\nReason: "+detail,
+			"Could not read Volume ID "+plan.Id.ValueString()+": "+detailErr.Error()+reasonPrefix+detail,
 		)
 		return
 	}
 
-	//--------------- AccessRule Update ---------------//
-	addRule, removeRule := r.ProcessAccessRules(state.AccessRules, plan.AccessRules)
-	if addRule != nil {
-		for _, rule := range addRule {
-			err := r.client.UpdateVolumeAccessRule(ctx, state.Id.ValueString(), rule, "add")
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				response.Diagnostics.AddError("Error Updating AccessRule",
-					"Could not update AccessRule, unexpected error: "+err.Error()+"\nReason: "+detail)
-				return
-			}
+	//--------------- Tag Update ---------------//
+	if !plan.Tags.Equal(state.Tags) {
+		_, err := tag.UpdateTags(r.clients, "filestorage", "volume", plan.Id.ValueString(), plan.Tags.Elements(), false)
+		if err != nil {
+			response.Diagnostics.AddError(
+				"Error Updating Tag",
+				err.Error(),
+			)
+			return
 		}
 	}
 
-	if removeRule != nil {
-		for _, rule := range removeRule {
-			err := r.client.UpdateVolumeAccessRule(ctx, state.Id.ValueString(), rule, "remove")
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				response.Diagnostics.AddError("Error Updating AccessRule",
-					"Could not update AccessRule, unexpected error: "+err.Error()+"\nReason: "+detail)
-				return
-			}
-		}
-	}
-
-	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", state.Id.ValueString())
+	tagsMap, err := tag.GetTags(r.clients, "filestorage", "volume", state.Id.ValueString(), false)
 	if err != nil {
 		response.Diagnostics.AddError(
 			"Error Reading Tag",
@@ -400,8 +372,16 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 		)
 		return
 	}
+	tagsMap = common.NullTagCheck(tagsMap, plan.Tags)
 
 	newState, err := r.MapGetResponseToState(ctx, data, state, tagsMap)
+	if err != nil {
+		response.Diagnostics.AddError(
+			"Error Reading Volume",
+			err.Error(),
+		)
+		return
+	}
 	diags = response.State.Set(ctx, newState)
 	response.Diagnostics.Append(diags...)
 
@@ -411,109 +391,68 @@ func (r *fileStorageVolumeResource) Update(ctx context.Context, request resource
 }
 
 func (r *fileStorageVolumeResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
-	var state filestorage.VolumeResource
-	diags := request.State.Get(ctx, &state)
-	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
+    var state filestorage.VolumeResource
+    diags := request.State.Get(ctx, &state)
+    response.Diagnostics.Append(diags...)
+    if response.Diagnostics.HasError() {
+        return
+    }
 
-	// Check Access Rules
-	if len(state.AccessRules) != 0 {
-		// Update AccessRules (remove)
-		for _, rule := range state.AccessRules {
-			err := r.client.UpdateVolumeAccessRule(ctx, state.Id.ValueString(), rule, "remove")
-			if err != nil {
-				detail := client.GetDetailFromError(err)
-				response.Diagnostics.AddError("Error Updating AccessRule",
-					"Could not update AccessRule, unexpected error: "+err.Error()+"\nReason: "+detail)
-				return
-			}
-		}
-	}
-
-	// Delete
-	err := r.client.DeleteVolume(ctx, state.Id.ValueString())
-	if err != nil {
-		detail := client.GetDetailFromError(err)
-		response.Diagnostics.AddError(
-			"Error Deleting Volume",
-			"Could not delete Volume, unexpected error: "+err.Error()+"\nReason: "+detail,
-		)
-		return
-	}
+    err := r.client.DeleteVolume(ctx, state.Id.ValueString())
+    if err != nil {
+        detail := client.GetDetailFromError(err)
+        response.Diagnostics.AddError(
+            "Error Deleting Volume",
+            "Could not delete Volume, unexpected error: "+err.Error()+reasonPrefix+detail+
+                "\nA volume cannot be deleted while access rules remain. "+
+                "Rules managed by this configuration are removed first via dependency ordering; "+
+                "rules registered by external automation (e.g. K8s Auto Scaling) are intentionally NOT removed by Terraform. "+
+                "Inspect remaining rules with the samsungcloudplatformv2_filestorage_access_rules data source, "+
+                "remove them from their owning system (stop the consumers first), then retry.",
+        )
+        return
+    }
 }
 
-func (r *fileStorageVolumeResource) ProcessAccessRules(stateRules, planRules []filestorage.AccessRuleResource) ([]filestorage.AccessRuleResource, []filestorage.AccessRuleResource) {
-	existingRules := make(map[string]filestorage.AccessRuleResource)
-	for _, rule := range stateRules {
-		existingRules[rule.ObjectId.ValueString()] = rule
+func (r *fileStorageVolumeResource) MapGetResponseToState(ctx context.Context, resp *scpfilestorage.VolumeShowResponseV1Dot2, state filestorage.VolumeResource, tagsMap types.Map) (filestorage.VolumeResource, error) {
+
+	endpointPath := types.StringNull()
+	if v := resp.EndpointPath.Get(); v != nil {
+		endpointPath = types.StringValue(*v)
 	}
 
-	var toAdd, toRemove []filestorage.AccessRuleResource
-
-	// Add or Existing Access Rule
-	for _, planRule := range planRules {
-		objectId := planRule.ObjectId.ValueString()
-		if _, exists := existingRules[objectId]; !exists {
-			toAdd = append(toAdd, planRule)
-		}
-		delete(existingRules, objectId)
+	pathValue := types.StringNull()
+	if v := resp.Path.Get(); v != nil {
+		pathValue = types.StringValue(*v)
 	}
 
-	// Check Remove Access Rule
-	for _, rule := range existingRules {
-		toRemove = append(toRemove, rule)
-	}
-
-	return toAdd, toRemove
-}
-
-func (r *fileStorageVolumeResource) MapGetResponseToState(ctx context.Context, resp *scpfilestorage.VolumeShowResponse, state filestorage.VolumeResource, tagsMap types.Map) (filestorage.VolumeResource, error) {
-
-	// AccessRule
-	getAccessRule, err := r.client.GetVolumeAccessRules(ctx, resp.Id)
-
-	if err != nil {
-		return filestorage.VolumeResource{}, err
-	}
-
-	var accessRules []filestorage.AccessRuleResource
-	if len(getAccessRule.AccessRules) == 0 && state.AccessRules != nil {
-		accessRules = []filestorage.AccessRuleResource{}
-	} else {
-		for _, rules := range getAccessRule.AccessRules {
-			rule := filestorage.AccessRuleResource{
-				ObjectId:   types.StringValue(rules.ObjectId),
-				ObjectType: types.StringValue(rules.ObjectType),
-			}
-			accessRules = append(accessRules, rule)
-		}
+	usage := types.Int64Null()
+	if v := resp.Usage.Get(); v != nil {
+		usage = types.Int64Value(*v)
 	}
 
 	return filestorage.VolumeResource{
 		AccountId:               types.StringValue(resp.AccountId),
 		CreatedAt:               types.StringValue(resp.CreatedAt.Format(time.RFC3339)),
 		EncryptionEnabled:       types.BoolValue(resp.EncryptionEnabled),
-		EndpointPath:            types.StringValue(*resp.EndpointPath.Get()),
+		EndpointPath:            endpointPath,
 		FileUnitRecoveryEnabled: types.BoolValue(resp.GetFileUnitRecoveryEnabled()),
 		Id:                      types.StringValue(resp.Id),
 		Name:                    types.StringValue(state.Name.ValueString()),
 		NameUuid:                types.StringValue(resp.Name),
-		Path:                    types.StringValue(*resp.Path.Get()),
+		Path:                    pathValue,
 		Protocol:                types.StringValue(resp.Protocol),
 		Purpose:                 types.StringValue(resp.Purpose),
 		State:                   types.StringValue(resp.State),
-		TypeId:                  types.StringValue(resp.TypeId),
 		TypeName:                types.StringValue(resp.TypeName),
-		Usage:                   types.Int64Value(*resp.Usage.Get()),
+		Usage:                   usage,
 		Tags:                    tagsMap,
-		AccessRules:             accessRules,
+		Zone:                    types.StringValue(resp.Zone),
 	}, nil
 }
 
-func waitForVolumeStatus(ctx context.Context, fileStorageClient *filestorage.Client, id string, pendingStates []string, targetStates []string) (*scpfilestorage.VolumeShowResponse, error) {
-	var showResponse *scpfilestorage.VolumeShowResponse
+func waitForVolumeStatus(ctx context.Context, fileStorageClient *filestorage.Client, id string, pendingStates []string, targetStates []string) (*scpfilestorage.VolumeShowResponseV1Dot2, error) {
+	var showResponse *scpfilestorage.VolumeShowResponseV1Dot2
 	err := client.WaitForStatus(ctx, nil, pendingStates, targetStates, func() (interface{}, string, error) {
 		info, err := fileStorageClient.GetVolume(ctx, id)
 		if err != nil {
@@ -521,6 +460,206 @@ func waitForVolumeStatus(ctx context.Context, fileStorageClient *filestorage.Cli
 		}
 		showResponse = info
 		return info, info.State, nil
-	})
+	}, -1, -1, -1, -1)
 	return showResponse, err
+}
+
+// ImportState imports an existing resource into Terraform state using its ID.
+func (r *fileStorageVolumeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, ",")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			"Import ID must be in the format: <id>,<name>",
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), parts[1])...)
+}
+
+// State Upgrader: v0 (access_rules included) → v1 (access_rules removed)
+
+var volumeSchemaV0 schema.Schema = schema.Schema{
+	Description: "Manages a File Storage Volume on Samsung Cloud Platform.",
+	Attributes: map[string]schema.Attribute{
+		"account_id": schema.StringAttribute{
+			Computed: true,
+			Description: "Account ID \n" +
+				"  - example : 'rwww523320dfvwbbefefsdvwdadsfa24c' \n",
+		},
+		"cifs_password": schema.StringAttribute{
+			Optional:  true,
+			WriteOnly: true,
+			Description: "Cifs Password \n" +
+				"  - example : '<YOUR_CIFS_PASSWORD>' \n" +
+				"  - maxLength: 20  \n" +
+				"  - minLength: 6  \n" +
+				"  - pattern: `^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!#&\\'*+,-.:;<=>?@^_`~/|])[a-zA-Z\\d!#&\\'*+,-.:;<=>?@^_`~/|]{6,20}$` \n",
+		},
+		"created_at": schema.StringAttribute{
+			Computed: true,
+			Description: "Created At \n" +
+				"  - example : '2024-07-30T04:54:33.219373' \n",
+		},
+		"encryption_enabled": schema.BoolAttribute{
+			Computed: true,
+			Description: "Volume Encryption Enabled \n" +
+				"  - example : true",
+		},
+		"endpoint_path": schema.StringAttribute{
+			Computed: true,
+			Description: "The network endpoint path used to mount and access the file storage volume. \n" +
+				"  - example : 'xxx.xx.xxx.xxx' \n",
+		},
+		"file_unit_recovery_enabled": schema.BoolAttribute{
+			Computed: true,
+			Optional: true,
+			Description: "File Unit Recovery Enabled \n" +
+				"  - example : true \n",
+			PlanModifiers: []planmodifier.Bool{
+				boolplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"id": schema.StringAttribute{
+			Computed: true,
+			Description: "Identifier of the resource. \n" +
+				"  - example : 'bfdbabf2-04d9-4e8b-a205-020f8e6da438' \n",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"name": schema.StringAttribute{
+			Required: true,
+			Description: "Volume Name \n" +
+				"  - example : 'my_volume' \n" +
+				"  - maxLength: 21  \n" +
+				"  - minLength: 3  \n" +
+				"  - pattern: `^[a-z]([a-z0-9_]){2,20}$` \n",
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]([a-z0-9_]){2,20}$"), "Enter 3~21 char.(lower case, numbers, _) starting with lower case."),
+			},
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.RequiresReplace(),
+			},
+		},
+		common.ToSnakeCase("NameUuid"): schema.StringAttribute{
+			Description: "The unique system-assigned name (UUID format) for the volume. \n" +
+				"  - example : 'my_volume_2m060u' \n",
+			Computed: true,
+		},
+		"path": schema.StringAttribute{
+			Computed: true,
+			Optional: true,
+			Description: "Volume Mount Path \n" +
+				"  - example : 'xxx.xx.xxx.xxx'",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"protocol": schema.StringAttribute{
+			Required: true,
+			Description: "Protocol \n" +
+				"  - example : 'NFS' \n" +
+				"  - pattern: `^(NFS|CIFS)$` \n",
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(regexp.MustCompile("^(NFS|CIFS)$"), "Protocol must be one of (NFS, CIFS)."),
+			},
+		},
+		"purpose": schema.StringAttribute{
+			Computed: true,
+			Description: "The designated purpose or workload type of the volume (e.g., general, backup). \n" +
+				"  - example : 'none' \n",
+		},
+		"state": schema.StringAttribute{
+			Computed:            true,
+			Description:         "The current lifecycle state of the volume. Valid values: creating, available, error, deleting.",
+			MarkdownDescription: "The current lifecycle state of the volume. Valid values: creating, available, error, deleting.",
+		},
+		"type_name": schema.StringAttribute{
+			Required: true,
+			Description: "Volume Type Name \n" +
+				"  - example : 'HDD' \n" +
+				"  - pattern: `^(HDD|SSD|HighPerformanceSSD)$` \n",
+		},
+		"usage": schema.Int64Attribute{
+			Computed:    true,
+			Optional:    true,
+			Description: "The current usage of the volume in GiB.",
+			PlanModifiers: []planmodifier.Int64{
+				int64planmodifier.UseStateForUnknown(),
+			},
+		},
+		"tags": tag.ResourceSchema(),
+		common.ToSnakeCase("AccessRules"): schema.SetNestedAttribute{
+			Description: "List of AccessRule",
+			Optional:    true,
+			PlanModifiers: []planmodifier.Set{
+				setplanmodifier.UseStateForUnknown(),
+			},
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					common.ToSnakeCase("ObjectId"): schema.StringAttribute{
+						Description: "Object Id \n" +
+							"  - example : '43fq3347-02q4-4aa8-ccf9-affe4917bb6f' \n",
+						Computed: true,
+						Optional: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					common.ToSnakeCase("ObjectType"): schema.StringAttribute{
+						Description: "Object Type \n" +
+							"  - example : 'VM' \n" +
+							"  - pattern: `^(VM|BM|GPU|GPU_NODE|ENDPOINT)$` \n",
+						Computed: true,
+						Optional: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+				},
+			},
+		},
+		"zone": schema.StringAttribute{
+			Required: true,
+			Description: "Zone \n" +
+				"  - example : 'kr-west1-a' \n",
+		},
+	},
+}
+
+func (r *fileStorageVolumeResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+	return map[int64]resource.StateUpgrader{
+		0: {
+			PriorSchema: &volumeSchemaV0,
+			StateUpgrader: func(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+				var prior filestorage.VolumeModelV0
+				resp.Diagnostics.Append(req.State.Get(ctx, &prior)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				upgraded := filestorage.VolumeResource{
+					AccountId:               prior.AccountId,
+					CifsPassword:            prior.CifsPassword,
+					CreatedAt:               prior.CreatedAt,
+					EncryptionEnabled:       prior.EncryptionEnabled,
+					EndpointPath:            prior.EndpointPath,
+					FileUnitRecoveryEnabled: prior.FileUnitRecoveryEnabled,
+					Id:                      prior.Id,
+					Name:                    prior.Name,
+					NameUuid:                prior.NameUuid,
+					Path:                    prior.Path,
+					Protocol:                prior.Protocol,
+					Purpose:                 prior.Purpose,
+					State:                   prior.State,
+					TypeName:                prior.TypeName,
+					Usage:                   prior.Usage,
+					Tags:                    prior.Tags,
+					Zone:                    prior.Zone,
+				}
+				resp.Diagnostics.Append(resp.State.Set(ctx, upgraded)...)
+			},
+		},
+	}
 }

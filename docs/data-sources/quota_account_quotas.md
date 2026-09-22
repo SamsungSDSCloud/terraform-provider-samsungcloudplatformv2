@@ -17,10 +17,15 @@ provider "samsungcloudplatformv2" {
 
 data "samsungcloudplatformv2_quota_account_quotas" "ids" {
   filter {
-    name = var.account_quotas_filter_name
-    values = var.account_quotas_filter_values
+    name      = var.account_quotas_filter_name
+    values    = var.account_quotas_filter_values
     use_regex = var.account_quotas_filter_use_regex
   }
+ filter {
+   name      = var.account_quotas_class_value_filter_name
+   values    = var.account_quotas_class_value_filter_values
+   use_regex = var.account_quotas_class_value_filter_use_regex
+ }
 }
 
 
@@ -39,6 +44,21 @@ variable "account_quotas_filter_values" {
 }
 
 variable "account_quotas_filter_use_regex" {
+  type    = bool
+  default = false
+}
+
+variable "account_quotas_class_value_filter_name" {
+  type    = string
+  default = "class_value"
+}
+
+variable "account_quotas_class_value_filter_values" {
+  type    = list(string)
+  default = ["kr-west1"]
+}
+
+variable "account_quotas_class_value_filter_use_regex" {
   type    = bool
   default = false
 }
@@ -61,5 +81,8 @@ variable "account_quotas_filter_use_regex" {
 Required:
 
 - `name` (String) Filtering target name
+  - example: name
 - `use_regex` (Boolean) Enable regex match for values
+  - example: true
 - `values` (List of String) Filtering values. Each matching value is appended. (OR rule)
+  - example: ['values']

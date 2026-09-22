@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_private_nats Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  List of private nats.
+  List of private nat.
 ---
 
 # samsungcloudplatformv2_vpc_private_nats (Data Source)
 
-List of private nats.
+List of private nat.
 
 ## Example Usage
 
@@ -105,62 +105,63 @@ variable "state" {
 
 ### Optional
 
-- `cidr` (String) Private NAT IP range 
+- `cidr` (String) The IP address range of the network in CIDR notation. 
   - example: 192.167.0.0/24
-- `name` (String) Private NAT Name 
+- `name` (String) The name of the private NAT.
   - example : PrivateNatName
-- `page` (Number) Page 
+- `page` (Number) The page number for pagination. 
   - example : 0 
   - minimum : 0
-- `service_resource_id` (String) Private NAT connected Service Resource ID 
+- `service_resource_id` (String) The identifier of the connected service resource.
   - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
 - `service_resource_name` (String) Private NAT connected Service Resource Name 
   - example : Service Resource Name
-- `service_type` (String) Private NAT connected Service Type 
+- `service_type` (String) The type of the connected service.
   - example : DIRECT_CONNECT | TRANSIT_GATEWAY
-- `size` (Number) Size 
+- `size` (Number) The number of items per page. 
   - example : 20 
   - minimum : 0
-- `sort` (String) Sort 
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for descending order. 
   - example : created_at:desc
-- `state` (String) Private NAT State 
+- `state` (String) The current lifecycle state of the private NAT.
   - example : CREATING | ACTIVE | DELETING | DELETED | ERROR
-- `vpc_id` (String) VPC Id 
+- `vpc_id` (String) The identifier of the VPC that the private NAT belongs to.
   - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
 - `private_nats` (Attributes List) A list of private nat. (see [below for nested schema](#nestedatt--private_nats))
-- `total_count` (Number) count
+- `total_count` (Number) The total number of private nat.
+  - example : 2
 
 <a id="nestedatt--private_nats"></a>
 ### Nested Schema for `private_nats`
 
 Read-Only:
 
-- `account_id` (String) Account ID 
+- `account_id` (String) The identifier of the account that owns the private NAT.
   - example: YOUR RESOURCE'S ACCOUNT_ID
-- `cidr` (String) Private NAT IP range 
+- `cidr` (String) The IP address range of the network in CIDR notation.
   - example : 192.167.0.0/24
-- `created_at` (String) Created At 
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
   - example : 2024-05-17T00:23:17Z
-- `created_by` (String) Created By 
+- `created_by` (String) The user id that created the resource.
   - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Description 
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource. 
   - example : PrivateNat Description
-- `id` (String) Private NAT ID 
+- `id` (String) The unique identifier of the private NAT.
   - example: YOUR RESOURCE'S ID
-- `modified_at` (String) Modified At 
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
   - example : 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified By 
+- `modified_by` (String) The user id that modified the resource. 
   - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) Private NAT Name 
+- `name` (String) The name of the private NAT.
   - example : PrivateNatName
-- `service_resource_id` (String) Private NAT connected Service Resource ID 
+- `service_resource_id` (String) The identifier of the connected service resource.
   - example: YOUR RESOURCE'S SERVICE_RESOURCE_ID
 - `service_resource_name` (String) Private NAT connected Service Resource Name 
   - example : PrivateNatName
-- `service_type` (String) Private NAT connected Service Type 
-  - example : DIRECT_CONNECT
-- `state` (String) Private NAT State 
+- `service_type` (String) The type of the connected service.
+  - example : DIRECT_CONNECT | TRANSIT_GATEWAY
+- `state` (String) The current lifecycle state of the private NAT.
   - example : ACTIVE

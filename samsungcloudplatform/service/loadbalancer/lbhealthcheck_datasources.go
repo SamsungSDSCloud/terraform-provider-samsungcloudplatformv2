@@ -3,10 +3,10 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,32 +39,42 @@ func (d *loadbalancerLbHealthCheckDataSources) Metadata(_ context.Context, req d
 // Schema defines the schema for the data source.
 func (d *loadbalancerLbHealthCheckDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "Get List of Lb Health Checks.",
+		Description: "List all LB Health Checks.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Optional:    true,
+				Description: "The number of items per page.\n" +
+					"  - example : 20\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "The page number.\n" +
+					"  - example : 0\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "The sort order.\n" +
+					"  - example : name:asc\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "The name of the LB Health Check.\n" +
+					"  - example : HealthCheck01\n" +
+					"  - minLength : 1\n" +
+					"  - maxLength : 63\n" +
+					"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Protocol"): schema.ListAttribute{
-				Description: "Protocol",
+				Description: "The protocol used for the health check.\n" +
+					"  - example : HTTP\n" +
+					"  - pattern : TCP | HTTP | HTTPS\n",
 				Optional:    true,
 				ElementType: types.StringType,
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "SubnetId",
-				Optional:    true,
+				Description: "The subnet ID where the resource is located.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LbHealthChecks"): schema.ListNestedAttribute{
 				Description: "A list of Lb Health Checks.",
@@ -72,48 +82,65 @@ func (d *loadbalancerLbHealthCheckDataSources) Schema(_ context.Context, _ datas
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Optional:    true,
+							Description: "The unique identifier of the LB Health Check.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Optional:    true,
+							Description: "The name of the LB Health Check.\n" +
+								"  - example : HealthCheck01\n" +
+								"  - minLength : 1\n" +
+								"  - maxLength : 63\n" +
+								"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Optional:    true,
+							Description: "The current state of the Health Check.\n" +
+								"  - example : ACTIVE\n" +
+								"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("LbServerGroupCount"): schema.Int32Attribute{
-							Description: "LbServerGroupCount",
-							Optional:    true,
+							Description: "The number of LB Server Groups.\n" +
+								"  - example : 2\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("HealthCheckType"): schema.StringAttribute{
-							Description: "HealthCheckType",
-							Optional:    true,
+							Description: "The type of health check.\n" +
+								"  - example : DEFAULT\n" +
+								"  - pattern : DEFAULT | CUSTOM\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Protocol"): schema.StringAttribute{
-							Description: "Protocol",
-							Optional:    true,
+							Description: "The protocol for health checks.\n" +
+								"  - example : HTTP\n" +
+								"  - pattern : TCP | HTTP | HTTPS\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-							Description: "SubnetId",
-							Optional:    true,
+							Description: "The subnet ID where the resource is located.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "created at",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "created by",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "modified at",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "modified by",
-							Computed:    true,
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 					},
 				},

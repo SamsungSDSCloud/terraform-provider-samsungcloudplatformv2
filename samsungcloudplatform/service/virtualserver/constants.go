@@ -28,3 +28,9 @@ const (
 const (
 	ScpImageTypeGpuCustom = "gpu_custom"
 )
+
+// Server State
+const (
+	ServerStateActive  = "ACTIVE"
+	ServerStateShutoff = "SHUTOFF"
+)

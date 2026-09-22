@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_filestorage_replication Resource - samsungcloudplatformv2"
 subcategory: File Storage Replication
 description: |-
-  Replication Response Data
+  Manages a File Storage Replication policy on Samsung Cloud Platform.
 ---
 
 # samsungcloudplatformv2_filestorage_replication (Resource)
 
-Replication Response Data
+Manages a File Storage Replication policy on Samsung Cloud Platform.
 
 ## Example Usage
 
@@ -19,7 +19,7 @@ resource "samsungcloudplatformv2_filestorage_replication" "replication" {
   backup_retention_count = var.backup_retention_count
   cifs_password          = var.cifs_password
   name                   = var.name
-  region                 = var.region
+  zone                   = var.zone
   replication_frequency  = var.replication_frequency
   replication_type       = var.replication_type
   volume_id              = var.volume_id
@@ -68,12 +68,17 @@ variable "replication_type" {
 
 variable "replication_update_type" {
   type    = string
-  default = null
+  default = "replication update type"
 }
 
 variable "replication_policy" {
   type    = string
-  default = null
+  default = "replication policy"
+}
+
+variable "zone" {
+  type    = string
+  default = "kr-west1-a"
 }
 ```
 
@@ -87,8 +92,6 @@ variable "replication_policy" {
   - maxLength: 21  
   - minLength: 3  
   - pattern: `^[a-z]([a-z0-9_]){2,20}$`
-- `region` (String) Region 
-  - example : 'kr-west1'
 - `replication_frequency` (String) Replication Frequency 
   - example : '5min' 
   - pattern: `^(5min|hourly|daily|weekly|monthly)$`
@@ -97,11 +100,13 @@ variable "replication_policy" {
   - pattern: `^(replication|backup)$`
 - `volume_id` (String) Source Volume ID 
   - example: YOUR RESOURCE'S VOLUME_ID
+- `zone` (String) Zone 
+  - example : 'kr-west1'
 
 ### Optional
 
 - `backup_retention_count` (Number) Backup Retention Count 
-  - example : 'policy' 
+  - example : 10 
   - maximum : 128 
   - minimum : 1
 - `cifs_password` (String) Cifs Password 
@@ -120,21 +125,21 @@ variable "replication_policy" {
 
 - `replication_id` (String) Replication ID 
   - example: YOUR RESOURCE'S REPLICATION_ID
-- `replication_status` (String) Replication Status 
+- `replication_status` (String) The current operational status of the replication (e.g., creating, error). 
   - example : 'creating'
-- `replication_volume_access_level` (String) Target Access Level 
+- `replication_volume_access_level` (String) The access level of the target volume (e.g., 'ro' for read-only). 
   - example : 'ro'
-- `replication_volume_id` (String) Target Volume ID 
+- `replication_volume_id` (String) The ID of the target volume created in the destination region. 
   - example: YOUR RESOURCE'S REPLICATION_VOLUME_ID
-- `replication_volume_name` (String) Target Volume Name 
+- `replication_volume_name` (String) The name of the target volume in the destination region. 
   - example : 'my_volume'
-- `replication_volume_region` (String) Target Volume Region 
+- `replication_volume_zone` (String) Target Volume Zone 
   - example : 'kr-west1'
-- `source_volume_access_level` (String) Source Access Level 
+- `source_volume_access_level` (String) The access level of the source volume. 
   - example : 'ro'
-- `source_volume_id` (String) Source Volume ID 
+- `source_volume_id` (String) The ID of the source volume being replicated. 
   - example: YOUR RESOURCE'S SOURCE_VOLUME_ID
-- `source_volume_name` (String) Source Volume Name 
+- `source_volume_name` (String) The name of the source volume being replicated. 
   - example : 'my_volume'
-- `source_volume_region` (String) Source Volume Region 
+- `source_volume_zone` (String) Source Volume Zone 
   - example : 'kr-west1'

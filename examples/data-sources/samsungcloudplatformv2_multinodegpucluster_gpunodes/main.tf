@@ -8,4 +8,5 @@ data "samsungcloudplatformv2_multinodegpucluster_gpunodes" "ids" {
   vpc_id               = var.vpc_id
   cluster_fabric_name  = var.cluster_fabric_name
   cluster_fabric_id    = var.cluster_fabric_id
+  zone                 = var.zone
 }

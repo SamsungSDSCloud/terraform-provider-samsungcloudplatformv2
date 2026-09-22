@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_configinspection_diagnosis_request Data Source - samsungcloudplatformv2"
 subcategory: Config inspection diagnosis
 description: |-
-  Config inspection diagnostic request
+  Config inspection diagnostic request.
 ---
 
 # samsungcloudplatformv2_configinspection_diagnosis_request (Data Source)
 
-Config inspection diagnostic request
+Config inspection diagnostic request.
 
 ## Example Usage
 
@@ -37,9 +37,9 @@ variable "diagnosis_id" {
 }
 
 variable "access_key" {
-  description = "Access Key"
+  description = "Your API access key"
   type        = string
-  default     = "b19a2ee194744c21874935863f9e88e3"
+  default     = "b19a2ee194744c2187xxxxxxxxxxxxxx"
 }
 
 variable "diagnosis_check_type" {
@@ -49,13 +49,13 @@ variable "diagnosis_check_type" {
 }
 
 variable "secret_key" {
-  description = "Secret Key"
+  description = "Your API secret key"
   type        = string
   default     = ""
 }
 
 variable "tenant_id" {
-  description = "Tenant ID"
+  description = "Your tenant ID"
   type        = string
   default     = "ENTER YOUR RESOURCE'S TENANT_ID"
 }
@@ -66,18 +66,19 @@ variable "tenant_id" {
 
 ### Required
 
-- `access_key` (String) Access Key
-  - Example: SAMPLE KEY
-- `diagnosis_check_type` (String) Check type of diagnosis
-  - Example: BP
-- `diagnosis_id` (String) Id of diagnosis
-  - Example: DIA-943731CB8E3045C289BAECAEC3532097
-- `secret_key` (String) Secret Key
-  - Example: SAMPLE KEY
-- `tenant_id` (String) Tenant ID
-  - Example: 1234567890
+- `access_key` (String) Your API access key.
+  - example : 'b19a2ee194744c218xxxxxxxxxxxxxxx'
+- `diagnosis_check_type` (String) Check type of diagnosis.
+  - example : 'BP'
+  - enum : BP | SSI
+- `diagnosis_id` (String) Id of diagnosis.
+  - example: YOUR RESOURCE'S DIAGNOSIS_ID
+- `secret_key` (String) Your API secret key.
+  - example : 'SAMPLE KEY'
+- `tenant_id` (String) Your tenant ID.
+  - example: YOUR RESOURCE'S TENANT_ID
 
 ### Read-Only
 
-- `result` (Boolean) Result of diagnosis request
-  - Example: true | false
+- `result` (Boolean) Result of diagnosis request (true, false).
+  - example : true

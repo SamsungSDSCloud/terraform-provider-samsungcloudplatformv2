@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/loadbalancer" // client 를 import 한다.
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,76 +40,105 @@ func (d *loadbalancerLbListenerDataSources) Metadata(_ context.Context, req data
 // Schema defines the schema for the data source.
 func (d *loadbalancerLbListenerDataSources) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) { // 아직 정의하지 않은 Schema 메서드를 추가한다.
 	resp.Schema = schema.Schema{
-		Description: "list of lb listener.",
+		Description: "List all LB Listeners.",
 		Attributes: map[string]schema.Attribute{
 			common.ToSnakeCase("Size"): schema.Int32Attribute{
-				Description: "Size",
-				Optional:    true,
+				Description: "The number of items per page.\n" +
+					"  - example : 20\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Page"): schema.Int32Attribute{
-				Description: "Page",
-				Optional:    true,
+				Description: "The page number.\n" +
+					"  - example : 0\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Sort"): schema.StringAttribute{
-				Description: "Sort",
-				Optional:    true,
+				Description: "The sort order.\n" +
+					"  - example : name:asc\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LoadbalancerId"): schema.StringAttribute{
-				Description: "LoadbalancerId",
-				Optional:    true,
+				Description: "The LoadBalancer ID associated with the listener.\n" +
+					"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description: "State",
-				Optional:    true,
+				Description: "The current state of the LB Listener.\n" +
+					"  - example : ACTIVE\n" +
+					"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Name",
-				Optional:    true,
+				Description: "The name of the LB Listener.\n" +
+					"  - example : Listener01\n" +
+					"  - minLength : 1\n" +
+					"  - maxLength : 63\n" +
+					"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
-				Description: "ServicePort",
-				Optional:    true,
+				Description: "The service port number for the listener.\n" +
+					"  - example : 80\n" +
+					"  - minimum : 1\n" +
+					"  - maximum : 65535\n",
+				Optional: true,
 			},
 			common.ToSnakeCase("LbListeners"): schema.ListNestedAttribute{
-				Description: "A list of Lb Listeners.",
+				Description: "List of LB Listeners.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						common.ToSnakeCase("Id"): schema.StringAttribute{
-							Description: "Id",
-							Optional:    true,
+							Description: "The unique identifier of the LB Listener.\n" +
+								"  - example : 0fdd87aab8cb46f59b7c1f81ed03fb3e\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Name"): schema.StringAttribute{
-							Description: "Name",
-							Optional:    true,
+							Description: "The name of the LB Listener.\n" +
+								"  - example : Listener01\n" +
+								"  - minLength : 1\n" +
+								"  - maxLength : 63\n" +
+								"  - pattern : ^[a-zA-Z0-9._-]+$\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("Protocol"): schema.StringAttribute{
-							Description: "Protocol",
-							Optional:    true,
+							Description: "The protocol used for the listener.\n" +
+								"  - example : HTTP\n" +
+								"  - pattern : TCP | UDP | HTTP | HTTPS | TLS | TCP_PROXY\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("State"): schema.StringAttribute{
-							Description: "State",
-							Optional:    true,
+							Description: "The current state of the LB Listener.\n" +
+								"  - example : ACTIVE\n" +
+								"  - pattern : CREATING | ACTIVE | DELETING | ERROR\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("ServicePort"): schema.Int32Attribute{
-							Description: "ServicePort",
-							Optional:    true,
+							Description: "The service port number for the listener.\n" +
+								"  - example : 80\n" +
+								"  - minimum : 1\n" +
+								"  - maximum : 65535\n",
+							Optional: true,
 						},
 						common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-							Description: "created at",
-							Computed:    true,
+							Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-							Description: "created by",
-							Computed:    true,
+							Description: "The user id that created the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-							Description: "modified at",
-							Computed:    true,
+							Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+								"  - example : 2024-05-17T00:23:17Z\n",
+							Computed: true,
 						},
 						common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-							Description: "modified by",
-							Computed:    true,
+							Description: "The user id that last modified the resource.\n" +
+								"  - example : 90dddfc2b1e04edba54ba2b41539a9ac\n",
+							Computed: true,
 						},
 					},
 				},

@@ -43,7 +43,8 @@ variable "static_nat" {
 
 ### Required
 
-- `loadbalancer_id` (String) LoadbalancerId
+- `loadbalancer_id` (String) The LoadBalancer ID associated with the Public NAT IP.
+  - example: YOUR RESOURCE'S LOADBALANCER_ID
 
 ### Optional
 
@@ -52,6 +53,7 @@ variable "static_nat" {
 ### Read-Only
 
 - `id` (String) Identifier of the resource.
+  - example: YOUR RESOURCE'S ID
 - `loadbalancer_public_nat_ip` (Attributes) A detail of public NAT. (see [below for nested schema](#nestedatt--loadbalancer_public_nat_ip))
 
 <a id="nestedatt--static_nat_create"></a>
@@ -59,7 +61,8 @@ variable "static_nat" {
 
 Optional:
 
-- `publicip_id` (String) PublicipId
+- `publicip_id` (String) The public IP ID.
+  - example: YOUR RESOURCE'S PUBLICIP_ID
 
 
 <a id="nestedatt--loadbalancer_public_nat_ip"></a>
@@ -67,23 +70,46 @@ Optional:
 
 Optional:
 
-- `account_id` (String) AccountId
-- `action_type` (String) ActionType
-- `created_at` (String) created at
-- `created_by` (String) created by
-- `description` (String) Description
-- `external_ip_address` (String) ExternalIpAddress
-- `id` (String) Id
-- `internal_ip_address` (String) InternalIpAddress
-- `modified_at` (String) modified at
-- `modified_by` (String) modified by
-- `name` (String) Name
-- `owner_id` (String) OwnerId
-- `owner_name` (String) OwnerName
-- `owner_type` (String) OwnerType
-- `publicip_id` (String) PublicipId
-- `service_ip_port_id` (String) ServiceIpPortId
-- `state` (String) State
-- `subnet_id` (String) SubnetId
-- `type` (String) Type
-- `vpc_id` (String) vpc_id
+- `account_id` (String) The account ID associated with the resource.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `action_type` (String) The action type.
+  - example : NAT_ALL
+- `created_at` (String) The timestamp when the resource was created, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.
+  - example : Public NAT IP for internet access
+  - maxLength : 255
+- `external_ip_address` (String) The external IP address.
+  - example : 203.0.113.1
+- `id` (String) The unique identifier of the Public NAT IP.
+  - example: YOUR RESOURCE'S ID
+- `internal_ip_address` (String) The internal IP address.
+  - example : 10.0.0.1
+- `modified_at` (String) The timestamp when the resource was last modified, in ISO 8601 format.
+  - example : 2024-01-01T00:00:00Z
+- `modified_by` (String) The user id that last modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) The name of the Public NAT IP.
+  - example : PublicNatIp01
+- `owner_id` (String) The owner ID.
+  - example: YOUR RESOURCE'S OWNER_ID
+- `owner_name` (String) The owner name.
+  - example : LoadBalancer01
+- `owner_type` (String) The owner type.
+  - example : ALB
+- `publicip_id` (String) The public IP ID.
+  - example: YOUR RESOURCE'S PUBLICIP_ID
+- `service_ip_port_id` (String) The service IP port ID.
+  - example: YOUR RESOURCE'S SERVICE_IP_PORT_ID
+- `state` (String) The current state of the Public NAT IP.
+  - example : ACTIVE
+  - pattern : CREATING | ACTIVE | DELETING | ERROR
+- `subnet_id` (String) The subnet ID where the resource is located.
+  - example: YOUR RESOURCE'S SUBNET_ID
+- `type` (String) The type of static NAT.
+  - example : INTERNET
+  - pattern : INTERNET | PRIVATE_NAT
+- `vpc_id` (String) The VPC ID where the LoadBalancer is located.
+  - example: YOUR RESOURCE'S VPC_ID

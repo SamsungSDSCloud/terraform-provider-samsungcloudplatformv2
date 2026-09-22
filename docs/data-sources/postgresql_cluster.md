@@ -35,7 +35,8 @@ variable "id" {
 
 ### Optional
 
-- `id` (String) ID
+- `id` (String) Cluster ID
+  - example: YOUR RESOURCE'S ID
 
 ### Read-Only
 
@@ -46,55 +47,96 @@ variable "id" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `allowable_ip_addresses` (Set of String) AllowableIpAddresses
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `dbaas_engine` (String) DbaasEngine
-- `ha_enabled` (Boolean) HaEnabled
-- `id` (String) Id
+- `account_id` (String) The identifier of the account that owns the endpoint.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `allowable_ip_addresses` (Set of String) Allowed IP addresses list  
+  - example: ['192.168.10.1/32']
+- `created_at` (String) Created At
+  - example: 2024-05-17T00:23:17Z
+- `created_by` (String) Created by
+  - example: YOUR RESOURCE'S CREATED_BY
+- `dbaas_engine` (String) DBaaS engine
+  - example: PostgreSQL
+- `dbaas_engine_version_name` (String) DBaaS engine version name
+  - example: PostgreSQL 16.4
+- `ha_enabled` (Boolean) HA availability
+  - example: false
+- `id` (String) Identifier of the resource.
+  - example: YOUR RESOURCE'S ID
 - `init_config_option` (Attributes) InitConfigOption. (see [below for nested schema](#nestedatt--cluster--init_config_option))
-- `instance_count` (Number) InstanceCount
+- `instance_count` (Number) Instance Count
+  - example: 1
 - `instance_groups` (Attributes List) InstanceGroups (see [below for nested schema](#nestedatt--cluster--instance_groups))
-- `is_kernel_patchable` (Boolean) IsKernelPatchable
+- `is_kernel_patchable` (Boolean) Whether the kernel can be patched
+  - example: true
 - `maintenance_option` (Attributes) MaintenanceOption (see [below for nested schema](#nestedatt--cluster--maintenance_option))
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `name` (String) Name
-- `nat_enabled` (Boolean) NatEnabled
-- `origin_cluster_id` (String) OriginClusterId
-- `product_type` (String) ProductType
-- `replicas` (Set of String) Replicas
-- `role_type` (String) RoleType
-- `service_state` (String) ServiceState
-- `software_version` (String) SoftwareVersion
-- `subnet_id` (String) SubnetId
+- `modified_at` (String) Modified At
+  - example: 2024-05-17T00:23:17Z
+- `modified_by` (String) Modified by
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `name` (String) Cluster name
+  - example: mytest
+- `nat_enabled` (Boolean) NAT availability
+  - example: false
+- `origin_cluster_id` (String) Origin cluster ID
+  - example: YOUR RESOURCE'S ORIGIN_CLUSTER_ID
+- `product_image_type` (String) Product image type
+  - example: PostgreSQL Community
+- `product_type` (String) Product type
+  - example: PostgreSQL Community
+- `replicas` (Set of String) Replicas list IDs
+  - example: ['6bc0cecc7a21488f974602574da86071']
+- `role_type` (String) Role type
+  - example: ORIGIN
+- `service_state` (String) Service state
+  - example: RUNNING
+- `service_watch_log_collection` (Boolean) ServiceWatchLogCollection
+ - example: false
+- `software_version` (String) Software version
+  - example: COMMUNITY 17.7
+- `subnet_id` (String) Subnet ID
+  - example: YOUR RESOURCE'S SUBNET_ID
 - `timezone` (String) Timezone
-- `vip_public_ip_id` (String) VipPublicIpId
-- `virtual_ip_address` (String) VirtualIpAddress
+  - example: Asia/Seoul
+- `vip_public_ip_address` (String) (VIP) Public IP address
+  - example: 10.10.10.10
+- `vip_public_ip_id` (String) (VIP) Public IP ID
+  - example: YOUR RESOURCE'S VIP_PUBLIC_IP_ID
+- `virtual_ip_address` (String) Virtual IP address
+  - example: 192.168.4.30
 
 <a id="nestedatt--cluster--init_config_option"></a>
 ### Nested Schema for `cluster.init_config_option`
 
 Read-Only:
 
-- `audit_enabled` (Boolean) AuditEnabled
+- `audit_enabled` (Boolean) Audit Log Setting
+  - example: true
 - `backup_option` (Attributes) BackupOption (see [below for nested schema](#nestedatt--cluster--init_config_option--backup_option))
-- `database_encoding` (String) DatabaseEncoding
-- `database_locale` (String) DatabaseLocale
-- `database_name` (String) DatabaseName
-- `database_port` (Number) DatabasePort
-- `database_user_name` (String) DatabaseUserName
-- `database_user_password` (String) DatabaseUserPassword
+- `database_encoding` (String) Database encoding
+  - example: UTF-8
+- `database_locale` (String) Database locale
+  - example: C
+- `database_name` (String) Database name
+  - example: mydb
+- `database_port` (Number) Database service port
+  - example: 2866
+- `database_user_name` (String) Database user name
+  - example: mydb
+- `origin_region` (String) Origin region of the source cluster (set for restored/replica clusters)
+  - example: kr-west1
 
 <a id="nestedatt--cluster--init_config_option--backup_option"></a>
 ### Nested Schema for `cluster.init_config_option.backup_option`
 
 Read-Only:
 
-- `archive_frequency_minute` (String) ArchiveFrequencyMinute
-- `retention_period_day` (String) RetentionPeriodDay
-- `starting_time_hour` (String) StartingTimeHour
+- `archive_frequency_minute` (String) Backup starting time (minute) 
+  - example: 60
+- `retention_period_day` (String) Backup retention period (day) 
+  - example: 7
+- `starting_time_hour` (String) Backup starting time (hour) 
+  - example: 12
 
 
 
@@ -104,21 +146,29 @@ Read-Only:
 Read-Only:
 
 - `block_storage_groups` (Attributes List) BlockStorageGroups (see [below for nested schema](#nestedatt--cluster--instance_groups--block_storage_groups))
-- `id` (String) Id
+- `id` (String) Instance group ID
+  - example: YOUR RESOURCE'S ID
 - `instances` (Attributes List) Instances (see [below for nested schema](#nestedatt--cluster--instance_groups--instances))
-- `role_type` (String) RoleType
-- `server_type_name` (String) ServerTypeName
+- `role_type` (String) Role type
+  - example: ACTIVE
+- `server_type_name` (String) Server type name
+  - example: db1v2m4
 
 <a id="nestedatt--cluster--instance_groups--block_storage_groups"></a>
 ### Nested Schema for `cluster.instance_groups.block_storage_groups`
 
 Read-Only:
 
-- `id` (String) Id
-- `name` (String) Name
-- `role_type` (String) RoleType
-- `size_gb` (Number) SizeGb
-- `volume_type` (String) VolumeType
+- `id` (String) Block storage group ID
+  - example: YOUR RESOURCE'S ID
+- `name` (String) Block storage group name
+  - example: cluster-Disk-00
+- `role_type` (String) Block storage role type
+  - example: OS
+- `size_gb` (Number) Size (GB)
+  - example: 104
+- `volume_type` (String) Volume type
+  - example: SSD
 
 
 <a id="nestedatt--cluster--instance_groups--instances"></a>
@@ -126,10 +176,14 @@ Read-Only:
 
 Read-Only:
 
-- `name` (String) Name
-- `public_ip_id` (String) PublicIpId
-- `role_type` (String) RoleType
-- `service_ip_address` (String) ServiceIpAddress
+- `name` (String) Instance name
+  - example: test001
+- `public_ip_id` (String) Public IP ID
+  - example: YOUR RESOURCE'S PUBLIC_IP_ID
+- `role_type` (String) Role type
+  - example: ACTIVE
+- `service_ip_address` (String) User subnet IP address
+  - example: 192.168.4.22
 
 
 
@@ -138,7 +192,11 @@ Read-Only:
 
 Read-Only:
 
-- `period_hour` (String) PeriodHour
-- `starting_day_of_week` (String) StartingDayOfWeek
-- `starting_time` (String) StartingTime
-- `use_maintenance_option` (Boolean) UseMaintenanceOption
+- `period_hour` (String) Period in hours
+  - example: 1
+- `starting_day_of_week` (String) Starting day of week
+  - example: MON
+- `starting_time` (String) Starting time
+  - example: 0000
+- `use_maintenance_option` (Boolean) Use maintenance option
+  - example: true

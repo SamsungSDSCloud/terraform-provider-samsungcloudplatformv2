@@ -6,8 +6,8 @@ import (
 
 	"fmt"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/vpc/1.1"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	vpc "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/vpc/1.1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -180,86 +180,6 @@ func (client *Client) DeleteSubnet(ctx context.Context, subnetId string) error {
 
 	_, err := req.Execute()
 	return err
-}
-
-//------------------- Public IP -------------------//
-
-func (client *Client) GetPublicipList(ctx context.Context, request PublicipDataSource) (*vpc.PublicipListResponse, error) {
-	req := client.sdkClient.VpcV1PublicIpApiAPI.ListPublicip(ctx)
-	if !request.Limit.IsNull() {
-		req = req.Limit(request.Limit.ValueInt32())
-	}
-	if !request.Marker.IsNull() {
-		req = req.Marker(request.Marker.ValueString())
-	}
-	if !request.Sort.IsNull() {
-		req = req.Sort(request.Sort.ValueString())
-	}
-	if !request.IpAddress.IsNull() {
-		req = req.IpAddress(request.IpAddress.ValueString())
-	}
-	if !request.State.IsNull() {
-		req = req.State(request.State.ValueString())
-	}
-	if !request.AttachedResourceType.IsNull() {
-		req = req.AttachedResourceType(request.AttachedResourceType.ValueString())
-	}
-	if !request.AttachedResourceId.IsNull() {
-		req = req.AttachedResourceId(request.AttachedResourceId.ValueString())
-	}
-	if !request.AttachedResourceName.IsNull() {
-		req = req.AttachedResourceName(request.AttachedResourceName.ValueString())
-	}
-	if !request.Type.IsNull() {
-		req = req.Type_(vpc.PublicipType(request.Type.ValueString()))
-	}
-	if !request.VpcId.IsNull() {
-		req = req.VpcId(request.VpcId.ValueString())
-	}
-	resp, _, err := req.Execute()
-	return resp, err
-}
-
-func (client *Client) CreatePublicip(ctx context.Context, request PublicipResource) (*vpc.PublicipShowResponse, error) {
-	req := client.sdkClient.VpcV1PublicIpApiAPI.CreatePublicip(ctx)
-	description := request.Description.ValueString()
-	descriptionNS := vpc.NullableString{}
-	descriptionNS.Set(&description)
-	tags := convertToTags(request.Tags.Elements())
-
-	req = req.PublicipCreateRequest(vpc.PublicipCreateRequest{
-		Type:        vpc.PublicipType(request.Type.ValueString()),
-		Description: descriptionNS,
-		Tags:        tags,
-	})
-
-	resp, _, err := req.Execute()
-	return resp, err
-}
-
-func (client *Client) GetPublicip(ctx context.Context, publicipId string) (*vpc.PublicipShowResponse, error) {
-	req := client.sdkClient.VpcV1PublicIpApiAPI.ShowPublicip(ctx, publicipId)
-
-	resp, _, err := req.Execute()
-	return resp, err
-}
-
-func (client *Client) DeletePublicip(ctx context.Context, publicipId string) error {
-	req := client.sdkClient.VpcV1PublicIpApiAPI.DeletePublicip(ctx, publicipId)
-
-	_, err := req.Execute()
-	return err
-}
-
-func (client *Client) UpdatePublicip(ctx context.Context, publicipId string, request PublicipResource) (*vpc.PublicipShowResponse, error) {
-	req := client.sdkClient.VpcV1PublicIpApiAPI.SetPublicip(ctx, publicipId)
-
-	req = req.PublicipSetRequest(vpc.PublicipSetRequest{
-		Description: request.Description.ValueString(),
-	})
-
-	resp, _, err := req.Execute()
-	return resp, err
 }
 
 //------------ Port -------------------//
@@ -1032,6 +952,6 @@ func (client *Client) GetVpcPeeringRule(ctx context.Context, vpcPeeringId string
 		}
 	}
 
-	// list has response but not the requested ones => deleted
-	return vpc.VpcPeeringRule{}, 404, fmt.Errorf("DELETED")
+	// list has response but not the requested ones => return error message 404
+	return vpc.VpcPeeringRule{}, 404, fmt.Errorf("404 Not Found")
 }

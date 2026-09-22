@@ -219,8 +219,8 @@ type VpnTunnel1d1Resource struct { // Id + VpnGatewayCreateRequest
 	Id           types.String        `tfsdk:"id"`
 	Description  types.String        `tfsdk:"description"`
 	Name         types.String        `tfsdk:"name"`
-	Phase1       VpnPhase1v1d1Detail `tfsdk:"phase1"`
-	Phase2       VpnPhase2v1d1Detail `tfsdk:"phase2"`
+	Phase1       *VpnPhase1v1d1Detail `tfsdk:"phase1"`
+	Phase2       *VpnPhase2v1d1Detail `tfsdk:"phase2"`
 	Tags         types.Map           `tfsdk:"tags"`
 	VpnGatewayId types.String        `tfsdk:"vpn_gateway_id"`
 	VpnTunnel    types.Object        `tfsdk:"vpn_tunnel"`

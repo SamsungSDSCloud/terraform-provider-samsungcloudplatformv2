@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_transit_gateway_vpc_connection Resource - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  vpc transitgateway vpcconnection
+  The connection between a VPC and a Transit Gateway
 ---
 
 # samsungcloudplatformv2_vpc_transit_gateway_vpc_connection (Resource)
 
-vpc transitgateway vpcconnection
+The connection between a VPC and a Transit Gateway
 
 ## Example Usage
 
@@ -43,26 +43,40 @@ variable "tgwvpcconnectiontransit_gateway_id" {
 
 ### Required
 
-- `transit_gateway_id` (String) TransitGateway Id
-- `vpc_id` (String) VpcId
+- `transit_gateway_id` (String) The identifier of the transit gateway that the connection belongs to.
+  - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
+- `vpc_id` (String) The identifier of the VPC that the connection belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
 
 ### Read-Only
 
-- `id` (String) Identifier of the resource.
-- `transit_gateway_vpc_connection` (Attributes) transit gateway vpc connection (see [below for nested schema](#nestedatt--transit_gateway_vpc_connection))
+- `id` (String) The unique identifier of the connection.
+  - example: YOUR RESOURCE'S ID
+- `transit_gateway_vpc_connection` (Attributes) The connection between a VPC and a Transit Gateway (see [below for nested schema](#nestedatt--transit_gateway_vpc_connection))
 
 <a id="nestedatt--transit_gateway_vpc_connection"></a>
 ### Nested Schema for `transit_gateway_vpc_connection`
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `id` (String) Identifier of the resource.
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `state` (String) State - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING
-- `transit_gateway_id` (String) Transit Gateway Id
-- `vpc_id` (String) Vpc Id
-- `vpc_name` (String) Vpc Name
+- `account_id` (String) The identifier of the account that owns the connection.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `id` (String) The unique identifier of the connection.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `state` (String) The current lifecycle state of the connection.
+   - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING
+  - example: ACTIVE
+- `transit_gateway_id` (String) The identifier of the transit gateway that the connection belongs to.
+  - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
+- `vpc_id` (String) The identifier of the VPC that the connection belongs to.
+  - example: YOUR RESOURCE'S VPC_ID
+- `vpc_name` (String) The name of the VPC that the connection belongs to.
+  - example : vpcName

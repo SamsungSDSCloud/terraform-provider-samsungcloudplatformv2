@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -19,7 +19,11 @@ const (
 
 func TestAccBudgetResourceTest(t *testing.T) {
 	budgetName := fmt.Sprintf("tf-acc-b-%s", acctest.RandString(11))
-	currentStartMonth := time.Now().Format("2006-01")
+
+    // 다음 달 동적 생성 (YYYY-MM 형식)
+    now := time.Now()
+    nextMonth := now.AddDate(0, 1, 0)
+    currentStartMonth := nextMonth.Format("2006-01")
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -58,17 +62,17 @@ func TestAccBudgetResourceTest(t *testing.T) {
 }
 
 // common resource generation functions
-func testAccBudgetBaseConfig(name string, amount int, startMonth string, unit string) string {
+func testAccBudgetBaseConfig(name string, amount float64, startMonth string, unit string) string {
 	return fmt.Sprintf(`
 			resource "samsungcloudplatformv2_budget_budget" "budget" {
 				name        = "%s"
-				amount      = %d
+				amount      = %g
 				start_month = "%s"
 				unit        = "%s"
 			`, name, amount, startMonth, unit)
 }
 
-func testAccBudgetConfig(name string, amount int, startMonth string, unit string) string {
+func testAccBudgetConfig(name string, amount float64, startMonth string, unit string) string {
 	return testAccBudgetBaseConfig(name, amount, startMonth, unit) + `
 				notifications = {
 					is_use_notification = false
@@ -79,7 +83,7 @@ func testAccBudgetConfig(name string, amount int, startMonth string, unit string
 			}`
 }
 
-func testAccBudgetNotificationConfig(name string, amount int, startMonth string, unit string) string {
+func testAccBudgetNotificationConfig(name string, amount float64, startMonth string, unit string) string {
 	return testAccBudgetBaseConfig(name, amount, startMonth, unit) + `
 				notifications = {
 					is_use_notification = true
@@ -93,7 +97,7 @@ func testAccBudgetNotificationConfig(name string, amount int, startMonth string,
 			}`
 }
 
-func testAccBudgetPreventionConfig(name string, amount int, startMonth string, unit string) string {
+func testAccBudgetPreventionConfig(name string, amount float64, startMonth string, unit string) string {
 	return testAccBudgetBaseConfig(name, amount, startMonth, unit) + `
 				notifications = {
 					is_use_notification = false

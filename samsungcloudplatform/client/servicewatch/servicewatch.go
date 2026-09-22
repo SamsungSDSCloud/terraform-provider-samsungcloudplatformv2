@@ -5,8 +5,8 @@ import (
 	"math"
 	"strings"
 
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
-	"github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/library/servicewatch/1.2"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	servicewatch "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/library/servicewatch/1.5"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -23,11 +23,11 @@ func NewClient(config *scpsdk.Configuration) *Client {
 	}
 }
 
-func (client *Client) GetDashboardList(request DashboardDataSources) (*servicewatch.DashboardPageResponse, error) {
+func (client *Client) GetDashboardList(request DashboardDataSources) (*servicewatch.DashboardPageResponseV1Dot4, error) {
 	ctx := context.Background()
 	req := client.sdkClient.ServicewatchV1DashboardsAPIAPI.ListDashboards(ctx)
 
-	req = req.Size(math.MaxInt32) // 조건에 맞는 모든 리스트 조회를 위해 size 는 Int32 최대값으로 지정한다.
+	req = req.Size(math.MaxInt32) // Set size to Int32 max to retrieve all matching list items.
 	if !request.Name.IsNull() {
 		req = req.Name(request.Name.ValueString())
 	}
@@ -48,7 +48,7 @@ func (client *Client) GetDashboardList(request DashboardDataSources) (*servicewa
 	return resp, err
 }
 
-func (client *Client) GetDashboard(ctx context.Context, dashboardId string) (*servicewatch.DashboardDetailResponseV1Dot1, error) {
+func (client *Client) GetDashboard(ctx context.Context, dashboardId string) (*servicewatch.DashboardDetailResponseV1Dot4, error) {
 	req := client.sdkClient.ServicewatchV1DashboardsAPIAPI.ShowDashboard(ctx, dashboardId)
 
 	resp, _, err := req.Execute()
@@ -171,14 +171,14 @@ func (client *Client) DeleteLogStream(ctx context.Context, logGroupId string, lo
 	return resp, err
 }
 
-func (client *Client) GetAlert(ctx context.Context, alertId string) (*servicewatch.AlertDetailResponse, error) {
+func (client *Client) GetAlert(ctx context.Context, alertId string) (*servicewatch.AlertDetailResponseV1Dot5, error) {
 	req := client.sdkClient.ServicewatchV1AlertsAPIsAPI.ShowAlert(ctx, alertId)
 
 	resp, _, err := req.Execute()
 	return resp, err
 }
 
-func (client *Client) CreateAlert(ctx context.Context, request AlertResource) (*servicewatch.AlertCreateResponse, error) {
+func (client *Client) CreateAlert(ctx context.Context, request AlertResource) (*servicewatch.AlertCreateResponseV1Dot5, error) {
 	missingData := servicewatch.MissingDataOptionEnum(request.MissingDataOption.ValueString())
 
 	var recipientIds []string
@@ -186,7 +186,7 @@ func (client *Client) CreateAlert(ctx context.Context, request AlertResource) (*
 
 	req := client.sdkClient.ServicewatchV1AlertsAPIsAPI.CreateAlert(ctx)
 
-	alertCreateRequest := servicewatch.AlertCreateRequest{
+	alertCreateRequest := servicewatch.AlertCreateRequestV1Dot5{
 		Name:              request.Name.ValueString(),
 		Description:       nullableString(request.Description),
 		Level:             servicewatch.AlertLevelEnum(request.Level.ValueString()),
@@ -202,10 +202,10 @@ func (client *Client) CreateAlert(ctx context.Context, request AlertResource) (*
 		Operator:          servicewatch.OperatorEnum(request.Operator.ValueString()),
 		ViolationCount:    request.ViolationCount.ValueInt32Pointer(),
 		MissingDataOption: *servicewatch.NewNullableMissingDataOptionEnum(&missingData),
-		RecipientIds:      recipientIds,
+		Recipients:        convertRecipients(recipientIds, request.RecipientType),
 		Tags:              convertAlertTag(request.Tags),
 	}
-	req = req.AlertCreateRequest(alertCreateRequest)
+	req = req.AlertCreateRequestV1Dot5(alertCreateRequest)
 
 	resp, _, err := req.Execute()
 	return resp, err
@@ -229,19 +229,19 @@ func (client *Client) UpdateAlertDescription(ctx context.Context, alertId string
 	return resp, err
 }
 
-func (client *Client) UpdateAlert(ctx context.Context, alertId string, request AlertResource) (*servicewatch.AlertSetResponse, error) {
+func (client *Client) UpdateAlert(ctx context.Context, alertId string, request AlertResource) (*servicewatch.AlertSetResponseV1Dot3, error) {
 	req := client.sdkClient.ServicewatchV1AlertsAPIsAPI.SetAlert(ctx, alertId)
 
 	missingData := servicewatch.MissingDataOptionEnum(request.MissingDataOption.ValueString())
 	level := servicewatch.AlertLevelEnum(request.Level.ValueString())
 
 	req = req.AlertSetRequest(servicewatch.AlertSetRequest{
-		Level:             &level,
+		Level:             level,
 		NamespaceId:       request.NamespaceId.ValueString(),
 		MetricId:          request.MetricId.ValueString(),
 		Dimensions:        convertAlertDimension(ctx, request.Dimensions),
 		Period:            request.Period.ValueInt32(),
-		Statistic:         request.Statistic.ValueString(),
+		Statistic:         servicewatch.StatisticEnum(request.Statistic.ValueString()),
 		EvaluationCount:   request.EvaluationCount.ValueInt32Pointer(),
 		Threshold:         nullableFloat32(request.Threshold),
 		UpperBound:        nullableFloat32(request.UpperBound),
@@ -250,6 +250,22 @@ func (client *Client) UpdateAlert(ctx context.Context, alertId string, request A
 		ViolationCount:    request.ViolationCount.ValueInt32Pointer(),
 		MissingDataOption: *servicewatch.NewNullableMissingDataOptionEnum(&missingData),
 	})
+	resp, _, err := req.Execute()
+	return resp, err
+}
+
+// UpdateAlertNotifications replaces the notification recipients of an alert.
+// The alert body and its recipients are updated through separate endpoints, so this is
+// called on its own whenever recipient_ids or recipient_type changes.
+func (client *Client) UpdateAlertNotifications(ctx context.Context, alertId string, request AlertResource) (*servicewatch.AlertNotificationsSetResponseV1Dot5, error) {
+	var recipientIds []string
+	request.RecipientIds.ElementsAs(ctx, &recipientIds, false)
+
+	req := client.sdkClient.ServicewatchV1AlertsAPIsAPI.SetAlertNotifications(ctx, alertId)
+	req = req.AlertNotificationsSetRequestV1Dot5(servicewatch.AlertNotificationsSetRequestV1Dot5{
+		Recipients: convertRecipients(recipientIds, request.RecipientType),
+	})
+
 	resp, _, err := req.Execute()
 	return resp, err
 }
@@ -289,11 +305,12 @@ func (client *Client) GetEventRule(ctx context.Context, eventRuleId string) (*se
 func (client *Client) CreateEventRule(ctx context.Context, request EventRuleResource) (*servicewatch.EventRuleShowResponse, error) {
 	req := client.sdkClient.ServicewatchV1EventRulesAPIsAPI.CreateEventRule(ctx)
 
-	req = req.EventRuleCreateRequest(servicewatch.EventRuleCreateRequest{
+	req = req.EventRuleCreateRequestV1Dot5(servicewatch.EventRuleCreateRequestV1Dot5{
 		Description:    *servicewatch.NewNullableString(request.Description.ValueStringPointer()),
 		EventIds:       toStringSlice(request.EventIds),
 		Name:           request.Name.ValueString(),
 		RecipientIds:   toStringSlice(request.RecipientIds),
+		RecipientType:  nullableString(request.RecipientType),
 		ResourceTypeId: *servicewatch.NewNullableString(request.ResourceTypeId.ValueStringPointer()),
 		ServiceId:      request.ServiceId.ValueString(),
 		SrnList:        toStringSlice(request.SrnList),
@@ -307,12 +324,13 @@ func (client *Client) CreateEventRule(ctx context.Context, request EventRuleReso
 func (client *Client) UpdateEventRule(ctx context.Context, eventRuleId string, request EventRuleResource) (*servicewatch.EventRuleShowResponse, error) {
 	req := client.sdkClient.ServicewatchV1EventRulesAPIsAPI.SetEventRule(ctx, eventRuleId)
 
-	req = req.EventRuleSetRequest(servicewatch.EventRuleSetRequest{
+	req = req.EventRuleSetRequestV1Dot5(servicewatch.EventRuleSetRequestV1Dot5{
 		ActiveYn:       *servicewatch.NewNullableYNEnum(toYNEnum(request.ActiveYn.ValueString())),
 		Description:    *servicewatch.NewNullableString(request.Description.ValueStringPointer()),
 		EventIds:       toStringSlice(request.EventIds),
 		NoneAttributes: toStringSlice(request.NoneAttributes),
 		RecipientIds:   toStringSlice(request.RecipientIds),
+		RecipientType:  nullableString(request.RecipientType),
 		ResourceTypeId: *servicewatch.NewNullableString(request.ResourceTypeId.ValueStringPointer()),
 		ServiceId:      request.ServiceId.ValueString(),
 		SrnList:        toStringSlice(request.SrnList),
@@ -344,9 +362,9 @@ func convertWidgets(widgets types.List) []servicewatch.WidgetDTO {
 		properties := convertProperties(v.Properties)
 		widgetList[i] = servicewatch.WidgetDTO{
 			Type:       v.Type.ValueString(),
-			Width:      v.Width.ValueInt32(),
-			Height:     v.Height.ValueInt32(),
-			Order:      v.Order.ValueInt32(),
+			Width:      nullableInt32Value(v.Width),
+			Height:     nullableInt32Value(v.Height),
+			Order:      nullableInt32Value(v.Order),
 			Properties: properties,
 		}
 	}
@@ -363,7 +381,7 @@ func convertProperties(property types.Object) servicewatch.PropertiesDTO {
 
 	return servicewatch.PropertiesDTO{
 		Title:         p.Title.ValueString(),
-		Stacked:       p.Stacked.ValueBool(),
+		Stacked:       nullableBoolValue(p.Stacked),
 		View:          p.View.ValueString(),
 		Metrics:       convertMetrics(p.Metrics),
 		Period:        nullableInt32(p.Period),
@@ -456,6 +474,23 @@ func convertAlertTag(tags types.Map) []servicewatch.TagDTO {
 	return TagsObject
 }
 
+// convertRecipients pairs every recipient id with the single recipient type given
+// for the whole list, since the API takes the type per recipient.
+func convertRecipients(recipientIds []string, recipientType types.String) []servicewatch.RecipientDTO {
+	var recipients []servicewatch.RecipientDTO
+	for _, recipientId := range recipientIds {
+		recipient := servicewatch.RecipientDTO{
+			RecipientId: recipientId,
+		}
+		if !recipientType.IsNull() && !recipientType.IsUnknown() {
+			t := servicewatch.RecipientTypeEnum(recipientType.ValueString())
+			recipient.RecipientType = &t
+		}
+		recipients = append(recipients, recipient)
+	}
+	return recipients
+}
+
 func nullableFloat32(v types.Float32) servicewatch.NullableFloat32 {
 	if v.IsNull() || v.IsUnknown() {
 		return servicewatch.NullableFloat32{}
@@ -470,6 +505,20 @@ func nullableInt32(v types.Int32) servicewatch.NullableInt32 {
 	}
 	val := v.ValueInt32()
 	return *servicewatch.NewNullableInt32(&val)
+}
+
+func nullableInt32Value(v types.Int32) int32 {
+	if v.IsNull() || v.IsUnknown() {
+		return 0
+	}
+	return v.ValueInt32()
+}
+
+func nullableBoolValue(v types.Bool) bool {
+	if v.IsNull() || v.IsUnknown() {
+		return false
+	}
+	return v.ValueBool()
 }
 
 func nullableString(v types.String) servicewatch.NullableString {

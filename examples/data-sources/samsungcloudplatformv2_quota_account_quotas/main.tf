@@ -3,8 +3,13 @@ provider "samsungcloudplatformv2" {
 
 data "samsungcloudplatformv2_quota_account_quotas" "ids" {
   filter {
-    name = var.account_quotas_filter_name
-    values = var.account_quotas_filter_values
+    name      = var.account_quotas_filter_name
+    values    = var.account_quotas_filter_values
     use_regex = var.account_quotas_filter_use_regex
   }
+ filter {
+   name      = var.account_quotas_class_value_filter_name
+   values    = var.account_quotas_class_value_filter_values
+   use_regex = var.account_quotas_class_value_filter_use_regex
+ }
 }

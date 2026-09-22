@@ -1,6 +1,6 @@
 variable "subnet_name" {
   type    = string
-  default = "testsubnet"
+  default = "yb-subnet-2"
 }
 
 variable "vpc_id" {
@@ -10,12 +10,12 @@ variable "vpc_id" {
 
 variable "subnet_type" {
   type    = string
-  default = "GENERAL"
+  default = "PUBLIC"
 }
 
 variable "subnet_cidr" {
   type    = string
-  default = "192.168.0.0/28"
+  default = "30.30.16.0/21"
 }
 
 variable "subnet_description" {
@@ -28,18 +28,12 @@ variable "subnet_allocation_pools" {
     start = string
     end   = string
   }))
-  default = [{
-    end   = "192.168.0.12"
-    start = "192.168.0.10"
-    }, {
-    end   = "192.168.0.4"
-    start = "192.168.0.3"
-  }]
+  default = null
 }
 
 variable "subnet_dns_nameservers" {
-  type    = list(string)
-  default = ["8.8.8.8"]
+  type    = set(string)
+  default = null
 }
 
 variable "subnet_host_routes" {
@@ -47,18 +41,12 @@ variable "subnet_host_routes" {
     destination = string
     nexthop     = string
   }))
-  default = [{
-    destination = "192.168.24.0/24"
-    nexthop     = "11.11.11.11"
-    }, {
-    destination = "192.169.24.0/24"
-    nexthop     = "22.22.22.22"
-  }]
+  default = null
 }
 
 variable "dhcp_ip_address" {
   type    = string
-  default = null
+  default = "30.30.16.3"
 }
 
 variable "gateway_ip_address" {
@@ -67,10 +55,16 @@ variable "gateway_ip_address" {
 }
 
 variable "tags" {
-  type = map(string)
-  default = {
-    tf = "terraform"
-  }
+  type    = map(string)
+  default = null
+}
+variable "category" {
+  type    = string
+  default = "SECONDARY"
+}
+variable "primary_subnet_id" {
+  type    = string
+  default = "ENTER YOUR RESOURCE'S PRIMARY_SUBNET_ID"
 }
 
 

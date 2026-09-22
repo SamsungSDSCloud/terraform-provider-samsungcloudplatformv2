@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_virtualserver_keypair Resource - samsungcloudplatformv2"
 subcategory: Keypair
 description: |-
-  keypair
+  Creates a keypair for SSH access to virtual servers.
 ---
 
 # samsungcloudplatformv2_virtualserver_keypair (Resource)
 
-keypair
+Creates a keypair for SSH access to virtual servers.
 
 ## Example Usage
 
@@ -39,7 +39,10 @@ variable "name" {
 
 ### Required
 
-- `name` (String) Name
+- `name` (String) Keypair name.
+  - example: my-keypair
+  - minLength: 1
+  - maxLength: 255
 
 ### Optional
 
@@ -49,10 +52,11 @@ variable "name" {
 
 ### Read-Only
 
-- `created_at` (String) Created at
-- `fingerprint` (String) Fingerprint
-- `id` (Number) Identifier of the resource.
-- `private_key` (String) Private key
-- `public_key` (String) Public key
-- `type` (String) Type
-- `user_id` (String) User ID
+- `created_at` (String) Created at.
+- `fingerprint` (String) Fingerprint of the public key.
+- `id` (Number) Resource ID.
+- `private_key` (String) Private key.
+  - note: Only available at creation time. Store securely as it cannot be retrieved later.
+- `public_key` (String) Public key. Automatically generated.
+- `type` (String) Keypair type.
+- `user_id` (String) User ID.

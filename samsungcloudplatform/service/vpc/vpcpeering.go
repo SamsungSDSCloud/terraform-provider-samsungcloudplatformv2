@@ -6,23 +6,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcPeeringResource{}
-	_ resource.ResourceWithConfigure = &vpcPeeringResource{}
+	_ resource.Resource                = &vpcPeeringResource{}
+	_ resource.ResourceWithConfigure   = &vpcPeeringResource{}
+	_ resource.ResourceWithImportState = &vpcPeeringResource{}
+	_ resource.ResourceWithModifyPlan  = &vpcPeeringResource{}
 )
 
 // NewVpcVpcPeeringResource is a helper function to simplify the provider implementation.
@@ -37,124 +40,246 @@ type vpcPeeringResource struct {
 	clients *client.SCPClient
 }
 
+func (r *vpcPeeringResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification when destroying the resource
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if there's no existing state (create)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan vpcv1.VpcPeeringResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state vpcv1.VpcPeeringResource
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fields that cannot be updated via the API — check each for changes
+	type fieldCheck struct {
+		name    string
+		changed bool
+	}
+	checks := []fieldCheck{
+		{"approver_vpc_account_id", !plan.ApproverVpcAccountId.Equal(state.ApproverVpcAccountId)},
+		{"name", !plan.Name.Equal(state.Name)},
+		{"approver_vpc_id", !plan.ApproverVpcId.Equal(state.ApproverVpcId)},
+		{"requester_vpc_id", !plan.RequesterVpcId.Equal(state.RequesterVpcId)},
+	}
+
+	for _, f := range checks {
+		if f.changed {
+			resp.Diagnostics.AddError(
+				"Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual resource. To change %s, recreate the resource.", f.name, f.name),
+			)
+		}
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Reconstruct vpc_peering: merge stable fields from state, leave rest as unknown.
+	// This prevents id, account_type, approver_vpc_id, requester_vpc_id, etc. from showing as (known after apply).
+	if !state.VpcPeering.IsNull() && !state.VpcPeering.IsUnknown() {
+		var statePv vpcv1.VpcPeering
+		resp.Diagnostics.Append(state.VpcPeering.As(ctx, &statePv, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Only mark modified_at/modified_by as unknown when name or description actually changes
+		changed := !plan.Description.Equal(state.Description)
+
+		modelVpcPeering := vpcv1.VpcPeering{
+			Id:                       statePv.Id,
+			AccountType:              statePv.AccountType,
+			ApproverVpcAccountId:     statePv.ApproverVpcAccountId,
+			ApproverVpcId:            statePv.ApproverVpcId,
+			ApproverVpcName:          statePv.ApproverVpcName,
+			RequesterVpcAccountId:    statePv.RequesterVpcAccountId,
+			RequesterVpcId:           statePv.RequesterVpcId,
+			RequesterVpcName:         statePv.RequesterVpcName,
+			DeleteRequesterAccountId: statePv.DeleteRequesterAccountId,
+			CreatedAt:                statePv.CreatedAt,
+			CreatedBy:                statePv.CreatedBy,
+			State:                    statePv.State,
+			Name:                     statePv.Name,
+			Description:              plan.Description,
+		}
+
+		if changed {
+			modelVpcPeering.ModifiedAt = types.StringUnknown()
+			modelVpcPeering.ModifiedBy = types.StringUnknown()
+		} else {
+			modelVpcPeering.ModifiedAt = statePv.ModifiedAt
+			modelVpcPeering.ModifiedBy = statePv.ModifiedBy
+		}
+
+		mergedObj, diags := types.ObjectValueFrom(ctx, modelVpcPeering.AttributeTypes(), modelVpcPeering)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		plan.VpcPeering = mergedObj
+		resp.Plan.Set(ctx, plan)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+}
+
 // Metadata returns the data source type name.
 func (r *vpcPeeringResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vpc_vpc_peering"
 }
 
+func (r *vpcPeeringResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
+}
+
 // Schema defines the schema for the data source.
 func (r *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Vpc peering",
+		Description: "VPC‑to‑VPC peering",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description: "Identifier of the resource.",
-				Computed:    true,
+				Description: "The unique identifier of the peering.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("ApproverVpcAccountId"): schema.StringAttribute{
-				Description: "Approver VPC Account ID",
-				Required:    true,
+				Description: "The identifier of the account that the approver VPC belongs to.\n" +
+					"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+				Required: true,
 			},
 			common.ToSnakeCase("ApproverVpcId"): schema.StringAttribute{
-				Description: "Approver VPC ID",
-				Required:    true,
+				Description: "The identifier of the approver VPC.\n" +
+					"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+				Required: true,
 			},
 			common.ToSnakeCase("RequesterVpcId"): schema.StringAttribute{
-				Description: "Requester VPC ID",
-				Required:    true,
+				Description: "The identifier of the requester VPC.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Required: true,
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "VPC Peering Name\n" +
+				Description: "The name of the peering.\n" +
+					"  - example : peering name\n" +
 					"  - Minimum length: 3\n" +
 					"  - Maximum length: 20\n" +
 					"  - Pattern: ^[a-zA-Z0-9-]*$",
 				Required: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description",
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-			},
+				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+					"  - example : VPC Peering Description\n" +
+					"  - maxLength : 50",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				}},
 			common.ToSnakeCase("VpcPeering"): schema.SingleNestedAttribute{
-				Description: "VpcPeering",
+				Description: "VPC‑to‑VPC peering",
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					common.ToSnakeCase("AccountType"): schema.StringAttribute{
-						Description: "Account Type\n" +
-							"  - Enum: SAME | DIFFERENT",
+						Description: "The type of account.\n" +
+							"  - Enum: SAME | DIFFERENT\n" +
+							"  - example:SAME",
 						Computed: true,
 					},
 					common.ToSnakeCase("ApproverVpcAccountId"): schema.StringAttribute{
-						Description: "Approver VPC Account ID",
-						Computed:    true,
+						Description: "The identifier of the account that the approver VPC belongs to.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("ApproverVpcId"): schema.StringAttribute{
-						Description: "Approver VPC ID",
-						Computed:    true,
+						Description: "The identifier of the approver VPC.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("ApproverVpcName"): schema.StringAttribute{
-						Description: "Approver VPC Name",
-						Computed:    true,
+						Description: "The name of the approver VPC.\n" +
+							"  - example : vpcName",
+						Computed: true,
 					},
 					common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-						Description: "Created At\n" +
+						Description: "The timestamp when the resource was created in ISO 8601 format.\n" +
 							"  - Example: 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("CreatedBy"): schema.StringAttribute{
-						Description: "Created By\n" +
+						Description: "The user id that created the resource.\n" +
 							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Description"): schema.StringAttribute{
-						Description: "VPC Peering Description",
-						Computed:    true,
+						Description: "Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.\n" +
+							"  - example : resourceDescription",
+						Computed: true,
 					},
 					common.ToSnakeCase("Id"): schema.StringAttribute{
-						Description: "VPC Peering ID",
-						Computed:    true,
+						Description: "The unique identifier of the peering.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-						Description: "Modified At\n" +
+						Description: "The timestamp when the resource was last modified in ISO 8601 format.\n" +
 							"  - Example: 2024-05-17T00:23:17Z",
 						Computed: true,
 					},
 					common.ToSnakeCase("ModifiedBy"): schema.StringAttribute{
-						Description: "Modified By\n" +
+						Description: "The user id that modified the resource.\n" +
 							"  - Example: 90dddfc2b1e04edba54ba2b41539a9ac",
 						Computed: true,
 					},
 					common.ToSnakeCase("Name"): schema.StringAttribute{
-						Description: "VPC Peering Name\n" +
+						Description: "The name of the peering.\n" +
+							"  - example : peering name\n" +
 							"  - Minimum length: 3\n" +
 							"  - Maximum length: 20\n" +
 							"  - Pattern: ^[a-zA-Z0-9-]*$",
 						Computed: true,
 					},
 					common.ToSnakeCase("RequesterVpcAccountId"): schema.StringAttribute{
-						Description: "Requester VPC Account ID",
-						Computed:    true,
+						Description: "The identifier of the account that the requester VPC belongs to.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("RequesterVpcId"): schema.StringAttribute{
-						Description: "Requester VPC ID",
-						Computed:    true,
+						Description: "The identifier of the requester VPC.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("RequesterVpcName"): schema.StringAttribute{
-						Description: "Requester VPC Name",
-						Computed:    true,
+						Description: "The name of the requester VPC.\n" +
+							"  - example : resourceName",
+						Computed: true,
 					},
 					common.ToSnakeCase("DeleteRequesterAccountId"): schema.StringAttribute{
-						Description: "Requester VPC Account ID",
-						Computed:    true,
+						Description: "The identifier of account that the deletion requester belongs to.\n" +
+							"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+						Computed: true,
 					},
 					common.ToSnakeCase("State"): schema.StringAttribute{
-						Description: "State\n" +
-							"  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING",
+						Description: "The current lifecycle state of the peering.\n" +
+							"  - Enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING | CREATING_REQUESTING | REJECTED | CANCELED | DELETING_REQUESTING\n" +
+							"  - example:ACTIVE",
 						Computed: true,
 					},
 				},
@@ -228,6 +353,11 @@ func (r *vpcPeeringResource) Create(ctx context.Context, req resource.CreateRequ
 	plan.Id = types.StringValue(vpcPeering.Id)
 	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
 	plan.VpcPeering = vpcObjectValue
+	plan.Description = vpcPeeringModel.Description
+	plan.ApproverVpcAccountId = vpcPeeringModel.ApproverVpcAccountId
+	plan.Name = vpcPeeringModel.Name
+	plan.ApproverVpcId = vpcPeeringModel.ApproverVpcId
+	plan.RequesterVpcId = vpcPeeringModel.RequesterVpcId
 
 	diags = resp.State.Set(ctx, plan)
 
@@ -268,6 +398,10 @@ func (r *vpcPeeringResource) Read(ctx context.Context, req resource.ReadRequest,
 	// Get refreshed order value from vpc
 	data, err := r.client.GetVpcPeering(ctx, state.Id.ValueString())
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading vpc peering",
@@ -297,8 +431,14 @@ func (r *vpcPeeringResource) Read(ctx context.Context, req resource.ReadRequest,
 		State:                    types.StringValue(string(vpcPeering.State)),
 	}
 	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
+	resp.Diagnostics.Append(diags...)
 
 	state.VpcPeering = vpcObjectValue
+	state.Description = vpcPeeringModel.Description
+	state.ApproverVpcAccountId = vpcPeeringModel.ApproverVpcAccountId
+	state.Name = vpcPeeringModel.Name
+	state.ApproverVpcId = vpcPeeringModel.ApproverVpcId
+	state.RequesterVpcId = vpcPeeringModel.RequesterVpcId
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -361,8 +501,14 @@ func (r *vpcPeeringResource) Update(ctx context.Context, req resource.UpdateRequ
 		State:                    types.StringValue(string(vpcPeering.State)),
 	}
 	vpcObjectValue, diags := types.ObjectValueFrom(ctx, vpcPeeringModel.AttributeTypes(), vpcPeeringModel)
+	resp.Diagnostics.Append(diags...)
 
 	state.VpcPeering = vpcObjectValue
+	state.Description = vpcPeeringModel.Description
+	state.ApproverVpcAccountId = vpcPeeringModel.ApproverVpcAccountId
+	state.Name = vpcPeeringModel.Name
+	state.ApproverVpcId = vpcPeeringModel.ApproverVpcId
+	state.RequesterVpcId = vpcPeeringModel.RequesterVpcId
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -409,7 +555,7 @@ func waitForVpcPeeringStatus(ctx context.Context, vpcClient *vpcv1.Client, id st
 			return nil, "", err
 		}
 		return info, string(info.VpcPeering.State), nil
-	})
+	}, -1, -1, -1, -1)
 }
 func stringFromNullable(value *string) types.String {
 	if value == nil || *value == "" {

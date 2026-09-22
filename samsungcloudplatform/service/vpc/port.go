@@ -4,17 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client"
-	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/client/vpcv1d2"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common"
-	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v3/samsungcloudplatform/common/tag"
-	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v3/client"
+	"strings"
+
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
+	vpc "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vpcv1d2"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common"
+	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/common/tag"
+	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -22,8 +24,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &vpcPortResource{}
-	_ resource.ResourceWithConfigure = &vpcPortResource{}
+	_ resource.Resource                = &vpcPortResource{}
+	_ resource.ResourceWithConfigure   = &vpcPortResource{}
+	_ resource.ResourceWithImportState = &vpcPortResource{}
 )
 
 // NewVpcPortResource is a helper function to simplify the provider implementation.
@@ -46,74 +49,91 @@ func (r *vpcPortResource) Metadata(_ context.Context, req resource.MetadataReque
 // Schema defines the schema for the data source.
 func (r *vpcPortResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "port",
-		MarkdownDescription: "port",
+		Description:         "Port resource for network",
+		MarkdownDescription: "Port",
 		Attributes: map[string]schema.Attribute{
 			"tags": tag.ResourceSchema(),
 			"id": schema.StringAttribute{
-				Description:         "Identifier of the resource.",
-				MarkdownDescription: "Identifier of the resource.",
-				Computed:            true,
+				Description: "The unique identifier of the port.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				MarkdownDescription: "The unique identifier of the port.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			common.ToSnakeCase("AccountId"): schema.StringAttribute{
-				Description:         "AccountId",
-				MarkdownDescription: "AccountId",
-				Computed:            true,
+				Description: "The identifier of the account that owns the port.\n" +
+					"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+				MarkdownDescription: "The identifier of the account that owns the port.\n" +
+					"  - example : f1e6c81a2b054582878cb9724dc2ce9f",
+				Computed: true,
 			},
 			common.ToSnakeCase("AttachedResourceId"): schema.StringAttribute{
-				Description:         "AttachedResourceId",
-				MarkdownDescription: "AttachedResourceId",
-				Computed:            true,
+				Description: "The identifier of the resource that this port is attached to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				MarkdownDescription: "The identifier of the resource that this port is attached to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 			},
 			common.ToSnakeCase("AttachedResourceType"): schema.StringAttribute{
-				Description:         "AttachedResAttachedResourceType",
-				MarkdownDescription: "AttachedResAttachedResourceType",
-				Computed:            true,
+				Description: "The type of the resource that this port is attached to.\n" +
+					"  - example : VM",
+				MarkdownDescription: "The type of the resource that this port is attached to.\n" +
+					"  - example : VM",
+				Computed: true,
 			},
 			common.ToSnakeCase("CreatedAt"): schema.StringAttribute{
-				Description:         "CreatedAt",
-				MarkdownDescription: "CreatedAt",
-				Computed:            true,
+				Description: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+					"  - example : 2024-05-17T00:23:17Z",
+				MarkdownDescription: "The timestamp when the resource was created, in ISO 8601 format.\n" +
+					"  - example : 2024-05-17T00:23:17Z",
+				Computed: true,
 			},
 			common.ToSnakeCase("Description"): schema.StringAttribute{
-				Description: "Description\n" +
-					"  - example : Port description\n" +
+				Description: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+					"  - example : Port Description\n" +
 					"  - maxLength : 50",
-				MarkdownDescription: "Description\n" +
-					"  - example : Port description\n" +
+				MarkdownDescription: "Enter a brief explanation or note about this resource. This helps identify the purpose or usage of the resource.\n" +
+					"  - example : Port Description\n" +
 					"  - maxLength : 50",
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(50),
 				},
-				Default: stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			common.ToSnakeCase("FixedIpAddress"): schema.StringAttribute{
-				Description: "Fixed IP Address \n" +
+				Description: "The fixed IP address assigned to the port.\n" +
 					"  - example : 172.24.4.2",
-				MarkdownDescription: "Fixed IP Address \n" +
+				MarkdownDescription: "The fixed IP address assigned to the port.\n" +
 					"  - example : 172.24.4.2",
 				Optional: true,
 			},
 			common.ToSnakeCase("MacAddress"): schema.StringAttribute{
-				Description:         "MacAddress",
-				MarkdownDescription: "MacAddress",
-				Computed:            true,
+				Description: "The MAC address of the port.\n" +
+					"  - example : fa:16:3e:5c:9b:7a",
+				MarkdownDescription: "The MAC address of the port.\n" +
+					"  - example : fa:16:3e:5c:9b:7a",
+				Computed: true,
 			},
 			common.ToSnakeCase("ModifiedAt"): schema.StringAttribute{
-				Description:         "ModifiedAt",
-				MarkdownDescription: "ModifiedAt",
-				Computed:            true,
+				Description: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+					"  - example : 2024-05-17T00:23:17Z",
+				MarkdownDescription: "The timestamp when the resource was last modified, in ISO 8601 format.\n" +
+					"  - example : 2024-05-17T00:23:17Z",
+				Computed: true,
 			},
 			common.ToSnakeCase("SecurityGroups"): schema.ListNestedAttribute{
-				Description:         "Security groups",
-				MarkdownDescription: "Security groups",
+				Description:         "The list of security groups associated with the port.",
+				MarkdownDescription: "The list of security groups associated with the port.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
@@ -127,12 +147,12 @@ func (r *vpcPortResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				},
 			},
 			common.ToSnakeCase("Name"): schema.StringAttribute{
-				Description: "Port Name \n" +
+				Description: "The name of the port.\n" +
 					"  - example : portName\n" +
 					"  - maxLength : 20\n" +
 					"  - minLength : 3\n" +
 					"  - pattern : ^[a-zA-Z0-9-]+$",
-				MarkdownDescription: "Port Name \n" +
+				MarkdownDescription: "The name of the port.\n" +
 					"  - example : portName\n" +
 					"  - maxLength : 20\n" +
 					"  - minLength : 3\n" +
@@ -140,37 +160,47 @@ func (r *vpcPortResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Required: true,
 			},
 			common.ToSnakeCase("State"): schema.StringAttribute{
-				Description:         "State",
-				MarkdownDescription: "State",
-				Computed:            true,
+				Description: "The current lifecycle state of the port.\n" +
+					"  - example : ACTIVE",
+				MarkdownDescription: "The current lifecycle state of the port.\n" +
+					"  - example : ACTIVE",
+				Computed: true,
 			},
 			common.ToSnakeCase("SubnetId"): schema.StringAttribute{
-				Description: "Subnet ID \n" +
+				Description: "The identifier of the subnet that the port belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
-				MarkdownDescription: "Subnet ID \n" +
+				MarkdownDescription: "The identifier of the subnet that the port belongs to.\n" +
 					"  - example : 023c57b14f11483689338d085e061492",
 				Required: true,
 			},
 			common.ToSnakeCase("SubnetName"): schema.StringAttribute{
-				Description:         "SubnetName",
-				MarkdownDescription: "SubnetName",
-				Computed:            true,
+				Description: "The name of the subnet that the port belongs to.\n" +
+					"  - example : subnetName",
+				MarkdownDescription: "The name of the subnet that the port belongs to.\n" +
+					"  - example : subnetName",
+				Computed: true,
 			},
 			common.ToSnakeCase("VpcId"): schema.StringAttribute{
-				Description:         "VpcId",
-				MarkdownDescription: "VpcId",
-				Computed:            true,
+				Description: "The identifier of the VPC that the port belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				MarkdownDescription: "The identifier of the VPC that the port belongs to.\n" +
+					"  - example : 7df8abb4912e4709b1cb237daccca7a8",
+				Computed: true,
 			},
 			common.ToSnakeCase("VpcName"): schema.StringAttribute{
-				Description:         "VpcName",
-				MarkdownDescription: "VpcName",
-				Computed:            true,
+				Description: "The name of the VPC that the port belongs to.\n" +
+					"  - example : vpcName",
+				MarkdownDescription: "The name of the VPC that the port belongs to.\n" +
+					"  - example : vpcName",
+				Computed: true,
 			},
 			common.ToSnakeCase("VirtualIpAddresses"): schema.ListAttribute{
-				Description:         "Virtual IP Addresses",
-				MarkdownDescription: "Virtual IP Addresses",
-				Computed:            true,
-				ElementType:         types.StringType,
+				Description: "Virtual IP Addresses\n" +
+					"  - example : [\"192.168.1.100\"]",
+				MarkdownDescription: "Virtual IP Addresses\n" +
+					"  - example : [\"192.168.1.100\"]",
+				Computed:    true,
+				ElementType: types.StringType,
 				PlanModifiers: []planmodifier.List{
 					listplanmodifier.UseStateForUnknown(),
 				},
@@ -205,7 +235,7 @@ func (r *vpcPortResource) Configure(_ context.Context, req resource.ConfigureReq
 func (r *vpcPortResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var plan vpc.PortResource
-	diags := req.Config.Get(ctx, &plan)
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -243,11 +273,22 @@ func (r *vpcPortResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// Get refreshed order value from port
 	data, err := r.client.GetPort(ctx, state.Id.ValueString())
-	if err != nil || !data.Port.IsSet() {
+	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		detail := client.GetDetailFromError(err)
 		resp.Diagnostics.AddError(
 			"Error Reading port",
 			"Could not read port ID "+state.Id.ValueString()+": "+err.Error()+"\nReason: "+detail,
+		)
+		return
+	}
+	if data == nil || !data.Port.IsSet() {
+		resp.Diagnostics.AddError(
+			"Error reading data",
+			"An error occurred while reading data. Empty response",
 		)
 		return
 	}
@@ -312,4 +353,8 @@ func (r *vpcPortResource) Delete(ctx context.Context, req resource.DeleteRequest
 		)
 		return
 	}
+}
+
+func (r *vpcPortResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))
 }

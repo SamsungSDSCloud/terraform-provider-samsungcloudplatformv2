@@ -37,45 +37,18 @@ variable "transit_gateway_id" {
 
 ### Required
 
-- `transit_gateway_id` (String) Transit Gateway ID
+- `transit_gateway_id` (String) The identifier of the transit gateway that the firewall connection belongs to.
+  - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
 
 ### Read-Only
 
-- `transit_gateway` (Attributes) Transit Gateway (see [below for nested schema](#nestedatt--transit_gateway))
+- `transit_gateway_firewall_connection` (Attributes) Transit Gateway Firewall Connection (see [below for nested schema](#nestedatt--transit_gateway_firewall_connection))
 
-<a id="nestedatt--transit_gateway"></a>
-### Nested Schema for `transit_gateway`
+<a id="nestedatt--transit_gateway_firewall_connection"></a>
+### Nested Schema for `transit_gateway_firewall_connection`
 
 Read-Only:
 
-- `account_id` (String) Account ID
-- `bandwidth` (Number) Transit Gateway Port Bandwidth
-  - example: 1
-- `created_at` (String) Created At 
-  - example : 2024-05-17T00:23:17Z
-- `created_by` (String) Created By 
-  - example: YOUR RESOURCE'S CREATED_BY
-- `description` (String) Transit Gateway Description
-  - example : TransitGateway Description
 - `firewall_connection_state` (String) Firewall Connection State
   - enum: ATTACHING | ACTIVE | DETACHING | DELETED | INACTIVE | ERROR
   - example: INACTIVE
-- `firewall_ids` (String) Firewall ID
-  - example: ['YOUR RESOURCE'S FIREWALL_IDS']
-- `id` (String) Transit Gateway ID
-  - example: YOUR RESOURCE'S ID
-- `modified_at` (String) Modified At 
-  - example : 2024-05-17T00:23:17Z
-- `modified_by` (String) Modified By 
-  - example: YOUR RESOURCE'S MODIFIED_BY
-- `name` (String) Transit Gateway Name
-  - minLength: 3
-  - maxLength: 20
-  - pattern: ^[a-zA-Z0-9-]*$
-  - example: TransitGatewayName
-- `state` (String) State
-  - enum: CREATING | ACTIVE | DELETING | DELETED | ERROR | EDITING
-  - example: ACTIVE
-- `uplink_enabled` (Boolean) Uplink Enabled?
-  - default: false
-  - example: false

@@ -2,12 +2,12 @@
 page_title: "samsungcloudplatformv2_vpc_transit_gateway_rules Data Source - samsungcloudplatformv2"
 subcategory: VPC
 description: |-
-  List of vpc transit gateway rule.
+  List of transit gateway rule.
 ---
 
 # samsungcloudplatformv2_vpc_transit_gateway_rules (Data Source)
 
-List of vpc transit gateway rule.
+List of transit gateway rule.
 
 ## Example Usage
 
@@ -102,26 +102,40 @@ variable "rule_type" {
 
 ### Required
 
-- `transit_gateway_id` (String) transit gateway id
+- `transit_gateway_id` (String) The identifier of the transit gateway that the rule belongs to.
+  - example: YOUR RESOURCE'S TRANSIT_GATEWAY_ID
 
 ### Optional
 
-- `destination_cidr` (String) destination cidr
-- `destination_type` (String) destination type - enum(VPC, TGW)
-- `id` (String) id
-- `page` (Number) page
-- `rule_type` (String) Rule type - enum: TGW_VPC, TGW_UPLINK
-- `size` (Number) Size (between 1 and 10000)
-- `sort` (String) Sort 
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
+  - example : 10.10.10.0/24
+- `destination_type` (String) The type of the destination.
+  - example : VPC | TGW
+- `id` (String) The unique identifier of the rule.
+  - example: YOUR RESOURCE'S ID
+- `page` (Number) The page number for pagination.
+  - example : 2
+- `rule_type` (String) The type of the rule.
+  - enum: TGW_VPC, TGW_UPLINK
+  - example:TGW_VPC
+- `size` (Number) The number of items per page.
+  - example : 7df8abb4912e4709b1cb237daccca7a8
+- `sort` (String) The sorting criteria in the format 'field_name:asc' for ascending or 'field_name:desc' for decending order.
   - example : created_at:desc
-- `source_type` (String) source type - enum(VPC, TGW)
-- `state` (String) - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING
-- `tgw_connection_vpc_id` (String) tgw connection vpc id
-- `tgw_connection_vpc_name` (String) tgw connection vpc name
+- `source_type` (String) The type of the source
+  - enum:VPC, TGW
+  - example:VPC
+- `state` (String) The current lifecycle state of the rule.
+  - enum: CREATING, ACTIVE, DELETING, DELETED, ERROR, EDITING
+  - example:ACTIVE
+- `tgw_connection_vpc_id` (String) The identifier of the VPC that the transit gateway connection belongs to.
+  - example: YOUR RESOURCE'S TGW_CONNECTION_VPC_ID
+- `tgw_connection_vpc_name` (String) The name of the VPC that the transit gateway connection belongs to.
+  - example : vpcName
 
 ### Read-Only
 
-- `routing_rules` (Attributes List) transit gateway rules (see [below for nested schema](#nestedatt--routing_rules))
+- `routing_rules` (Attributes List) Routing rules (see [below for nested schema](#nestedatt--routing_rules))
 - `total_count` (Number) count
   - example: 20
 
@@ -130,20 +144,37 @@ variable "rule_type" {
 
 Read-Only:
 
-- `account_id` (String) AccountId
-- `created_at` (String) CreatedAt
-- `created_by` (String) CreatedBy
-- `description` (String) Description
-- `destination_cidr` (String) DestinationCidr
-- `destination_resource_id` (String) DestinationResourceId
-- `destination_resource_name` (String) DestinationResourceName
-- `destination_type` (String) DestinationType
-- `id` (String) id
-- `modified_at` (String) ModifiedAt
-- `modified_by` (String) ModifiedBy
-- `source_resource_id` (String) SourceResourceId
-- `source_resource_name` (String) SourceResourceName
-- `source_type` (String) SourceType
-- `state` (String) State
-- `tgw_connection_vpc_id` (String) TgwConnectionVpcId
-- `tgw_connection_vpc_name` (String) TgwConnectionVpcName
+- `account_id` (String) The identifier of the account that owns the rule.
+  - example: YOUR RESOURCE'S ACCOUNT_ID
+- `created_at` (String) The timestamp when the resource was created in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `created_by` (String) The user id that created the resource.
+  - example: YOUR RESOURCE'S CREATED_BY
+- `description` (String) Enter a brief explanation or note about this resource. This help identify the purpose or usage of the resource.
+  - example : description
+- `destination_cidr` (String) The destination IP address range in CIDR notation.
+  - example : 10.10.10.0/24
+- `destination_resource_id` (String) The identifier of the destination resource.
+  - example: YOUR RESOURCE'S DESTINATION_RESOURCE_ID
+- `destination_resource_name` (String) The name of the destination resource.
+  - example : resourcename
+- `destination_type` (String) The type of the destination.
+  - example : VPC | TGW
+- `id` (String) The unique identifier of the rule.
+  - example: YOUR RESOURCE'S ID
+- `modified_at` (String) The timestamp when the resource was last modified in ISO 8601 format.
+  - example : 2024-05-17T00:23:17Z
+- `modified_by` (String) The user id that modified the resource.
+  - example: YOUR RESOURCE'S MODIFIED_BY
+- `source_resource_id` (String) The identifier of the source resource.
+  - example: YOUR RESOURCE'S SOURCE_RESOURCE_ID
+- `source_resource_name` (String) The name of the source resource.
+  - example : sourceName
+- `source_type` (String) The type of the source.
+  - example : VPC | TGW
+- `state` (String) The current lifecycle state of the rule.
+  - example : ACTIVE
+- `tgw_connection_vpc_id` (String) The identifier of the VPC that the transit gateway connection belongs to.
+  - example: YOUR RESOURCE'S TGW_CONNECTION_VPC_ID
+- `tgw_connection_vpc_name` (String) The name of the VPC that the transit gateway connection belongs to.
+  - example : vpcName
