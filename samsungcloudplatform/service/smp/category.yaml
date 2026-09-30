@@ -1,0 +1,11 @@
+category:
+  smp_workspace: SMP
+  smp_workspaces: SMP
+  smp_rule_namespace: SMP
+  smp_rule_namespaces: SMP
+  smp_alert_manager: SMP
+  smp_alert_managers: SMP
+  smp_workspace_configuration: SMP
+  smp_workspace_configurations: SMP
+  smp_notification_group: SMP
+  smp_notification_groups: SMP

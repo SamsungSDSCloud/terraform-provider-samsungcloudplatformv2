@@ -192,6 +192,22 @@ func normalizePolicyDocument(doc string) (string, error) {
 	return string(canonical), nil
 }
 
+// policyDocumentForRefresh keeps the configured formatting when the API content
+// is semantically identical to the current state value, else adopts the
+// normalized API content. This prevents a perpetual refresh diff caused by the
+// backend re-serializing the JSON.
+func policyDocumentForRefresh(stateValue, apiContent string) string {
+	stateNorm, stateErr := normalizePolicyDocument(stateValue)
+	apiNorm, apiErr := normalizePolicyDocument(apiContent)
+	if stateErr == nil && apiErr == nil && stateNorm == apiNorm {
+		return stateValue
+	}
+	if apiErr != nil {
+		return apiContent
+	}
+	return apiNorm
+}
+
 // inlinePolicyIdentifier returns a deterministic hash of a normalized policy
 // document, used as the identifier chunk of an inline policy resource id.
 func inlinePolicyIdentifier(normalizedDoc string) string {

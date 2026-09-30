@@ -36,6 +36,7 @@ import (
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/securitygroup"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/servicewatch"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/ske"
+	smp "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/smp"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/sqlserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/vertica"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/service/virtualserver"
@@ -212,6 +213,12 @@ var ResourceConstructors = []func() resource.Resource{
 	servicewatch.NewServiceWatchLogStreamResource,
 	servicewatch.NewServiceWatchAlertResource,
 	servicewatch.NewServiceWatchEventRuleResource,
+	//smp
+	smp.NewSmpWorkspaceResource,
+	smp.NewSmpRuleNamespaceResource,
+	smp.NewSmpAlertManagerResource,
+	smp.NewSmpWorkspaceConfigurationResource,
+	smp.NewSmpNotificationGroupResource,
 	// Scr
 	scr.NewScrContainerRegistryResource,
 	scr.NewScrRepositoryResource,
@@ -478,6 +485,18 @@ var DataSourceConstructors = []func() datasource.DataSource{
 	servicewatch.NewServiceWatchLogStreamDataSource,
 	servicewatch.NewServiceWatchAlertDataSource,
 	servicewatch.NewServiceWatchEventRuleDataSource,
+
+	// smp
+	smp.NewSmpWorkspaceDataSource,
+	smp.NewSmpWorkspaceDataSources,
+	smp.NewSmpRuleNamespaceDataSource,
+	smp.NewSmpRuleNamespaceDataSources,
+	smp.NewSmpAlertManagerDataSource,
+	smp.NewSmpAlertManagerDataSources,
+	smp.NewSmpWorkspaceConfigurationDataSource,
+	smp.NewSmpWorkspaceConfigurationDataSources,
+	smp.NewSmpNotificationGroupDataSource,
+	smp.NewSmpNotificationGroupDataSources,
 
 	// scr
 	scr.NewScrContainerRegistryDataSource,

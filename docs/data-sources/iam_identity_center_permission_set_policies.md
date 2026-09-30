@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_iam_identity_center_permission_set_policies Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_iam_identity_center_permission_set_policies
+subcategory: Permission Set
 description: |-
   Reads the policies attached to an IAM Identity Center Permission Set (Data Source).
 ---

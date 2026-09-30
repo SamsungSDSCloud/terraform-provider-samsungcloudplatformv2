@@ -11,6 +11,7 @@ category:
   iam_identity_center_permission_set_managed_policy: Permission Set
   iam_identity_center_permission_set_inline_policy: Permission Set
   iam_identity_center_permission_set_policy: Permission Set
+  iam_identity_center_permission_set_policies: Permission Set
   iam_identity_center_permission_sets: Permission Set
   iam_identity_center_user: User
   iam_identity_center_users: User

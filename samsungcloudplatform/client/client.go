@@ -45,6 +45,7 @@ import (
 	securitygroupv1d1 "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/securitygroupv1d1"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/servicewatch"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/ske"
+	smp "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/smp"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/sqlserver"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/vertica"
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/virtualserver"
@@ -156,6 +157,8 @@ type SCPClient struct {
 	Mngc *multinodegpucluster.Client
 	// ServiceWatch
 	ServiceWatch *servicewatch.Client
+	// SMP
+	Smp *smp.Client
 }
 
 var AllowSDKDefaultVersion = map[string][]string{
@@ -235,6 +238,8 @@ var AllowSDKDefaultVersion = map[string][]string{
 	multinodegpucluster.ServiceType: {"v1.3"},
 	// ServiceWatch
 	servicewatch.ServiceType: {"v1.5"},
+	// SMP
+	smp.ServiceType: {"v1.0"},
 
 	// Misc.
 
@@ -369,6 +374,8 @@ func NewSCPClient(providerConfig *config.ProviderConfig) (*SCPClient, error) {
 		Mngc: multinodegpucluster.NewClient(NewDefaultConfig(providerConfig, multinodegpucluster.ServiceType)),
 		// ServiceWatch
 		ServiceWatch: servicewatch.NewClient(NewDefaultConfig(providerConfig, servicewatch.ServiceType)),
+		// SMP
+		Smp: smp.NewClient(NewDefaultConfig(providerConfig, smp.ServiceType)),
 	}
 
 	return client, nil
