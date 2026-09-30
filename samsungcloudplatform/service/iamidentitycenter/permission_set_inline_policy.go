@@ -143,7 +143,6 @@ func (r *iamIdentityCenterPermissionSetInlinePolicyResource) Create(ctx context.
 		}
 	}
 
-	plan.PolicyDocument = types.StringValue(normalizedDoc)
 	plan.Id = types.StringValue(composePermissionSetPolicyID(permissionSetId, instanceId, inlinePolicyIdentifier(normalizedDoc)))
 
 	diags = resp.State.Set(ctx, plan)
@@ -189,7 +188,7 @@ func (r *iamIdentityCenterPermissionSetInlinePolicyResource) Read(ctx context.Co
 			continue
 		}
 		if inlinePolicyIdentifier(norm) == identifier {
-			state.PolicyDocument = types.StringValue(norm)
+			state.PolicyDocument = types.StringValue(policyDocumentForRefresh(state.PolicyDocument.ValueString(), raw))
 			found = true
 			break
 		}
