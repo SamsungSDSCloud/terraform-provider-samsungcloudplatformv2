@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_multinodegpucluster_gpunode_public_nat_ip Resource - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_multinodegpucluster_gpunode_public_nat_ip
+subcategory: Multi-node GPU Cluster
 description: |-
   GPU Node Public NAT IP Resource. Assign(create)/Release(delete) a public NAT IP to a GPU Node.
 ---

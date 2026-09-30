@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_filestorage_access_rules Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_filestorage_access_rules
+subcategory: File Storage Access Rules
 description: |-
   Lists all access rules for a File Storage Volume. This data source is read-only and includes rules managed by external automation (e.g., Kubernetes Auto Scaling). Do NOT use this data source output with for_each to create filestorage_access_rule resources — doing so will re-introduce the forced reconciliation problem.
 ---

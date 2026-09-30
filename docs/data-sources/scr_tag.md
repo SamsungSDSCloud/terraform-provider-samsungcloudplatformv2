@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_scr_tag Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_scr_tag
+subcategory: Container Registry
 description: |-
   Get details of a specific tag in a Container Registry repository.
 ---

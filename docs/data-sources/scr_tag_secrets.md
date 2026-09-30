@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_scr_tag_secrets Data Source - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_scr_tag_secrets
+subcategory: Container Registry
 description: |-
   Get a list of secrets for a specific tag in a Container Registry.
 ---

@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_filestorage_access_rule Resource - samsungcloudplatformv2"
-subcategory: samsungcloudplatformv2_filestorage_access_rule
+subcategory: File Storage Access Rule
 description: |-
   Manages a File Storage Access Rule. Use this resource to grant access to a File Storage Volume for a specific object (VM, BM, GPU, GPU_NODE, ENDPOINT). Each rule is managed independently, allowing mixed management with external automation (e.g., Kubernetes Auto Scaling).
   Since all fields use RequiresReplace(), this resource does not support in-place updates. The Read function only checks rule existence (not attribute drift) — if a rule is removed externally, Terraform will detect it as gone and recreate it on the next apply.

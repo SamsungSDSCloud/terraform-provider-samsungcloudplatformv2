@@ -4,3 +4,5 @@ category:
   filestorage_snapshot_schedule: File Storage Snapshot Schedule
   filestorage_volume: File Storage Volume
   filestorage_volumes: File Storage Volume
+  filestorage_access_rule: File Storage Access Rule
+  filestorage_access_rules: File Storage Access Rules

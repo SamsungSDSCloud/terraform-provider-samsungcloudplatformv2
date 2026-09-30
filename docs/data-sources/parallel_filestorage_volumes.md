@@ -1,6 +1,6 @@
 ---
 page_title: "samsungcloudplatformv2_parallel_filestorage_volumes Data Source - samsungcloudplatformv2"
-subcategory: Parallel File Storage Volume
+subcategory: Parallel File Storage Volumes
 description: |-
   Lists of Volumes.
 ---

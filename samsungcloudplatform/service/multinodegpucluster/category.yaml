@@ -7,3 +7,4 @@ category:
   multinodegpucluster_cluster_fabrics: Multi-node GPU Cluster
   multinodegpucluster_node_pools: Multi-node GPU Cluster
   multinodegpucluster_cluster_fabric_member: Multi-node GPU Cluster
+  multinodegpucluster_gpunode_public_nat_ip: Multi-node GPU Cluster
