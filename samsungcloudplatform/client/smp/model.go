@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-const ServiceType = "scp-prometheus"
+const ServiceType = "scp-smp"
 
 // ----------------------------
 // Workspace
