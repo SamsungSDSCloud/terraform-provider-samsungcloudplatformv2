@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -29,6 +31,7 @@ var (
 	_ resource.Resource                = &skeNodepoolResource{}
 	_ resource.ResourceWithConfigure   = &skeNodepoolResource{}
 	_ resource.ResourceWithImportState = &skeClusterResource{}
+	_ resource.ResourceWithModifyPlan  = &skeNodepoolResource{}
 )
 
 func NewSkeNodepoolResource() resource.Resource {
@@ -720,12 +723,7 @@ func (r *skeNodepoolResource) Create(ctx context.Context, req resource.CreateReq
 	plan.Id = types.StringValue(data.GetNodepool().Id)
 	//plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
-	if plan.IsAutoScale.ValueBool() {
-		plan.DesiredNodeCount = types.Int32Value(data.GetNodepool().MinNodeCount)
-	} else {
-		plan.MinNodeCount = types.Int32Value(data.GetNodepool().DesiredNodeCount)
-		plan.MaxNodeCount = types.Int32Value(data.GetNodepool().DesiredNodeCount)
-	}
+	fillUnconfiguredNodeCounts(&plan, data.GetNodepool().MinNodeCount, data.GetNodepool().DesiredNodeCount)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -749,6 +747,7 @@ func (r *skeNodepoolResource) Create(ctx context.Context, req resource.CreateReq
 		State: resp.State,
 	}
 	r.Read(ctx, readReq, readResp)
+	resp.Diagnostics.Append(readResp.Diagnostics...)
 	resp.State = readResp.State
 }
 
@@ -779,6 +778,10 @@ func (r *skeNodepoolResource) Read(ctx context.Context, req resource.ReadRequest
 	nodepoolModel := converter.NodepoolResponseToNodepoolModel(data)
 
 	nodepoolObjectValue, diags := types.ObjectValueFrom(ctx, nodepoolModel.AttributeTypes(), nodepoolModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	state.Nodepool = nodepoolObjectValue
 
 	/* import state (determined by state.Name) root level setting start*/
@@ -806,6 +809,8 @@ func (r *skeNodepoolResource) Read(ctx context.Context, req resource.ReadRequest
 		state.PreferredIps = nodepoolModel.PreferredIps
 		state.SubnetId = nodepoolModel.SubnetId
 		state.Zone = nodepoolModel.Zone
+	} else {
+		refreshNodepoolRootFields(&state, nodepoolModel)
 	}
 
 	// Set refreshed state
@@ -920,6 +925,7 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 
 		if (plan.IsAutoScale.ValueBool() && (!state.MinNodeCount.Equal(plan.MinNodeCount) || !state.MaxNodeCount.Equal(plan.MaxNodeCount))) ||
 			(!plan.IsAutoScale.ValueBool() && !state.DesiredNodeCount.Equal(plan.DesiredNodeCount)) ||
+			!state.IsAutoScale.Equal(plan.IsAutoScale) ||
 			!state.IsAutoRecovery.Equal(plan.IsAutoRecovery) {
 			_, err := r.client.UpdateNodepool(ctx, plan.Id.ValueString(), plan)
 			if err != nil {
@@ -954,15 +960,14 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 
 	nodepoolModel := converter.NodepoolResponseToNodepoolModel(data)
 	nodepoolObjectValue, diags := types.ObjectValueFrom(ctx, nodepoolModel.AttributeTypes(), nodepoolModel)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	//plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 	plan.Nodepool = nodepoolObjectValue
-	if plan.IsAutoScale.ValueBool() {
-		plan.DesiredNodeCount = types.Int32Value(data.GetNodepool().MinNodeCount)
-	} else {
-		plan.MinNodeCount = types.Int32Value(data.GetNodepool().DesiredNodeCount)
-		plan.MaxNodeCount = types.Int32Value(data.GetNodepool().DesiredNodeCount)
-	}
+	fillUnconfiguredNodeCounts(&plan, data.GetNodepool().MinNodeCount, data.GetNodepool().DesiredNodeCount)
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -976,7 +981,299 @@ func (r *skeNodepoolResource) Update(ctx context.Context, req resource.UpdateReq
 		State: resp.State,
 	}
 	r.Read(ctx, readReq, readResp)
+	resp.Diagnostics.Append(readResp.Diagnostics...)
 	resp.State = readResp.State
+}
+
+// refreshNodepoolRootFields copies server values into root attributes so that
+// changes made outside Terraform show up in the plan. Attributes whose server
+// value does not map back to the configuration (custom_image_id is returned as a
+// name, advanced_settings and scp_gpu_driver get server defaults) are left as is.
+func refreshNodepoolRootFields(state *ske.NodepoolResource, m ske.Nodepool) {
+	state.Name = m.Name
+	state.KubernetesVersion = m.KubernetesVersion
+	state.ImageOs = m.Image.Os
+	state.ImageOsVersion = m.Image.OsVersion
+	state.IsAutoScale = m.AutoScaleEnabled
+	state.IsAutoRecovery = m.AutoRecoveryEnabled
+	state.KeypairName = m.Keypair.Name
+	state.ServerTypeId = m.ServerType.Id
+	state.VolumeSize = m.VolumeSize
+	state.VolumeTypeName = m.VolumeType.Name
+	state.SubnetId = m.SubnetId
+	state.Zone = m.Zone
+
+	// Only the counts used by the scaling mode are set by the user; the others
+	// are filled on apply (see fillUnconfiguredNodeCounts).
+	if m.AutoScaleEnabled.ValueBool() {
+		state.MinNodeCount = m.MinNodeCount
+		state.MaxNodeCount = m.MaxNodeCount
+	} else {
+		state.DesiredNodeCount = m.DesiredNodeCount
+	}
+
+	// Keep state order when elements match, so a config order differing from the server's is not a diff.
+	if !sameElements(state.Labels, m.Labels) {
+		state.Labels = m.Labels
+	}
+	if !sameElements(state.Taints, m.Taints) {
+		state.Taints = m.Taints
+	}
+	if !sameElements(state.LinkedResources, m.LinkedResources) {
+		state.LinkedResources = m.LinkedResources
+	}
+
+	// The server returns an empty value for unset strings, which matches a null config.
+	if !sameOptionalString(state.PreferredIps, m.PreferredIps) {
+		state.PreferredIps = m.PreferredIps
+	}
+	if !sameOptionalString(state.ServerGroupId, m.ServerGroupId) {
+		state.ServerGroupId = m.ServerGroupId
+	}
+}
+
+// sameElements reports whether a and b contain the same elements, ignoring order.
+func sameElements[T comparable](a, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	m := make(map[T]int, len(a))
+	for _, v := range a {
+		m[v]++
+	}
+	for _, v := range b {
+		if m[v] == 0 {
+			return false
+		}
+		m[v]--
+	}
+	return true
+}
+
+// sameOptionalString treats null and empty string as the same value.
+func sameOptionalString(a, b types.String) bool {
+	return a.ValueString() == b.ValueString()
+}
+
+// fillUnconfiguredNodeCounts fills node counts that do not apply to the current
+// scaling mode (desired for auto scale, min/max for fixed size) from the server.
+// Only unknown values are filled: overwriting a value set in the configuration
+// makes the apply result differ from the plan ("inconsistent result after apply").
+func fillUnconfiguredNodeCounts(plan *ske.NodepoolResource, minNodeCount int32, desiredNodeCount int32) {
+	if plan.IsAutoScale.ValueBool() {
+		if plan.DesiredNodeCount.IsUnknown() {
+			plan.DesiredNodeCount = types.Int32Value(minNodeCount)
+		}
+		return
+	}
+	if plan.MinNodeCount.IsUnknown() {
+		plan.MinNodeCount = types.Int32Value(desiredNodeCount)
+	}
+	if plan.MaxNodeCount.IsUnknown() {
+		plan.MaxNodeCount = types.Int32Value(desiredNodeCount)
+	}
+}
+
+// nodepoolPlanAttributes holds the attributes ModifyPlan reads. They are read one by
+// one as framework types, because the resource model uses Go slices and pointers
+// that cannot hold an unknown value (e.g. labels set from another resource).
+type nodepoolPlanAttributes struct {
+	IsAutoScale       types.Bool
+	IsAutoRecovery    types.Bool
+	DesiredNodeCount  types.Int32
+	MinNodeCount      types.Int32
+	MaxNodeCount      types.Int32
+	KubernetesVersion types.String
+	PreferredIps      types.String
+	Labels            types.List
+	Taints            types.List
+	LinkedResources   types.List
+	Nodepool          types.Object
+}
+
+func getNodepoolPlanAttributes(ctx context.Context, get func(context.Context, path.Path, interface{}) diag.Diagnostics) (nodepoolPlanAttributes, diag.Diagnostics) {
+	var a nodepoolPlanAttributes
+	var diags diag.Diagnostics
+	diags.Append(get(ctx, path.Root("is_auto_scale"), &a.IsAutoScale)...)
+	diags.Append(get(ctx, path.Root("is_auto_recovery"), &a.IsAutoRecovery)...)
+	diags.Append(get(ctx, path.Root("desired_node_count"), &a.DesiredNodeCount)...)
+	diags.Append(get(ctx, path.Root("min_node_count"), &a.MinNodeCount)...)
+	diags.Append(get(ctx, path.Root("max_node_count"), &a.MaxNodeCount)...)
+	diags.Append(get(ctx, path.Root("kubernetes_version"), &a.KubernetesVersion)...)
+	diags.Append(get(ctx, path.Root("preferred_ips"), &a.PreferredIps)...)
+	diags.Append(get(ctx, path.Root("labels"), &a.Labels)...)
+	diags.Append(get(ctx, path.Root("taints"), &a.Taints)...)
+	diags.Append(get(ctx, path.Root("linked_resources"), &a.LinkedResources)...)
+	diags.Append(get(ctx, path.Root("nodepool"), &a.Nodepool)...)
+	return a, diags
+}
+
+// nodepoolCreateOnlyAttributes have no update API. custom_image_id is left out
+// because import stores the image name in it, which never equals the configured ID.
+var nodepoolCreateOnlyAttributes = []string{
+	"name", "cluster_id", "image_os", "keypair_name", "server_type_id", "server_group_id",
+	"volume_type_name", "volume_size", "volume_max_iops", "volume_max_throughput",
+	"subnet_id", "zone", "advanced_settings",
+}
+
+// nodepoolUpgradeAttributes are sent only with the upgrade API, together with kubernetes_version.
+var nodepoolUpgradeAttributes = []string{"image_os_version", "scp_gpu_driver"}
+
+// validateNodepoolUpdate rejects changes Update cannot apply, which would otherwise
+// fail after apply with "inconsistent result" because the server keeps the old value.
+func validateNodepoolUpdate(ctx context.Context, req resource.ModifyPlanRequest, plan, state, config nodepoolPlanAttributes, resp *resource.ModifyPlanResponse) {
+	for _, name := range nodepoolCreateOnlyAttributes {
+		changed, diags := configuredAttributeChanged(ctx, req, name)
+		resp.Diagnostics.Append(diags...)
+		if changed {
+			resp.Diagnostics.AddAttributeError(path.Root(name), "Field changes not supported",
+				fmt.Sprintf("Changing `%s` will not update the actual nodepool. To change %s, recreate the nodepool.", name, name))
+		}
+	}
+
+	if plan.KubernetesVersion.Equal(state.KubernetesVersion) {
+		for _, name := range nodepoolUpgradeAttributes {
+			changed, diags := configuredAttributeChanged(ctx, req, name)
+			resp.Diagnostics.Append(diags...)
+			if changed {
+				resp.Diagnostics.AddAttributeError(path.Root(name), "Field changes not supported",
+					fmt.Sprintf("`%s` can only be changed together with `kubernetes_version`.", name))
+			}
+		}
+	}
+
+	// Switching the scaling mode sends the counts of the new mode, so they must be set.
+	if !plan.IsAutoScale.IsUnknown() && !plan.IsAutoScale.Equal(state.IsAutoScale) {
+		if plan.IsAutoScale.ValueBool() && (config.MinNodeCount.IsNull() || config.MaxNodeCount.IsNull()) {
+			resp.Diagnostics.AddAttributeError(path.Root("is_auto_scale"), "Missing node count",
+				"`min_node_count` and `max_node_count` must be set when enabling `is_auto_scale`.")
+		}
+		if !plan.IsAutoScale.ValueBool() && config.DesiredNodeCount.IsNull() {
+			resp.Diagnostics.AddAttributeError(path.Root("is_auto_scale"), "Missing node count",
+				"`desired_node_count` must be set when disabling `is_auto_scale`.")
+		}
+	}
+}
+
+// configuredAttributeChanged reports whether a root attribute set in the configuration
+// differs from a known prior state value. Null and empty strings are treated as equal.
+// A null state (not filled on import) is skipped, as the prior value is not known.
+// A value with any unknown part, even inside an object, is skipped until it is known.
+func configuredAttributeChanged(ctx context.Context, req resource.ModifyPlanRequest, name string) (bool, diag.Diagnostics) {
+	var plan, state, config attr.Value
+	var diags diag.Diagnostics
+	diags.Append(req.Plan.GetAttribute(ctx, path.Root(name), &plan)...)
+	diags.Append(req.State.GetAttribute(ctx, path.Root(name), &state)...)
+	diags.Append(req.Config.GetAttribute(ctx, path.Root(name), &config)...)
+	if diags.HasError() || config.IsNull() || state.IsNull() || !isFullyKnown(ctx, config) || !isFullyKnown(ctx, plan) {
+		return false, diags
+	}
+	if p, ok := plan.(types.String); ok {
+		return !sameOptionalString(p, state.(types.String)), diags
+	}
+	return !plan.Equal(state), diags
+}
+
+// isFullyKnown reports whether v and all values nested in it are known.
+func isFullyKnown(ctx context.Context, v attr.Value) bool {
+	tfValue, err := v.ToTerraformValue(ctx)
+	return err == nil && tfValue.IsFullyKnown()
+}
+
+// nodepoolNestedVolatile lists nested nodepool fields an update can change; they stay unknown.
+// Every nested field must be in this list or in nodepoolNestedKeep (checked by tests).
+var nodepoolNestedVolatile = []string{"status", "current_node_count", "modified_at", "modified_by"}
+
+// nodepoolNestedKeep reports, per nested nodepool field, whether the state value is kept:
+// fields fixed at creation always, fields that mirror an input while the input is unchanged.
+// An unknown input never equals the state, so fields that depend on it stay unknown.
+func nodepoolNestedKeep(plan, state nodepoolPlanAttributes) map[string]bool {
+	versionUnchanged := plan.KubernetesVersion.Equal(state.KubernetesVersion)
+	scaleUnchanged := plan.IsAutoScale.Equal(state.IsAutoScale) &&
+		plan.MinNodeCount.Equal(state.MinNodeCount) &&
+		plan.MaxNodeCount.Equal(state.MaxNodeCount) &&
+		plan.DesiredNodeCount.Equal(state.DesiredNodeCount)
+	return map[string]bool{
+		"id":                    true,
+		"name":                  true,
+		"account_id":            true,
+		"cluster":               true,
+		"created_at":            true,
+		"created_by":            true,
+		"keypair":               true,
+		"server_type":           true,
+		"server_group_id":       true,
+		"volume_type":           true,
+		"volume_size":           true,
+		"volume_max_iops":       true,
+		"volume_max_throughput": true,
+		"subnet_id":             true,
+		"zone":                  true,
+		"advanced_settings":     true,
+		"kubernetes_version":    versionUnchanged,
+		"image":                 versionUnchanged,
+		"labels":                plan.Labels.Equal(state.Labels),
+		"taints":                plan.Taints.Equal(state.Taints),
+		"linked_resources":      plan.LinkedResources.Equal(state.LinkedResources),
+		"preferred_ips":         plan.PreferredIps.Equal(state.PreferredIps),
+		"auto_recovery_enabled": plan.IsAutoRecovery.Equal(state.IsAutoRecovery),
+		"auto_scale_enabled":    plan.IsAutoScale.Equal(state.IsAutoScale),
+		// desired_node_count also changes with auto scale
+		"min_node_count":     scaleUnchanged,
+		"max_node_count":     scaleUnchanged,
+		"desired_node_count": scaleUnchanged && !plan.IsAutoScale.ValueBool(),
+	}
+}
+
+// ModifyPlan keeps values an update cannot change out of "(known after apply)".
+func (r *skeNodepoolResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip on create and destroy
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	plan, diags := getNodepoolPlanAttributes(ctx, req.Plan.GetAttribute)
+	resp.Diagnostics.Append(diags...)
+	state, diags := getNodepoolPlanAttributes(ctx, req.State.GetAttribute)
+	resp.Diagnostics.Append(diags...)
+	config, diags := getNodepoolPlanAttributes(ctx, req.Config.GetAttribute)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	validateNodepoolUpdate(ctx, req, plan, state, config, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Node counts not used by the scaling mode are copied from the server on apply
+	// (see fillUnconfiguredNodeCounts). Keep them while their source is unchanged.
+	if plan.IsAutoScale.Equal(state.IsAutoScale) {
+		if plan.IsAutoScale.ValueBool() {
+			if plan.MinNodeCount.Equal(state.MinNodeCount) {
+				useStateIfUnconfigured(&plan.DesiredNodeCount, state.DesiredNodeCount, config.DesiredNodeCount)
+			}
+		} else if plan.DesiredNodeCount.Equal(state.DesiredNodeCount) {
+			useStateIfUnconfigured(&plan.MinNodeCount, state.MinNodeCount, config.MinNodeCount)
+			useStateIfUnconfigured(&plan.MaxNodeCount, state.MaxNodeCount, config.MaxNodeCount)
+		}
+	}
+
+	if canPinNestedObject(plan.Nodepool, state.Nodepool) {
+		keep := nodepoolNestedKeep(plan, state)
+		nodepool, diags := pinNestedObject(ctx, state.Nodepool, keep)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		plan.Nodepool = nodepool
+	}
+
+	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("desired_node_count"), plan.DesiredNodeCount)...)
+	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("min_node_count"), plan.MinNodeCount)...)
+	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("max_node_count"), plan.MaxNodeCount)...)
+	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("nodepool"), plan.Nodepool)...)
 }
 
 func (r *skeNodepoolResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

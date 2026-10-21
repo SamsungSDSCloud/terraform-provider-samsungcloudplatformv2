@@ -3,10 +3,13 @@ package multinodegpucluster
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client"
 	multinodegpuclusterClient "github.com/SamsungSDSCloud/terraform-provider-samsungcloudplatformv2/v6/samsungcloudplatform/client/multinodegpucluster"
 	scpsdk "github.com/SamsungSDSCloud/terraform-sdk-samsungcloudplatformv2/v6/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -16,8 +19,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &ClusterFabricMemberResource{}
-	_ resource.ResourceWithConfigure = &ClusterFabricMemberResource{}
+	_ resource.Resource                = &ClusterFabricMemberResource{}
+	_ resource.ResourceWithConfigure   = &ClusterFabricMemberResource{}
+	_ resource.ResourceWithImportState = &ClusterFabricMemberResource{}
 )
 
 func NewClusterFabricMemberResource() resource.Resource {
@@ -223,4 +227,18 @@ func (multinodegpuclusterRS *ClusterFabricMemberResource) Delete(ctx context.Con
 		"Delete not supported",
 		"Cluster Fabric member changes cannot be reverted. It is only removed from the Terraform state.",
 	)
+}
+
+func (multinodegpuclusterRS *ClusterFabricMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.Split(req.ID, ":")
+	if len(parts) != 3 || parts[0] == "" || parts[1] == "" || parts[2] == "" {
+		resp.Diagnostics.AddError("Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: before_cluster_fabric_id:after_cluster_fabric_id:gpu_node_id1,gpu_node_id2, got: %q", req.ID))
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("before_cluster_fabric_id"), parts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("after_cluster_fabric_id"), parts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("gpu_node_id_list"), strings.Split(parts[2], ","))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
 }

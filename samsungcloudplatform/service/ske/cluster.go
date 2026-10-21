@@ -30,6 +30,7 @@ var (
 	_ resource.Resource                = &skeClusterResource{}
 	_ resource.ResourceWithConfigure   = &skeClusterResource{}
 	_ resource.ResourceWithImportState = &skeClusterResource{}
+	_ resource.ResourceWithModifyPlan  = &skeClusterResource{}
 )
 
 // linkedResourceObjectType is the tfsdk object type for the linked_resources nested block.
@@ -1097,6 +1098,85 @@ func (r *skeClusterResource) syncLinkedResources(ctx context.Context, state ske.
 	}
 	plan.Id = types.StringValue(data.ResourceId)
 	return nil
+}
+
+// clusterNestedVolatile lists nested cluster fields an update can change; they stay unknown.
+// Every nested field must be in this list or in clusterNestedKeep (checked by tests).
+var clusterNestedVolatile = []string{
+	"status", "node_count", "max_node_count", "modified_at", "modified_by",
+	"private_endpoint_url", "private_kubeconfig_download_yn", "public_endpoint_url", "public_kubeconfig_download_yn",
+}
+
+// clusterNestedKeep reports, per nested cluster field, whether the state value is kept:
+// fields fixed at creation always, fields that mirror an input while the input is unchanged.
+func clusterNestedKeep(plan, state ske.ClusterResource) map[string]bool {
+	return map[string]bool{
+		"id":                     true,
+		"name":                   true,
+		"account_id":             true,
+		"cluster_namespace":      true,
+		"created_at":             true,
+		"created_by":             true,
+		"vpc":                    true,
+		"subnet":                 true,
+		"managed_security_group": true,
+		"kubernetes_version":     plan.KubernetesVersion.Equal(state.KubernetesVersion),
+		"security_group_list":    plan.SecurityGroupIdList.Equal(state.SecurityGroupIdList),
+		"private_endpoint_access_control_resources": plan.PrivateEndpointAccessControlResources.Equal(state.PrivateEndpointAccessControlResources),
+		"public_endpoint_access_control_ip":         plan.PublicEndpointAccessControlIp.Equal(state.PublicEndpointAccessControlIp),
+		"service_watch_logging_enabled":             plan.ServiceWatchLoggingEnabled.Equal(state.ServiceWatchLoggingEnabled),
+		"volume":                                    plan.NfsVolumeId.Equal(state.NfsVolumeId),
+		"additional_subnet_id_list":                 plan.AdditionalSubnetIdList.Equal(state.AdditionalSubnetIdList),
+		"linked_resources":                          plan.LinkedResources.Equal(state.LinkedResources),
+	}
+}
+
+// ModifyPlan keeps values an update cannot change out of "(known after apply)".
+func (r *skeClusterResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip on create and destroy
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan, state, config ske.ClusterResource
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Update skips attributes left unset in the configuration, so the server keeps them.
+	useStateIfUnconfigured(&plan.PrivateEndpointAccessControlResources, state.PrivateEndpointAccessControlResources, config.PrivateEndpointAccessControlResources)
+	useStateIfUnconfigured(&plan.PublicEndpointAccessControlIp, state.PublicEndpointAccessControlIp, config.PublicEndpointAccessControlIp)
+	useStateIfUnconfigured(&plan.SecurityGroupIdList, state.SecurityGroupIdList, config.SecurityGroupIdList)
+	useStateIfUnconfigured(&plan.NfsVolumeId, state.NfsVolumeId, config.NfsVolumeId)
+	useStateIfUnconfigured(&plan.AdditionalSubnetIdList, state.AdditionalSubnetIdList, config.AdditionalSubnetIdList)
+	useStateIfUnconfigured(&plan.DeletionProtectionEnabled, state.DeletionProtectionEnabled, config.DeletionProtectionEnabled)
+	useStateIfUnconfigured(&plan.LinkedResources, state.LinkedResources, config.LinkedResources)
+
+	if canPinNestedObject(plan.Cluster, state.Cluster) {
+		keep := clusterNestedKeep(plan, state)
+		cluster, diags := pinNestedObject(ctx, state.Cluster, keep)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		plan.Cluster = cluster
+	}
+
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Terraform can report a change for an unset Optional+Computed nested list
+	// (e.g. linked_resources) even though the value above was kept from state.
+	// When no root attribute differs, Update calls no API, so keep the nested
+	// object too; otherwise every plan shows an update (perpetual diff).
+	if rootAttributesUnchanged(resp.Plan.Raw, req.State.Raw, "cluster") {
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("cluster"), state.Cluster)...)
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
