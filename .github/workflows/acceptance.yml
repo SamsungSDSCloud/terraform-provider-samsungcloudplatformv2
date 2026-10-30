@@ -41,12 +41,12 @@ jobs:
             go_timeout: 600m
             job_timeout: 630
           # 별도 계정 : CloudControl / ID Center 만
-          - name: cloudcontrol
-            mode: include
-            ak: SCP_CC_ACCESS_KEY
-            sk: SCP_CC_SECRET_KEY
-            go_timeout: 60m
-            job_timeout: 90
+          #- name: cloudcontrol
+          #  mode: include
+          #  ak: SCP_CC_ACCESS_KEY
+          #  sk: SCP_CC_SECRET_KEY
+          #  go_timeout: 60m
+          #  job_timeout: 90
 
     env:
       TF_ACC: '1'
